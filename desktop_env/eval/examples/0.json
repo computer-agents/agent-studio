@@ -1,0 +1,23 @@
+{
+    "applications": ["vscode"],
+    "task_id": 0,
+    "require_login": true,
+    "intent_template": "Install the extension '{{extension}}' in VSCode",
+    "instantiation_dict": {"extension": "Python by Microsoft"},
+    "eval": {
+        "eval_types": ["string_match"],
+        "reference_answers": ["ms-python.python"],
+        "program_html": [
+            {
+                "required_contents": [
+                    "code --list-extensions"
+                ]
+            }
+        ]
+    },
+    "reference_action_sequence": {
+        "action_sequence": [
+            "code --install-extension ms-python.python"
+        ]
+    }
+}
