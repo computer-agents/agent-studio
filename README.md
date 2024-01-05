@@ -23,6 +23,10 @@ pip install -r requirements.txt
 python minimal_example.py
 ```
 
+### Google Workspace
+
+[Enable Google APIs, configure OAuth, and download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment)
+
 ## Format
 
 ```bash
