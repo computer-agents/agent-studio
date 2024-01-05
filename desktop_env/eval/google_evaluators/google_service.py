@@ -4,12 +4,9 @@ from google.auth.transport.requests import Request
 from google.oauth2 import credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-
-from desktop_env.eval.evaluator import Evaluator
 
 
-class GEvaluator(Evaluator):
+class GoogleService(object):
     def __init__(self, 
                  scopes: list[str], 
                  token_path: str,
