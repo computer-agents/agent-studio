@@ -9,17 +9,31 @@ Playground is a holistic and scalable benchmark for measuring and training an AI
 
 ## Setup environment
 
+python
 ```bash
 conda create --name playground python=3.11 -y
 conda activate playground
 pip install -r requirements.txt
 ```
 
+vscode (ignore if run in vscode)
+```
+# from https://gist.github.com/jarek-przygodzki/671e9922c8906fbb78194355acd2f449
+To add code to PATH in macOS (in order to run code from the command line) we may to open up VS Code and open the 'Command Palette' with Shift+Command+P on Mac, or Shift+Control+P on Linux. In it, enter shell command and look for the Shell Command: Install 'code' command in PATH option.
+```
+
+
+
 (optional, for reproducibility) [Install VirtualBox](https://ubuntu.com/tutorials/how-to-run-ubuntu-desktop-on-a-virtual-machine-using-virtualbox#1-overview) (we use VirtualBox 7 and Ubuntu 22.04 image)
 
 ## Run example
 
 ```bash
+python minimal_example.py
+```
+
+```bash
+# eval vscode
 python minimal_example.py
 ```
 

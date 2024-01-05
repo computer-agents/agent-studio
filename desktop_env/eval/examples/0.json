@@ -5,7 +5,7 @@
     "intent_template": "Install the extension '{{extension}}' in VSCode",
     "instantiation_dict": {"extension": "Python by Microsoft"},
     "eval": {
-        "eval_types": ["string_match"],
+        "eval_types": ["check_vscode_extension"],
         "reference_answers": ["ms-python.python"],
         "program_html": [
             {
