@@ -18,6 +18,8 @@ class GEvaluator(Evaluator):
                  debug: bool = False
                 ) -> None:
         self.scopes = scopes
+        self.service_name = service_name
+        self.service_version = service_version
         self.creds = self.authenticate(token_path)
         self.service = build(service_name, service_version, credentials=self.creds)
         self.debug = debug
@@ -34,7 +36,7 @@ class GEvaluator(Evaluator):
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file("credentials.json", self.scopes)
+                flow = InstalledAppFlow.from_client_secrets_file(f"{self.service_name}_credentials.json", self.scopes)
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
             with open(token_path, "w") as token:
