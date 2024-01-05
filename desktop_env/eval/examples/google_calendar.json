@@ -1,10 +1,7 @@
 {
     "applications": ["google-calendar"],
     "task_id": 0,
-    "require_login": true,
     "token_path": "token.json",
-    "intent_template": "Install the extension '{{extension}}' in VSCode",
-    "instantiation_dict": {"extension": "Github Copilot"},
     "eval": {
         "eval_types": ["calendar_eval"],
         "reference_answers": {
