@@ -38,8 +38,8 @@ python minimal_example.py
 ```
 
 ```bash
-# eval vscode
-python minimal_example.py
+# eval vscode extensions
+python desktop_env/eval/codes/vscode_extension.py
 ```
 
 ## Format
