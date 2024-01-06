@@ -1,6 +1,6 @@
 import json
-from pathlib import Path
 import os.path
+from pathlib import Path
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -18,12 +18,12 @@ class GoogleDocsEvaluator(Evaluator):
 
     @staticmethod
     def get_text_at_index(document, index: int):
-        for element in document['body']['content']:
-            if 'startIndex' in element and 'endIndex' in element:
-                if element['startIndex'] <= index < element['endIndex']:
+        for element in document["body"]["content"]:
+            if "startIndex" in element and "endIndex" in element:
+                if element["startIndex"] <= index < element["endIndex"]:
                     # Assuming the element contains text
-                    if 'textRun' in element['paragraph']['elements'][0]:
-                        return element['paragraph']['elements'][0]['textRun']['content']
+                    if "textRun" in element["paragraph"]["elements"][0]:
+                        return element["paragraph"]["elements"][0]["textRun"]["content"]
         return None
 
     def __call__(
@@ -43,7 +43,7 @@ class GoogleDocsEvaluator(Evaluator):
                     score *= self.string_match(ref=value, pred=pred)
 
         return score
-    
+
 
 if __name__ == "__main__":
     # If modifying these scopes, delete the file token.json.
@@ -79,7 +79,7 @@ if __name__ == "__main__":
         # Get text at a specific index
         index = 10
         text_at_index = GoogleDocsEvaluator.get_text_at_index(document, index)
-        print(f"The text:", text_at_index)
+        print("The text:", text_at_index)
 
     except HttpError as err:
         print(err)

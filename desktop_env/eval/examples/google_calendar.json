@@ -1,0 +1,23 @@
+{
+    "applications": ["google-calendar"],
+    "task_id": 0,
+    "token_path": "token.json",
+    "eval": {
+        "eval_types": ["calendar_eval"],
+        "reference_answers": {
+            "event_match": {
+                "summary": "Meeting with Team",
+                "location": "Office",
+                "description": "Discuss project status",
+                "start": {"dateTime": "2024-01-05T10:00:00+01:00"},
+                "end": {"dateTime": "2024-01-05T11:00:00+01:00"},
+                "attendees": [{"email": "example@email.com"}]
+            }
+        }
+
+    },
+    "reference_action_sequence": {
+        "action_sequence": [
+        ]
+    }
+}

@@ -5,11 +5,11 @@
 # Cause the script to exit if a single command fails
 set -euo pipefail
 
-FLAKE8_VERSION_REQUIRED="6.0.0"
-BLACK_VERSION_REQUIRED="23.1.0"
+FLAKE8_VERSION_REQUIRED="7.0.0"
+BLACK_VERSION_REQUIRED="23.12.1"
 SHELLCHECK_VERSION_REQUIRED="0.7.0"
 MYPY_VERSION_REQUIRED="1.8.0"
-ISORT_VERSION_REQUIRED="5.12.0"
+ISORT_VERSION_REQUIRED="5.13.2"
 
 check_python_command_exist() {
     VERSION=""
@@ -132,11 +132,6 @@ shellcheck_scripts() {
   shellcheck "${SHELLCHECK_FLAGS[@]}" "$@"
 }
 
-FLAKE8_FLAGS=(
-  "--max-line-length=88"
-  "--inline-quotes=\""
-)
-
 format_all() {
     command -v flake8 &> /dev/null;
     HAS_FLAKE8=$?
@@ -154,7 +149,7 @@ format_all() {
     if [ $HAS_FLAKE8 ]; then
       echo "$(date)" "Flake8...."
       git ls-files -- '*.py' "${GIT_LS_EXCLUDES[@]}" | xargs -P 5 \
-        flake8 "${FLAKE8_FLAGS[@]}"
+        flake8 --config=.flake8
     fi
 
     if command -v shellcheck >/dev/null; then

@@ -2,6 +2,7 @@
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 <a href="https://mypy-lang.org/"><img src="https://www.mypy-lang.org/static/mypy_badge.svg" alt="Checked with mypy"></a>
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+<a href="https://pre-commit.com/"><img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white" alt="pre-commit"></a>
 
 # Playground
 
@@ -36,8 +37,7 @@ bash scripts/format.sh
 ## Run tests
 
 ```bash
-cd tests
-PYTHONPATH=.. pytest test_computer.py
+PYTHONPATH=. pytest test/test_xxx.py
 ```
 
 ## Acknowledgement
