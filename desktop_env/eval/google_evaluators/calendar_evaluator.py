@@ -2,6 +2,7 @@ from operator import is_
 from pathlib import Path
 import json
 import datetime
+from typing import Union, Dict
 
 from desktop_env.eval.google_evaluators.google_service import GoogleService
 from desktop_env.eval.evaluator import Evaluator
@@ -101,18 +102,18 @@ class GoogleCalendarEvaluator(Evaluator):
         return score
     
     @staticmethod
-    def dict_match_left(ref: dict[str, str | list | dict], pred: dict[str, str | list | dict]) -> float:
+    def dict_match_left(ref: dict[str, str | list | Dict], pred: dict[str, Union[str, list, dict]]) -> float:
         score = 1.0
         for key, item in ref.items():
-            if type(item) != type(pred.get(key, None)):
-                return 0.0
+            pred_item = pred.get(key, None)
+            if isinstance(item, dict) and isinstance(pred_item, dict):
+                score *= GoogleCalendarEvaluator.dict_match_left(ref=item, pred=pred_item)
+            elif isinstance(item, list) and isinstance(pred_item, list):
+                score *= GoogleCalendarEvaluator.list_match(ref=item, pred=pred_item)
+            elif isinstance(item, (str, int, float)) and isinstance(pred_item, (str, int, float)):
+                score *= GoogleCalendarEvaluator.item_match(ref=item, pred=pred_item)
             else:
-                if isinstance(item, dict):
-                    score *= GoogleCalendarEvaluator.dict_match_left(ref=item, pred=pred[key])
-                elif isinstance(item, list):
-                    score *= GoogleCalendarEvaluator.list_match(ref=item, pred=pred[key])
-                else:
-                    score *= GoogleCalendarEvaluator.item_match(ref=item, pred=pred.get(key, None))
+                return 0.0
         return score
 
     def __call__(
