@@ -1,5 +1,7 @@
 from desktop_env.computer.env import ComputerEnv
-from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarEvaluator
+from desktop_env.eval.google_evaluators.calendar_evaluator import (
+    GoogleCalendarEvaluator,
+)
 
 
 def test_calendar(
