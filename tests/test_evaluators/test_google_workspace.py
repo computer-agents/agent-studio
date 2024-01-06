@@ -7,7 +7,7 @@ def test_calendar(
 ) -> None:
     evaluator = GoogleCalendarEvaluator()
 
-    action_seq = """from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+    action_seq_create = """from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
 
 gcalendar_service = GoogleCalendarService(token_path="token.json")
 # Create an event
@@ -19,21 +19,21 @@ event = gcalendar_service.create_event(
         end_time='2024-01-05T10:00:00',
         attendees=['example@email.com']
     )
-print(f"Created event: {event.get('htmlLink')}")
-
-event_info = gcalendar_service.get_event(event_id=event.get('id'))
-print(json.dumps(event_info, indent=2))
-
-# Search events
-events = gcalendar_service.search_events(start_time='2024-01-05T00:00:00Z', end_time='2024-01-05T23:59:59Z')
-print(json.dumps(events, indent=2))
-
-# Delete an event
-assert gcalendar_service.delete_event(event_id=event.get('id')) == True
 """
 
-    for chunk in computer_env.run("python", action_seq):
+    for chunk in computer_env.run("python", action_seq_create):
         print(chunk)
     assert evaluator("desktop_env/eval/examples/google_calendar.json") == 1.0
 
-    print("Succ")
+    action_seq_del = """from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+
+gcalendar_service = GoogleCalendarService(token_path="token.json")
+# Search events
+events = gcalendar_service.search_events(start_time='2024-01-05T09:00:00Z', end_time='2024-01-05T10:59:59Z')
+
+# Delete an event
+assert gcalendar_service.delete_event(event_id=events[0].get('id')) == True
+"""
+    for chunk in computer_env.run("python", action_seq_del):
+        print(chunk)
+    assert evaluator("desktop_env/eval/examples/google_calendar.json") == 0.0
