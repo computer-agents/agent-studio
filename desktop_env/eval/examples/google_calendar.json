@@ -14,7 +14,7 @@
                 "attendees": [{"email": "example@email.com"}]
             }
         }
-        
+
     },
     "reference_action_sequence": {
         "action_sequence": [

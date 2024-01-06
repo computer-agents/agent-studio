@@ -132,11 +132,6 @@ shellcheck_scripts() {
   shellcheck "${SHELLCHECK_FLAGS[@]}" "$@"
 }
 
-FLAKE8_FLAGS=(
-  "--max-line-length=88"
-  "--inline-quotes=\""
-)
-
 format_all() {
     command -v flake8 &> /dev/null;
     HAS_FLAKE8=$?
@@ -154,7 +149,7 @@ format_all() {
     if [ $HAS_FLAKE8 ]; then
       echo "$(date)" "Flake8...."
       git ls-files -- '*.py' "${GIT_LS_EXCLUDES[@]}" | xargs -P 5 \
-        flake8 "${FLAKE8_FLAGS[@]}"
+        flake8 --config=.flake8
     fi
 
     if command -v shellcheck >/dev/null; then
