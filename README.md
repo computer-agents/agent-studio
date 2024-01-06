@@ -36,8 +36,7 @@ bash scripts/format.sh
 ## Run tests
 
 ```bash
-cd tests
-PYTHONPATH=.. pytest test_computer.py
+PYTHONPATH=. pytest test/test_xxx.py
 ```
 
 ## Acknowledgement

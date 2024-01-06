@@ -12,4 +12,4 @@ def computer_env() -> Generator[ComputerEnv, None, None]:
     """
     env = ComputerEnv()
     yield env
-    env.close()
+    # env.close()
