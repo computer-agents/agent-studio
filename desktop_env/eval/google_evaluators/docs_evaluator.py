@@ -79,7 +79,7 @@ if __name__ == "__main__":
         # Get text at a specific index
         index = 10
         text_at_index = GoogleDocsEvaluator.get_text_at_index(document, index)
-        print(f"The text:", text_at_index)
+        print("The text:", text_at_index)
 
     except HttpError as err:
         print(err)

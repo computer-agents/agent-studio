@@ -9,7 +9,8 @@ def test_calendar(
 ) -> None:
     evaluator = GoogleCalendarEvaluator()
 
-    action_seq_create = """from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+    action_seq_create = """
+from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
 
 gcalendar_service = GoogleCalendarService(token_path="token.json")
 # Create an event
@@ -27,11 +28,15 @@ event = gcalendar_service.create_event(
         print(chunk)
     assert evaluator("desktop_env/eval/examples/google_calendar.json") == 1.0
 
-    action_seq_del = """from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+    action_seq_del = """
+from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
 
 gcalendar_service = GoogleCalendarService(token_path="token.json")
 # Search events
-events = gcalendar_service.search_events(start_time='2024-01-05T09:00:00Z', end_time='2024-01-05T10:59:59Z')
+events = gcalendar_service.search_events(
+    start_time='2024-01-05T09:00:00Z',
+    end_time='2024-01-05T10:59:59Z'
+    )
 
 # Delete an event
 assert gcalendar_service.delete_event(event_id=events[0].get('id')) == True
