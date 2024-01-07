@@ -1,7 +1,5 @@
 import json
 import os.path
-import os
-
 from pathlib import Path
 
 from google.auth.transport.requests import Request
@@ -35,16 +33,16 @@ class GoogleDocsEvaluator(Evaluator):
         with open(config_file, "r") as f:
             configs = json.load(f)
 
-        # score = 1.0
-        # document = configs["eval"]["document"]
-        # index = configs["eval"]["index"]
-        # for approach, value in configs["eval"]["reference_answers"].items():
-        #     match approach:
-        #         case "string_match":
-        #             pred = GoogleDocsEvaluator.get_text_at_index(document, index)
-        #             score *= self.string_match(ref=value, pred=pred)
+        score = 1.0
+        document = configs["eval"]["document"]
+        index = configs["eval"]["index"]
+        for approach, value in configs["eval"]["reference_answers"].items():
+            match approach:
+                case "string_match":
+                    pred = GoogleDocsEvaluator.get_text_at_index(document, index)
+                    score *= self.string_match(ref=value, pred=pred)
 
-        # return score
+        return score
 
 
 if __name__ == "__main__":
@@ -52,7 +50,7 @@ if __name__ == "__main__":
     scopes = ["https://www.googleapis.com/auth/documents.readonly"]
 
     # The ID of the document.
-    document_id = "1HgxPOboJFd8RYxODbQbb5jtM3Hxc1Y9OyO94SNJ4qkE"
+    document_id = "1ABsm2s7XKI2u0VYofeI8y6Pa4te-ycBbrLjMoBu-ZGk"
 
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -66,7 +64,7 @@ if __name__ == "__main__":
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file("credentials.json", scopes)
-            creds = flow.run_local_server(port=51152)
+            creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open("token.json", "w") as token:
             token.write(creds.to_json())
@@ -81,7 +79,7 @@ if __name__ == "__main__":
         # Get text at a specific index
         index = 10
         text_at_index = GoogleDocsEvaluator.get_text_at_index(document, index)
-        print(f"The text:", text_at_index)
+        print("The text:", text_at_index)
 
     except HttpError as err:
         print(err)
