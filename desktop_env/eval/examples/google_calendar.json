@@ -1,7 +1,6 @@
 {
-    "environment": "google_calendar",
+    "environment": "google_calendar_env",
     "score": 1.0,
-    "preprocess": [],
     "tasks": [
         {
             "task_id": 0,
@@ -29,6 +28,5 @@
                 "action_sequence": []
             }
         }
-    ],
-    "postprocess": []
+    ]
 }

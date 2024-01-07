@@ -66,7 +66,7 @@ class GoogleCalendarEvaluator(Evaluator):
         with open(config_file, "r") as f:
             task_configs = json.load(f)
         with open(
-                os.path.join("desktop_env/eval/examples/env", f"{task_configs['environment']}.json")
+                os.path.join("desktop_env/eval/examples/envs", f"{task_configs['environment']}.json")
                 , "r"
             ) as f:
             env_configs = json.load(f)

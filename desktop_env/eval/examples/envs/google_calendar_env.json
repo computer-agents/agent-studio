@@ -1,0 +1,12 @@
+{
+    "applications": ["google-calendar"],
+    "applications_settings": {
+        "google-calendar": {
+            "token_path": "token.json"
+        }
+    },
+    "intent": "Add some introductions to this environment",
+    "environment": {
+        
+    }
+}
