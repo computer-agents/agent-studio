@@ -21,3 +21,6 @@ computer.mouse.move(
 )  # pixel coordinates (e.g., x=1920, y=1080), lefttop is (0, 0)
 
 computer.run("shell", "code --list-extensions")
+
+for chunk in computer.run("python", "print('Hello World')"):
+    print(chunk)
