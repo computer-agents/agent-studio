@@ -20,6 +20,9 @@
                             "start": {"dateTime": "2024-01-05T10:00:00+01:00"},
                             "end": {"dateTime": "2024-01-05T11:00:00+01:00"}
                         }
+                    },
+                    "extra_info": {
+                        "calendar_id": "primary"
                     }
                 }
             ],

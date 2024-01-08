@@ -89,7 +89,9 @@ class GoogleCalendarEvaluator(Evaluator):
                         match approach:
                             case "event_match":
                                 pred = gcalendar_service.search_events(
-                                    value["start"]["dateTime"], value["end"]["dateTime"]
+                                    value["start"]["dateTime"],
+                                    value["end"]["dateTime"],
+                                    calendar_id=eval["extra_info"]["calendar_id"],
                                 )
                                 if len(pred) == 0:
                                     score = 0.0

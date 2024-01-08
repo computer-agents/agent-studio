@@ -1,6 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
+    "additionalProperties": false,
     "required": ["environment", "score_weight", "tasks"],
     "properties": {
         "environment": {
@@ -13,6 +14,7 @@
             "type": "array",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "required": ["task_id", "available_apis", "score", "reset", "eval", "intent_template"],
                 "properties": {
                     "task_id": {
@@ -40,12 +42,16 @@
                         "type": "array",
                         "items": {
                             "type": "object",
+                            "additionalProperties": false,
                             "required": ["eval_types", "reference_answers"],
                             "properties": {
                                 "eval_types": {
                                     "type": "string"
                                 },
                                 "reference_answers": {
+                                    "type": "object"
+                                },
+                                "extra_info": {
                                     "type": "object"
                                 }
                             }
