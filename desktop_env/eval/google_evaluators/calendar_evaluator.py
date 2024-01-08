@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 from typing import Union
 import os
-import sys
 
 from desktop_env.eval.evaluator import Evaluator
 from desktop_env.computer.gspace.gspace import GoogleCalendarService

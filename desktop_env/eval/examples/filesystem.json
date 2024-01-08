@@ -1,0 +1,54 @@
+{
+    "environment": "filesystem_env",
+    "score_weight": 1.0,
+    "tasks": [
+        {
+            "task_id": 1,
+            "apis": ["os"],
+            "score": 1.0,
+            "eval": [
+                {
+                    "eval_types": "filesystem",
+                    "reference_answers": {
+                        "exists": {
+                            "tmp/test.txt": true,
+                            "tmp": true
+                        },
+                        "type_check": {
+                            "tmp/test.txt": "file",
+                            "tmp": "folder"
+                        },
+                        "permissions_check": {
+                            "tmp/test.txt": "-rw-r--r--",
+                            "tmp": "drwxrwxr-x"
+                        },
+                        "content_check": {
+                            "tmp/test.txt": "Hello World!"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "task_id": 2,
+            "apis": ["os"],
+            "score": 2.0,
+            "eval": [
+                {
+                    "eval_types": "filesystem",
+                    "reference_answers": {
+                        "exists": {
+                            "tmp": true
+                        },
+                        "type_check": {
+                            "tmp": "folder"
+                        },
+                        "permissions_check": {
+                            "tmp": "drwxrwxr-x"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
