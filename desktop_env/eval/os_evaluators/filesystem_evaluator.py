@@ -6,6 +6,7 @@ import stat
 from datetime import datetime
 import pwd
 import grp
+import filecmp
 
 from desktop_env.eval.evaluator import Evaluator
 
@@ -24,6 +25,10 @@ class FilesystemEvaluator(Evaluator):
             return content == expected_content
         except IOError:
             return False
+    
+    @staticmethod
+    def file_identical(path1: str, path2: str) -> bool:
+        return filecmp.cmp(path1, path2)
 
     @staticmethod
     def permission_match(path: str, expected_permissions: str) -> bool:

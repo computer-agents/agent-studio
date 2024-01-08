@@ -73,7 +73,7 @@ class GoogleCalendarEvaluator(Evaluator):
         gcalendar_service = GoogleCalendarService(
             token_path=env_configs["applications_settings"]["google-calendar"]["token_path"]
         )
-        score = task_configs["score"]
+        score = task_configs["score_weight"]
         task = task_configs["tasks"][0] # TODO: temporary solution for test
 
         try:

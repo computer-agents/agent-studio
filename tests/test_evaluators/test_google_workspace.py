@@ -19,8 +19,7 @@ event = gcalendar_service.create_event(
         location='Office',
         description='Discuss project status',
         start_time='2024-01-05T09:00:00',
-        end_time='2024-01-05T10:00:00',
-        attendees=['example@email.com']
+        end_time='2024-01-05T10:00:00'
     )
 """
 
