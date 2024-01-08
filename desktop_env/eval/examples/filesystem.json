@@ -4,8 +4,10 @@
     "tasks": [
         {
             "task_id": 1,
-            "apis": ["os"],
+            "available_apis": ["os"],
             "score": 1.0,
+            "reset": false,
+            "intent_template": null,
             "eval": [
                 {
                     "eval_types": "filesystem",
@@ -31,8 +33,10 @@
         },
         {
             "task_id": 2,
-            "apis": ["os"],
+            "available_apis": ["os"],
             "score": 2.0,
+            "reset": false,
+            "intent_template": null,
             "eval": [
                 {
                     "eval_types": "filesystem",

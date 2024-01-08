@@ -1,0 +1,66 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["environment", "score_weight", "tasks"],
+    "properties": {
+        "environment": {
+            "type": "string"
+        },
+        "score_weight": {
+            "type": "number"
+        },
+        "tasks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["task_id", "available_apis", "score", "reset", "eval", "intent_template"],
+                "properties": {
+                    "task_id": {
+                        "type": "integer"
+                    },
+                    "available_apis": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "score": {
+                        "type": "number"
+                    },
+                    "reset": {
+                        "type": "boolean"
+                    },
+                    "intent_template": {
+                        "type": ["string", "null"]
+                    },
+                    "instantiation_dict": {
+                        "type": ["object", "null"]
+                    },
+                    "eval": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["eval_types", "reference_answers"],
+                            "properties": {
+                                "eval_types": {
+                                    "type": "string"
+                                },
+                                "reference_answers": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "reference_action_sequence": {
+                        "type": ["object", "null"],
+                        "properties": {
+                            "action_sequence": {
+                                "type": "array"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

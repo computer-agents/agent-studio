@@ -1,10 +1,10 @@
 {
     "environment": "google_calendar_env",
-    "score": 1.0,
+    "score_weight": 1.0,
     "tasks": [
         {
             "task_id": 0,
-            "apis": ["GoogleCalendarService"],
+            "available_apis": ["GoogleCalendarService"],
             "score": 1.0,
             "reset": false,
             "intent_template": null,
