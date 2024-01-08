@@ -1,5 +1,5 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 from desktop_env.eval.envs.gspace.gservice import GoogleService
 
@@ -80,18 +80,15 @@ class GoogleCalendarService(GoogleService):
             .execute()
         )
         return event
-    
+
     def update_event(
-        self, 
-        event_id: str, 
-        updated_event: dict[str, str],
-        calendar_id: str = "primary"
+        self, event_id: str, updated_event: dict[str, str], calendar_id: str = "primary"
     ) -> dict[str, str]:
-        event = self.service.events().update(
-            calendarId=calendar_id, 
-            eventId=event_id, 
-            body=updated_event
-        ).execute()
+        event = (
+            self.service.events()
+            .update(calendarId=calendar_id, eventId=event_id, body=updated_event)
+            .execute()
+        )
         return event
 
     def search_events(
@@ -112,15 +109,11 @@ class GoogleCalendarService(GoogleService):
 
 
 class GoogleCalendarEnv:
-    def __init__(
-        self, 
-        token_path: str, 
-        config_file: Path | str
-    ) -> None:
+    def __init__(self, token_path: str, config_file: Path | str) -> None:
         self.service = GoogleCalendarService(token_path=token_path)
         with open(config_file, "r") as f:
             config = json.load(f)
         self.config = config
-        
+
     def reset(self) -> bool:
         return True

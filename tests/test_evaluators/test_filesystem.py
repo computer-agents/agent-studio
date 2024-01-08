@@ -1,9 +1,7 @@
 import os
 
 from desktop_env.computer.env import ComputerEnv
-from desktop_env.eval.os_evaluators.filesystem_evaluator import (
-    FilesystemEvaluator,
-)
+from desktop_env.eval.os_evaluators.filesystem_evaluator import FilesystemEvaluator
 
 
 def test_calendar(
@@ -18,10 +16,10 @@ def test_calendar(
     os.chmod("tmp", 0o775)
     score = evaluator("desktop_env/eval/examples/filesystem.json")
     assert score == 1.0, score
-    
+
     os.remove("tmp/test.txt")
     score = evaluator("desktop_env/eval/examples/filesystem.json")
-    assert score == (2.0+0.0) / (1.0+2.0) * 1.0, score
+    assert score == (2.0 + 0.0) / (1.0 + 2.0) * 1.0, score
 
     os.rmdir("tmp")
     score = evaluator("desktop_env/eval/examples/filesystem.json")

@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["applications", "applications_settings", "intent", "environment"],
+    "properties": {
+        "applications": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "applications_settings": {
+            "type": "object"
+        },
+        "intent": {
+            "type": "string"
+        },
+        "environment": {
+            "type": "object"
+        }
+    }
+}

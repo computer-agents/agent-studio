@@ -11,8 +11,7 @@ validate_json() {
     dir=$2
     for file in "$dir"/*.json; do
         if [ "$file" != "$schema" ]; then
-            jq empty "$file" && check-jsonschema --schemafile "$schema" "$file"
-            if [ $? -ne 0 ]; then
+            if ! jq empty "$file" || ! check-jsonschema --schemafile "$schema" "$file"; then
                 echo "Validation failed for $file"
             else
                 echo "Validated: $file"
@@ -25,12 +24,12 @@ validate_json() {
 if is_git_repo; then
     base_dir=$(git rev-parse --show-toplevel)
 else
-    read -p "Enter the base directory for JSON validation: " base_dir
+    read -rp "Enter the base directory for JSON validation: " base_dir
 fi
 
 # Find directories containing 'schema.json' and validate JSON files in them
-find "$base_dir" -type f -name 'schema.json' | while read schema; do
+while IFS= read -r schema; do
     dir=$(dirname "$schema")
     echo "Validating JSON files in $dir"
     validate_json "$schema" "$dir"
-done
+done < <(find "$base_dir" -type f -name 'schema.json')

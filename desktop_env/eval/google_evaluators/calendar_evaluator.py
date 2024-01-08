@@ -1,17 +1,17 @@
 import json
+import os
 from pathlib import Path
 from typing import Union
-import os
 
-from desktop_env.eval.evaluator import Evaluator
 from desktop_env.eval.envs.gspace.gcalendar import GoogleCalendarService
+from desktop_env.eval.evaluator import Evaluator
 
 
 class GoogleCalendarEvaluator(Evaluator):
     @staticmethod
     def evaluator_name() -> str:
         return "google_calendar"
-    
+
     @staticmethod
     def item_match(ref: str | None, pred: str | None) -> float:
         # print(f"ref: {ref}, pred: {pred}")
@@ -65,21 +65,26 @@ class GoogleCalendarEvaluator(Evaluator):
         with open(config_file, "r") as f:
             task_configs = json.load(f)
         with open(
-                os.path.join("desktop_env/eval/examples/envs", f"{task_configs['environment']}.json")
-                , "r"
-            ) as f:
+            os.path.join(
+                "desktop_env/eval/examples/envs", f"{task_configs['environment']}.json"
+            ),
+            "r",
+        ) as f:
             env_configs = json.load(f)
 
         gcalendar_service = GoogleCalendarService(
-            token_path=env_configs["applications_settings"]["google-calendar"]["token_path"]
+            token_path=env_configs["applications_settings"]["google-calendar"][
+                "token_path"
+            ]
         )
         score = task_configs["score_weight"]
-        task = task_configs["tasks"][0] # TODO: temporary solution for test
+        task = task_configs["tasks"][0]  # TODO: temporary solution for test
 
         try:
             for eval in task["eval"]:
                 if eval["eval_types"] == GoogleCalendarEvaluator.evaluator_name():
-                    # TODO: the if and for clause above should be done by caller, only tmp solution here
+                    # TODO: the if and for clause above should be done by caller,
+                    # only tmp solution here
                     for approach, value in eval["reference_answers"].items():
                         match approach:
                             case "event_match":
@@ -89,7 +94,9 @@ class GoogleCalendarEvaluator(Evaluator):
                                 if len(pred) == 0:
                                     score = 0.0
                                 elif len(pred) > 1:
-                                    raise ValueError(f"More than one event found: {pred}")
+                                    raise ValueError(
+                                        f"More than one event found: {pred}"
+                                    )
                                 else:
                                     score *= self.dict_match_left(value, pred[0])
         except Exception as e:
