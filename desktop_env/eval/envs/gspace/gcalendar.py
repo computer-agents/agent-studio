@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 
-from desktop_env.eval.envs.gspace.google_service import GoogleService
+from desktop_env.eval.envs.gspace.gservice import GoogleService
 
 
 class GoogleCalendarService(GoogleService):

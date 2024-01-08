@@ -4,7 +4,7 @@ from typing import Union
 import os
 
 from desktop_env.eval.evaluator import Evaluator
-from desktop_env.eval.envs.gspace.calendar import GoogleCalendarService
+from desktop_env.eval.envs.gspace.gcalendar import GoogleCalendarService
 
 
 class GoogleCalendarEvaluator(Evaluator):
