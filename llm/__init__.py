@@ -1,3 +1,4 @@
+from llm.base_llm import BaseLLM
 from llm.huggingface import HFProvider
 from llm.lm_config import LMConfig
 from llm.openai import OpenAIProvider
@@ -5,6 +6,7 @@ from llm.vllm import VLLMProvider
 
 
 def setup_llm(lm_config: LMConfig):
+    model_provider: BaseLLM
     if lm_config.provider == "openai":
         model_provider = OpenAIProvider(lm_config)
     elif lm_config.provider == "vllm":

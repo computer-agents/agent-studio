@@ -22,7 +22,8 @@ class VLLMProvider(BaseLLM):
 
     def generate_response(self, prompt: List[Dict[str, str]], stop: List[str]) -> Any:
         """Generate a response given a prompt."""
-        # We need to remap the outputs to the prompts because vllm might not return outputs for some prompts (e.g., if the prompt is too long)
+        # We need to remap the outputs to the prompts because vllm might not return
+        # outputs for some prompts (e.g., if the prompt is too long)
         sampling_params = vllm.SamplingParams(
             temperature=self.lm_config.temperature,
             max_tokens=self.lm_config.max_tokens,

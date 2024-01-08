@@ -61,27 +61,30 @@ class HFProvider(BaseLLM):
             self.tokenizer = AutoTokenizer.from_pretrained(
                 lm_config.tokenizer_name_or_path, use_fast=lm_config.use_fast_tokenizer
             )
-        except:
-            # some tokenizers (e.g., GPTNeoXTokenizer) don't have the slow or fast version, so we just roll back to the default one
+        except ValueError:
+            # some tokenizers (e.g., GPTNeoXTokenizer) don't have the slow or fast
+            # version, so we just roll back to the default one
             self.tokenizer = AutoTokenizer.from_pretrained(
                 lm_config.tokenizer_name_or_path
             )
 
         # set padding side to left for batch generation
         self.tokenizer.padding_side = lm_config.padding_side
-        # set pad token to eos token if pad token is not set (as is the case for llama models)
+        # set pad token to eos token if pad token is not set (as is the case for llama)
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
             self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
 
-        # for OPT and Pythia models, we need to set tokenizer.model_max_length to model.config.max_position_embeddings
+        # for OPT and Pythia models, we need to set tokenizer.model_max_length to
+        # model.config.max_position_embeddings
         # to avoid wrong embedding index.
         if isinstance(self.model, GPTNeoXForCausalLM) or isinstance(
             self.model, OPTForCausalLM
         ):
             self.tokenizer.model_max_length = self.model.config.max_position_embeddings
             print(
-                "Set tokenizer.model_max_length to model.config.max_position_embeddings: {}".format(
+                "Set tokenizer.model_max_length to "
+                "model.config.max_position_embeddings: {}".format(
                     self.model.config.max_position_embeddings
                 )
             )
@@ -94,14 +97,18 @@ class HFProvider(BaseLLM):
         generations = []
         progress = tqdm.tqdm(total=len(prompt), desc="Generating Completions")
 
-        num_return_sequences = self.lm_config.num_return_sequences
-        for i in range(0, len(prompt), self.lm_config.batch_size):
-            batch_prompts = prompt[i : i + self.lm_config.batch_size]
+        num_return_sequences = self.lm_config.gen_config.get("num_return_sequences", 1)
+        for i in range(0, len(prompt), self.lm_config.gen_config.get("batch_size", 1)):
+            batch_prompts = prompt[
+                i : i + self.lm_config.gen_config.get("batch_size", 1)
+            ]
             tokenized_prompts = self.tokenizer(
                 batch_prompts,
                 padding="longest",
                 return_tensors="pt",
-                add_special_tokens=self.lm_config.add_special_tokens,
+                add_special_tokens=self.lm_config.gen_config.get(
+                    "add_special_tokens", True
+                ),
             )
             batch_input_ids = tokenized_prompts.input_ids
             attention_mask = tokenized_prompts.attention_mask
@@ -119,8 +126,9 @@ class HFProvider(BaseLLM):
                     else None,
                 )
 
-                # the stopping criteria is applied at batch level, so if other examples are not stopped, the entire batch will continue to generate.
-                # so some outputs still have the stop sequence, which we need to remove.
+                # the stopping criteria is applied at batch level, so if other examples
+                # are not stopped, the entire batch will continue to generate.
+                # so some outputs still have the stop sequence to remove.
                 if stop_id_sequences:
                     for output_idx in range(batch_outputs.shape[0]):
                         for token_idx in range(
@@ -140,8 +148,11 @@ class HFProvider(BaseLLM):
                                 break
 
                 # remove the prompt from the output
-                # we need to re-encode the prompt because we need to make sure the special tokens are treated the same way as in the outputs.
-                # we changed our previous way of truncating the output token ids dicrectly because some tokenizer (e.g., llama) won't add space token before the first token.
+                # we need to re-encode the prompt because we need to make sure the
+                # special tokens are treated the same way as in the outputs.
+                # we changed our previous way of truncating the output token ids
+                # dicrectly because some tokenizer (e.g., llama) won't add space
+                # token before the first token.
                 # space is important for some tasks (e.g., code completion).
                 batch_outputs = self.tokenizer.batch_decode(
                     batch_outputs, skip_special_tokens=True
@@ -173,6 +184,7 @@ class HFProvider(BaseLLM):
 
         assert (
             len(generations) == len(prompt) * num_return_sequences
-        ), "number of generations should be equal to number of prompts * num_return_sequences"
+        ), "number of generations should be equal to number of "
+        "prompts * num_return_sequences"
 
         return generations

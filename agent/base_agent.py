@@ -7,7 +7,7 @@ class Agent:
     """Base class for agents."""
 
     def __init__(self, *args: Any) -> None:
-        self.instruction: str = None
+        self.instruction: str | None = None
         self.history: List = []
 
     def reset(
