@@ -1,5 +1,5 @@
-from desktop_env.computer.env import ComputerEnv
 from agent.teacher_forcing import TeacherForcingAgent
+from desktop_env.computer.env import ComputerEnv
 
 
 def test_install_extension(
