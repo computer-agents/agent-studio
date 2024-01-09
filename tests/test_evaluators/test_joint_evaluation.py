@@ -50,18 +50,6 @@ event = gcalendar_service.create_event(
         env_configs,
         env_comb,
     )
-    assert score == 0.0
-
-    os.makedirs("tmp", exist_ok=True)
-    with open("tmp/test.txt", "w") as file:
-        file.write("Hello World!")
-    os.chmod("tmp/test.txt", 0o644)
-    os.chmod("tmp", 0o775)
-    score = eval_tasks(
-        task_configs,
-        env_configs,
-        env_comb,
-    )
     assert score == 1.0
 
     action_seq_del = """
@@ -79,11 +67,15 @@ assert gcalendar_service.delete_event(event_id=events[0].get('id')) == True
 """
     for chunk in computer_env.run("python", action_seq_del):
         print(chunk)
-    os.remove("tmp/test.txt")
-    os.rmdir("tmp")
+
     score = eval_tasks(
         task_configs,
         env_configs,
         env_comb,
     )
     assert score == 0.0
+
+
+if __name__ == "__main__":
+    computer_env = ComputerEnv()
+    test_joint(computer_env)

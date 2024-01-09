@@ -77,7 +77,6 @@ def eval_tasks(
     for task_config in task_configs["tasks"]:
         comb = evaluator_router(task_config, env_configs, env_comb.environments)
         task_score = comb()
-        print(task_score)
         gained_score += task_score * task_config["score"]
         total_score += task_config["score"]
     return (gained_score / total_score) * task_configs["score_weight"]
