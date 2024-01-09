@@ -38,7 +38,7 @@ An array of objects, where each object represents a task and must include:
 #### Evals
 
 Each object in the `evals` array must include:
-- `eval_type`: (string) Type of evaluation. This must match one of the `Evaluator.evaluator_name()`. 
+- `eval_type`: (string) Type of evaluation. This must match one of the `Evaluator.evaluator_name()`.
 - `reference_answers`: (object) Object containing reference answers for evaluation.
 - `extra_info`: (object) Additional information for the evaluation.
 

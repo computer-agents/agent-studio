@@ -40,8 +40,8 @@ Your environment JSON file should contain the following properties:
 ### Environments
 
 - `type`: object
-- Description: Detailed configurations for each application.
-- Structure: Each key is an application name, and its value is an array of objects representing different states or data of the application.
+- Description: Detailed configurations for each environment.
+- Structure: Each key is an environment name, and its value is an array of objects representing different states or data of the environment.
 
 #### Example for Google Calendar Environment:
 
@@ -111,7 +111,8 @@ Each JSON part will be parse by different part of the evaluator. Here's the rule
     },
     "intent": "For Agents",
     "environments": {
-        "EVALUATOR_NAME": "Not used yet"
+        "ENV_NAME1": "Not used yet",
+        "ENV_NAME2": "Not used yet"
     }
 }
 ```
