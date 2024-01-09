@@ -1,4 +1,5 @@
 from typing import Union
+from datetime import datetime
 
 from desktop_env.eval.envs.gspace.gcalendar import GoogleCalendarService
 from desktop_env.eval.evaluator import Evaluator
@@ -53,6 +54,10 @@ class GoogleCalendarEvaluator(Evaluator):
                 return 0.0
         return score
 
+    @staticmethod
+    def to_utc(time: str) -> str:
+        return datetime.fromisoformat(time).astimezone().isoformat()
+
     def __call__(self) -> float:
         if self.env_configs is None:
             raise ValueError(f"env_configs for {self.name} is None")
@@ -68,17 +73,23 @@ class GoogleCalendarEvaluator(Evaluator):
             for approach, value in self.reference_answer.items():
                 match approach:
                     case "event_match":
-                        pred = gcalendar_service.search_events(
+                        pred: list[dict] = gcalendar_service.search_events(
                             value["start"]["dateTime"],
                             value["end"]["dateTime"],
                             calendar_id=calendar_id,
                             # if calendar_id is None, fallback to primary calendar
                         )
                         if len(pred) == 0:
+                            print(f"No event found for {value}")
                             score = 0.0
                         elif len(pred) > 1:
                             raise ValueError(f"More than one event found: {pred}")
                         else:
+                            pred[0]['start']['dateTime'] = self.to_utc(pred[0]['start']['dateTime'])
+                            pred[0]['end']['dateTime'] = self.to_utc(pred[0]['end']['dateTime'])
+                            value['start']['dateTime'] = self.to_utc(value['start']['dateTime'])
+                            value['end']['dateTime'] = self.to_utc(value['end']['dateTime'])
+                            print(f"pred: {pred[0]['start']}\nref: {value['start']}")
                             score *= self.dict_match_left(value, pred[0])
         except Exception as e:
             print(f"An error occurred: {e}\nscore may be incorrect")

@@ -14,8 +14,8 @@ event = gcalendar_service.create_event(
         summary='Meeting with Team',
         location='Office',
         description='Discuss project status',
-        start_time='2024-01-05T09:00:00',
-        end_time='2024-01-05T10:00:00'
+        start_time='2024-01-05T10:00:00Z',
+        end_time='2024-01-05T11:00:00Z'
     )
 """
 
@@ -30,8 +30,8 @@ from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendar
 gcalendar_service = GoogleCalendarService(token_path="token.json")
 # Search events
 events = gcalendar_service.search_events(
-    start_time='2024-01-05T09:00:00Z',
-    end_time='2024-01-05T10:59:59Z'
+    start_time='2024-01-05T10:00:00Z',
+    end_time='2024-01-05T11:59:59Z'
     )
 
 # Delete an event
