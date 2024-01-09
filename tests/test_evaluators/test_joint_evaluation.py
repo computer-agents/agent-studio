@@ -1,9 +1,9 @@
-import os
 import json
+import os
 
 from desktop_env.computer.env import ComputerEnv
-from desktop_env.eval.evaluator_helper import eval_tasks
 from desktop_env.eval.envs.environment_helper import environment_init
+from desktop_env.eval.evaluator_helper import eval_tasks
 
 
 def test_joint(

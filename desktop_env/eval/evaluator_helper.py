@@ -1,14 +1,10 @@
-import json
-import os
-from pathlib import Path
-
+from desktop_env.eval.envs.environment import Environment
+from desktop_env.eval.envs.environment_helper import EnvironmentComb
 from desktop_env.eval.evaluator import Evaluator
 from desktop_env.eval.google_evaluators.calendar_evaluator import (
     GoogleCalendarEvaluator,
 )
 from desktop_env.eval.os_evaluators.filesystem_evaluator import FilesystemEvaluator
-from desktop_env.eval.envs.environment_helper import environment_init, EnvironmentComb
-from desktop_env.eval.envs.environment import Environment
 
 
 class EvaluatorComb:
@@ -79,11 +75,7 @@ def eval_tasks(
     total_score = 0.0
     gained_score = 0.0
     for task_config in task_configs["tasks"]:
-        comb = evaluator_router(
-            task_config,
-            env_configs,
-            env_comb.environments
-        )
+        comb = evaluator_router(task_config, env_configs, env_comb.environments)
         task_score = comb()
         print(task_score)
         gained_score += task_score * task_config["score"]

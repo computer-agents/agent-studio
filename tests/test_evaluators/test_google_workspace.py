@@ -42,7 +42,6 @@ event = gcalendar_service.create_event(
     )
 """
 
-
     for chunk in computer_env.run("python", action_seq_create):
         print(chunk)
 

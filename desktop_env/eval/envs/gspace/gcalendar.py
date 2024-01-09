@@ -148,9 +148,13 @@ class GoogleCalendarEnv(Environment):
                     match action:
                         case "cd_calendar":
                             if params["id"] != "primary":
-                                calendar = self.service.find_calendar_by_id(params["id"])
+                                calendar = self.service.find_calendar_by_id(
+                                    params["id"]
+                                )
                                 if calendar == {}:
-                                    raise Exception(f"Calendar {params['id']} not found")
+                                    raise Exception(
+                                        f"Calendar {params['id']} not found"
+                                    )
                                 self.env_info["calendar_id"] = calendar["id"]
                             else:
                                 self.env_info["calendar_id"] = "primary"

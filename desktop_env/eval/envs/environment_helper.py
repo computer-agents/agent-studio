@@ -1,5 +1,4 @@
 import json
-import os
 from pathlib import Path
 
 from desktop_env.eval.envs.environment import Environment
@@ -45,7 +44,6 @@ def environment_router(
 def environment_init(
     config_file: str | Path,
 ) -> EnvironmentComb:
-
     with open(config_file, "r") as f:
         env_configs = json.load(f)
 
