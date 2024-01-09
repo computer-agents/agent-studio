@@ -182,7 +182,7 @@ class GoogleCalendarEnv(Environment):
                                 self.env_info["calendar_id"],
                             )
                             self.events[event.get("id")] = event
-                        case "delete_calendar":
+                        case "delete_cur_calendar":
                             self.service.delete_calendar(self.env_info["calendar_id"])
             return True
         except Exception as e:

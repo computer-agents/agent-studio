@@ -10,8 +10,8 @@
         "google_calendar": {
             "enter": [
                 {
-                    "cd_calendar": {
-                        "id": "11c007537c46ec67d9c1dc63a4d240439eda1573452b4505b26c38fd96bf1bec@group.calendar.google.com"
+                    "create_and_cd_calendar": {
+                        "summary": "Test Calendar"
                     }
                 },
                 {
@@ -29,7 +29,7 @@
             ],
             "exit": [
                 {
-                    "clear_calendar": {}
+                    "delete_cur_calendar": {}
                 }
             ]
         }
