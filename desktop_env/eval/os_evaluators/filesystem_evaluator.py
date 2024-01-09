@@ -10,9 +10,7 @@ from desktop_env.eval.evaluator import Evaluator
 
 
 class FilesystemEvaluator(Evaluator):
-    @staticmethod
-    def evaluator_name() -> str:
-        return "filesystem"
+    name: str = "filesystem"
 
     @staticmethod
     def file_content_match(path: str, expected_content: str) -> bool:

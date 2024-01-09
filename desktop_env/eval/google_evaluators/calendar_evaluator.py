@@ -5,9 +5,7 @@ from desktop_env.eval.evaluator import Evaluator
 
 
 class GoogleCalendarEvaluator(Evaluator):
-    @staticmethod
-    def evaluator_name() -> str:
-        return "google_calendar"
+    name: str = "google_calendar"
 
     @staticmethod
     def item_match(ref: str | None, pred: str | None) -> float:
@@ -57,9 +55,9 @@ class GoogleCalendarEvaluator(Evaluator):
 
     def __call__(self) -> float:
         if self.env_configs is None:
-            raise ValueError(f"env_configs for {self.evaluator_name()} is None")
+            raise ValueError(f"env_configs for {self.name} is None")
         if self.extra_info is None:
-            raise ValueError(f"extra_info for {self.evaluator_name()} is None")
+            raise ValueError(f"extra_info for {self.name} is None")
         gcalendar_service = GoogleCalendarService(
             token_path=self.env_configs["token_path"]
         )
