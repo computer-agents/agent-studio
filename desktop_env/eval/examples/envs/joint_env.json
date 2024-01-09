@@ -43,6 +43,18 @@
                         "mode": "0o775"
                     }
                 }
+            ],
+            "exit": [
+                {
+                    "rm": {
+                        "path": "tmp/test.txt"
+                    }
+                },
+                {
+                    "rmdir": {
+                        "path": "tmp"
+                    }
+                }
             ]
         }
     }

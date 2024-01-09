@@ -74,8 +74,3 @@ assert gcalendar_service.delete_event(event_id=events[0].get('id')) == True
         env_comb,
     )
     assert score == 0.0
-
-
-if __name__ == "__main__":
-    computer_env = ComputerEnv()
-    test_joint(computer_env)
