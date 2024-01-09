@@ -8,9 +8,9 @@
             "score": 1.0,
             "reset": false,
             "intent_template": null,
-            "eval": [
+            "evals": [
                 {
-                    "eval_types": "filesystem",
+                    "eval_type": "filesystem",
                     "reference_answers": {
                         "exists": {
                             "tmp/test.txt": true,
@@ -37,9 +37,9 @@
             "score": 2.0,
             "reset": false,
             "intent_template": null,
-            "eval": [
+            "evals": [
                 {
-                    "eval_types": "filesystem",
+                    "eval_type": "filesystem",
                     "reference_answers": {
                         "exists": {
                             "tmp": true

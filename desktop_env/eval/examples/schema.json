@@ -15,7 +15,7 @@
             "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["task_id", "available_apis", "score", "reset", "eval", "intent_template"],
+                "required": ["task_id", "available_apis", "score", "reset", "evals", "intent_template"],
                 "properties": {
                     "task_id": {
                         "type": "integer"
@@ -38,14 +38,14 @@
                     "instantiation_dict": {
                         "type": ["object", "null"]
                     },
-                    "eval": {
+                    "evals": {
                         "type": "array",
                         "items": {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": ["eval_types", "reference_answers"],
+                            "required": ["eval_type", "reference_answers"],
                             "properties": {
-                                "eval_types": {
+                                "eval_type": {
                                     "type": "string"
                                 },
                                 "reference_answers": {

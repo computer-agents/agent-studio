@@ -1,6 +1,3 @@
-import json
-import os
-from pathlib import Path
 from typing import Union
 
 from desktop_env.eval.envs.gspace.gcalendar import GoogleCalendarService
@@ -59,48 +56,32 @@ class GoogleCalendarEvaluator(Evaluator):
         return score
 
     def __call__(
-        self,
-        config_file: Path | str,
+        self
     ) -> float:
-        with open(config_file, "r") as f:
-            task_configs = json.load(f)
-        with open(
-            os.path.join(
-                "desktop_env/eval/examples/envs", f"{task_configs['environment']}.json"
-            ),
-            "r",
-        ) as f:
-            env_configs = json.load(f)
 
         gcalendar_service = GoogleCalendarService(
-            token_path=env_configs["applications_settings"]["google-calendar"][
-                "token_path"
-            ]
+            token_path=self.env_configs["token_path"]
         )
-        score = task_configs["score_weight"]
-        task = task_configs["tasks"][0]  # TODO: temporary solution for test
+        score = 1.0
 
         try:
-            for eval in task["eval"]:
-                if eval["eval_types"] == GoogleCalendarEvaluator.evaluator_name():
-                    # TODO: the if and for clause above should be done by caller,
-                    # only tmp solution here
-                    for approach, value in eval["reference_answers"].items():
-                        match approach:
-                            case "event_match":
-                                pred = gcalendar_service.search_events(
-                                    value["start"]["dateTime"],
-                                    value["end"]["dateTime"],
-                                    calendar_id=eval["extra_info"]["calendar_id"],
-                                )
-                                if len(pred) == 0:
-                                    score = 0.0
-                                elif len(pred) > 1:
-                                    raise ValueError(
-                                        f"More than one event found: {pred}"
-                                    )
-                                else:
-                                    score *= self.dict_match_left(value, pred[0])
+            for approach, value in self.reference_answer.items():
+                match approach:
+                    case "event_match":
+                        pred = gcalendar_service.search_events(
+                            value["start"]["dateTime"],
+                            value["end"]["dateTime"],
+                            calendar_id=self.extra_info.get("calendar_id", None),
+                            # if calendar_id is None, fallback to primary calendar
+                        )
+                        if len(pred) == 0:
+                            score = 0.0
+                        elif len(pred) > 1:
+                            raise ValueError(
+                                f"More than one event found: {pred}"
+                            )
+                        else:
+                            score *= self.dict_match_left(value, pred[0])
         except Exception as e:
             print(f"An error occurred: {e}\nscore may be incorrect")
             score = 0.0

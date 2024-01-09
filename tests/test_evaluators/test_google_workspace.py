@@ -1,13 +1,10 @@
 from desktop_env.computer.env import ComputerEnv
-from desktop_env.eval.google_evaluators.calendar_evaluator import (
-    GoogleCalendarEvaluator,
-)
+from desktop_env.eval.evaluator_helper import eval_json
 
 
 def test_calendar(
     computer_env: ComputerEnv,
 ) -> None:
-    evaluator = GoogleCalendarEvaluator()
 
     action_seq_create = """
 from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
@@ -25,7 +22,8 @@ event = gcalendar_service.create_event(
 
     for chunk in computer_env.run("python", action_seq_create):
         print(chunk)
-    assert evaluator("desktop_env/eval/examples/google_calendar.json") == 1.0
+    score = eval_json("desktop_env/eval/examples/google_calendar.json")
+    assert score == 1.0
 
     action_seq_del = """
 from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
@@ -42,4 +40,5 @@ assert gcalendar_service.delete_event(event_id=events[0].get('id')) == True
 """
     for chunk in computer_env.run("python", action_seq_del):
         print(chunk)
-    assert evaluator("desktop_env/eval/examples/google_calendar.json") == 0.0
+    score = eval_json("desktop_env/eval/examples/google_calendar.json")
+    assert score == 0.0

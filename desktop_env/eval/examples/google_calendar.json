@@ -9,9 +9,9 @@
             "reset": false,
             "intent_template": null,
             "instantiation_dict": null,
-            "eval": [
+            "evals": [
                 {
-                    "eval_types": "google_calendar",
+                    "eval_type": "google_calendar",
                     "reference_answers": {
                         "event_match": {
                             "summary": "Meeting with Team",

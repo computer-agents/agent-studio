@@ -1,7 +1,7 @@
 {
-    "applications": ["google-calendar"],
+    "applications": ["google_calendar"],
     "applications_settings": {
-        "google-calendar": {
+        "google_calendar": {
             "token_path": "token.json"
         }
     },
@@ -9,6 +9,20 @@
     "environment": [
         {
             "event": {
+                "summary": "Meeting with Team",
+                "location": "Office",
+                "description": "Discuss project status",
+                "start": {"dateTime": "2024-01-05T10:00:00+01:00"},
+                "end": {"dateTime": "2024-01-05T11:00:00+01:00"}
+            }
+        },
+        {
+            "event": {
+                "summary": "See doctor",
+                "location": "Clinic",
+                "description": "Discuss current health status",
+                "start": {"dateTime": "2024-01-05T15:00:00+01:00"},
+                "end": {"dateTime": "2024-01-05T16:00:00+01:00"}
             }
         }
     ]

@@ -91,60 +91,35 @@ class FilesystemEvaluator(Evaluator):
     def exists(path: str) -> bool:
         return Path(path).exists()
 
-    def __call__(self, config_file: Path | str) -> float:
-        with open(config_file, "r") as f:
-            task_configs = json.load(f)
-
-        # with open(
-        #     os.path.join(
-        #         "desktop_env/eval/examples/envs",
-        #         f"{task_configs['environment']}.json"
-        #     ),
-        #     "r",
-        # ) as f:
-        #     env_configs = json.load(f)
-
-        weight = task_configs["score_weight"]
-        cur_score = 0.0
-        total_score = 0.0
-        tasks: list[dict] = task_configs["tasks"]
-
-        for task in tasks:
-            task_score = task["score"]
-            total_score += task_score
-            for eval in task["eval"]:
-                if eval["eval_types"] == self.evaluator_name():
-                    # TODO: the above two "for" clauses and one "if" clause
-                    # should be done by the caller, here's only an example
-                    for approach, value in eval["reference_answers"].items():
-                        match approach:
-                            case "exists":
-                                for path, exists in value.items():
-                                    task_score *= float(
-                                        FilesystemEvaluator.exists(path) == exists
-                                    )
-                            case "type_check":
-                                for path, content in value.items():
-                                    if content == "file":
-                                        task_score *= float(Path(path).is_file())
-                                    elif content == "folder":
-                                        task_score *= float(Path(path).is_dir())
-                            case "permissions_check":
-                                for path, permissions in value.items():
-                                    task_score *= float(
-                                        self.permission_match(path, permissions)
-                                    )
-                            case "content_check":
-                                for path, content in value.items():
-                                    task_score *= float(
-                                        self.file_content_match(path, content)
-                                    )
-                            case "metadata_check":
-                                for path, metadata in value.items():
-                                    task_score *= float(
-                                        self.file_metadata_match(path, metadata)
-                                    )
-            cur_score += task_score
-        score = cur_score / total_score * weight
+    def __call__(self) -> float:
+        score = 1.0
+        for approach, value in self.reference_answer.items():
+            match approach:
+                case "exists":
+                    for path, exists in value.items():
+                        score *= float(
+                            FilesystemEvaluator.exists(path) == exists
+                        )
+                case "type_check":
+                    for path, content in value.items():
+                        if content == "file":
+                            score *= float(Path(path).is_file())
+                        elif content == "folder":
+                            score *= float(Path(path).is_dir())
+                case "permissions_check":
+                    for path, permissions in value.items():
+                        score *= float(
+                            self.permission_match(path, permissions)
+                        )
+                case "content_check":
+                    for path, content in value.items():
+                        score *= float(
+                            self.file_content_match(path, content)
+                        )
+                case "metadata_check":
+                    for path, metadata in value.items():
+                        score *= float(
+                            self.file_metadata_match(path, metadata)
+                        )
 
         return score
