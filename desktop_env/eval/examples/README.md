@@ -40,7 +40,7 @@ An array of objects, where each object represents a task and must include:
 Each object in the `evals` array must include:
 - `eval_type`: (string) Type of evaluation. This must match one of the `Evaluator.evaluator_name()`.
 - `reference_answers`: (object) Object containing reference answers for evaluation.
-- `extra_info`: (object) Additional information for the evaluation.
+- `extra_info`: DELETED! Now tasks can get environment information by calling `env.get_info()`.
 
 ### Example
 
@@ -63,9 +63,6 @@ Each object in the `evals` array must include:
                     "eval_type": "google_calendar",
                     "reference_answers": {
                         // ... reference answers ...
-                    },
-                    "extra_info": {
-                        // ... extra information ...
                     }
                 }
             ],
@@ -96,8 +93,7 @@ Each JSON part will be parse by different part of the evaluator. Here's the rule
             "evals": [
                 {
                     "eval_type": "For evaluator_helper.py",
-                    "reference_answers": "For evaluator, e.g. google_evaluators/calendar_evaluator.py",
-                    "extra_info": "For evaluator, e.g. google_evaluators/calendar_evaluator.py"
+                    "reference_answers": "For evaluator, e.g. google_evaluators/calendar_evaluator.py"
                 }
             ],
             "reference_action_sequence": {
