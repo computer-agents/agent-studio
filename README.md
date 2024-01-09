@@ -20,27 +20,13 @@ pip install -r requirements.txt
 
 (optional, for reproducibility) [Install VirtualBox](https://ubuntu.com/tutorials/how-to-run-ubuntu-desktop-on-a-virtual-machine-using-virtualbox#1-overview) (we use VirtualBox 7 and Ubuntu 22.04 image)
 
-## Run example
-
-```bash
-python minimal_example.py
-```
-
 ### Google Workspace
 
 [Enable Google APIs, configure OAuth, and download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment)
 
-## Format
+## Contributing
 
-```bash
-bash scripts/format.sh
-```
-
-## Run tests
-
-```bash
-PYTHONPATH=. pytest test/test_xxx.py
-```
+We welcome and value contributions from everyone, no matter the scale. Please check out [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get involved.
 
 ## Acknowledgement
 
