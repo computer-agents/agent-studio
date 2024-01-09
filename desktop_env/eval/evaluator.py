@@ -14,5 +14,9 @@ class Evaluator(object):
         self.extra_info = extra_info
         self.eval_tag = eval_tag
 
+    @staticmethod
+    def evaluator_name() -> str:
+        raise NotImplementedError
+
     def __call__(self) -> float:
         raise NotImplementedError
