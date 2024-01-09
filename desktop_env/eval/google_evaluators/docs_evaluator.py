@@ -1,6 +1,4 @@
-import json
 import os.path
-from pathlib import Path
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -26,23 +24,23 @@ class GoogleDocsEvaluator(Evaluator):
                         return element["paragraph"]["elements"][0]["textRun"]["content"]
         return None
 
-    def __call__(
-        self,
-        config_file: Path | str,
-    ) -> float:
-        with open(config_file, "r") as f:
-            configs = json.load(f)
+    # def __call__(
+    #     self,
+    #     config_file: Path | str,
+    # ) -> float:
+    #     with open(config_file, "r") as f:
+    #         configs = json.load(f)
 
-        score = 1.0
-        document = configs["eval"]["document"]
-        index = configs["eval"]["index"]
-        for approach, value in configs["eval"]["reference_answers"].items():
-            match approach:
-                case "string_match":
-                    pred = GoogleDocsEvaluator.get_text_at_index(document, index)
-                    score *= self.string_match(ref=value, pred=pred)
+    #     score = 1.0
+    #     document = configs["eval"]["document"]
+    #     index = configs["eval"]["index"]
+    #     for approach, value in configs["eval"]["reference_answers"].items():
+    #         match approach:
+    #             case "string_match":
+    #                 pred = GoogleDocsEvaluator.get_text_at_index(document, index)
+    #                 score *= self.string_match(ref=value, pred=pred)
 
-        return score
+    #     return score
 
 
 if __name__ == "__main__":

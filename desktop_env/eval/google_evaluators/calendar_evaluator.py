@@ -1,106 +1,12 @@
-import json
-from pathlib import Path
 from typing import Union
 
+from desktop_env.eval.envs.gspace.gcalendar import GoogleCalendarService
 from desktop_env.eval.evaluator import Evaluator
-from desktop_env.eval.google_evaluators.google_service import GoogleService
-
-
-class GoogleCalendarService(GoogleService):
-    def __init__(self, token_path: str) -> None:
-        scopes = ["https://www.googleapis.com/auth/calendar"]
-        super().__init__(
-            scopes=scopes,
-            token_path=token_path,
-            service_name="calendar",
-            service_version="v3",
-        )
-
-    def list_calendars(self) -> list[dict]:
-        page_token = None
-        calendar_entry_list = []
-        while True:
-            calendar_list = (
-                self.service.calendarList().list(pageToken=page_token).execute()
-            )
-            for calendar_entry in calendar_list["items"]:
-                calendar_entry_list.append(calendar_entry)
-
-            page_token = calendar_list.get("nextPageToken")
-            if not page_token:
-                break
-        return calendar_entry_list
-
-    def create_event(
-        self,
-        summary: str | None,
-        location: str | None,
-        description: str | None,
-        start_time: str,
-        end_time: str,
-        attendees: list[str] | None = None,
-        calendar_id: str | None = "primary",
-        time_zone: str | None = "UTC",
-    ) -> dict[str, str]:
-        event_info = {
-            "summary": summary,
-            "location": location,
-            "description": description,
-            "start": {
-                "dateTime": start_time,
-                "timeZone": time_zone,
-            },
-            "end": {
-                "dateTime": end_time,
-                "timeZone": time_zone,
-            },
-            "attendees": [{"email": attendee} for attendee in attendees]
-            if attendees
-            else [],
-        }
-        event = (
-            self.service.events()
-            .insert(calendarId=calendar_id, body=event_info)
-            .execute()
-        )
-        return event
-
-    def delete_event(self, event_id: str, calendar_id: str = "primary") -> bool:
-        try:
-            self.service.events().delete(
-                calendarId=calendar_id, eventId=event_id
-            ).execute()
-            return True
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            return False
-
-    def get_event(self, event_id: str, calendar_id: str = "primary") -> dict[str, str]:
-        event = (
-            self.service.events()
-            .get(calendarId=calendar_id, eventId=event_id)
-            .execute()
-        )
-        return event
-
-    def search_events(
-        self, start_time: str, end_time: str, calendar_id: str = "primary"
-    ) -> list[dict[str, str]]:
-        events_result = (
-            self.service.events()
-            .list(
-                calendarId=calendar_id,
-                timeMin=start_time,
-                timeMax=end_time,
-                singleEvents=True,
-                orderBy="startTime",
-            )
-            .execute()
-        )
-        return events_result.get("items", [])
 
 
 class GoogleCalendarEvaluator(Evaluator):
+    name: str = "google_calendar"
+
     @staticmethod
     def item_match(ref: str | None, pred: str | None) -> float:
         # print(f"ref: {ref}, pred: {pred}")
@@ -147,22 +53,26 @@ class GoogleCalendarEvaluator(Evaluator):
                 return 0.0
         return score
 
-    def __call__(
-        self,
-        config_file: Path | str,
-    ) -> float:
-        with open(config_file, "r") as f:
-            configs = json.load(f)
-
+    def __call__(self) -> float:
+        if self.env_configs is None:
+            raise ValueError(f"env_configs for {self.name} is None")
+        if self.extra_info is None:
+            raise ValueError(f"extra_info for {self.name} is None")
+        gcalendar_service = GoogleCalendarService(
+            token_path=self.env_configs["token_path"]
+        )
+        calendar_id = self.extra_info["calendar_id"]
         score = 1.0
-        gcalendar_service = GoogleCalendarService(token_path=configs["token_path"])
 
         try:
-            for approach, value in configs["eval"]["reference_answers"].items():
+            for approach, value in self.reference_answer.items():
                 match approach:
                     case "event_match":
                         pred = gcalendar_service.search_events(
-                            value["start"]["dateTime"], value["end"]["dateTime"]
+                            value["start"]["dateTime"],
+                            value["end"]["dateTime"],
+                            calendar_id=calendar_id,
+                            # if calendar_id is None, fallback to primary calendar
                         )
                         if len(pred) == 0:
                             score = 0.0
@@ -171,7 +81,7 @@ class GoogleCalendarEvaluator(Evaluator):
                         else:
                             score *= self.dict_match_left(value, pred[0])
         except Exception as e:
-            print(f"An error occurred: {e}, score may be incorrect")
+            print(f"An error occurred: {e}\nscore may be incorrect")
             score = 0.0
 
         return score

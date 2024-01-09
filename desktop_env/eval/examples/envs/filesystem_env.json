@@ -1,0 +1,10 @@
+{
+    "applications": ["filesystem"],
+    "applications_settings": {
+        "filesystem": {
+        }
+    },
+    "intent": "Add some introductions to this environment",
+    "environments": {
+    }
+}
