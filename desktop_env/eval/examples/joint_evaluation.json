@@ -1,0 +1,54 @@
+{
+    "environment": "google_calendar_env",
+    "score_weight": 1.0,
+    "tasks": [
+        {
+            "task_id": 0,
+            "available_apis": ["GoogleCalendarService", "os"],
+            "score": 1.0,
+            "reset": false,
+            "intent_template": null,
+            "instantiation_dict": null,
+            "evals": [
+                {
+                    "eval_type": "google_calendar",
+                    "reference_answers": {
+                        "event_match": {
+                            "summary": "Meeting with Team",
+                            "location": "Office",
+                            "description": "Discuss project status",
+                            "start": {"dateTime": "2024-01-05T10:00:00+01:00"},
+                            "end": {"dateTime": "2024-01-05T11:00:00+01:00"}
+                        }
+                    },
+                    "extra_info": {
+                        "calendar_id": "primary"
+                    }
+                },
+                {
+                    "eval_type": "filesystem",
+                    "reference_answers": {
+                        "exists": {
+                            "tmp/test.txt": true,
+                            "tmp": true
+                        },
+                        "type_check": {
+                            "tmp/test.txt": "file",
+                            "tmp": "folder"
+                        },
+                        "permissions_check": {
+                            "tmp/test.txt": "-rw-r--r--",
+                            "tmp": "drwxrwxr-x"
+                        },
+                        "content_check": {
+                            "tmp/test.txt": "Hello World!"
+                        }
+                    }
+                }
+            ],
+            "reference_action_sequence": {
+                "action_sequence": []
+            }
+        }
+    ]
+}
