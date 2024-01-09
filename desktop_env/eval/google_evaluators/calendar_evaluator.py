@@ -80,7 +80,6 @@ class GoogleCalendarEvaluator(Evaluator):
                             # if calendar_id is None, fallback to primary calendar
                         )
                         if len(pred) == 0:
-                            print(f"No event found for {value}")
                             score = 0.0
                         elif len(pred) > 1:
                             raise ValueError(f"More than one event found: {pred}")
@@ -89,7 +88,6 @@ class GoogleCalendarEvaluator(Evaluator):
                             pred[0]['end']['dateTime'] = self.to_utc(pred[0]['end']['dateTime'])
                             value['start']['dateTime'] = self.to_utc(value['start']['dateTime'])
                             value['end']['dateTime'] = self.to_utc(value['end']['dateTime'])
-                            print(f"pred: {pred[0]['start']}\nref: {value['start']}")
                             score *= self.dict_match_left(value, pred[0])
         except Exception as e:
             print(f"An error occurred: {e}\nscore may be incorrect")
