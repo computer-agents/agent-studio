@@ -1,5 +1,5 @@
-from desktop_env.eval.envs.gspace.gservice import GoogleService
 from desktop_env.eval.envs.environment import Environment
+from desktop_env.eval.envs.gspace.gservice import GoogleService
 
 
 class GoogleCalendarService(GoogleService):
@@ -39,11 +39,17 @@ class GoogleCalendarService(GoogleService):
         return {}
 
     def clear_calendar(self, calendar_id: str) -> None:
-        events_result = self.service.events().list(calendarId=calendar_id, singleEvents=True).execute()
-        events = events_result.get('items', [])
+        events_result = (
+            self.service.events()
+            .list(calendarId=calendar_id, singleEvents=True)
+            .execute()
+        )
+        events = events_result.get("items", [])
 
         for event in events:
-            self.service.events().delete(calendarId=calendar_id, eventId=event['id']).execute()
+            self.service.events().delete(
+                calendarId=calendar_id, eventId=event["id"]
+            ).execute()
 
     def create_event(
         self,
@@ -125,14 +131,12 @@ class GoogleCalendarService(GoogleService):
 
 
 class GoogleCalendarEnv(Environment):
-    def __init__(
-            self,
-            app_settings: dict,
-            steps: list[dict]
-        ) -> None:
+    def __init__(self, app_settings: dict, steps: list[dict]) -> None:
         super().__init__(app_settings, steps)
         token_path: str = self.app_settings["token_path"]
-        self.service: GoogleCalendarService = GoogleCalendarService(token_path=token_path)
+        self.service: GoogleCalendarService = GoogleCalendarService(
+            token_path=token_path
+        )
         self.calendar_id: str = ""
         self.events: dict = {}
 

@@ -2,6 +2,7 @@ from desktop_env.computer.env import ComputerEnv
 from desktop_env.eval.envs.environment_helper import environment_init
 from desktop_env.eval.evaluator_helper import eval_json
 
+
 def test_calendar(
     computer_env: ComputerEnv,
 ) -> None:

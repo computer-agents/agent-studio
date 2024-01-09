@@ -1,6 +1,6 @@
 import json
-from pathlib import Path
 import os
+from pathlib import Path
 
 from desktop_env.eval.envs.environment import Environment
 from desktop_env.eval.envs.gspace.gcalendar import GoogleCalendarEnv
@@ -27,11 +27,8 @@ def environment_router(
             raise ValueError(f"env_name {env_name} is duplicated")
         match env_name:
             case "google_calendar":
-                environments[env_name] = (
-                    GoogleCalendarEnv(
-                        env_configs["applications_settings"][env_name],
-                        env_steps
-                    )
+                environments[env_name] = GoogleCalendarEnv(
+                    env_configs["applications_settings"][env_name], env_steps
                 )
             case _:
                 raise ValueError(f"env_name {env_name} is not supported")
