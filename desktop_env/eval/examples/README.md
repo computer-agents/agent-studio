@@ -38,7 +38,6 @@ An array of objects, where each object represents a task and must include:
 #### Evals
 
 Each object in the `evals` array must include:
-
 - `eval_type`: (string) Type of evaluation. This must match one of the `Evaluator.evaluator_name()`. 
 - `reference_answers`: (object) Object containing reference answers for evaluation.
 - `extra_info`: (object) Additional information for the evaluation.
@@ -79,6 +78,7 @@ Each object in the `evals` array must include:
 ```
 
 ### Scope
+
 Each JSON part will be parse by different part of the evaluator. Here's the rule.
 
 ```json
