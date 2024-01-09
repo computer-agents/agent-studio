@@ -6,30 +6,32 @@
     },
     "intent": "Add some introductions to this environment",
     "environments": {
-        "filesystem": [
-            {
-                "mkdir": {
-                    "path": "tmp"
+        "filesystem": {
+            "enter": [
+                {
+                    "mkdir": {
+                        "path": "tmp"
+                    }
+                },
+                {
+                    "create_file": {
+                        "path": "tmp/test.txt",
+                        "content": "Hello World!"
+                    }
+                },
+                {
+                    "chmod": {
+                        "path": "tmp/test.txt",
+                        "mode": "0o775"
+                    }
+                },
+                {
+                    "chmod": {
+                        "path": "tmp",
+                        "mode": "0o644"
+                    }
                 }
-            },
-            {
-                "create_file": {
-                    "path": "tmp/test.txt",
-                    "content": "Hello World!"
-                }
-            },
-            {
-                "chmod": {
-                    "path": "tmp/test.txt",
-                    "mode": "0o775"
-                }
-            },
-            {
-                "chmod": {
-                    "path": "tmp",
-                    "mode": "0o644"
-                }
-            }
-        ]
+            ]
+        }
     }
 }

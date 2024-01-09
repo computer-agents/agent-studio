@@ -31,6 +31,14 @@ class GoogleCalendarService(GoogleService):
         created_calendar = self.service.calendars().insert(body=calendar_info).execute()
         return created_calendar
 
+    def delete_calendar(self, calendar_id: str) -> bool:
+        try:
+            self.service.calendars().delete(calendarId=calendar_id).execute()
+            return True
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return False
+
     def find_calendar_by_id(self, id: str) -> dict[str, str]:
         calendar_entry_list = self.list_calendars()
         for calendar_entry in calendar_entry_list:
@@ -131,21 +139,24 @@ class GoogleCalendarService(GoogleService):
 
 
 class GoogleCalendarEnv(Environment):
-    def __init__(self, app_settings: dict, steps: list[dict]) -> None:
-        super().__init__(app_settings, steps)
+    def __init__(self, app_settings: dict, state: dict[str, list[dict]]) -> None:
+        super().__init__(app_settings, state)
         token_path: str = self.app_settings["token_path"]
         self.service: GoogleCalendarService = GoogleCalendarService(
             token_path=token_path
         )
         self.events: dict = {}
 
-    def reset(self) -> bool:
+    def execute(self, steps: list[dict]) -> bool:
         try:
-            for step in self.steps:
+            for step in steps:
                 action: str
                 params: dict
                 for action, params in step.items():
                     match action:
+                        case "create_and_cd_calendar":
+                            calendar = self.service.create_calendar(params)
+                            self.env_info["calendar_id"] = calendar["id"]
                         case "cd_calendar":
                             if params["id"] != "primary":
                                 calendar = self.service.find_calendar_by_id(
@@ -171,11 +182,17 @@ class GoogleCalendarEnv(Environment):
                                 self.env_info["calendar_id"],
                             )
                             self.events[event.get("id")] = event
+                        case "delete_calendar":
+                            self.service.delete_calendar(self.env_info["calendar_id"])
             return True
         except Exception as e:
             print(f"An error occurred in Google calendar env: {e}")
             return False
 
+    def reset(self):
+        self.execute(self.enter_steps)
+        return self.env_info
+
     def __del__(self) -> None:
         if "calendar_id" in self.env_info and self.env_info["calendar_id"] != "primary":
-            self.service.clear_calendar(self.env_info["calendar_id"])
+            self.execute(self.exit_steps)

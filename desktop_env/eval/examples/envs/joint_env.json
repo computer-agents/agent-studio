@@ -9,14 +9,15 @@
     },
     "intent": "Add some introductions to this environment",
     "environments": {
-        "google_calendar": [
-            {
-                "cd_calendar": {
-                    "id": "primary"
+        "google_calendar": {
+            "enter": [
+                {
+                    "cd_calendar": {
+                        "id": "primary"
+                    }
                 }
-            }
-        ],
-        "filesystem": [
-        ]
+            ]
+        },
+        "filesystem": {}
     }
 }

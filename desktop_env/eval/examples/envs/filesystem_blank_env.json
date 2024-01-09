@@ -6,7 +6,7 @@
     },
     "intent": "Add some introductions to this environment",
     "environments": {
-        "filesystem": [
-        ]
+        "filesystem": {
+        }
     }
 }

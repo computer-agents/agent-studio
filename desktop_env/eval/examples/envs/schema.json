@@ -19,9 +19,21 @@
         "environments": {
             "type": "object",
             "additionalProperties": {
-                "type": "array",
-                "items": {
-                    "type": "object"
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "enter": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "exit": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    }
                 }
             }
         }
