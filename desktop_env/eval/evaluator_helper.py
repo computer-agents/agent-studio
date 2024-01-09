@@ -67,6 +67,7 @@ def evaluator_router(
     return EvaluatorComb(evaluators)
 
 
+# TODO: this function only for testing!!!
 def eval_json(
     config_file: str | Path,
 ) -> float:
