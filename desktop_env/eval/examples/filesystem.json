@@ -1,5 +1,5 @@
 {
-    "environment": "filesystem_env",
+    "environment": "filesystem_blank_env",
     "score_weight": 1.0,
     "tasks": [
         {

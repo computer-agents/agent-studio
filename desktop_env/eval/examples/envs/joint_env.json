@@ -1,0 +1,22 @@
+{
+    "applications": ["google_calendar", "filesystem"],
+    "applications_settings": {
+        "google_calendar": {
+            "token_path": "token.json"
+        },
+        "filesystem": {
+        }
+    },
+    "intent": "Add some introductions to this environment",
+    "environments": {
+        "google_calendar": [
+            {
+                "cd_calendar": {
+                    "id": "primary"
+                }
+            }
+        ],
+        "filesystem": [
+        ]
+    }
+}

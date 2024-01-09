@@ -4,6 +4,7 @@ from pathlib import Path
 
 from desktop_env.eval.envs.environment import Environment
 from desktop_env.eval.envs.gspace.gcalendar import GoogleCalendarEnv
+from desktop_env.eval.envs.os.filesystem_env import FilesystemEnv
 
 
 class EnvironmentComb:
@@ -30,6 +31,10 @@ def environment_router(
                 environments[env_name] = GoogleCalendarEnv(
                     env_configs["applications_settings"][env_name], env_steps
                 )
+            case "filesystem":
+                environments[env_name] = FilesystemEnv(
+                    env_configs["applications_settings"][env_name], env_steps
+                )
             case _:
                 raise ValueError(f"env_name {env_name} is not supported")
 
@@ -40,15 +45,8 @@ def environment_router(
 def environment_init(
     config_file: str | Path,
 ) -> EnvironmentComb:
-    with open(config_file, "r") as f:
-        configs = json.load(f)
 
-    with open(
-        os.path.join(
-            "desktop_env/eval/examples/envs", f"{configs['environment']}.json"
-        ),
-        "r",
-    ) as f:
+    with open(config_file, "r") as f:
         env_configs = json.load(f)
 
     return environment_router(env_configs)

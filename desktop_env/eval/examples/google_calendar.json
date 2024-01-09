@@ -1,5 +1,5 @@
 {
-    "environment": "google_calendar_env",
+    "environment": "google_calendar_blank_env",
     "score_weight": 1.0,
     "tasks": [
         {
@@ -20,9 +20,6 @@
                             "start": {"dateTime": "2024-01-05T11:00:00+01:00"},
                             "end": {"dateTime": "2024-01-05T12:00:00+01:00"}
                         }
-                    },
-                    "extra_info": {
-                        "calendar_id": "primary"
                     }
                 }
             ],

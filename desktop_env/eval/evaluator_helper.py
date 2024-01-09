@@ -7,6 +7,8 @@ from desktop_env.eval.google_evaluators.calendar_evaluator import (
     GoogleCalendarEvaluator,
 )
 from desktop_env.eval.os_evaluators.filesystem_evaluator import FilesystemEvaluator
+from desktop_env.eval.envs.environment_helper import environment_init, EnvironmentComb
+from desktop_env.eval.envs.environment import Environment
 
 
 class EvaluatorComb:
@@ -28,6 +30,7 @@ class EvaluatorComb:
 def evaluator_router(
     task_configs: dict,
     env_configs: dict,
+    environments: dict[str, Environment],
 ) -> EvaluatorComb:
     """Router to get the evaluator class"""
 
@@ -42,7 +45,7 @@ def evaluator_router(
                         env_configs=env_configs["applications_settings"].get(
                             "google_calendar", {}
                         ),
-                        extra_info=eval.get("extra_info", {}),
+                        extra_info=environments["google_calendar"].get_env_info(),
                     )
                 )
             case "filesystem":
@@ -52,7 +55,7 @@ def evaluator_router(
                         env_configs=env_configs["applications_settings"].get(
                             "filesystem", {}
                         ),
-                        extra_info=eval.get("extra_info", {}),
+                        extra_info=environments["filesystem"].get_env_info(),
                     )
                 )
             # case "string_match":
@@ -68,26 +71,21 @@ def evaluator_router(
 
 
 # TODO: this function only for testing!!!
-def eval_json(
-    config_file: str | Path,
+def eval_tasks(
+    task_configs: dict,
+    env_configs: dict,
+    env_comb: EnvironmentComb,
 ) -> float:
-    with open(config_file, "r") as f:
-        configs = json.load(f)
-
-    with open(
-        os.path.join(
-            "desktop_env/eval/examples/envs", f"{configs['environment']}.json"
-        ),
-        "r",
-    ) as f:
-        env_configs = json.load(f)
-
     total_score = 0.0
     gained_score = 0.0
-    for task_config in configs["tasks"]:
-        comb = evaluator_router(task_configs=task_config, env_configs=env_configs)
+    for task_config in task_configs["tasks"]:
+        comb = evaluator_router(
+            task_config,
+            env_configs,
+            env_comb.environments
+        )
         task_score = comb()
         print(task_score)
         gained_score += task_score * task_config["score"]
         total_score += task_config["score"]
-    return (gained_score / total_score) * configs["score_weight"]
+    return (gained_score / total_score) * task_configs["score_weight"]

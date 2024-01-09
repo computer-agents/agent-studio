@@ -20,9 +20,6 @@
                             "start": {"dateTime": "2024-01-05T10:00:00Z"},
                             "end": {"dateTime": "2024-01-05T11:00:00Z"}
                         }
-                    },
-                    "extra_info": {
-                        "calendar_id": "11c007537c46ec67d9c1dc63a4d240439eda1573452b4505b26c38fd96bf1bec@group.calendar.google.com"
                     }
                 }
             ],

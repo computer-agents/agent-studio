@@ -50,9 +50,6 @@
                                 },
                                 "reference_answers": {
                                     "type": "object"
-                                },
-                                "extra_info": {
-                                    "type": "object"
                                 }
                             }
                         }

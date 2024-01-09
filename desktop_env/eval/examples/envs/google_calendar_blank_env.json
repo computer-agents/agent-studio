@@ -1,0 +1,18 @@
+{
+    "applications": ["google_calendar"],
+    "applications_settings": {
+        "google_calendar": {
+            "token_path": "token.json"
+        }
+    },
+    "intent": "Add some introductions to this environment",
+    "environments": {
+        "google_calendar": [
+            {
+                "cd_calendar": {
+                    "id": "primary"
+                }
+            }
+        ]
+    }
+}

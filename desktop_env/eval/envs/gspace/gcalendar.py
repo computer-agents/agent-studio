@@ -137,7 +137,6 @@ class GoogleCalendarEnv(Environment):
         self.service: GoogleCalendarService = GoogleCalendarService(
             token_path=token_path
         )
-        self.calendar_id: str = ""
         self.events: dict = {}
 
     def reset(self) -> bool:
@@ -148,12 +147,15 @@ class GoogleCalendarEnv(Environment):
                 for action, params in step.items():
                     match action:
                         case "cd_calendar":
-                            calendar = self.service.find_calendar_by_id(params["id"])
-                            if calendar == {}:
-                                raise Exception(f"Calendar {params['id']} not found")
-                            self.calendar_id = calendar["id"]
+                            if params["id"] != "primary":
+                                calendar = self.service.find_calendar_by_id(params["id"])
+                                if calendar == {}:
+                                    raise Exception(f"Calendar {params['id']} not found")
+                                self.env_info["calendar_id"] = calendar["id"]
+                            else:
+                                self.env_info["calendar_id"] = "primary"
                         case "clear_calendar":
-                            self.service.clear_calendar(self.calendar_id)
+                            self.service.clear_calendar(self.env_info["calendar_id"])
                         case "create_event":
                             event = self.service.create_event(
                                 params.get("summary"),
@@ -162,14 +164,14 @@ class GoogleCalendarEnv(Environment):
                                 params["start"]["dateTime"],
                                 params["end"]["dateTime"],
                                 params.get("attendees"),
-                                self.calendar_id,
+                                self.env_info["calendar_id"],
                             )
                             self.events[event.get("id")] = event
             return True
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"An error occurred in Google calendar env: {e}")
             return False
 
     def __del__(self) -> None:
-        if self.calendar_id != "":
-            self.service.clear_calendar(self.calendar_id)
+        if "calendar_id" in self.env_info and self.env_info["calendar_id"] != "primary":
+            self.service.clear_calendar(self.env_info["calendar_id"])
