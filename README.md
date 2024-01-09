@@ -14,6 +14,7 @@ Playground is a holistic and scalable benchmark for measuring and training an AI
 conda create --name playground python=3.11 -y
 conda activate playground
 pip install -r requirements.txt
+pip install -e .
 ```
 
 (optional, for reproducibility) [Install VirtualBox](https://ubuntu.com/tutorials/how-to-run-ubuntu-desktop-on-a-virtual-machine-using-virtualbox#1-overview) (we use VirtualBox 7 and Ubuntu 22.04 image)

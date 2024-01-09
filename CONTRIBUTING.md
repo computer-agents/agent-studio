@@ -9,6 +9,14 @@ A great way to support Playground is by promoting it. You can share it in your b
 
 ## Contributing Guidelines
 
+### Setup for Development
+
+```bash
+pip install -e ".[dev]"
+pip install pre-commit
+pre-commit install
+```
+
 ### Issue Reporting
 
 Should you come across any bugs or wish to suggest a feature, kindly first visit our issues page to see if it's already been mentioned. If not, feel free to open a new issue and provide relevant information.
