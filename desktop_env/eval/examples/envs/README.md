@@ -41,27 +41,42 @@ Your environment JSON file should contain the following properties:
 
 - `type`: object
 - Description: Detailed configurations for each environment.
-- Structure: Each key is an environment name, and its value is an array of objects representing different states or data of the environment.
+- Structure: Each key is an environment name, and its value is an object which contains two keys "enter" and "exit".
+
+### Enter
+
+- `type`: list
+- Description: Actions need to be done when enter the environment.
+- Structure: Each item is a object contains action name and parameters.
+
+### Exit
+
+- `type`: list
+- Description: Actions need to be done when exit the environment.
+- Structure: Each item is a object contains action name and parameters.
 
 #### Example for Google Calendar Environment:
 
 ```json
-"google_calendar": [
-    {
-        "event": {
-            "summary": "Meeting with Team",
-            "location": "Office",
-            // ... additional event details ...
+"google_calendar": {
+    "enter": [
+        {
+            "cd_calendar": {
+                "id": "primary"
+            }
+        },
+        {
+            "event": {
+                "summary": "Meeting with Team",
+                "location": "Office",
+                "description": "Discuss project status",
+                "start": {"dateTime": "2024-01-05T10:00:00+01:00"},
+                "end": {"dateTime": "2024-01-05T11:00:00+01:00"}
+            }
         }
-    },
-    {
-        "event": {
-            "summary": "See doctor",
-            "location": "Clinic",
-            // ... additional event details ...
-        }
-    }
-]
+    ],
+    "exit": []
+}
 ```
 
 ## Example Environment JSON
@@ -76,26 +91,25 @@ Your environment JSON file should contain the following properties:
     },
     "intent": "Add some introductions to this environment",
     "environments": {
-        "google_calendar": [
-            {
-                "event": {
-                    "summary": "Meeting with Team",
-                    "location": "Office",
-                    "description": "Discuss project status",
-                    "start": {"dateTime": "2024-01-05T10:00:00+01:00"},
-                    "end": {"dateTime": "2024-01-05T11:00:00+01:00"}
+        "google_calendar": {
+            "enter": [
+                {
+                    "cd_calendar": {
+                        "id": "primary"
+                    }
+                },
+                {
+                    "event": {
+                        "summary": "Meeting with Team",
+                        "location": "Office",
+                        "description": "Discuss project status",
+                        "start": {"dateTime": "2024-01-05T10:00:00+01:00"},
+                        "end": {"dateTime": "2024-01-05T11:00:00+01:00"}
+                    }
                 }
-            },
-            {
-                "event": {
-                    "summary": "See doctor",
-                    "location": "Clinic",
-                    "description": "Discuss current health status",
-                    "start": {"dateTime": "2024-01-05T15:00:00+01:00"},
-                    "end": {"dateTime": "2024-01-05T16:00:00+01:00"}
-                }
-            }
-        ]
+            ],
+            "exit": []
+        }
     }
 }
 ```
@@ -111,8 +125,7 @@ Each JSON part will be parse by different part of the evaluator. Here's the rule
     },
     "intent": "For Agents",
     "environments": {
-        "ENV_NAME1": "Not used yet",
-        "ENV_NAME2": "Not used yet"
+        "ENV_NAME1": "For Environment, e.g. envs/gspace/gcalendar.py"
     }
 }
 ```
