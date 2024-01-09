@@ -6,24 +6,26 @@
         }
     },
     "intent": "Add some introductions to this environment",
-    "environment": [
-        {
-            "event": {
-                "summary": "Meeting with Team",
-                "location": "Office",
-                "description": "Discuss project status",
-                "start": {"dateTime": "2024-01-05T10:00:00+01:00"},
-                "end": {"dateTime": "2024-01-05T11:00:00+01:00"}
+    "environments": {
+        "google_calendar": [
+            {
+                "event": {
+                    "summary": "Meeting with Team",
+                    "location": "Office",
+                    "description": "Discuss project status",
+                    "start": {"dateTime": "2024-01-05T10:00:00+01:00"},
+                    "end": {"dateTime": "2024-01-05T11:00:00+01:00"}
+                }
+            },
+            {
+                "event": {
+                    "summary": "See doctor",
+                    "location": "Clinic",
+                    "description": "Discuss current health status",
+                    "start": {"dateTime": "2024-01-05T15:00:00+01:00"},
+                    "end": {"dateTime": "2024-01-05T16:00:00+01:00"}
+                }
             }
-        },
-        {
-            "event": {
-                "summary": "See doctor",
-                "location": "Clinic",
-                "description": "Discuss current health status",
-                "start": {"dateTime": "2024-01-05T15:00:00+01:00"},
-                "end": {"dateTime": "2024-01-05T16:00:00+01:00"}
-            }
-        }
-    ]
+        ]
+    }
 }
