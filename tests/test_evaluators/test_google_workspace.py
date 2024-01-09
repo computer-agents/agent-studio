@@ -5,7 +5,6 @@ from desktop_env.eval.evaluator_helper import eval_json
 def test_calendar(
     computer_env: ComputerEnv,
 ) -> None:
-
     action_seq_create = """
 from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
 

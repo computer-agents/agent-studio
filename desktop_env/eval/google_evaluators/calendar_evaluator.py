@@ -55,13 +55,15 @@ class GoogleCalendarEvaluator(Evaluator):
                 return 0.0
         return score
 
-    def __call__(
-        self
-    ) -> float:
-
+    def __call__(self) -> float:
+        if self.env_configs is None:
+            raise ValueError(f"env_configs for {self.evaluator_name()} is None")
+        if self.extra_info is None:
+            raise ValueError(f"extra_info for {self.evaluator_name()} is None")
         gcalendar_service = GoogleCalendarService(
             token_path=self.env_configs["token_path"]
         )
+        calendar_id = self.extra_info["calendar_id"]
         score = 1.0
 
         try:
@@ -71,15 +73,13 @@ class GoogleCalendarEvaluator(Evaluator):
                         pred = gcalendar_service.search_events(
                             value["start"]["dateTime"],
                             value["end"]["dateTime"],
-                            calendar_id=self.extra_info.get("calendar_id", None),
+                            calendar_id=calendar_id,
                             # if calendar_id is None, fallback to primary calendar
                         )
                         if len(pred) == 0:
                             score = 0.0
                         elif len(pred) > 1:
-                            raise ValueError(
-                                f"More than one event found: {pred}"
-                            )
+                            raise ValueError(f"More than one event found: {pred}")
                         else:
                             score *= self.dict_match_left(value, pred[0])
         except Exception as e:

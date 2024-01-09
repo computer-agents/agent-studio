@@ -1,21 +1,19 @@
-from pathlib import Path
 import json
 import os
+from pathlib import Path
 
-from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarEvaluator
-from desktop_env.eval.os_evaluators.filesystem_evaluator import FilesystemEvaluator
 from desktop_env.eval.evaluator import Evaluator
+from desktop_env.eval.google_evaluators.calendar_evaluator import (
+    GoogleCalendarEvaluator,
+)
+from desktop_env.eval.os_evaluators.filesystem_evaluator import FilesystemEvaluator
+
 
 class EvaluatorComb:
-    def __init__(
-            self, 
-            evaluators: list[Evaluator]
-        ) -> None:
+    def __init__(self, evaluators: list[Evaluator]) -> None:
         self.evaluators = evaluators
 
-    def __call__(
-        self
-    ) -> float:
+    def __call__(self) -> float:
         score = 1.0
         # TODO: add score weight, see JSON format
         for evaluator in self.evaluators:
@@ -41,7 +39,9 @@ def evaluator_router(
                 evaluators.append(
                     GoogleCalendarEvaluator(
                         reference_answer=eval["reference_answers"],
-                        env_configs=env_configs["applications_settings"].get("google_calendar", {}),
+                        env_configs=env_configs["applications_settings"].get(
+                            "google_calendar", {}
+                        ),
                         extra_info=eval.get("extra_info", {}),
                     )
                 )
@@ -49,7 +49,9 @@ def evaluator_router(
                 evaluators.append(
                     FilesystemEvaluator(
                         reference_answer=eval["reference_answers"],
-                        env_configs=env_configs["applications_settings"].get("filesystem", {}),
+                        env_configs=env_configs["applications_settings"].get(
+                            "filesystem", {}
+                        ),
                         extra_info=eval.get("extra_info", {}),
                     )
                 )
@@ -64,6 +66,7 @@ def evaluator_router(
 
     return EvaluatorComb(evaluators)
 
+
 def eval_json(
     config_file: str | Path,
 ) -> float:
@@ -71,12 +74,12 @@ def eval_json(
         configs = json.load(f)
 
     with open(
-            os.path.join(
-                "desktop_env/eval/examples/envs", f"{configs['environment']}.json"
-            ),
-            "r",
-        ) as f:
-            env_configs = json.load(f)
+        os.path.join(
+            "desktop_env/eval/examples/envs", f"{configs['environment']}.json"
+        ),
+        "r",
+    ) as f:
+        env_configs = json.load(f)
 
     total_score = 0.0
     gained_score = 0.0

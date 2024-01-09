@@ -1,6 +1,5 @@
 import filecmp
 import grp
-import json
 import os
 import pwd
 import stat
@@ -97,9 +96,7 @@ class FilesystemEvaluator(Evaluator):
             match approach:
                 case "exists":
                     for path, exists in value.items():
-                        score *= float(
-                            FilesystemEvaluator.exists(path) == exists
-                        )
+                        score *= float(FilesystemEvaluator.exists(path) == exists)
                 case "type_check":
                     for path, content in value.items():
                         if content == "file":
@@ -108,18 +105,12 @@ class FilesystemEvaluator(Evaluator):
                             score *= float(Path(path).is_dir())
                 case "permissions_check":
                     for path, permissions in value.items():
-                        score *= float(
-                            self.permission_match(path, permissions)
-                        )
+                        score *= float(self.permission_match(path, permissions))
                 case "content_check":
                     for path, content in value.items():
-                        score *= float(
-                            self.file_content_match(path, content)
-                        )
+                        score *= float(self.file_content_match(path, content))
                 case "metadata_check":
                     for path, metadata in value.items():
-                        score *= float(
-                            self.file_metadata_match(path, metadata)
-                        )
+                        score *= float(self.file_metadata_match(path, metadata))
 
         return score

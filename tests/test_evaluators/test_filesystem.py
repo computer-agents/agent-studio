@@ -7,7 +7,6 @@ from desktop_env.eval.evaluator_helper import eval_json
 def test_calendar(
     computer_env: ComputerEnv,
 ) -> None:
-
     os.makedirs("tmp", exist_ok=True)
     with open("tmp/test.txt", "w") as file:
         file.write("Hello World!")
