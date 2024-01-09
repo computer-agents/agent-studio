@@ -1,7 +1,5 @@
-import json
-from pathlib import Path
-
 from desktop_env.eval.envs.gspace.gservice import GoogleService
+from desktop_env.eval.envs.environment import Environment
 
 
 class GoogleCalendarService(GoogleService):
@@ -28,6 +26,24 @@ class GoogleCalendarService(GoogleService):
             if not page_token:
                 break
         return calendar_entry_list
+
+    def create_calendar(self, calendar_info: dict) -> dict[str, str]:
+        created_calendar = self.service.calendars().insert(body=calendar_info).execute()
+        return created_calendar
+
+    def find_calendar_by_id(self, id: str) -> dict[str, str]:
+        calendar_entry_list = self.list_calendars()
+        for calendar_entry in calendar_entry_list:
+            if calendar_entry["id"] == id:
+                return calendar_entry
+        return {}
+
+    def clear_calendar(self, calendar_id: str) -> None:
+        events_result = self.service.events().list(calendarId=calendar_id, singleEvents=True).execute()
+        events = events_result.get('items', [])
+
+        for event in events:
+            self.service.events().delete(calendarId=calendar_id, eventId=event['id']).execute()
 
     def create_event(
         self,
@@ -108,12 +124,48 @@ class GoogleCalendarService(GoogleService):
         return events_result.get("items", [])
 
 
-class GoogleCalendarEnv:
-    def __init__(self, token_path: str, config_file: Path | str) -> None:
-        self.service = GoogleCalendarService(token_path=token_path)
-        with open(config_file, "r") as f:
-            config = json.load(f)
-        self.config = config
+class GoogleCalendarEnv(Environment):
+    def __init__(
+            self,
+            app_settings: dict,
+            steps: list[dict]
+        ) -> None:
+        super().__init__(app_settings, steps)
+        token_path: str = self.app_settings["token_path"]
+        self.service: GoogleCalendarService = GoogleCalendarService(token_path=token_path)
+        self.calendar_id: str = ""
+        self.events: dict = {}
 
     def reset(self) -> bool:
-        return True
+        try:
+            for step in self.steps:
+                action: str
+                params: dict
+                for action, params in step.items():
+                    match action:
+                        case "cd_calendar":
+                            calendar = self.service.find_calendar_by_id(params["id"])
+                            if calendar == {}:
+                                raise Exception(f"Calendar {params['id']} not found")
+                            self.calendar_id = calendar["id"]
+                        case "clear_calendar":
+                            self.service.clear_calendar(self.calendar_id)
+                        case "create_event":
+                            event = self.service.create_event(
+                                params.get("summary"),
+                                params.get("location"),
+                                params.get("description"),
+                                params["start"]["dateTime"],
+                                params["end"]["dateTime"],
+                                params.get("attendees"),
+                                self.calendar_id,
+                            )
+                            self.events[event.get("id")] = event
+            return True
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return False
+
+    def __del__(self) -> None:
+        if self.calendar_id != "":
+            self.service.clear_calendar(self.calendar_id)
