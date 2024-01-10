@@ -12,10 +12,10 @@ Your JSON file should have the following top-level properties:
 
 ## Detailed Structure
 
-### Environment
+### Environments
 
-- `type`: string
-- Description: Task environment. This should match the file name in `desktop_env/eval/examples/envs`. Anything related to the environment should be there.
+- `type`: list
+- Description: Task environment. This should match the environment name in `config/environments.json`.
 
 ### Score Weight
 

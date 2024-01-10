@@ -1,4 +1,4 @@
-from desktop_env.eval.bridges.bridge import Environment
+from desktop_env.eval.bridges.bridge import Bridge
 
 """base class for evaluation"""
 
@@ -7,7 +7,7 @@ class Evaluator(object):
     def __init__(
         self,
         reference_answer: dict,
-        env: Environment,
+        env: Bridge,
         reset_actions: list[dict],
         env_settings: dict | None = None,
         eval_tag: str = "",

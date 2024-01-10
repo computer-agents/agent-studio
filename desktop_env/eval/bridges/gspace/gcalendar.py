@@ -1,4 +1,4 @@
-from desktop_env.eval.bridges.bridge import Environment
+from desktop_env.eval.bridges.bridge import Bridge
 from desktop_env.eval.bridges.gspace.gservice import GoogleService
 
 
@@ -138,7 +138,7 @@ class GoogleCalendarService(GoogleService):
         return events_result.get("items", [])
 
 
-class GoogleCalendarEnv(Environment):
+class GoogleCalendarBridge(Bridge):
     def __init__(self, env_config: dict) -> None:
         super().__init__(env_config)
         token_path: str = self.env_settings["token_path"]

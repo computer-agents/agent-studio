@@ -1,4 +1,4 @@
-class Environment:
+class Bridge:
     def __init__(
         self,
         env_config: dict,

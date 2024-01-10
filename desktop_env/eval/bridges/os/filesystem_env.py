@@ -1,12 +1,9 @@
 import os
 
-from desktop_env.eval.bridges.bridge import Environment
+from desktop_env.eval.bridges.bridge import Bridge
 
 
-class FilesystemEnv(Environment):
-    def __init__(self, env_config: dict) -> None:
-        super().__init__(env_config)
-
+class FilesystemBridge(Bridge):
     def execute(self, steps: list[dict]) -> bool:
         try:
             for step in steps:

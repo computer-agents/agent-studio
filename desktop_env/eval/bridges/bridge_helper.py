@@ -1,46 +1,46 @@
 import json
 from pathlib import Path
 
-from desktop_env.eval.bridges.bridge import Environment
-from desktop_env.eval.bridges.gspace.gcalendar import GoogleCalendarEnv
-from desktop_env.eval.bridges.os.filesystem_env import FilesystemEnv
+from desktop_env.eval.bridges.bridge import Bridge
+from desktop_env.eval.bridges.gspace.gcalendar import GoogleCalendarBridge
+from desktop_env.eval.bridges.os.filesystem_env import FilesystemBridge
 
 
-class EnvironmentComb:
-    def __init__(self, environments: dict[str, Environment]) -> None:
-        self.environments = environments
+class BridgesComb:
+    def __init__(self, bridges: dict[str, Bridge]) -> None:
+        self.bridges = bridges
 
     def reset(self, reset_actions: dict[str, list]) -> bool:
-        for env_name, actions in reset_actions.items():
-            self.environments[env_name].reset(actions)
+        for bridge_name, actions in reset_actions.items():
+            self.bridges[bridge_name].reset(actions)
         return True
 
 
-def environment_router(
+def bridge_router(
     env_configs: dict,
-) -> EnvironmentComb:
+) -> BridgesComb:
     """Router to get the environment class"""
 
-    environments: dict[str, Environment] = {}
-    for env_name, env_config in env_configs.items():
-        if env_name in environments:
-            raise ValueError(f"env_name {env_name} is duplicated")
-        match env_name:
+    bridges: dict[str, Bridge] = {}
+    for bridge_name, env_config in env_configs.items():
+        if bridge_name in bridges:
+            raise ValueError(f"bridge_name {bridge_name} is duplicated")
+        match bridge_name:
             case "google_calendar":
-                environments[env_name] = GoogleCalendarEnv(env_config)
+                bridges[bridge_name] = GoogleCalendarBridge(env_config)
             case "filesystem":
-                environments[env_name] = FilesystemEnv(env_config)
+                bridges[bridge_name] = FilesystemBridge(env_config)
             case _:
-                raise ValueError(f"env_name {env_name} is not supported")
+                raise ValueError(f"bridge_name {bridge_name} is not supported")
 
-    return EnvironmentComb(environments)
+    return BridgesComb(bridges)
 
 
 # TODO: this function only for testing!!!
-def environment_init(
+def bridge_init(
     config_file: str | Path,
-) -> EnvironmentComb:
+) -> BridgesComb:
     with open(config_file, "r") as f:
         env_configs = json.load(f)
 
-    return environment_router(env_configs)
+    return bridge_router(env_configs)

@@ -2,7 +2,7 @@ import json
 import os
 
 from desktop_env.computer.env import ComputerEnv
-from desktop_env.eval.bridges.bridge_helper import environment_init
+from desktop_env.eval.bridges.bridge_helper import bridge_init
 from desktop_env.eval.evaluator_helper import eval_tasks
 
 
@@ -13,7 +13,7 @@ def test_filesystem(
     with open(config_file, "r") as f:
         task_configs = json.load(f)
 
-    env_comb = environment_init("config/environments.json")
+    env_comb = bridge_init("config/environments.json")
 
     os.makedirs("tmp", exist_ok=True)
     with open("tmp/test.txt", "w") as file:
