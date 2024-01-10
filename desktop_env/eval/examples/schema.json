@@ -33,7 +33,10 @@
                         "type": "number"
                     },
                     "reset": {
-                        "type": "boolean"
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     },
                     "intent_template": {
                         "type": ["string", "null"]

@@ -6,7 +6,7 @@
             "task_id": 0,
             "available_apis": ["GoogleCalendarService", "os"],
             "score": 1.0,
-            "reset": false,
+            "reset": [],
             "intent_template": null,
             "instantiation_dict": null,
             "evals": [

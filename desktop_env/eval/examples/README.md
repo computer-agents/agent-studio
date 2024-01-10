@@ -29,7 +29,7 @@ An array of objects, where each object encapsulates a specific task and must inc
 - `task_id`: (integer) A unique identifier for the task.
 - `available_apis`: (array of strings) Specifies the APIs available for the task.
 - `score`: (number) The score associated with the task.
-- `reset`: (boolean) Indicates whether to reset the environment before the task.
+- `reset`: (array) Indicates which environment should be reset before the task. This must correspond to strings in `environments`.
 - `intent_template`: (string, null) A template describing the task's intent.
 - `instantiation_dict`: (object, null) A dictionary for instantiation details.
 - `evals`: (array) An array of evaluation objects pertaining to the task.
@@ -60,7 +60,7 @@ Each object in the `evals` array should include:
             "task_id": 0,
             "available_apis": ["GoogleCalendarService"],
             "score": 1.0,
-            "reset": false,
+            "reset": [],
             "intent_template": null,
             "instantiation_dict": null,
             "evals": [

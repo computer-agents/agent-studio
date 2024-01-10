@@ -6,7 +6,7 @@
             "task_id": 1,
             "available_apis": ["os"],
             "score": 1.0,
-            "reset": false,
+            "reset": [],
             "intent_template": null,
             "evals": [
                 {
@@ -35,7 +35,7 @@
             "task_id": 2,
             "available_apis": ["os"],
             "score": 2.0,
-            "reset": false,
+            "reset": [],
             "intent_template": null,
             "evals": [
                 {

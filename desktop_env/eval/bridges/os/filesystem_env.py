@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from desktop_env.eval.bridges.bridge import Bridge
 
@@ -28,7 +29,9 @@ class FilesystemBridge(Bridge):
                         case "rmdir":
                             dir_name = params["path"]
                             if os.path.exists(dir_name) and os.path.isdir(dir_name):
-                                os.rmdir(dir_name)
+                                # os.rmdir(dir_name)
+                                # to force remove directory
+                                shutil.rmtree(dir_name)
                         case "rename":
                             old_name = params["old_name"]
                             new_name = params["new_name"]
