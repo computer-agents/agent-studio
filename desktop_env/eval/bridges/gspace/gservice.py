@@ -37,7 +37,7 @@ class GoogleService(object):
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    f"{self.service_name}_credentials.json", self.scopes
+                    os.path.join(os.path.dirname(token_path), "credentials.json"), self.scopes
                 )
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
