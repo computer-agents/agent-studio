@@ -63,11 +63,6 @@
                 ],
                 "filesystem": [
                     {
-                        "rm": {
-                            "path": "tmp/test.txt"
-                        }
-                    },
-                    {
                         "rmdir": {
                             "path": "tmp"
                         }

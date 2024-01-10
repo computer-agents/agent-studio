@@ -13,7 +13,6 @@ def test_calendar(
         task_configs = json.load(f)
 
     env_comb = bridge_init("config/environments.json")
-    env_comb.reset(task_configs["tasks"][0]["reset_actions"])
 
     score = eval_tasks(
         task_configs,

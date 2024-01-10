@@ -14,7 +14,6 @@ def test_joint(
         task_configs = json.load(f)
 
     env_comb = bridge_init("config/environments.json")
-    env_comb.reset(task_configs["tasks"][0]["reset_actions"])
 
     score = eval_tasks(
         task_configs,
@@ -22,15 +21,11 @@ def test_joint(
     )
     assert score == 1.0
 
+    # Test reset
     os.remove("tmp/test.txt")
     os.rmdir("tmp")
     score = eval_tasks(
         task_configs,
         env_comb,
     )
-    assert score == 0.0
-
-
-if __name__ == "__main__":
-    computer_env = ComputerEnv()
-    test_joint(computer_env)
+    assert score == 1.0

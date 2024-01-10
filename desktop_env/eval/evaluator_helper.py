@@ -11,8 +11,13 @@ class EvaluatorComb:
     def __init__(self, evaluators: list[Evaluator]) -> None:
         self.evaluators = evaluators
 
+    def reset(self) -> None:
+        for evaluator in self.evaluators:
+            evaluator.reset()
+
     def __call__(self) -> float:
         score = 1.0
+        self.reset()
         # TODO: add score weight, see JSON format
         for evaluator in self.evaluators:
             cur_score = evaluator()
@@ -32,6 +37,7 @@ def evaluator_router(
     evaluators: list[Evaluator] = []
     for eval in task_configs["evals"]:
         eval_type = eval["eval_type"]
+        reset_actions_dict: dict = task_configs.get("reset_actions", {})
         match eval_type:
             case "google_calendar":
                 evaluators.append(
@@ -39,7 +45,7 @@ def evaluator_router(
                         reference_answer=eval["reference_answers"],
                         env=bridges["google_calendar"],
                         env_settings=bridges["google_calendar"].get_env_settings(),
-                        reset_actions=task_configs.get("reset_actions", []),
+                        reset_actions=reset_actions_dict.get("google_calendar", []),
                     )
                 )
             case "filesystem":
@@ -48,7 +54,7 @@ def evaluator_router(
                         reference_answer=eval["reference_answers"],
                         env=bridges["filesystem"],
                         env_settings=bridges["filesystem"].get_env_settings(),
-                        reset_actions=task_configs.get("reset_actions", []),
+                        reset_actions=reset_actions_dict.get("filesystem", []),
                     )
                 )
             # case "string_match":
