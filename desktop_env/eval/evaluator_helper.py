@@ -39,6 +39,7 @@ def evaluator_router(
                         reference_answer=eval["reference_answers"],
                         env=environments["google_calendar"],
                         env_settings=environments["google_calendar"].get_env_settings(),
+                        reset_actions=task_configs.get("reset_actions", []),
                     )
                 )
             case "filesystem":
@@ -47,6 +48,7 @@ def evaluator_router(
                         reference_answer=eval["reference_answers"],
                         env=environments["filesystem"],
                         env_settings=environments["filesystem"].get_env_settings(),
+                        reset_actions=task_configs.get("reset_actions", []),
                     )
                 )
             # case "string_match":

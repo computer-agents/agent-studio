@@ -27,13 +27,9 @@ def environment_router(
             raise ValueError(f"env_name {env_name} is duplicated")
         match env_name:
             case "google_calendar":
-                environments[env_name] = GoogleCalendarEnv(
-                    env_config
-                )
+                environments[env_name] = GoogleCalendarEnv(env_config)
             case "filesystem":
-                environments[env_name] = FilesystemEnv(
-                    env_config
-                )
+                environments[env_name] = FilesystemEnv(env_config)
             case _:
                 raise ValueError(f"env_name {env_name} is not supported")
 

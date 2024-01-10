@@ -5,7 +5,9 @@ class Environment:
     ) -> None:
         self.enter_steps: list = env_config["enter"] if "enter" in env_config else []
         self.exit_steps: list = env_config["exit"] if "exit" in env_config else []
-        self.env_settings: dict = env_config["env_settings"] if "env_settings" in env_config else {}
+        self.env_settings: dict = (
+            env_config["env_settings"] if "env_settings" in env_config else {}
+        )
         # self.execute(self.enter_steps)
 
     def execute(self, steps: list[dict]) -> bool:

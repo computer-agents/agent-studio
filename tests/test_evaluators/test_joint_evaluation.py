@@ -30,6 +30,7 @@ def test_joint(
     )
     assert score == 0.0
 
+
 if __name__ == "__main__":
     computer_env = ComputerEnv()
     test_joint(computer_env)

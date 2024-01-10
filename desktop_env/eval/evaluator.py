@@ -1,4 +1,5 @@
 from desktop_env.eval.bridges.bridge import Environment
+
 """base class for evaluation"""
 
 
@@ -7,9 +8,9 @@ class Evaluator(object):
         self,
         reference_answer: dict,
         env: Environment,
+        reset_actions: list[dict],
         env_settings: dict | None = None,
         eval_tag: str = "",
-        reset_actions: list[dict] = [],
     ) -> None:
         self.reference_answer = reference_answer
         self.env = env

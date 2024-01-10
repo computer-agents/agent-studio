@@ -1,5 +1,4 @@
 import json
-import os
 
 from desktop_env.computer.env import ComputerEnv
 from desktop_env.eval.bridges.bridge_helper import environment_init
