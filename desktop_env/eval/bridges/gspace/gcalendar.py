@@ -154,21 +154,21 @@ class GoogleCalendarBridge(Bridge):
                 params: dict
                 for action, params in step.items():
                     match action:
-                        case "create_and_cd_calendar":
-                            calendar = self.service.create_calendar(params)
-                            self.env_settings["calendar_id"] = calendar["id"]
-                        case "cd_calendar":
-                            if params["id"] != "primary":
-                                calendar = self.service.find_calendar_by_id(
-                                    params["id"]
-                                )
-                                if calendar == {}:
-                                    raise Exception(
-                                        f"Calendar {params['id']} not found"
-                                    )
-                                self.env_settings["calendar_id"] = calendar["id"]
-                            else:
-                                self.env_settings["calendar_id"] = "primary"
+                        # case "create_and_cd_calendar":
+                        #     calendar = self.service.create_calendar(params)
+                        #     self.env_settings["calendar_id"] = calendar["id"]
+                        # case "cd_calendar":
+                        #     if params["id"] != "primary":
+                        #         calendar = self.service.find_calendar_by_id(
+                        #             params["id"]
+                        #         )
+                        #         if calendar == {}:
+                        #             raise Exception(
+                        #                 f"Calendar {params['id']} not found"
+                        #             )
+                        #         self.env_settings["calendar_id"] = calendar["id"]
+                        #     else:
+                        #         self.env_settings["calendar_id"] = "primary"
                         case "clear_calendar":
                             self.service.clear_calendar(
                                 self.env_settings["calendar_id"]
@@ -184,9 +184,13 @@ class GoogleCalendarBridge(Bridge):
                                 self.env_settings["calendar_id"],
                             )
                             self.events[event.get("id")] = event
-                        case "delete_cur_calendar":
-                            self.service.delete_calendar(
-                                self.env_settings["calendar_id"]
+                        # case "delete_cur_calendar":
+                        #     self.service.delete_calendar(
+                        #         self.env_settings["calendar_id"]
+                        #     )
+                        case _:
+                            raise Exception(
+                                f"Action {action} not supported by Google calendar"
                             )
             return True
         except Exception as e:
