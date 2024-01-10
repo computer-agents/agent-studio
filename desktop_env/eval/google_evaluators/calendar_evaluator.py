@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Union
 
-from desktop_env.eval.envs.gspace.gcalendar import GoogleCalendarService
+from desktop_env.eval.bridges.gspace.gcalendar import GoogleCalendarService
 from desktop_env.eval.evaluator import Evaluator
 
 
@@ -59,14 +59,14 @@ class GoogleCalendarEvaluator(Evaluator):
         return datetime.fromisoformat(time).astimezone().isoformat()
 
     def __call__(self) -> float:
-        if self.env_configs is None:
-            raise ValueError(f"env_configs for {self.name} is None")
-        if self.extra_info is None:
-            raise ValueError(f"extra_info for {self.name} is None")
+        if self.env is None:
+            raise ValueError(f"env for {self.name} is None")
+        if self.env_settings is None:
+            raise ValueError(f"env_settings for {self.name} is None")
         gcalendar_service = GoogleCalendarService(
-            token_path=self.env_configs["token_path"]
+            token_path=self.env_settings["token_path"]
         )
-        calendar_id = self.extra_info["calendar_id"]
+        calendar_id = self.env_settings["calendar_id"]
         score = 1.0
 
         try:

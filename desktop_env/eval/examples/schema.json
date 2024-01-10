@@ -2,10 +2,13 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "additionalProperties": false,
-    "required": ["environment", "score_weight", "tasks"],
+    "required": ["environments", "score_weight", "tasks"],
     "properties": {
-        "environment": {
-            "type": "string"
+        "environments": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         },
         "score_weight": {
             "type": "number"
@@ -59,6 +62,15 @@
                         "properties": {
                             "action_sequence": {
                                 "type": "array"
+                            }
+                        }
+                    },
+                    "reset_actions": {
+                        "type": ["object", "null"],
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
                             }
                         }
                     }

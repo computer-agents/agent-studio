@@ -1,6 +1,6 @@
 {
-    "environment": "joint_env",
     "score_weight": 1.0,
+    "environments": ["google_calendar", "filesystem"],
     "tasks": [
         {
             "task_id": 0,
@@ -45,6 +45,57 @@
             ],
             "reference_action_sequence": {
                 "action_sequence": []
+            },
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
+                    },
+                    {
+                        "create_event": {
+                            "summary": "Meeting with Team",
+                            "location": "Office",
+                            "description": "Discuss project status",
+                            "start": {"dateTime": "2024-01-05T10:00:00Z"},
+                            "end": {"dateTime": "2024-01-05T11:00:00Z"}
+                        }
+                    }
+                ],
+                "filesystem": [
+                    {
+                        "rm": {
+                            "path": "tmp/test.txt"
+                        }
+                    },
+                    {
+                        "rmdir": {
+                            "path": "tmp"
+                        }
+                    },
+                    {
+                        "mkdir": {
+                            "path": "tmp"
+                        }
+                    },
+                    {
+                        "create_file": {
+                            "path": "tmp/test.txt",
+                            "content": "Hello World!"
+                        }
+                    },
+                    {
+                        "chmod": {
+                            "path": "tmp/test.txt",
+                            "mode": "0o644"
+                        }
+                    },
+                    {
+                        "chmod": {
+                            "path": "tmp",
+                            "mode": "0o775"
+                        }
+                    }
+                ]
             }
         }
     ]

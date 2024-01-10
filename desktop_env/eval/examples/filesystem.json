@@ -1,6 +1,6 @@
 {
-    "environment": "filesystem_blank_env",
     "score_weight": 1.0,
+    "environments": ["filesystem"],
     "tasks": [
         {
             "task_id": 1,

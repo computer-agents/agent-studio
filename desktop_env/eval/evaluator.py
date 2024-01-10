@@ -1,3 +1,4 @@
+from desktop_env.eval.bridges.bridge import Environment
 """base class for evaluation"""
 
 
@@ -5,18 +6,19 @@ class Evaluator(object):
     def __init__(
         self,
         reference_answer: dict,
-        env_configs: dict | None = None,
-        extra_info: dict | None = None,
+        env: Environment,
+        env_settings: dict | None = None,
         eval_tag: str = "",
+        reset_actions: list[dict] = [],
     ) -> None:
         self.reference_answer = reference_answer
-        self.env_configs = env_configs
-        self.extra_info = extra_info
+        self.env = env
+        self.env_settings = env_settings
         self.eval_tag = eval_tag
+        self.reset_actions = reset_actions
 
-    @staticmethod
-    def evaluator_name() -> str:
-        raise NotImplementedError
+    def reset(self) -> bool:
+        return self.env.reset(self.reset_actions)
 
     def __call__(self) -> float:
         raise NotImplementedError

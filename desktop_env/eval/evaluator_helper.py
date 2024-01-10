@@ -1,5 +1,5 @@
-from desktop_env.eval.envs.environment import Environment
-from desktop_env.eval.envs.environment_helper import EnvironmentComb
+from desktop_env.eval.bridges.bridge import Environment
+from desktop_env.eval.bridges.bridge_helper import EnvironmentComb
 from desktop_env.eval.evaluator import Evaluator
 from desktop_env.eval.google_evaluators.calendar_evaluator import (
     GoogleCalendarEvaluator,
@@ -25,7 +25,6 @@ class EvaluatorComb:
 
 def evaluator_router(
     task_configs: dict,
-    env_configs: dict,
     environments: dict[str, Environment],
 ) -> EvaluatorComb:
     """Router to get the evaluator class"""
@@ -38,20 +37,16 @@ def evaluator_router(
                 evaluators.append(
                     GoogleCalendarEvaluator(
                         reference_answer=eval["reference_answers"],
-                        env_configs=env_configs["applications_settings"].get(
-                            "google_calendar", {}
-                        ),
-                        extra_info=environments["google_calendar"].get_env_info(),
+                        env=environments["google_calendar"],
+                        env_settings=environments["google_calendar"].get_env_settings(),
                     )
                 )
             case "filesystem":
                 evaluators.append(
                     FilesystemEvaluator(
                         reference_answer=eval["reference_answers"],
-                        env_configs=env_configs["applications_settings"].get(
-                            "filesystem", {}
-                        ),
-                        extra_info=environments["filesystem"].get_env_info(),
+                        env=environments["filesystem"],
+                        env_settings=environments["filesystem"].get_env_settings(),
                     )
                 )
             # case "string_match":
@@ -69,13 +64,12 @@ def evaluator_router(
 # TODO: this function only for testing!!!
 def eval_tasks(
     task_configs: dict,
-    env_configs: dict,
     env_comb: EnvironmentComb,
 ) -> float:
     total_score = 0.0
     gained_score = 0.0
     for task_config in task_configs["tasks"]:
-        comb = evaluator_router(task_config, env_configs, env_comb.environments)
+        comb = evaluator_router(task_config, env_comb.environments)
         task_score = comb()
         gained_score += task_score * task_config["score"]
         total_score += task_config["score"]

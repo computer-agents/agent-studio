@@ -1,11 +1,11 @@
 import os
 
-from desktop_env.eval.envs.environment import Environment
+from desktop_env.eval.bridges.bridge import Environment
 
 
 class FilesystemEnv(Environment):
-    def __init__(self, env_configs: dict, state: dict[str, list[dict]]) -> None:
-        super().__init__(env_configs, state)
+    def __init__(self, env_config: dict) -> None:
+        super().__init__(env_config)
 
     def execute(self, steps: list[dict]) -> bool:
         try:
@@ -26,10 +26,12 @@ class FilesystemEnv(Environment):
                             os.mkdir(dir_name)
                         case "rm":
                             file_name = params["path"]
-                            os.remove(file_name)
+                            if os.path.exists(file_name) and os.path.isfile(file_name):
+                                os.remove(file_name)
                         case "rmdir":
                             dir_name = params["path"]
-                            os.rmdir(dir_name)
+                            if os.path.exists(dir_name) and os.path.isdir(dir_name):
+                                os.rmdir(dir_name)
                         case "rename":
                             old_name = params["old_name"]
                             new_name = params["new_name"]
@@ -52,10 +54,3 @@ class FilesystemEnv(Environment):
         except Exception as e:
             print(f"An error occurred in Filesystem env: {e}")
             return False
-
-    def reset(self):
-        self.execute(self.enter_steps)
-        return self.env_info
-
-    def __del__(self) -> None:
-        self.execute(self.exit_steps)

@@ -1,18 +1,18 @@
 import json
 from pathlib import Path
 
-from desktop_env.eval.envs.environment import Environment
-from desktop_env.eval.envs.gspace.gcalendar import GoogleCalendarEnv
-from desktop_env.eval.envs.os.filesystem_env import FilesystemEnv
+from desktop_env.eval.bridges.bridge import Environment
+from desktop_env.eval.bridges.gspace.gcalendar import GoogleCalendarEnv
+from desktop_env.eval.bridges.os.filesystem_env import FilesystemEnv
 
 
 class EnvironmentComb:
     def __init__(self, environments: dict[str, Environment]) -> None:
         self.environments = environments
 
-    def reset(self) -> bool:
-        for _, environment in self.environments.items():
-            environment.reset()
+    def reset(self, reset_actions: dict[str, list]) -> bool:
+        for env_name, actions in reset_actions.items():
+            self.environments[env_name].reset(actions)
         return True
 
 
@@ -22,17 +22,17 @@ def environment_router(
     """Router to get the environment class"""
 
     environments: dict[str, Environment] = {}
-    for env_name, env_steps in env_configs["environments"].items():
+    for env_name, env_config in env_configs.items():
         if env_name in environments:
             raise ValueError(f"env_name {env_name} is duplicated")
         match env_name:
             case "google_calendar":
                 environments[env_name] = GoogleCalendarEnv(
-                    env_configs["applications_settings"][env_name], env_steps
+                    env_config
                 )
             case "filesystem":
                 environments[env_name] = FilesystemEnv(
-                    env_configs["applications_settings"][env_name], env_steps
+                    env_config
                 )
             case _:
                 raise ValueError(f"env_name {env_name} is not supported")
