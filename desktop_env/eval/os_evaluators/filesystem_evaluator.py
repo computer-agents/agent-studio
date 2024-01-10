@@ -28,6 +28,10 @@ class FilesystemEvaluator(Evaluator):
     @staticmethod
     def permission_match(path: str, expected_permissions: str) -> bool:
         try:
+            # Compare permissions as octal
+            st_mode = os.stat(path).st_mode & 0o777
+            return st_mode == int(expected_permissions, 8)
+        except ValueError:
             # Convert permissions to a readable format
             st_mode = os.stat(path).st_mode
             actual_permissions = stat.filemode(st_mode)

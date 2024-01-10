@@ -22,7 +22,7 @@
                         },
                         "permissions_check": {
                             "tmp/test.txt": "-rw-r--r--",
-                            "tmp": "drwxrwxr-x"
+                            "tmp": "0o775"
                         },
                         "content_check": {
                             "tmp/test.txt": "Hello World!"
