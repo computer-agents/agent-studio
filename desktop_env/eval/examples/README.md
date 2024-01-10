@@ -1,103 +1,100 @@
 # Task JSON Composition Guide
 
-This guide provides instructions for creating a valid JSON file based on the specified schema for task evaluation. The JSON file is structured to include details about the environment, tasks, and various parameters related to the evaluation process.
+This guide provides instructions for creating a valid Task JSON file in accordance with the specified schema for task evaluation. The JSON file combines details about the environment and tasks, along with various parameters pertinent to the evaluation process.
 
 ## Structure Overview
 
-Your JSON file should have the following top-level properties:
+Your Task JSON file should contain the following top-level properties:
 
-- `environment`: A string specifying the environment.
-- `score_weight`: A number indicating the weight of this evaluation.
-- `tasks`: An array of task objects, each representing a specific task.
+- `score_weight`: A number indicating the overall weight of the evaluation.
+- `environments`: An array specifying the environments to be used.
+- `tasks`: An array of objects, each representing a specific task within the evaluation.
 
 ## Detailed Structure
-
-### Environments
-
-- `type`: list
-- Description: Task environment. This should match the environment name in `config/environments.json`.
 
 ### Score Weight
 
 - `type`: number
-- Description: The weight of the score in this evaluation. The final score can be a weighted average of all evaluations (Not implemented!).
+- Description: A number indicating the weight of this evaluation.
+
+### Environments
+
+- `type`: array of strings
+- Description: Lists the environments that will be used in the task evaluations. Any item in this list should match the keys in `config/environments.json`
 
 ### Tasks
 
-An array of objects, where each object represents a task and must include:
+An array of objects, where each object encapsulates a specific task and must include:
 
-- `task_id`: (integer) Unique identifier for the task.
-- `available_apis`: (array of strings) List of available APIs for the task (Maybe this can be a list of object, Not decided!).
-- `score`: (number) Score associated with the task.
-- `reset`: (boolean) Indicates whether to reset the environment state before the task.
-- `intent_template`: (string, null) Template for the intent, can be null for now, but will only allow string later.
-- `instantiation_dict`: (object, null) Dictionary for instantiation, can be null for now, but will only allow object later.
-- `evals`: (array) Array of evaluation objects.
-- `reference_action_sequence`: (object, null) Sequence of reference actions (Not implemented yet!).
+- `task_id`: (integer) A unique identifier for the task.
+- `available_apis`: (array of strings) Specifies the APIs available for the task.
+- `score`: (number) The score associated with the task.
+- `reset`: (boolean) Indicates whether to reset the environment before the task.
+- `intent_template`: (string, null) A template describing the task's intent.
+- `instantiation_dict`: (object, null) A dictionary for instantiation details.
+- `evals`: (array) An array of evaluation objects pertaining to the task.
+- `reference_action_sequence`: (object, null) A sequence of reference actions for the task (optional).
+- `reset_actions`: (object, null) Actions to reset the environment states (optional).
 
 #### Evals
 
-Each object in the `evals` array must include:
-- `eval_type`: (string) Type of evaluation. This must match one of the `Evaluator.evaluator_name()`.
-- `reference_answers`: (object) Object containing reference answers for evaluation.
-- `extra_info`: DELETED! Now tasks can get environment information by calling `env.get_info()`.
+Each object in the `evals` array should include:
 
-### Example
+- `eval_type`: (string) The type of evaluation to be conducted. This should match the name of the evaluator.
+- `reference_answers`: (object) Contains reference answers for the evaluation.
+
+#### Reset Actions
+
+`reset_actions` (if provided) should include:
+
+- An object where the key is the environment name (e.g., "google_calendar") and the value is an array of actions to reset the state of that environment.
+
+### Example Task JSON
 
 ```json
 {
-    "environment": "your_env_name",
     "score_weight": 1.0,
+    "environments": ["google_calendar"],
     "tasks": [
         {
             "task_id": 0,
-            "available_apis": [
-                // ... list of available APIs for Agent ...
-            ],
+            "available_apis": ["GoogleCalendarService"],
             "score": 1.0,
             "reset": false,
-            "intent_template": "Write down your task description",
+            "intent_template": null,
             "instantiation_dict": null,
             "evals": [
                 {
                     "eval_type": "google_calendar",
                     "reference_answers": {
-                        // ... reference answers ...
+                        "event_match": {
+                            "summary": "Meeting with Team",
+                            "location": "Office",
+                            "description": "Discuss project status",
+                            "start": {"dateTime": "2024-01-05T11:00:00+01:00"},
+                            "end": {"dateTime": "2024-01-05T12:00:00+01:00"}
+                        }
                     }
                 }
             ],
             "reference_action_sequence": {
                 "action_sequence": []
-            }
-        }
-    ]
-}
-```
-
-### Scope
-
-Each JSON part will be parse by different part of the evaluator. Here's the rule.
-
-```json
-{
-    "environment": "For evaluator_helper.py",
-    "score_weight": "For evaluator_helper.py",
-    "tasks": [
-        {
-            "task_id": "For evaluator_helper.py",
-            "available_apis": "For Agents",
-            "score": "For evaluator_helper.py",
-            "reset": "Not used yet",
-            "intent_template": "For Agents",
-            "instantiation_dict": "For Agents",
-            "evals": [
-                {
-                    "eval_type": "For evaluator_helper.py",
-                    "reference_answers": "For evaluator, e.g. google_evaluators/calendar_evaluator.py"
-                }
-            ],
-            "reference_action_sequence": {
-                "action_sequence": "Not used yet"
+            },
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
+                    },
+                    {
+                        "create_event": {
+                            "summary": "Meeting with Team",
+                            "location": "Office",
+                            "description": "Discuss project status",
+                            "start": {"dateTime": "2024-01-05T10:00:00Z"},
+                            "end": {"dateTime": "2024-01-05T11:00:00Z"}
+                        }
+                    }
+                ]
             }
         }
     ]
@@ -106,4 +103,4 @@ Each JSON part will be parse by different part of the evaluator. Here's the rule
 
 ## Validation
 
-Ensure that your JSON file strictly adheres to the defined schema. You can run `scripts/json_check.sh` to check if JSON files are valid.
+Ensure that your Task JSON file adheres strictly to the defined schema. Utilize `scripts/json_check.sh` to verify the validity of your JSON files.
