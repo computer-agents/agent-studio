@@ -1,5 +1,3 @@
-from desktop_env.eval.bridges.bridge import Bridge
-from desktop_env.eval.bridges.bridge_helper import BridgesComb
 from desktop_env.eval.evaluator import Evaluator
 from desktop_env.eval.google_evaluators.calendar_evaluator import (
     GoogleCalendarEvaluator,
@@ -29,7 +27,7 @@ class EvaluatorComb:
 
 def evaluator_router(
     task_configs: dict,
-    bridges: dict[str, Bridge],
+    env_configs: dict,
 ) -> EvaluatorComb:
     """Router to get the evaluator class"""
 
@@ -42,8 +40,7 @@ def evaluator_router(
                 evaluators.append(
                     GoogleCalendarEvaluator(
                         reference_answer=eval["reference_answers"],
-                        env=bridges["google_calendar"],
-                        env_settings=bridges["google_calendar"].get_env_settings(),
+                        env_config=env_configs["google_calendar"],
                         reset_actions=reset_actions_dict.get("google_calendar", []),
                     )
                 )
@@ -51,8 +48,7 @@ def evaluator_router(
                 evaluators.append(
                     FilesystemEvaluator(
                         reference_answer=eval["reference_answers"],
-                        env=bridges["filesystem"],
-                        env_settings=bridges["filesystem"].get_env_settings(),
+                        env_config=env_configs["filesystem"],
                         reset_actions=reset_actions_dict.get("filesystem", []),
                     )
                 )
@@ -71,12 +67,12 @@ def evaluator_router(
 # TODO: this function only for testing!!!
 def eval_tasks(
     task_configs: dict,
-    env_comb: BridgesComb,
+    env_configs: dict,
 ) -> float:
     total_score = 0.0
     gained_score = 0.0
     for task_config in task_configs["tasks"]:
-        comb = evaluator_router(task_config, env_comb.bridges)
+        comb = evaluator_router(task_config, env_configs)
         comb.reset()
         task_score = comb()
         gained_score += task_score * task_config["score"]

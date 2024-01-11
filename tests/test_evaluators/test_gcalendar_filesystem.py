@@ -1,7 +1,6 @@
 import json
 
 from desktop_env.computer.env import ComputerEnv
-from desktop_env.eval.bridges.bridge_helper import bridge_init
 from desktop_env.eval.evaluator_helper import evaluator_router
 
 agent_sim = {
@@ -76,13 +75,13 @@ def test_calendar(
     config_file = "desktop_env/eval/tasks/gcalendar_filesystem.json"
     with open(config_file, "r") as f:
         task_configs = json.load(f)
-
-    env_comb = bridge_init("config/environments.json")
+    with open("config/environments.json", "r") as f:
+        env_configs = json.load(f)
 
     total_score = 0.0
     gained_score = 0.0
     for task_config in task_configs["tasks"]:
-        comb = evaluator_router(task_config, env_comb.bridges)
+        comb = evaluator_router(task_config, env_configs)
         comb.reset()
         # Execute the Agent start #
         print(f"Executing {task_config['task_id']}")
