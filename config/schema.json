@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+            "env_settings": {
+                "type": "object"
+            },
+            "enter": {
+                "type": "array",
+                "items": {
+                    "type": "object"
+                }
+            },
+            "exit": {
+                "type": "array",
+                "items": {
+                    "type": "object"
+                }
+            }
+        }
+    }
+}

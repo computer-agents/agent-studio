@@ -1,11 +1,23 @@
+from datetime import datetime
 from typing import Union
 
-from desktop_env.eval.envs.gspace.gcalendar import GoogleCalendarService
+from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
 from desktop_env.eval.evaluator import Evaluator
 
 
 class GoogleCalendarEvaluator(Evaluator):
     name: str = "google_calendar"
+
+    def __init__(
+        self,
+        reference_answer: dict,
+        reset_actions: list[dict],
+        env_config: dict,
+        eval_tag: str = "",
+    ) -> None:
+        super().__init__(reference_answer, reset_actions, env_config, eval_tag)
+        self.service = GoogleCalendarService(token_path=self.env_settings["token_path"])
+        self.events: dict = {}
 
     @staticmethod
     def item_match(ref: str | None, pred: str | None) -> float:
@@ -53,22 +65,71 @@ class GoogleCalendarEvaluator(Evaluator):
                 return 0.0
         return score
 
+    @staticmethod
+    def to_utc(time: str) -> str:
+        return datetime.fromisoformat(time).astimezone().isoformat()
+
+    def execute(self, steps: list[dict]) -> bool:
+        try:
+            for step in steps:
+                action: str
+                params: dict
+                for action, params in step.items():
+                    match action:
+                        # case "create_and_cd_calendar":
+                        #     calendar = self.service.create_calendar(params)
+                        #     self.env_settings["calendar_id"] = calendar["id"]
+                        # case "cd_calendar":
+                        #     if params["id"] != "primary":
+                        #         calendar = self.service.find_calendar_by_id(
+                        #             params["id"]
+                        #         )
+                        #         if calendar == {}:
+                        #             raise Exception(
+                        #                 f"Calendar {params['id']} not found"
+                        #             )
+                        #         self.env_settings["calendar_id"] = calendar["id"]
+                        #     else:
+                        #         self.env_settings["calendar_id"] = "primary"
+                        case "clear_calendar":
+                            self.service.clear_calendar(
+                                self.env_settings["calendar_id"]
+                            )
+                        case "create_event":
+                            event = self.service.create_event(
+                                params.get("summary"),
+                                params.get("location"),
+                                params.get("description"),
+                                params["start"]["dateTime"],
+                                params["end"]["dateTime"],
+                                params.get("attendees"),
+                                self.env_settings["calendar_id"],
+                            )
+                            self.events[event.get("id")] = event
+                        # case "delete_cur_calendar":
+                        #     self.service.delete_calendar(
+                        #         self.env_settings["calendar_id"]
+                        #     )
+                        case _:
+                            raise Exception(
+                                f"Action {action} not supported by Google calendar"
+                            )
+            return True
+        except Exception as e:
+            print(f"An error occurred in Google calendar env: {e}")
+            return False
+
     def __call__(self) -> float:
-        if self.env_configs is None:
-            raise ValueError(f"env_configs for {self.name} is None")
-        if self.extra_info is None:
-            raise ValueError(f"extra_info for {self.name} is None")
-        gcalendar_service = GoogleCalendarService(
-            token_path=self.env_configs["token_path"]
-        )
-        calendar_id = self.extra_info["calendar_id"]
+        if self.env_settings is None:
+            raise ValueError(f"env_settings for {self.name} is None")
+        calendar_id = self.env_settings["calendar_id"]
         score = 1.0
 
         try:
             for approach, value in self.reference_answer.items():
                 match approach:
                     case "event_match":
-                        pred = gcalendar_service.search_events(
+                        pred: list[dict] = self.service.search_events(
                             value["start"]["dateTime"],
                             value["end"]["dateTime"],
                             calendar_id=calendar_id,
@@ -79,6 +140,18 @@ class GoogleCalendarEvaluator(Evaluator):
                         elif len(pred) > 1:
                             raise ValueError(f"More than one event found: {pred}")
                         else:
+                            pred[0]["start"]["dateTime"] = self.to_utc(
+                                pred[0]["start"]["dateTime"]
+                            )
+                            pred[0]["end"]["dateTime"] = self.to_utc(
+                                pred[0]["end"]["dateTime"]
+                            )
+                            value["start"]["dateTime"] = self.to_utc(
+                                value["start"]["dateTime"]
+                            )
+                            value["end"]["dateTime"] = self.to_utc(
+                                value["end"]["dateTime"]
+                            )
                             score *= self.dict_match_left(value, pred[0])
         except Exception as e:
             print(f"An error occurred: {e}\nscore may be incorrect")
