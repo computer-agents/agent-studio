@@ -163,6 +163,57 @@
                     }
                 ]
             }
+        },
+        {
+            "task_id": 4,
+            "available_apis": ["GoogleCalendarService", "os"],
+            "score": 1.0,
+            "reset": ["google_calendar", "filesystem"],
+            "intent_template": "After a team meeting on 2024-03-01, create a file named 'Meeting_Minutes_20240301.txt' in the 'tmp/Documents/Meetings' folder. The file should contain the string 'Minutes of the meeting held on 2024-03-01'. Also, schedule a follow-up meeting in Google Calendar for 2024-03-08 at 10:00 AM, with a summary 'Follow-up Meeting', located at 'Conference Room', and described as 'Discuss action points from last meeting'.",
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reference_answers": {
+                        "exists": {
+                            "tmp/Documents/Meetings/Meeting_Minutes_20240301.txt": true
+                        },
+                        "content_check": {
+                            "tmp/Documents/Meetings/Meeting_Minutes_20240301.txt": "Minutes of the meeting held on 2024-03-01"
+                        }
+                    }
+                },
+                {
+                    "eval_type": "google_calendar",
+                    "reference_answers": {
+                        "event_match": {
+                            "summary": "Follow-up Meeting",
+                            "location": "Conference Room",
+                            "description": "Discuss action points from last meeting",
+                            "start": {"dateTime": "2024-03-08T10:00:00Z"},
+                            "end": {"dateTime": "2024-03-08T11:00:00Z"}
+                        }
+                    }
+                }
+            ],
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
+                    }
+                ],
+                "filesystem": [
+                    {
+                        "rmdir": {
+                            "path": "tmp"
+                        }
+                    },
+                    {
+                        "mkdir": {
+                            "path": "tmp/Documents/Meetings"
+                        }
+                    }
+                ]
+            }
         }
     ]
 }

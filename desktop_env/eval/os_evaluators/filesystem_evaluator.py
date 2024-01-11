@@ -108,8 +108,8 @@ class FilesystemEvaluator(Evaluator):
                             else:
                                 open(file_name, "w").close()
                         case "mkdir":
-                            dir_name = params["path"]
-                            os.mkdir(dir_name)
+                            dir_name = Path(params["path"])
+                            dir_name.mkdir(parents=True, exist_ok=True)
                         case "rm":
                             file_name = params["path"]
                             if os.path.exists(file_name) and os.path.isfile(file_name):

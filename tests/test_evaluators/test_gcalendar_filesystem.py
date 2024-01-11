@@ -66,6 +66,32 @@ with open("tmp/calendar.txt", "w") as f:
     for event in events:
         f.write(event["summary"] + "\\n")
 """,
+    4: """
+import os
+import json
+from pathlib import Path
+
+from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+
+gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+with open("config/environments.json", "r") as f:
+    env_configs = json.load(f)
+    calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
+
+event = gcalendar_service.create_event(
+    summary="Follow-up Meeting",
+    location="Conference Room",
+    description="Discuss action points from last meeting",
+    start_time="2024-03-08T10:00:00Z",
+    end_time="2024-03-08T11:00:00Z",
+    calendar_id=calendar_id,
+)
+
+path = "tmp/Documents/Meetings"
+Path(path).mkdir(parents=True, exist_ok=True)
+with open("tmp/Documents/Meetings/Meeting_Minutes_20240301.txt", "w") as f:
+    f.write("Minutes of the meeting held on 2024-03-01")
+    """,
 }
 
 
