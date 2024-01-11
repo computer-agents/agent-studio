@@ -1,12 +1,12 @@
 {
-    "environment": "google_calendar_blank_env",
     "score_weight": 1.0,
+    "environments": ["google_calendar"],
     "tasks": [
         {
             "task_id": 0,
             "available_apis": ["GoogleCalendarService"],
             "score": 1.0,
-            "reset": false,
+            "reset": [],
             "intent_template": null,
             "instantiation_dict": null,
             "evals": [
@@ -25,6 +25,22 @@
             ],
             "reference_action_sequence": {
                 "action_sequence": []
+            },
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
+                    },
+                    {
+                        "create_event": {
+                            "summary": "Meeting with Team",
+                            "location": "Office",
+                            "description": "Discuss project status",
+                            "start": {"dateTime": "2024-01-05T10:00:00Z"},
+                            "end": {"dateTime": "2024-01-05T11:00:00Z"}
+                        }
+                    }
+                ]
             }
         }
     ]

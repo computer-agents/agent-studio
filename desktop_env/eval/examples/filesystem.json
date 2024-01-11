@@ -1,12 +1,12 @@
 {
-    "environment": "filesystem_blank_env",
     "score_weight": 1.0,
+    "environments": ["filesystem"],
     "tasks": [
         {
             "task_id": 1,
             "available_apis": ["os"],
             "score": 1.0,
-            "reset": false,
+            "reset": [],
             "intent_template": null,
             "evals": [
                 {
@@ -22,7 +22,7 @@
                         },
                         "permissions_check": {
                             "tmp/test.txt": "-rw-r--r--",
-                            "tmp": "drwxrwxr-x"
+                            "tmp": "0o775"
                         },
                         "content_check": {
                             "tmp/test.txt": "Hello World!"
@@ -35,7 +35,7 @@
             "task_id": 2,
             "available_apis": ["os"],
             "score": 2.0,
-            "reset": false,
+            "reset": [],
             "intent_template": null,
             "evals": [
                 {
