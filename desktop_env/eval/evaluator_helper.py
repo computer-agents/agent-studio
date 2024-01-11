@@ -17,7 +17,6 @@ class EvaluatorComb:
 
     def __call__(self) -> float:
         score = 1.0
-        self.reset()
         # TODO: add score weight, see JSON format
         for evaluator in self.evaluators:
             cur_score = evaluator()
@@ -78,6 +77,7 @@ def eval_tasks(
     gained_score = 0.0
     for task_config in task_configs["tasks"]:
         comb = evaluator_router(task_config, env_comb.bridges)
+        comb.reset()
         task_score = comb()
         gained_score += task_score * task_config["score"]
         total_score += task_config["score"]
