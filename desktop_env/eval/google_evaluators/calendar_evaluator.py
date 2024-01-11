@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Union
 
-from desktop_env.eval.bridges.gspace.gcalendar import GoogleCalendarService
+from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
 from desktop_env.eval.evaluator import Evaluator
 
 

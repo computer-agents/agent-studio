@@ -1,4 +1,4 @@
-from desktop_env.eval.bridges.gspace.gservice import GoogleService
+from desktop_env.eval.connectors.gspace.gservice import GoogleService
 
 
 class GoogleCalendarService(GoogleService):

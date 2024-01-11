@@ -1,7 +1,7 @@
 {
     "google_calendar": {
         "env_settings": {
-            "token_path": "config/secrets/token.json",
+            "token_path": "config/token.json",
             "calendar_id": "FILL_ME"
         }
     },

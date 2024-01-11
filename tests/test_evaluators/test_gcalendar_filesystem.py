@@ -8,7 +8,7 @@ agent_sim = {
 import json
 from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
 
-gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+gcalendar_service = GoogleCalendarService(token_path="config/token.json")
 with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
@@ -26,7 +26,7 @@ event = gcalendar_service.create_event(
 import json
 from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
 
-gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+gcalendar_service = GoogleCalendarService(token_path="config/token.json")
 with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
@@ -50,7 +50,7 @@ with open("tmp/test.txt", "w") as f:
 import json
 from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
 
-gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+gcalendar_service = GoogleCalendarService(token_path="config/token.json")
 with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
