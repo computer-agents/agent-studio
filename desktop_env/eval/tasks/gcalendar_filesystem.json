@@ -214,6 +214,56 @@
                     }
                 ]
             }
+        },
+        {
+            "task_id": 5,
+            "available_apis": ["GoogleCalendarService", "os"],
+            "score": 1.0,
+            "reset": ["google_calendar", "filesystem"],
+            "intent_template": "After the 'Budget Review' meeting on 2024-04-15, create a file named 'Budget_Review_Summary_20240415.txt' in the 'tmp/Meeting_Summaries' folder. The file should contain 'Summary of Budget Review meeting on 2024-04-15'. Also, schedule a reminder in Google Calendar for 2024-04-22 at 9:00 AM, with a summary 'Budget Review Follow-up', and description 'Reminder to prepare for the follow-up meeting'.",
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reference_answers": {
+                        "exists": {
+                            "tmp/Meeting_Summaries/Budget_Review_Summary_20240415.txt": true
+                        },
+                        "content_check": {
+                            "tmp/Meeting_Summaries/Budget_Review_Summary_20240415.txt": "Summary of Budget Review meeting on 2024-04-15"
+                        }
+                    }
+                },
+                {
+                    "eval_type": "google_calendar",
+                    "reference_answers": {
+                        "event_match": {
+                            "summary": "Budget Review Follow-up",
+                            "description": "Reminder to prepare for the follow-up meeting",
+                            "start": {"dateTime": "2024-04-22T09:00:00Z"},
+                            "end": {"dateTime": "2024-04-22T09:30:00Z"}
+                        }
+                    }
+                }
+            ],
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
+                    }
+                ],
+                "filesystem": [
+                    {
+                        "rmdir": {
+                            "path": "tmp"
+                        }
+                    },
+                    {
+                        "mkdir": {
+                            "path": "tmp/Meeting_Summaries"
+                        }
+                    }
+                ]
+            }
         }
     ]
 }

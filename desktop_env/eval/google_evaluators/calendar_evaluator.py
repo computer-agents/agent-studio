@@ -97,11 +97,11 @@ class GoogleCalendarEvaluator(Evaluator):
                             )
                         case "create_event":
                             event = self.service.create_event(
+                                params["start"]["dateTime"],
+                                params["end"]["dateTime"],
                                 params.get("summary"),
                                 params.get("location"),
                                 params.get("description"),
-                                params["start"]["dateTime"],
-                                params["end"]["dateTime"],
                                 params.get("attendees"),
                                 self.env_settings["calendar_id"],
                             )

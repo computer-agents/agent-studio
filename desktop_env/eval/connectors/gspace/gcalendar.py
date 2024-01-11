@@ -60,13 +60,13 @@ class GoogleCalendarService(GoogleService):
 
     def create_event(
         self,
-        summary: str | None,
-        location: str | None,
-        description: str | None,
         start_time: str,
         end_time: str,
+        summary: str | None = None,
+        location: str | None = None,
+        description: str | None = None,
         attendees: list[str] | None = None,
-        calendar_id: str | None = "primary",
+        calendar_id: str = "primary",
         time_zone: str | None = "UTC",
     ) -> dict[str, str]:
         event_info = {
