@@ -103,7 +103,7 @@ else
     echo "INFO: Playground uses shellcheck for shell scripts, which is not installed. You may install shellcheck=$SHELLCHECK_VERSION_REQUIRED with your system package manager."
 fi
 
-if [[ $(flake8 --version) != *"flake8_quotes"* ]]; then
+if [[ $(flake8 --version) != *"flake8-quotes"* ]]; then
     echo "WARNING: Playground uses flake8 with flake8_quotes. Might error without it. Install with: pip install flake8-quotes"
 fi
 
