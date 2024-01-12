@@ -143,7 +143,7 @@ class GoogleCalendarEvaluator(Evaluator):
             for approach, value in self.reference_answer.items():
                 match approach:
                     case "event_match":
-                        events: list[dict] = self.service.search_events(
+                        events: list[dict] = self.service.search_events_by_info(
                             value,
                             calendar_id=calendar_id,
                             # if calendar_id is None, fallback to primary calendar
