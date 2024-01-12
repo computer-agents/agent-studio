@@ -15,7 +15,7 @@
             "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["task_id", "evals", "intent_template"],
+                "required": ["task_id", "evals", "intent_template", "instantiation_dict"],
                 "properties": {
                     "task_id": {
                         "type": "integer"

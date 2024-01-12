@@ -11,5 +11,11 @@
         }
     },
     "filesystem": {
+    },
+    "vscode": {
+        "env_settings": {
+            "workspace_path": "tmp/vscode_workspace",
+            "executable_path": "code"
+        }
     }
 }

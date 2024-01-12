@@ -1,0 +1,35 @@
+{
+    "environments": ["vscode"],
+    "tasks": [
+        {
+            "task_id": 0,
+            "intent_template": "You should not do anything.",
+            "instantiation_dict": {},
+            "evals": [
+                {
+                    "eval_type": "vscode",
+                    "eval_procedure": {
+                        "extension_exists": {
+                            "extension_id": "DavidAnson.vscode-markdownlint",
+                            "exists": true
+                        }
+                    },
+                    "reset_actions": [
+                        {
+                            "uninstall_extension": {
+                                "extension_id": "DavidAnson.vscode-markdownlint"
+                            }
+                        },
+                        {
+                            "install_extension": {
+                                "extension_id": "DavidAnson.vscode-markdownlint"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "reference_action_sequence": {
+            }
+        }
+    ]
+}

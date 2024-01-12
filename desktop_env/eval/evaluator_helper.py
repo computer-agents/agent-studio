@@ -1,9 +1,9 @@
+import ast
+import importlib
+import os
+from pathlib import Path
+
 from desktop_env.eval.evaluator import Evaluator
-from desktop_env.eval.google_evaluators.calendar_evaluator import (
-    GoogleCalendarEvaluator,
-)
-from desktop_env.eval.google_evaluators.gmail_evaluator import GmailEvaluator
-from desktop_env.eval.os_evaluators.filesystem_evaluator import FilesystemEvaluator
 
 
 class EvaluatorComb:
@@ -28,56 +28,70 @@ class EvaluatorComb:
         return oracle_trajectory
 
 
-# TODO: register evaluators
+def register_evaluators(
+    base_path: str | Path = "desktop_env/eval",
+) -> dict[str, type[Evaluator]]:
+    registered_classes = {}
+    for root, _, files in os.walk(base_path):
+        for file in files:
+            if file.endswith(".py"):
+                file_path = os.path.join(root, file)
+
+                # Parse the Python file
+                with open(file_path, "r") as f:
+                    file_contents = f.read()
+                tree = ast.parse(file_contents)
+                # Check each class definition in the file
+                for node in ast.walk(tree):
+                    module_name = (
+                        os.path.relpath(file_path, ".")
+                        .replace(os.sep, ".")
+                        .rstrip(".py")
+                    )
+                    if isinstance(node, ast.ClassDef):
+                        for base in node.bases:
+                            if isinstance(base, ast.Name) and base.id == "Evaluator":
+                                try:
+                                    module = importlib.import_module(module_name)
+                                    new_class: type[Evaluator] | None = getattr(
+                                        module, node.name, None
+                                    )
+                                    if new_class is not None:
+                                        registered_classes[new_class.name] = new_class
+                                    else:
+                                        raise AttributeError
+                                except (ImportError, AttributeError):
+                                    print(f"Error importing {module_name} {node.name}")
+                                break
+    return registered_classes
 
 
+# TODO: need to redesign the evaluator_router
 def evaluator_router(
     task_configs: dict,
     env_configs: dict,
 ) -> EvaluatorComb:
     """Router to get the evaluator class"""
 
+    registered_evaluators: dict[str, type[Evaluator]] = register_evaluators()
     evaluators: list[Evaluator] = []
     for eval in task_configs["evals"]:
-        eval_type = eval["eval_type"]
+        eval_type: str = eval["eval_type"]
         reference_action_sequence: dict = task_configs.get(
             "reference_action_sequence", {}
         )
-        match eval_type:
-            case "gmail":
-                evaluators.append(
-                    GmailEvaluator(
-                        reference_answer=eval.get("eval_procedure", {}),
-                        env_config=env_configs["gmail"],
-                        reset_actions=eval.get("reset_actions", []),
-                        reference_action_sequence=reference_action_sequence.get(
-                            "gmail", {}
-                        ),
-                    )
+        if eval_type in registered_evaluators:
+            evaluators.append(
+                registered_evaluators[eval_type](
+                    reference_answer=eval.get("eval_procedure", {}),
+                    reset_actions=eval.get("reset_actions", []),
+                    env_config=env_configs[eval_type],
+                    reference_action_sequence=reference_action_sequence.get(
+                        eval_type, {}
+                    ),
                 )
-            case "google_calendar":
-                evaluators.append(
-                    GoogleCalendarEvaluator(
-                        reference_answer=eval.get("eval_procedure", {}),
-                        env_config=env_configs["google_calendar"],
-                        reset_actions=eval.get("reset_actions", []),
-                        reference_action_sequence=reference_action_sequence.get(
-                            "google_calendar", {}
-                        ),
-                    )
-                )
-            case "filesystem":
-                evaluators.append(
-                    FilesystemEvaluator(
-                        reference_answer=eval.get("eval_procedure", {}),
-                        env_config=env_configs["filesystem"],
-                        reset_actions=eval.get("reset_actions", []),
-                        reference_action_sequence=reference_action_sequence.get(
-                            "filesystem", {}
-                        ),
-                    )
-                )
-            case _:
-                raise ValueError(f"eval_type {eval_type} is not supported")
+            )
+        else:
+            raise ValueError(f"eval_type {eval_type} is not supported")
 
     return EvaluatorComb(evaluators)

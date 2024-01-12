@@ -1,6 +1,8 @@
 class Evaluator(object):
     """Base class for evaluation."""
 
+    name: str = "evaluator"
+
     def __init__(
         self,
         reference_answer: dict,
@@ -18,10 +20,15 @@ class Evaluator(object):
         self.env_settings: dict = (
             env_config["env_settings"] if "env_settings" in env_config else {}
         )
+        self.phase: str = "init"
         # self.execute(self.enter_steps)
 
     def reset(self) -> bool:
-        return self.execute(self.reset_actions)
+        assert self.phase == "init", "Evaluator is not in the init phase"
+        self.phase = "reset"
+        succ = self.execute(self.reset_actions)
+        self.phase = "eval"
+        return succ
 
     def execute(self, steps: list[dict]) -> bool:
         raise NotImplementedError

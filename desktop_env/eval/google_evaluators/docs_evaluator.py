@@ -10,6 +10,8 @@ from desktop_env.eval.evaluator import Evaluator
 
 
 class GoogleDocsEvaluator(Evaluator):
+    name: str = "google_docs"
+
     @staticmethod
     def string_match(ref: str, pred: str) -> float:
         return float(pred == ref)
