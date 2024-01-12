@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Union
 
 from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
@@ -48,6 +47,12 @@ class GoogleCalendarEvaluator(Evaluator):
         ref: Union[dict[str, str], dict[str, list], dict[str, dict]],
         pred: Union[dict[str, str], dict[str, list], dict[str, dict]],
     ) -> float:
+        """
+        Checks if the pred dict matches the ref dict. Only checks the keys in ref.
+        :param ref: The reference dict.
+        :param pred: The dict to be checked.
+        :return: 1.0 if the dicts match, 0.0 otherwise.
+        """
         score = 1.0
         for key, item in ref.items():
             pred_item = pred.get(key, None)
@@ -66,8 +71,17 @@ class GoogleCalendarEvaluator(Evaluator):
         return score
 
     @staticmethod
-    def to_utc(time: str) -> str:
-        return datetime.fromisoformat(time).astimezone().isoformat()
+    def check_event_exists(reference_event: dict, actual_events: list[dict]) -> bool:
+        """
+        Checks if a given event exists in the list of actual events.
+        :param reference_event: The event to look for.
+        :param actual_events: List of events to search within.
+        :return: True if the event exists, False otherwise.
+        """
+        for event in actual_events:
+            if GoogleCalendarEvaluator.dict_match_left(reference_event, event):
+                return True
+        return False
 
     def execute(self, steps: list[dict]) -> bool:
         try:
@@ -129,30 +143,30 @@ class GoogleCalendarEvaluator(Evaluator):
             for approach, value in self.reference_answer.items():
                 match approach:
                     case "event_match":
-                        pred: list[dict] = self.service.search_events(
-                            value["start"]["dateTime"],
-                            value["end"]["dateTime"],
+                        events: list[dict] = self.service.search_events(
+                            value,
                             calendar_id=calendar_id,
                             # if calendar_id is None, fallback to primary calendar
                         )
-                        if len(pred) == 0:
+                        if len(events) == 0:
                             score = 0.0
-                        elif len(pred) > 1:
-                            raise ValueError(f"More than one event found: {pred}")
+                        elif len(events) > 1:
+                            raise ValueError(f"More than one event found: {events}")
                         else:
-                            pred[0]["start"]["dateTime"] = self.to_utc(
-                                pred[0]["start"]["dateTime"]
-                            )
-                            pred[0]["end"]["dateTime"] = self.to_utc(
-                                pred[0]["end"]["dateTime"]
-                            )
-                            value["start"]["dateTime"] = self.to_utc(
-                                value["start"]["dateTime"]
-                            )
-                            value["end"]["dateTime"] = self.to_utc(
-                                value["end"]["dateTime"]
-                            )
-                            score *= self.dict_match_left(value, pred[0])
+                            score *= 1.0
+                    case "check_event_exists":
+                        """
+                        Two parameters:
+                        - event: the event to look for
+                        - exists: whether the event should exist or not
+                        """
+                        events = self.service.list_events(
+                            self.env_settings["calendar_id"]
+                        )
+                        score *= float(
+                            self.check_event_exists(value["event"], events)
+                            == value["exists"]
+                        )
         except Exception as e:
             print(f"An error occurred: {e}\nscore may be incorrect")
             score = 0.0

@@ -118,6 +118,44 @@ Path(path).mkdir(parents=True, exist_ok=True)
 with open("tmp/Meeting_Summaries/Budget_Review_Summary_20240415.txt", "w") as f:
     f.write("Summary of Budget Review meeting on 2024-04-15")
 """,
+    6: """
+import os
+import json
+from pathlib import Path
+
+from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+
+gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+with open("config/environments.json", "r") as f:
+    env_configs = json.load(f)
+    calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
+
+events = gcalendar_service.search_events(
+    {
+        "summary": "Team Sync",
+        "start": {"dateTime": "2024-05-10T00:00:00Z"},
+        "end": {"dateTime": "2024-05-10T01:00:00Z"}
+    },
+    calendar_id=calendar_id
+)
+assert len(events) == 1
+
+gcalendar_service.update_event(
+    events[0]["id"],
+    {
+        "summary": "Team Sync",
+        "start": {"dateTime": "2024-05-12T14:00:00Z"},
+        "end": {"dateTime": "2024-05-12T15:00:00Z"}
+    },
+    calendar_id=calendar_id
+)
+""",
+    7: """
+path = "tmp/Meeting_Summaries"
+Path(path).mkdir(parents=True, exist_ok=True)
+with open("tmp/Meeting_Summaries/Budget_Review_Summary_20240415.txt", "w") as f:
+    f.write("Summary of Budget Review meeting on 2024-04-15")
+""",
 }
 
 
@@ -133,8 +171,8 @@ def test_calendar(
     total_score = 0.0
     gained_score = 0.0
     for task_config in task_configs["tasks"]:
-        # if task_config["task_id"] != 5:
-        #     continue
+        if task_config["task_id"] != 6:
+            continue
         comb = evaluator_router(task_config, env_configs)
         comb.reset()
         # Execute the Agent start #
