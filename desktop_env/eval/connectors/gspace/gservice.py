@@ -16,6 +16,10 @@ class GoogleService(object):
     ) -> None:
         self.scopes = [
             "https://www.googleapis.com/auth/calendar",
+            "https://www.googleapis.com/auth/documents",
+            "https://www.googleapis.com/auth/presentations",
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive",
             "https://www.googleapis.com/auth/gmail.compose",
             "https://www.googleapis.com/auth/gmail.readonly",
             # "https://www.googleapis.com/auth/gmail.send",
@@ -23,6 +27,12 @@ class GoogleService(object):
             # "https://www.googleapis.com/auth/gmail.settings.basic",
             # "https://www.googleapis.com/auth/gmail.settings.sharing",
             # "https://mail.google.com/",
+            # "https://www.googleapis.com/auth/classroom.courses",
+            # "https://www.googleapis.com/auth/contacts",
+            # "https://www.googleapis.com/auth/tasks",
+            # "https://www.googleapis.com/auth/userinfo.profile",
+            # "https://www.googleapis.com/auth/userinfo.email",
+            # "https://www.googleapis.com/auth/photoslibrary",
         ]
         self.service_name = service_name
         self.service_version = service_version
