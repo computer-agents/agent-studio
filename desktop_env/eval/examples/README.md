@@ -6,16 +6,10 @@ This guide provides instructions for creating a valid Task JSON file in accordan
 
 Your Task JSON file should contain the following top-level properties:
 
-- `score_weight`: A number indicating the overall weight of the evaluation.
 - `environments`: An array specifying the environments to be used.
 - `tasks`: An array of objects, each representing a specific task within the evaluation.
 
 ## Detailed Structure
-
-### Score Weight
-
-- `type`: number
-- Description: A number indicating the weight of this evaluation.
 
 ### Environments
 
@@ -53,7 +47,6 @@ Each object in the `evals` array should include:
 
 ```json
 {
-    "score_weight": 1.0,
     "environments": ["google_calendar"],
     "tasks": [
         {

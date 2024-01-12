@@ -1,5 +1,4 @@
 {
-    "score_weight": 1.0,
     "environments": ["google_calendar", "filesystem"],
     "tasks": [
         {

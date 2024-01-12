@@ -6,7 +6,7 @@ from typing import Dict
 
 from googleapiclient.errors import HttpError
 
-from desktop_env.eval.envs.gspace.gservice import GoogleService
+from desktop_env.eval.connectors.gspace.gservice import GoogleService
 
 
 class GmailService(GoogleService):
