@@ -56,7 +56,10 @@ def register_evaluators(
                                     new_class: type[Evaluator] | None = getattr(
                                         module, node.name, None
                                     )
-                                    if new_class is not None:
+                                    if (
+                                        new_class is not None
+                                        and new_class.name not in registered_classes
+                                    ):
                                         registered_classes[new_class.name] = new_class
                                     else:
                                         raise AttributeError

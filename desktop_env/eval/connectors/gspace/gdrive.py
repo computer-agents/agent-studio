@@ -5,6 +5,8 @@ from desktop_env.eval.connectors.gspace.gservice import GoogleService
 
 
 class GoogleDriveService(GoogleService):
+    name: str = "google_drive"
+
     def __init__(self, credential_path: str) -> None:
         super().__init__(
             scopes=[
