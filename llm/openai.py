@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 from langchain_openai.chat_models import ChatOpenAI
 
@@ -15,7 +15,7 @@ class OpenAIProvider(BaseLLM):
             max_tokens=self.lm_config.max_tokens,
         )
 
-    def generate_response(self, prompt: List[Dict[str, str]], stop: List[str]) -> Any:
+    def generate_response(self, prompt: list[dict[str, str]], stop: list[str]) -> Any:
         """Generate a response given a prompt."""
         return self.model.generate(
             messages=prompt,

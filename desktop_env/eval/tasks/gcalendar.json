@@ -4,8 +4,14 @@
         {
             "task_id": 0,
             "available_apis": ["GoogleCalendarService"],
-            "intent_template": null,
-            "instantiation_dict": null,
+            "intent_template": "Create an event called '{summary}' at '{location}' on '{start}' to '{end}' to '{description}'",
+            "instantiation_dict": {
+                "summary": ["Meeting with Team"],
+                "location": ["Office"],
+                "description": ["Discuss project status"],
+                "start": ["2024-01-05 10am"],
+                "end": ["11am"]
+            },
             "evals": [
                 {
                     "eval_type": "google_calendar",
@@ -21,22 +27,30 @@
                 }
             ],
             "reference_action_sequence": {
-                "action_sequence": [
+                "google_calendar": {
+                    "action_sequence": [
+                        {
+                            "create_event": {
+                                "summary": "Meeting with Team",
+                                "location": "Office",
+                                "description": "Discuss project status",
+                                "start": {"dateTime": "2024-01-05T10:00:00Z"},
+                                "end": {"dateTime": "2024-01-05T11:00:00Z"}
+                            }
+                        }
+                    ]
+                }
+            },
+            "reset_actions": {
+                "google_calendar": [
                     {
-                        "create_event": {
+                        "deduplicate_event": {
                             "summary": "Meeting with Team",
                             "location": "Office",
                             "description": "Discuss project status",
                             "start": {"dateTime": "2024-01-05T10:00:00Z"},
                             "end": {"dateTime": "2024-01-05T11:00:00Z"}
                         }
-                    }
-                ]
-            },
-            "reset_actions": {
-                "google_calendar": [
-                    {
-                        "clear_calendar": {}
                     }
                 ]
             }

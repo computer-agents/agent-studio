@@ -9,13 +9,21 @@ from googleapiclient.discovery import build
 class GoogleService(object):
     def __init__(
         self,
-        scopes: list[str],
         token_path: str,
         service_name: str,
         service_version: str,
         debug: bool = False,
     ) -> None:
-        self.scopes = scopes
+        self.scopes = [
+            "https://www.googleapis.com/auth/calendar",
+            "https://www.googleapis.com/auth/gmail.compose",
+            "https://www.googleapis.com/auth/gmail.readonly",
+            # "https://www.googleapis.com/auth/gmail.send",
+            # "https://www.googleapis.com/auth/gmail.labels",
+            # "https://www.googleapis.com/auth/gmail.settings.basic",
+            # "https://www.googleapis.com/auth/gmail.settings.sharing",
+            # "https://mail.google.com/",
+        ]
         self.service_name = service_name
         self.service_version = service_version
         self.creds = self.authenticate(token_path)

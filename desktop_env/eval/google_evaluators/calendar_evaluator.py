@@ -1,4 +1,4 @@
-from typing import Union
+from datetime import datetime, timezone
 
 from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
 from desktop_env.eval.evaluator import Evaluator
@@ -50,9 +50,19 @@ class GoogleCalendarEvaluator(Evaluator):
         return score
 
     @staticmethod
+    def time_match(timestamp1: str, timestamp2: str) -> float:
+        """Checks if the pred time matches the ref time."""
+        timestamp1 = timestamp1.replace("Z", "+00:00")
+        timestamp2 = timestamp2.replace("Z", "+00:00")
+        dt1 = datetime.fromisoformat(timestamp1).astimezone(timezone.utc)
+        dt2 = datetime.fromisoformat(timestamp2).astimezone(timezone.utc)
+
+        return dt1 == dt2
+
+    @staticmethod
     def dict_match_left(
-        ref: Union[dict[str, str], dict[str, list], dict[str, dict]],
-        pred: Union[dict[str, str], dict[str, list], dict[str, dict]],
+        ref: dict[str, str] | dict[str, list] | dict[str, dict],
+        pred: dict[str, str] | dict[str, list] | dict[str, dict],
     ) -> float:
         """
         Checks if the pred dict matches the ref dict. Only checks the keys in ref.
@@ -82,7 +92,7 @@ class GoogleCalendarEvaluator(Evaluator):
         """
         Checks if a given event exists in the list of actual events.
         :param reference_event: The event to look for.
-        :param actual_events: List of events to search within.
+        :param actual_events: list of events to search within.
         :return: True if the event exists, False otherwise.
         """
         for event in actual_events:
@@ -118,15 +128,39 @@ class GoogleCalendarEvaluator(Evaluator):
                             )
                         case "create_event":
                             event = self.service.create_event(
-                                params["start"]["dateTime"],
-                                params["end"]["dateTime"],
-                                params.get("summary"),
-                                params.get("location"),
-                                params.get("description"),
-                                params.get("attendees"),
-                                self.env_settings["calendar_id"],
+                                start_time=params["start"]["dateTime"],
+                                end_time=params["end"]["dateTime"],
+                                summary=params.get("summary"),
+                                location=params.get("location"),
+                                description=params.get("description"),
+                                attendees=params.get("attendees"),
+                                calendar_id=self.env_settings["calendar_id"],
                             )
                             self.events[event.get("id")] = event
+                        case "deduplicate_event":
+                            events = self.service.search_events_by_time_range(
+                                start_time=params["start"]["dateTime"],
+                                end_time=params["end"]["dateTime"],
+                                calendar_id=self.env_settings["calendar_id"],
+                            )
+                            for event in events:
+                                if (
+                                    event["summary"] == params["summary"]
+                                    and event["location"] == params["location"]
+                                    and event["description"] == params["description"]
+                                    and self.time_match(
+                                        event["start"]["dateTime"],
+                                        params["start"]["dateTime"],
+                                    )
+                                    and self.time_match(
+                                        event["end"]["dateTime"],
+                                        params["end"]["dateTime"],
+                                    )
+                                ):
+                                    self.service.delete_event(
+                                        event_id=event["id"],
+                                        calendar_id=self.env_settings["calendar_id"],
+                                    )
                         # case "delete_cur_calendar":
                         #     self.service.delete_calendar(
                         #         self.env_settings["calendar_id"]
@@ -179,3 +213,21 @@ class GoogleCalendarEvaluator(Evaluator):
             score = 0.0
 
         return score
+
+    def action2str(self, steps: list[dict]) -> list[str]:
+        commands = [
+            f"from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService\nservice = GoogleCalendarService(token_path='{self.env_settings['token_path']}')"  # noqa: E501
+        ]
+        for step in steps:
+            action: str
+            params: dict
+            for action, params in step.items():
+                match action:
+                    case "create_event":
+                        commands.append(
+                            f"event = service.create_event(start_time='{params['start']['dateTime']}', end_time='{params['end']['dateTime']}', summary='{params.get('summary')}', location='{params.get('location')}', description='{params.get('description')}', attendees={params.get('attendees')}, calendar_id='{self.env_settings['calendar_id']}')"  # noqa: E501
+                        )
+                    case _:
+                        raise Exception(f"Action '{action}' not found")
+
+        return commands

@@ -2,7 +2,7 @@
     "google_calendar": {
         "env_settings": {
             "token_path": "config/token.json",
-            "calendar_id": null
+            "calendar_id": "primary"
         }
     },
     "gmail": {

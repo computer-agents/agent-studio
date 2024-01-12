@@ -2,7 +2,6 @@ import base64
 
 # import mimetypes
 from email.message import EmailMessage
-from typing import Dict
 
 from googleapiclient.errors import HttpError
 
@@ -11,17 +10,7 @@ from desktop_env.eval.connectors.gspace.gservice import GoogleService
 
 class GmailService(GoogleService):
     def __init__(self, token_path: str) -> None:
-        scopes = [
-            "https://www.googleapis.com/auth/gmail.compose",
-            "https://www.googleapis.com/auth/gmail.readonly",
-            # "https://www.googleapis.com/auth/gmail.send",
-            # "https://www.googleapis.com/auth/gmail.labels",
-            # "https://www.googleapis.com/auth/gmail.settings.basic",
-            # "https://www.googleapis.com/auth/gmail.settings.sharing",
-            # "https://mail.google.com/",
-        ]
         super().__init__(
-            scopes=scopes,
             token_path=token_path,
             service_name="gmail",
             service_version="v1",
@@ -31,14 +20,12 @@ class GmailService(GoogleService):
         self,
         subject: str,
         recipient: str,
-        sender: str,
         content: str,
     ):
         try:
             message = EmailMessage()
             message.set_content(content)  # "This is automated draft mail"
             message["To"] = recipient  # "gduser1@workspacesamples.dev"
-            message["From"] = sender  # "gduser2@workspacesamples.dev"
             message["Subject"] = subject  # "Automated draft"
 
             encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
@@ -58,7 +45,7 @@ class GmailService(GoogleService):
 
         return draft
 
-    def get_recent_draft(self) -> Dict[str, str] | None:
+    def get_recent_draft(self) -> dict[str, str] | None:
         # List all drafts
         results = self.service.users().drafts().list(userId="me").execute()
         drafts = results.get("drafts", [])
@@ -103,9 +90,6 @@ class GmailService(GoogleService):
         recipient = next(
             header["value"] for header in headers if header["name"].lower() == "to"
         )
-        sender = next(
-            header["value"] for header in headers if header["name"].lower() == "from"
-        )
 
         # Decode the body content
         body_data = message["payload"]["body"]["data"]
@@ -114,7 +98,6 @@ class GmailService(GoogleService):
         return {
             "subject": subject,
             "recipient": recipient,
-            "sender": sender,
             "body": decoded_body,
         }
 

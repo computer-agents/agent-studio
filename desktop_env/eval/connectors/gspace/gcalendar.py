@@ -1,13 +1,12 @@
 from datetime import datetime
+from typing import Any
 
 from desktop_env.eval.connectors.gspace.gservice import GoogleService
 
 
 class GoogleCalendarService(GoogleService):
     def __init__(self, token_path: str) -> None:
-        scopes = ["https://www.googleapis.com/auth/calendar"]
         super().__init__(
-            scopes=scopes,
             token_path=token_path,
             service_name="calendar",
             service_version="v3",
@@ -65,7 +64,7 @@ class GoogleCalendarService(GoogleService):
         attendees: list[str] | None = None,
         calendar_id: str = "primary",
         time_zone: str | None = "UTC",
-    ) -> dict[str, str]:
+    ) -> dict[str, Any]:
         event_info = {
             "summary": summary,
             "location": location,
@@ -175,7 +174,7 @@ class GoogleCalendarService(GoogleService):
         start_time: str,
         end_time: str,
         calendar_id: str = "primary",
-    ) -> list[dict[str, str]]:
+    ) -> list[dict[str, Any]]:
         events = []
         page_token = None
         while True:

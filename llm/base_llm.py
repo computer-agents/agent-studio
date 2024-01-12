@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 from llm.lm_config import LMConfig
 
@@ -9,6 +9,6 @@ class BaseLLM:
     def __init__(self, lm_config: LMConfig) -> None:
         self.lm_config = lm_config
 
-    def generate_response(self, prompt: List[Dict[str, str]], stop: List[str]) -> Any:
+    def generate_response(self, prompt: list[dict[str, str]], stop: list[str]) -> Any:
         """Generate a response given a prompt."""
         raise NotImplementedError

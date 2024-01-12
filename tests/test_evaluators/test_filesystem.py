@@ -8,7 +8,7 @@ from desktop_env.eval.evaluator_helper import evaluator_router
 def test_filesystem(
     computer_env: ComputerEnv,
 ) -> None:
-    config_file = "desktop_env/eval/examples/filesystem.json"
+    config_file = "desktop_env/eval/tasks/filesystem.json"
     with open(config_file, "r") as f:
         task_configs = json.load(f)
     with open("config/environments.json", "r") as f:

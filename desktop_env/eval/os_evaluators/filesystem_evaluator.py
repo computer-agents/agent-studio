@@ -6,7 +6,6 @@ import shutil
 import stat
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
 
 from desktop_env.eval.evaluator import Evaluator
 
@@ -167,8 +166,7 @@ class FilesystemEvaluator(Evaluator):
 
         return score
 
-    @staticmethod
-    def action2str(steps: List[Dict]) -> List[str]:
+    def action2str(self, steps: list[dict]) -> list[str]:
         commands = ["import os\nimport shutil\nfrom pathlib import Path\n"]
         for step in steps:
             action: str

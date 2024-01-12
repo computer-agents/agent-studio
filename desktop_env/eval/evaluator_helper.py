@@ -1,9 +1,8 @@
-from typing import List
-
 from desktop_env.eval.evaluator import Evaluator
 from desktop_env.eval.google_evaluators.calendar_evaluator import (
     GoogleCalendarEvaluator,
 )
+from desktop_env.eval.google_evaluators.gmail_evaluator import GmailEvaluator
 from desktop_env.eval.os_evaluators.filesystem_evaluator import FilesystemEvaluator
 
 
@@ -22,7 +21,7 @@ class EvaluatorComb:
             score *= cur_score
         return score
 
-    def get_oracle_trajectory(self) -> List[str]:
+    def get_oracle_trajectory(self) -> list[str]:
         oracle_trajectory = []
         for evaluator in self.evaluators:
             oracle_trajectory.extend(evaluator.get_oracle_trajectory())
@@ -46,6 +45,17 @@ def evaluator_router(
             "reference_action_sequence", {}
         )
         match eval_type:
+            case "gmail":
+                evaluators.append(
+                    GmailEvaluator(
+                        reference_answer=eval["reference_answers"],
+                        env_config=env_configs["gmail"],
+                        reset_actions=reset_actions_dict.get("gmail", []),
+                        reference_action_sequence=reference_action_sequence.get(
+                            "gmail", {}
+                        ),
+                    )
+                )
             case "google_calendar":
                 evaluators.append(
                     GoogleCalendarEvaluator(
@@ -72,19 +82,3 @@ def evaluator_router(
                 raise ValueError(f"eval_type {eval_type} is not supported")
 
     return EvaluatorComb(evaluators)
-
-
-# TODO: this function only for testing!!!
-def eval_tasks(
-    task_configs: dict,
-    env_configs: dict,
-) -> float:
-    total_score = 0.0
-    gained_score = 0.0
-    for task_config in task_configs["tasks"]:
-        comb = evaluator_router(task_config, env_configs)
-        comb.reset()
-        task_score = comb()
-        gained_score += task_score * task_config["score"]
-        total_score += task_config["score"]
-    return gained_score / total_score

@@ -5,10 +5,10 @@ from desktop_env.computer.env import ComputerEnv
 from desktop_env.eval.evaluator_helper import evaluator_router
 
 
-def test_joint(
+def test_gmail(
     computer_env: ComputerEnv,
 ) -> None:
-    config_file = "desktop_env/eval/examples/joint_evaluation.json"
+    config_file = "desktop_env/eval/tasks/gmail.json"
     with open(config_file, "r") as f:
         task_configs = json.load(f)
     with open("config/environments.json", "r") as f:

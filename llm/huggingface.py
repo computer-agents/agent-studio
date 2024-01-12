@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 import torch
 import tqdm
@@ -89,7 +89,7 @@ class HFProvider(BaseLLM):
                 )
             )
 
-    def generate_response(self, prompt: List[Dict[str, str]], stop: List[str]) -> Any:
+    def generate_response(self, prompt: list[dict[str, str]], stop: list[str]) -> Any:
         """Generate a response given a prompt."""
         stop_id_sequences = (
             None  # For chat format, we will rely on the model knows when to stop.

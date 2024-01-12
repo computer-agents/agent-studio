@@ -1,6 +1,3 @@
-from typing import Dict, List
-
-
 class Evaluator(object):
     """Base class for evaluation."""
 
@@ -35,9 +32,8 @@ class Evaluator(object):
     def __call__(self) -> float:
         raise NotImplementedError
 
-    @staticmethod
-    def action2str(actions: List[Dict]) -> List[str]:
+    def action2str(self, steps: list[dict]) -> list[str]:
         raise NotImplementedError
 
-    def get_oracle_trajectory(self) -> List[str]:
+    def get_oracle_trajectory(self) -> list[str]:
         return self.action2str(self.reference_action_sequence["action_sequence"])

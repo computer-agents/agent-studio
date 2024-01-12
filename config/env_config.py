@@ -2,7 +2,7 @@
 import argparse
 import dataclasses
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -14,7 +14,7 @@ class ComputerEnvConfig:
         video_fps: The FPS of the video.
     """
 
-    resolution: List[int] = [1920, 1080]
+    resolution: list[int] = [1920, 1080]
     video_fps: int = 4
     gen_config: dict[str, Any] = dataclasses.field(default_factory=dict)
 

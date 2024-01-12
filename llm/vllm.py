@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 import torch
 import vllm
@@ -20,7 +20,7 @@ class VLLMProvider(BaseLLM):
             tensor_parallel_size=torch.cuda.device_count(),
         )
 
-    def generate_response(self, prompt: List[Dict[str, str]], stop: List[str]) -> Any:
+    def generate_response(self, prompt: list[dict[str, str]], stop: list[str]) -> Any:
         """Generate a response given a prompt."""
         # We need to remap the outputs to the prompts because vllm might not return
         # outputs for some prompts (e.g., if the prompt is too long)
