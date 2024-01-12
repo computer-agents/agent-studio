@@ -5,9 +5,12 @@ from desktop_env.eval.connectors.gspace.gservice import GoogleService
 
 
 class GoogleCalendarService(GoogleService):
-    def __init__(self, token_path: str) -> None:
+    def __init__(self, credential_path: str) -> None:
         super().__init__(
-            token_path=token_path,
+            scopes=[
+                "https://www.googleapis.com/auth/calendar",
+            ],
+            credential_path=credential_path,
             service_name="calendar",
             service_version="v3",
         )

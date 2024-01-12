@@ -30,18 +30,16 @@
                         "content_check": {
                             "tmp/test.txt": "Hello World!"
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        }
+                    ]
                 }
             ],
-            "reset_actions": {
-                "filesystem": [
-                    {
-                        "rmdir": {
-                            "path": "tmp"
-                        }
-                    }
-                ]
-            },
             "reference_action_sequence": {
                 "filesystem": {
                     "action_sequence": [
@@ -89,28 +87,26 @@
                         "type_check": {
                             "tmp": "folder"
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "create_file": {
+                                "path": "tmp/test.txt"
+                            }
+                        }
+                    ]
                 }
             ],
-            "reset_actions": {
-                "filesystem": [
-                    {
-                        "rmdir": {
-                            "path": "tmp"
-                        }
-                    },
-                    {
-                        "mkdir": {
-                            "path": "tmp"
-                        }
-                    },
-                    {
-                        "create_file": {
-                            "path": "tmp/test.txt"
-                        }
-                    }
-                ]
-            },
             "reference_action_sequence": {
                 "filesystem": {
                     "action_sequence": [
@@ -136,23 +132,21 @@
                         "exists": {
                             "tmp": false
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp"
+                            }
+                        }
+                    ]
                 }
             ],
-            "reset_actions": {
-                "filesystem": [
-                    {
-                        "rmdir": {
-                            "path": "tmp"
-                        }
-                    },
-                    {
-                        "mkdir": {
-                            "path": "tmp"
-                        }
-                    }
-                ]
-            },
             "reference_action_sequence": {
                 "filesystem": {
                     "action_sequence": [
@@ -188,23 +182,21 @@
                         "content_check": {
                             "tmp/test.txt": "Hello World!"
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp"
+                            }
+                        }
+                    ]
                 }
             ],
-            "reset_actions": {
-                "filesystem": [
-                    {
-                        "rmdir": {
-                            "path": "tmp"
-                        }
-                    },
-                    {
-                        "mkdir": {
-                            "path": "tmp"
-                        }
-                    }
-                ]
-            },
             "reference_action_sequence": {
                 "filesystem": {
                     "action_sequence": [

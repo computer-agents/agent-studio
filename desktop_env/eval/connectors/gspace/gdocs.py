@@ -5,13 +5,16 @@ from desktop_env.eval.connectors.gspace.gservice import GoogleService
 
 
 class GoogleDocsService(GoogleService):
-    def __init__(self, token_path: str) -> None:
+    def __init__(self, credential_path: str) -> None:
         super().__init__(
-            token_path=token_path,
+            scopes=[
+                "https://www.googleapis.com/auth/documents",
+            ],
+            credential_path=credential_path,
             service_name="docs",
             service_version="v1",
         )
-        self.drive_service = GoogleDriveService(token_path)
+        self.drive_service = GoogleDriveService(credential_path)
 
     def get_document(self, document_id: str) -> dict:
         try:

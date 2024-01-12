@@ -9,42 +9,45 @@ from googleapiclient.discovery import build
 class GoogleService(object):
     def __init__(
         self,
-        token_path: str,
+        scopes: list[str],
+        credential_path: str,
         service_name: str,
         service_version: str,
         debug: bool = False,
     ) -> None:
-        self.scopes = [
-            "https://www.googleapis.com/auth/calendar",
-            "https://www.googleapis.com/auth/documents",
-            "https://www.googleapis.com/auth/presentations",
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive",
-            "https://www.googleapis.com/auth/gmail.compose",
-            "https://www.googleapis.com/auth/gmail.readonly",
-            # "https://www.googleapis.com/auth/gmail.send",
-            # "https://www.googleapis.com/auth/gmail.labels",
-            # "https://www.googleapis.com/auth/gmail.settings.basic",
-            # "https://www.googleapis.com/auth/gmail.settings.sharing",
-            # "https://mail.google.com/",
-            # "https://www.googleapis.com/auth/classroom.courses",
-            # "https://www.googleapis.com/auth/contacts",
-            # "https://www.googleapis.com/auth/tasks",
-            # "https://www.googleapis.com/auth/userinfo.profile",
-            # "https://www.googleapis.com/auth/userinfo.email",
-            # "https://www.googleapis.com/auth/photoslibrary",
-        ]
+        self.scopes = scopes
+        # "https://www.googleapis.com/auth/calendar",
+        # "https://www.googleapis.com/auth/documents",
+        # "https://www.googleapis.com/auth/presentations",
+        # "https://www.googleapis.com/auth/spreadsheets",
+        # "https://www.googleapis.com/auth/drive",
+        # "https://www.googleapis.com/auth/gmail.compose",
+        # "https://www.googleapis.com/auth/gmail.readonly",
+        # "https://www.googleapis.com/auth/gmail.send",
+        # "https://www.googleapis.com/auth/gmail.labels",
+        # "https://www.googleapis.com/auth/gmail.settings.basic",
+        # "https://www.googleapis.com/auth/gmail.settings.sharing",
+        # "https://mail.google.com/",
+        # "https://www.googleapis.com/auth/classroom.courses",
+        # "https://www.googleapis.com/auth/contacts",
+        # "https://www.googleapis.com/auth/tasks",
+        # "https://www.googleapis.com/auth/userinfo.profile",
+        # "https://www.googleapis.com/auth/userinfo.email",
+        # "https://www.googleapis.com/auth/photoslibrary",
         self.service_name = service_name
         self.service_version = service_version
-        self.creds = self.authenticate(token_path)
+        self.creds = self.authenticate(credential_path)
         self.service = build(service_name, service_version, credentials=self.creds)
         self.debug = debug
 
-    def authenticate(self, token_path: str) -> credentials.Credentials | None:
+    def authenticate(self, credential_path: str) -> credentials.Credentials | None:
         creds = None
         # The file token.json stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
         # time.
+        token_path = os.path.join(
+            os.path.dirname(credential_path), f"{self.service_name}_token.json"
+        )
         if os.path.exists(token_path):
             creds = credentials.Credentials.from_authorized_user_file(
                 token_path, self.scopes
@@ -55,7 +58,7 @@ class GoogleService(object):
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    os.path.join(os.path.dirname(token_path), "credentials.json"),
+                    credential_path,
                     self.scopes,
                 )
                 creds = flow.run_local_server(port=0)

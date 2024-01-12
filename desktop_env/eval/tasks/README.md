@@ -48,8 +48,8 @@ Each object in the `evals` array should include:
     "tasks": [
         {
             "task_id": 0,
-            "intent_template": null,
-            "instantiation_dict": null,
+            "intent_template": "Instructions for Agent",
+            "instantiation_dict": {},
             "evals": [
                 {
                     "eval_type": "google_calendar",

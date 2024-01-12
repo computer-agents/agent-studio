@@ -7,9 +7,11 @@ from desktop_env.eval.evaluator_helper import evaluator_router
 agent_sim = {
     3: """
 import json
-from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
 
-gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+gcalendar_service = GoogleCalendarService(
+    credential_path="config/secrets/credentials.json"
+)
 with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
@@ -30,9 +32,11 @@ import os
 import json
 from pathlib import Path
 
-from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
 
-gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+gcalendar_service = GoogleCalendarService(
+    credential_path="config/secrets/credentials.json"
+)
 with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
@@ -56,9 +60,11 @@ import os
 import json
 from pathlib import Path
 
-from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
 
-gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+gcalendar_service = GoogleCalendarService(
+    credential_path="config/secrets/credentials.json"
+)
 with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
@@ -82,9 +88,11 @@ import os
 import json
 from pathlib import Path
 
-from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
 
-gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+gcalendar_service = GoogleCalendarService(
+    credential_path="config/secrets/credentials.json"
+)
 with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
@@ -114,9 +122,11 @@ import os
 import json
 from pathlib import Path
 
-from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
 
-gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+gcalendar_service = GoogleCalendarService(
+    credential_path="config/secrets/credentials.json"
+)
 with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
@@ -150,9 +160,11 @@ import os
 import json
 from pathlib import Path
 
-from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
 
-gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+gcalendar_service = GoogleCalendarService(
+    credential_path="config/secrets/credentials.json"
+)
 with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
@@ -187,9 +199,11 @@ import os
 import json
 from pathlib import Path
 
-from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
 
-gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+gcalendar_service = GoogleCalendarService(
+    credential_path="config/secrets/credentials.json"
+)
 with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
@@ -233,8 +247,8 @@ def test_calendar(
     agent = TeacherForcingAgent(env=computer_env)
 
     for task_config in task_configs["tasks"]:
-        if task_config["task_id"] != 8:
-            continue
+        # if task_config["task_id"] != 8:
+        #     continue
         comb = evaluator_router(task_config, env_configs)
         comb.reset()
 

@@ -40,7 +40,6 @@ def evaluator_router(
     evaluators: list[Evaluator] = []
     for eval in task_configs["evals"]:
         eval_type = eval["eval_type"]
-        reset_actions_dict: dict = task_configs.get("reset_actions", {})
         reference_action_sequence: dict = task_configs.get(
             "reference_action_sequence", {}
         )
@@ -48,9 +47,9 @@ def evaluator_router(
             case "gmail":
                 evaluators.append(
                     GmailEvaluator(
-                        reference_answer=eval["eval_procedure"],
+                        reference_answer=eval.get("eval_procedure", {}),
                         env_config=env_configs["gmail"],
-                        reset_actions=reset_actions_dict.get("gmail", []),
+                        reset_actions=eval.get("reset_actions", []),
                         reference_action_sequence=reference_action_sequence.get(
                             "gmail", {}
                         ),
@@ -59,9 +58,9 @@ def evaluator_router(
             case "google_calendar":
                 evaluators.append(
                     GoogleCalendarEvaluator(
-                        reference_answer=eval["eval_procedure"],
+                        reference_answer=eval.get("eval_procedure", {}),
                         env_config=env_configs["google_calendar"],
-                        reset_actions=reset_actions_dict.get("google_calendar", []),
+                        reset_actions=eval.get("reset_actions", []),
                         reference_action_sequence=reference_action_sequence.get(
                             "google_calendar", {}
                         ),
@@ -70,9 +69,9 @@ def evaluator_router(
             case "filesystem":
                 evaluators.append(
                     FilesystemEvaluator(
-                        reference_answer=eval["eval_procedure"],
+                        reference_answer=eval.get("eval_procedure", {}),
                         env_config=env_configs["filesystem"],
-                        reset_actions=reset_actions_dict.get("filesystem", []),
+                        reset_actions=eval.get("reset_actions", []),
                         reference_action_sequence=reference_action_sequence.get(
                             "filesystem", {}
                         ),

@@ -4,8 +4,8 @@ from desktop_env.eval.connectors.gspace.gdocs import GoogleDocsService
 
 
 def test_gdocs_connector() -> None:
-    token_path = "config/token.json"
-    google_docs_service = GoogleDocsService(token_path)
+    credential_path = "config/token.json"
+    google_docs_service = GoogleDocsService(credential_path)
 
     # 1. Create a new document
     new_document = google_docs_service.create_document("Test Document")

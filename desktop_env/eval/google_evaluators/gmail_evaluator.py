@@ -22,7 +22,9 @@ class GmailEvaluator(Evaluator):
             reference_action_sequence=reference_action_sequence,
             eval_tag=eval_tag,
         )
-        self.service = GmailService(token_path=self.env_settings["token_path"])
+        self.service = GmailService(
+            credential_path=self.env_settings["credential_path"]
+        )
         self.created_draft_id: str = ""
         self.retrieved_draft: dict[str, str] | None = None
 
@@ -82,7 +84,7 @@ class GmailEvaluator(Evaluator):
 
     def action2str(self, steps: list[dict]) -> list[str]:
         commands = [
-            f"from desktop_env.eval.connectors.gspace.gmail import GmailService\nservice = GmailService(token_path='{self.env_settings['token_path']}')"  # noqa: E501
+            f"from desktop_env.eval.connectors.gspace.gmail import GmailService\nservice = GmailService(credential_path='{self.env_settings['credential_path']}')"  # noqa: E501
         ]
         for step in steps:
             action: str

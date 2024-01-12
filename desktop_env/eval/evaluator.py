@@ -36,4 +36,6 @@ class Evaluator(object):
         raise NotImplementedError
 
     def get_oracle_trajectory(self) -> list[str]:
-        return self.action2str(self.reference_action_sequence["action_sequence"])
+        return self.action2str(
+            self.reference_action_sequence.get("action_sequence", [])
+        )

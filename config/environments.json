@@ -1,13 +1,13 @@
 {
     "google_calendar": {
         "env_settings": {
-            "token_path": "config/token.json",
+            "credential_path": "config/secrets/credentials.json",
             "calendar_id": "primary"
         }
     },
     "gmail": {
         "env_settings": {
-            "token_path": "config/token.json"
+            "credential_path": "config/secrets/credentials.json"
         }
     },
     "filesystem": {

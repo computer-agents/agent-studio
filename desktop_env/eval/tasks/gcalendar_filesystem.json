@@ -2,94 +2,6 @@
     "environments": ["google_calendar", "filesystem"],
     "tasks": [
         {
-            "task_id": 0,
-            "intent_template": null,
-            "instantiation_dict": null,
-            "evals": [
-                {
-                    "eval_type": "google_calendar",
-                    "eval_procedure": {
-                        "event_match": {
-                            "summary": "Meeting with Team",
-                            "location": "Office",
-                            "description": "Discuss project status",
-                            "start": {"dateTime": "2024-01-05T11:00:00+01:00"},
-                            "end": {"dateTime": "2024-01-05T12:00:00+01:00"}
-                        }
-                    }
-                },
-                {
-                    "eval_type": "filesystem",
-                    "eval_procedure": {
-                        "exists": {
-                            "tmp/test.txt": true,
-                            "tmp": true
-                        },
-                        "type_check": {
-                            "tmp/test.txt": "file",
-                            "tmp": "folder"
-                        },
-                        "permissions_check": {
-                            "tmp/test.txt": "-rw-r--r--",
-                            "tmp": "drwxrwxr-x"
-                        },
-                        "content_check": {
-                            "tmp/test.txt": "Hello World!"
-                        }
-                    }
-                }
-            ],
-            "reference_action_sequence": {
-                "action_sequence": []
-            },
-            "reset_actions": {
-                "google_calendar": [
-                    {
-                        "clear_calendar": {}
-                    },
-                    {
-                        "create_event": {
-                            "summary": "Meeting with Team",
-                            "location": "Office",
-                            "description": "Discuss project status",
-                            "start": {"dateTime": "2024-01-05T10:00:00Z"},
-                            "end": {"dateTime": "2024-01-05T11:00:00Z"}
-                        }
-                    }
-                ],
-                "filesystem": [
-                    {
-                        "rmdir": {
-                            "path": "tmp"
-                        }
-                    },
-                    {
-                        "mkdir": {
-                            "path": "tmp"
-                        }
-                    },
-                    {
-                        "create_file": {
-                            "path": "tmp/test.txt",
-                            "content": "Hello World!"
-                        }
-                    },
-                    {
-                        "chmod": {
-                            "path": "tmp/test.txt",
-                            "mode": "0o644"
-                        }
-                    },
-                    {
-                        "chmod": {
-                            "path": "tmp",
-                            "mode": "0o775"
-                        }
-                    }
-                ]
-            }
-        },
-        {
             "task_id": 3,
             "intent_template": "Export all events from the calendar to a file named '{file}' in the folder '{folder}'. You only need to export the event's summary to the txt file in time order. Each event should be on a new line. Leave a blank line at the end of the file.",
             "instantiation_dict": {
@@ -109,41 +21,45 @@
                         "content_check": {
                             "tmp/calendar.txt": "Meeting with Team\n"
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "eval_type": "google_calendar",
+                    "reset_actions": [
+                        {
+                            "clear_calendar": {}
+                        },
+                        {
+                            "create_event": {
+                                "summary": "Meeting with Team",
+                                "location": "Office",
+                                "description": "Discuss project status",
+                                "start": {"dateTime": "2024-01-05T10:00:00Z"},
+                                "end": {"dateTime": "2024-01-05T11:00:00Z"}
+                            }
+                        }
+                    ]
                 }
             ],
             "reference_action_sequence": {
-                "action_sequence": []
-            },
-            "reset_actions": {
-                "google_calendar": [
-                    {
-                        "deduplicate_event": {
-                            "summary": "Meeting with Team",
-                            "location": "Office",
-                            "description": "Discuss project status",
-                            "start": {"dateTime": "2024-01-05T10:00:00Z"},
-                            "end": {"dateTime": "2024-01-05T11:00:00Z"}
-                        }
-                    }
-                ],
-                "filesystem": [
-                    {
-                        "rmdir": {
-                            "path": "tmp"
-                        }
-                    },
-                    {
-                        "mkdir": {
-                            "path": "tmp"
-                        }
-                    }
-                ]
             }
         },
         {
             "task_id": 4,
             "intent_template": "After a team meeting on 2024-03-01, create a file named 'Meeting_Minutes_20240301.txt' in the 'tmp/Documents/Meetings' folder. The file should contain the string 'Minutes of the meeting held on 2024-03-01'. Also, schedule a follow-up meeting in Google Calendar for 2024-03-08 at 10:00 AM, with a summary 'Follow-up Meeting', located at 'Conference Room', and described as 'Discuss action points from last meeting'.",
+            "instantiation_dict": {},
             "evals": [
                 {
                     "eval_type": "filesystem",
@@ -154,7 +70,19 @@
                         "content_check": {
                             "tmp/Documents/Meetings/Meeting_Minutes_20240301.txt": "Minutes of the meeting held on 2024-03-01"
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp/Documents/Meetings"
+                            }
+                        }
+                    ]
                 },
                 {
                     "eval_type": "google_calendar",
@@ -166,32 +94,19 @@
                             "start": {"dateTime": "2024-03-08T10:00:00Z"},
                             "end": {"dateTime": "2024-03-08T11:00:00Z"}
                         }
-                    }
-                }
-            ],
-            "reset_actions": {
-                "google_calendar": [
-                    {
-                        "clear_calendar": {}
-                    }
-                ],
-                "filesystem": [
-                    {
-                        "rmdir": {
-                            "path": "tmp"
-                        }
                     },
-                    {
-                        "mkdir": {
-                            "path": "tmp/Documents/Meetings"
+                    "reset_actions": [
+                        {
+                            "clear_calendar": {}
                         }
-                    }
-                ]
-            }
+                    ]
+                }
+            ]
         },
         {
             "task_id": 5,
             "intent_template": "After the 'Budget Review' meeting on 2024-04-15, create a file named 'Budget_Review_Summary_20240415.txt' in the 'tmp/Meeting_Summaries' folder. The file should contain 'Summary of Budget Review meeting on 2024-04-15'. Also, schedule a reminder in Google Calendar for 2024-04-22 at 9:00 AM, with a summary 'Budget Review Follow-up', and description 'Reminder to prepare for the follow-up meeting'.",
+            "instantiation_dict": {},
             "evals": [
                 {
                     "eval_type": "filesystem",
@@ -202,7 +117,19 @@
                         "content_check": {
                             "tmp/Meeting_Summaries/Budget_Review_Summary_20240415.txt": "Summary of Budget Review meeting on 2024-04-15"
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp/Meeting_Summaries"
+                            }
+                        }
+                    ]
                 },
                 {
                     "eval_type": "google_calendar",
@@ -213,32 +140,19 @@
                             "start": {"dateTime": "2024-04-22T09:00:00Z"},
                             "end": {"dateTime": "2024-04-22T09:30:00Z"}
                         }
-                    }
-                }
-            ],
-            "reset_actions": {
-                "google_calendar": [
-                    {
-                        "clear_calendar": {}
-                    }
-                ],
-                "filesystem": [
-                    {
-                        "rmdir": {
-                            "path": "tmp"
-                        }
                     },
-                    {
-                        "mkdir": {
-                            "path": "tmp/Meeting_Summaries"
+                    "reset_actions": [
+                        {
+                            "clear_calendar": {}
                         }
-                    }
-                ]
-            }
+                    ]
+                }
+            ]
         },
         {
             "task_id": 6,
             "intent_template": "Reschedule the 'Team Sync' event originally on 2024-05-10 to 2024-05-12 at 2:00 PM.",
+            "instantiation_dict": {},
             "evals": [
                 {
                     "eval_type": "google_calendar",
@@ -255,27 +169,26 @@
                             },
                             "exists": false
                         }
-                    }
-                }
-            ],
-            "reset_actions": {
-                "google_calendar": [
-                    {
-                        "clear_calendar": {}
                     },
-                    {
-                        "create_event": {
-                            "summary": "Team Sync",
-                            "start": {"dateTime": "2024-05-10T00:00:00Z"},
-                            "end": {"dateTime": "2024-05-10T01:00:00Z"}
+                    "reset_actions": [
+                        {
+                            "clear_calendar": {}
+                        },
+                        {
+                            "create_event": {
+                                "summary": "Team Sync",
+                                "start": {"dateTime": "2024-05-10T00:00:00Z"},
+                                "end": {"dateTime": "2024-05-10T01:00:00Z"}
+                            }
                         }
-                    }
-                ]
-            }
+                    ]
+                }
+            ]
         },
         {
             "task_id": 7,
             "intent_template": "Reschedule the 'Team Sync' event originally on 2024-05-10 to 2024-05-12 at 2:00 PM. Then create a file named 'Team_Sync_Rescheduled_20240512.txt' in the 'tmp/Notifications' folder, containing 'Team Sync meeting has been rescheduled to 2024-05-12 at 2:00 PM'.",
+            "instantiation_dict": {},
             "evals": [
                 {
                     "eval_type": "filesystem",
@@ -289,7 +202,19 @@
                         "content_check": {
                             "tmp/Notifications/Team_Sync_Rescheduled_20240512.txt": "Team Sync meeting has been rescheduled to 2024-05-12 at 2:00 PM"
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp/Notifications"
+                            }
+                        }
+                    ]
                 },
                 {
                     "eval_type": "google_calendar",
@@ -306,39 +231,26 @@
                             },
                             "exists": false
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "clear_calendar": {}
+                        },
+                        {
+                            "create_event": {
+                                "summary": "Team Sync",
+                                "start": {"dateTime": "2024-05-10T00:00:00Z"},
+                                "end": {"dateTime": "2024-05-10T01:00:00Z"}
+                            }
+                        }
+                    ]
                 }
-            ],
-            "reset_actions": {
-                "google_calendar": [
-                    {
-                        "clear_calendar": {}
-                    },
-                    {
-                        "create_event": {
-                            "summary": "Team Sync",
-                            "start": {"dateTime": "2024-05-10T00:00:00Z"},
-                            "end": {"dateTime": "2024-05-10T01:00:00Z"}
-                        }
-                    }
-                ],
-                "filesystem": [
-                    {
-                        "rmdir": {
-                            "path": "tmp"
-                        }
-                    },
-                    {
-                        "mkdir": {
-                            "path": "tmp/Notifications"
-                        }
-                    }
-                ]
-            }
+            ]
         },
         {
             "task_id": 8,
             "intent_template": "Check if there is a 'Project Planning Meeting' scheduled on 2024-08-10 in Google Calendar. If it exists, create a folder named 'Project_Planning_20240810' in 'tmp/Meeting_Documents' and inside it, create two files: 'Attendees.txt' with content 'List of Attendees' and 'Agenda.txt' with content 'Meeting Agenda'.",
+            "instantiation_dict": {},
             "evals": [
                 {
                     "eval_type": "filesystem",
@@ -352,39 +264,41 @@
                             "tmp/Meeting_Documents/Project_Planning_20240810/Attendees.txt": "List of Attendees",
                             "tmp/Meeting_Documents/Project_Planning_20240810/Agenda.txt": "Meeting Agenda"
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp/Meeting_Documents"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "eval_type": "google_calendar",
+                    "reset_actions": [
+                        {
+                            "clear_calendar": {}
+                        },
+                        {
+                            "create_event": {
+                                "summary": "Project Planning Meeting",
+                                "start": {"dateTime": "2024-08-10T09:00:00Z"},
+                                "end": {"dateTime": "2024-08-10T11:00:00Z"}
+                            }
+                        }
+                    ]
                 }
-            ],
-            "reset_actions": {
-                "google_calendar": [
-                    {
-                        "clear_calendar": {}
-                    },
-                    {
-                        "create_event": {
-                            "summary": "Project Planning Meeting",
-                            "start": {"dateTime": "2024-08-10T09:00:00Z"},
-                            "end": {"dateTime": "2024-08-10T11:00:00Z"}
-                        }
-                    }
-                ],
-                "filesystem": [
-                    {
-                        "rmdir": {
-                            "path": "tmp/Meeting_Documents"
-                        }
-                    },
-                    {
-                        "mkdir": {
-                            "path": "tmp/Meeting_Documents"
-                        }
-                    }
-                ]
-            }
+            ]
         },
         {
             "task_id": 9,
             "intent_template": "Check if there is a 'Project Planning Meeting' scheduled on 2024-08-10 in Google Calendar. If it exists, create a folder named 'Project_Planning_20240810' in 'tmp/Meeting_Documents' and inside it, create two files: 'Attendees.txt' with content 'List of Attendees' and 'Agenda.txt' with content 'Meeting Agenda'.",
+            "instantiation_dict": {},
             "evals": [
                 {
                     "eval_type": "filesystem",
@@ -392,7 +306,19 @@
                         "exists": {
                             "tmp/Meeting_Documents/Project_Planning_20240810": false
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp/Meeting_Documents"
+                            }
+                        }
+                    ]
                 },
                 {
                     "eval_type": "google_calendar",
@@ -404,28 +330,14 @@
                             },
                             "exists": false
                         }
-                    }
-                }
-            ],
-            "reset_actions": {
-                "google_calendar": [
-                    {
-                        "clear_calendar": {}
-                    }
-                ],
-                "filesystem": [
-                    {
-                        "rmdir": {
-                            "path": "tmp/Meeting_Documents"
-                        }
                     },
-                    {
-                        "mkdir": {
-                            "path": "tmp/Meeting_Documents"
+                    "reset_actions": [
+                        {
+                            "clear_calendar": {}
                         }
-                    }
-                ]
-            }
+                    ]
+                }
+            ]
         }
     ]
 }

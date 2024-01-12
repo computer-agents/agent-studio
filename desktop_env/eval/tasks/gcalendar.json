@@ -22,7 +22,18 @@
                             "start": {"dateTime": "2024-01-05T10:00:00Z"},
                             "end": {"dateTime": "2024-01-05T11:00:00Z"}
                         }
-                    }
+                    },
+                    "reset_actions": [
+                        {
+                            "deduplicate_event": {
+                                "summary": "Meeting with Team",
+                                "location": "Office",
+                                "description": "Discuss project status",
+                                "start": {"dateTime": "2024-01-05T10:00:00Z"},
+                                "end": {"dateTime": "2024-01-05T11:00:00Z"}
+                            }
+                        }
+                    ]
                 }
             ],
             "reference_action_sequence": {
@@ -39,19 +50,6 @@
                         }
                     ]
                 }
-            },
-            "reset_actions": {
-                "google_calendar": [
-                    {
-                        "deduplicate_event": {
-                            "summary": "Meeting with Team",
-                            "location": "Office",
-                            "description": "Discuss project status",
-                            "start": {"dateTime": "2024-01-05T10:00:00Z"},
-                            "end": {"dateTime": "2024-01-05T11:00:00Z"}
-                        }
-                    }
-                ]
             }
         }
     ]

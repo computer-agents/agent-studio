@@ -22,7 +22,9 @@ class GoogleCalendarEvaluator(Evaluator):
             reference_action_sequence=reference_action_sequence,
             eval_tag=eval_tag,
         )
-        self.service = GoogleCalendarService(token_path=self.env_settings["token_path"])
+        self.service = GoogleCalendarService(
+            credential_path=self.env_settings["credential_path"]
+        )
         self.events: dict = {}
 
     @staticmethod
@@ -216,7 +218,7 @@ class GoogleCalendarEvaluator(Evaluator):
 
     def action2str(self, steps: list[dict]) -> list[str]:
         commands = [
-            f"from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService\nservice = GoogleCalendarService(token_path='{self.env_settings['token_path']}')"  # noqa: E501
+            f"from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService\nservice = GoogleCalendarService(credential_path='{self.env_settings['credential_path']}')"  # noqa: E501
         ]
         for step in steps:
             action: str

@@ -4,8 +4,8 @@ from desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
 
 
 def test_gdrive_connector() -> None:
-    token_path = "config/token.json"
-    drive_service = GoogleDriveService(token_path)
+    credential_path = "config/token.json"
+    drive_service = GoogleDriveService(credential_path)
 
     # Create a folder in Google Drive
     folder = drive_service.create_folder(folder_name="TestFolder")

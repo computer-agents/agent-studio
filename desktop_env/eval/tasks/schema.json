@@ -21,41 +21,45 @@
                         "type": "integer"
                     },
                     "intent_template": {
-                        "type": ["string", "null"]
+                        "type": ["string"]
                     },
                     "instantiation_dict": {
-                        "type": ["object", "null"]
+                        "type": ["object"]
                     },
                     "evals": {
                         "type": "array",
                         "items": {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": ["eval_type", "eval_procedure"],
+                            "anyOf": [
+                                {"required": ["eval_type", "eval_procedure"]},
+                                {"required": ["eval_type", "reset_actions"]}
+                            ],
                             "properties": {
                                 "eval_type": {
                                     "type": "string"
                                 },
                                 "eval_procedure": {
-                                    "type": "object"
+                                    "type": ["object", "null"]
+                                },
+                                "reset_actions": {
+                                    "type": ["array", "null"],
+                                    "items": {
+                                        "type": "object"
+                                    }
                                 }
                             }
                         }
                     },
                     "reference_action_sequence": {
                         "type": ["object", "null"],
-                        "properties": {
-                            "action_sequence": {
-                                "type": "array"
-                            }
-                        }
-                    },
-                    "reset_actions": {
-                        "type": ["object", "null"],
                         "additionalProperties": {
-                            "type": "array",
-                            "items": {
-                                "type": "object"
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "action_sequence": {
+                                    "type": "array"
+                                }
                             }
                         }
                     }
