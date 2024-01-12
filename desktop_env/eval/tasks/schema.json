@@ -2,16 +2,13 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "additionalProperties": false,
-    "required": ["environments", "score_weight", "tasks"],
+    "required": ["environments", "tasks"],
     "properties": {
         "environments": {
             "type": "array",
             "items": {
                 "type": "string"
             }
-        },
-        "score_weight": {
-            "type": "number"
         },
         "tasks": {
             "type": "array",

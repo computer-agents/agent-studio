@@ -1,5 +1,4 @@
 {
-    "score_weight": 1.0,
     "environments": ["google_calendar"],
     "tasks": [
         {
@@ -24,13 +23,7 @@
                 }
             ],
             "reference_action_sequence": {
-                "action_sequence": []
-            },
-            "reset_actions": {
-                "google_calendar": [
-                    {
-                        "clear_calendar": {}
-                    },
+                "action_sequence": [
                     {
                         "create_event": {
                             "summary": "Meeting with Team",
@@ -39,6 +32,13 @@
                             "start": {"dateTime": "2024-01-05T10:00:00Z"},
                             "end": {"dateTime": "2024-01-05T11:00:00Z"}
                         }
+                    }
+                ]
+            },
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
                     }
                 ]
             }

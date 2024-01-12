@@ -2,7 +2,12 @@
     "google_calendar": {
         "env_settings": {
             "token_path": "config/token.json",
-            "calendar_id": "FILL_ME"
+            "calendar_id": null
+        }
+    },
+    "gmail": {
+        "env_settings": {
+            "token_path": "config/token.json"
         }
     },
     "filesystem": {
