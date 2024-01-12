@@ -1,10 +1,11 @@
 from typing import Any
 
 from desktop_env.eval.connectors.gspace.gdocs import GoogleDocsService
+from desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
 
 
 def test_gdocs_connector() -> None:
-    credential_path = "config/token.json"
+    credential_path = "config/credentials.json"
     google_docs_service = GoogleDocsService(credential_path)
 
     # 1. Create a new document
@@ -28,6 +29,6 @@ def test_gdocs_connector() -> None:
     # 6. Insert a table
     google_docs_service.insert_table(document_id, 2, 3)  # 2 rows, 3 columns
 
-    # 7. Delete the document
-    google_docs_service.delete_document(document_id)
+    drive_service = GoogleDriveService(credential_path)
+    drive_service.delete_file(file_id=document_id)
     print(f"Deleted document with ID: {document_id}")
