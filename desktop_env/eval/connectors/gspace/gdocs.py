@@ -1,6 +1,5 @@
 from googleapiclient.errors import HttpError
 
-from desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
 from desktop_env.eval.connectors.gspace.gservice import GoogleService
 
 
@@ -14,7 +13,6 @@ class GoogleDocsService(GoogleService):
             service_name="docs",
             service_version="v1",
         )
-        self.drive_service = GoogleDriveService(credential_path)
 
     def get_document(self, document_id: str) -> dict:
         try:
@@ -116,11 +114,5 @@ class GoogleDocsService(GoogleService):
             self.service.documents().batchUpdate(
                 documentId=document_id, body={"requests": requests}
             ).execute()
-        except HttpError as err:
-            print(err)
-
-    def delete_document(self, file_id: str) -> None:
-        try:
-            self.drive_service.delete_file(file_id=file_id)
         except HttpError as err:
             print(err)
