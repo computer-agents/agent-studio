@@ -130,7 +130,7 @@ with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
 
-events = gcalendar_service.search_events(
+events = gcalendar_service.search_events_by_info(
     {
         "summary": "Team Sync",
         "start": {"dateTime": "2024-05-10T00:00:00Z"},
@@ -162,7 +162,7 @@ with open("config/environments.json", "r") as f:
     env_configs = json.load(f)
     calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
 
-events = gcalendar_service.search_events(
+events = gcalendar_service.search_events_by_info(
     {
         "summary": "Team Sync",
         "start": {"dateTime": "2024-05-10T00:00:00Z"},
@@ -186,6 +186,80 @@ Path(path).mkdir(parents=True, exist_ok=True)
 with open("tmp/Notifications/Team_Sync_Rescheduled_20240512.txt", "w") as f:
     f.write("Team Sync meeting has been rescheduled to 2024-05-12 at 2:00 PM")
 """,
+    8: """
+import os
+import json
+from pathlib import Path
+
+from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+
+gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+with open("config/environments.json", "r") as f:
+    env_configs = json.load(f)
+    calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
+
+events = gcalendar_service.search_events_by_time_range(
+    "2024-08-10T00:00:00Z",
+    "2024-08-10T23:59:59Z",
+    calendar_id=calendar_id
+)
+reference_event = {
+    "summary": "Project Planning Meeting",
+}
+results = []
+for event in events:
+    if gcalendar_service.event_match_left(reference_event, event):
+        results.append(event)
+
+if len(events) > 0:
+    path = "tmp/Meeting_Documents/Project_Planning_20240810"
+    Path(path).mkdir(parents=True, exist_ok=True)
+    with open(
+        "tmp/Meeting_Documents/Project_Planning_20240810/Attendees.txt",
+        "w") as f:
+        f.write("List of Attendees")
+    with open(
+        "tmp/Meeting_Documents/Project_Planning_20240810/Agenda.txt",
+        "w") as f:
+        f.write("Meeting Agenda")
+""",
+    9: """
+import os
+import json
+from pathlib import Path
+
+from desktop_env.eval.google_evaluators.calendar_evaluator import GoogleCalendarService
+
+gcalendar_service = GoogleCalendarService(token_path="config/secrets/token.json")
+with open("config/environments.json", "r") as f:
+    env_configs = json.load(f)
+    calendar_id = env_configs["google_calendar"]["env_settings"]["calendar_id"]
+
+events = gcalendar_service.search_events_by_time_range(
+    "2024-08-10T00:00:00Z",
+    "2024-08-10T23:59:59Z",
+    calendar_id=calendar_id
+)
+reference_event = {
+    "summary": "Project Planning Meeting",
+}
+results = []
+for event in events:
+    if gcalendar_service.event_match_left(reference_event, event):
+        results.append(event)
+
+if len(results) > 0:
+    path = "tmp/Meeting_Documents/Project_Planning_20240810"
+    Path(path).mkdir(parents=True, exist_ok=True)
+    with open(
+        "tmp/Meeting_Documents/Project_Planning_20240810/Attendees.txt",
+        "w") as f:
+        f.write("List of Attendees")
+    with open(
+        "tmp/Meeting_Documents/Project_Planning_20240810/Agenda.txt",
+        "w") as f:
+        f.write("Meeting Agenda")
+""",
 }
 
 
@@ -201,7 +275,7 @@ def test_calendar(
     total_score = 0.0
     gained_score = 0.0
     for task_config in task_configs["tasks"]:
-        if task_config["task_id"] != 7:
+        if task_config["task_id"] != 8:
             continue
         comb = evaluator_router(task_config, env_configs)
         comb.reset()

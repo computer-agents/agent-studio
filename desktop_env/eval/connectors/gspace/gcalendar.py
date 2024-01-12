@@ -160,7 +160,7 @@ class GoogleCalendarService(GoogleService):
                     return False
         return True
 
-    def search_events(
+    def search_events_by_info(
         self, reference_event: dict, calendar_id: str = "primary"
     ) -> list[dict[str, str]]:
         events = self.list_events(calendar_id=calendar_id)
@@ -169,3 +169,28 @@ class GoogleCalendarService(GoogleService):
             if self.event_match_left(reference_event, event):
                 results.append(event)
         return results
+
+    def search_events_by_time_range(
+        self,
+        start_time: str,
+        end_time: str,
+        calendar_id: str = "primary",
+    ) -> list[dict[str, str]]:
+        events = []
+        page_token = None
+        while True:
+            events_result = (
+                self.service.events()
+                .list(
+                    calendarId=calendar_id,
+                    timeMin=start_time,
+                    timeMax=end_time,
+                    singleEvents=True,
+                )
+                .execute()
+            )
+            events.extend(events_result["items"])
+            page_token = events_result.get("nextPageToken")
+            if not page_token:
+                break
+        return events

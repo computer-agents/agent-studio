@@ -301,6 +301,9 @@
                         "exists": {
                             "tmp/Notifications/Team_Sync_Rescheduled_20240512.txt": true
                         },
+                        "type_check": {
+                            "tmp/Notifications/Team_Sync_Rescheduled_20240512.txt": "file"
+                        },
                         "content_check": {
                             "tmp/Notifications/Team_Sync_Rescheduled_20240512.txt": "Team Sync meeting has been rescheduled to 2024-05-12 at 2:00 PM"
                         }
@@ -346,6 +349,103 @@
                     {
                         "mkdir": {
                             "path": "tmp/Notifications"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "task_id": 8,
+            "available_apis": ["GoogleCalendarService", "os"],
+            "score": 1.0,
+            "reset": ["google_calendar", "filesystem"],
+            "intent_template": "Check if there is a 'Project Planning Meeting' scheduled on 2024-08-10 in Google Calendar. If it exists, create a folder named 'Project_Planning_20240810' in 'tmp/Meeting_Documents' and inside it, create two files: 'Attendees.txt' with content 'List of Attendees' and 'Agenda.txt' with content 'Meeting Agenda'.",
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reference_answers": {
+                        "exists": {
+                            "tmp/Meeting_Documents/Project_Planning_20240810": true,
+                            "tmp/Meeting_Documents/Project_Planning_20240810/Attendees.txt": true,
+                            "tmp/Meeting_Documents/Project_Planning_20240810/Agenda.txt": true
+                        },
+                        "content_check": {
+                            "tmp/Meeting_Documents/Project_Planning_20240810/Attendees.txt": "List of Attendees",
+                            "tmp/Meeting_Documents/Project_Planning_20240810/Agenda.txt": "Meeting Agenda"
+                        }
+                    }
+                }
+            ],
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
+                    },
+                    {
+                        "create_event": {
+                            "summary": "Project Planning Meeting",
+                            "start": {"dateTime": "2024-08-10T09:00:00Z"},
+                            "end": {"dateTime": "2024-08-10T11:00:00Z"}
+                        }
+                    }
+                ],
+                "filesystem": [
+                    {
+                        "rmdir": {
+                            "path": "tmp/Meeting_Documents"
+                        }
+                    },
+                    {
+                        "mkdir": {
+                            "path": "tmp/Meeting_Documents"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "task_id": 9,
+            "available_apis": ["GoogleCalendarService", "os"],
+            "score": 1.0,
+            "reset": ["google_calendar", "filesystem"],
+            "intent_template": "Check if there is a 'Project Planning Meeting' scheduled on 2024-08-10 in Google Calendar. If it exists, create a folder named 'Project_Planning_20240810' in 'tmp/Meeting_Documents' and inside it, create two files: 'Attendees.txt' with content 'List of Attendees' and 'Agenda.txt' with content 'Meeting Agenda'.",
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reference_answers": {
+                        "exists": {
+                            "tmp/Meeting_Documents/Project_Planning_20240810": false
+                        }
+                    }
+                },
+                {
+                    "eval_type": "google_calendar",
+                    "reference_answers": {
+                        "check_event_exists": {
+                            "event": {
+                                "summary": "Project Planning Meeting",
+                                "start": {"dateTime": "2024-08-10T09:00:00Z"}
+                            },
+                            "exists": false
+                        }
+                    }
+                }
+            ],
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
+                    }
+                ],
+                "filesystem": [
+                    {
+                        "rmdir": {
+                            "path": "tmp/Meeting_Documents"
+                        }
+                    },
+                    {
+                        "mkdir": {
+                            "path": "tmp/Meeting_Documents"
                         }
                     }
                 ]
