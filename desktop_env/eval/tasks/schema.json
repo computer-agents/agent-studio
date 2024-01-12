@@ -15,16 +15,10 @@
             "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["task_id", "available_apis", "evals", "intent_template"],
+                "required": ["task_id", "evals", "intent_template"],
                 "properties": {
                     "task_id": {
                         "type": "integer"
-                    },
-                    "available_apis": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
                     },
                     "intent_template": {
                         "type": ["string", "null"]
@@ -37,12 +31,12 @@
                         "items": {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": ["eval_type", "reference_answers"],
+                            "required": ["eval_type", "eval_procedure"],
                             "properties": {
                                 "eval_type": {
                                     "type": "string"
                                 },
-                                "reference_answers": {
+                                "eval_procedure": {
                                     "type": "object"
                                 }
                             }

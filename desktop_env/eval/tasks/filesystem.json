@@ -3,7 +3,6 @@
     "tasks": [
         {
             "task_id": 0,
-            "available_apis": ["os"],
             "intent_template": "Create a file named '{file}' in the folder '{folder}' with the content '{content}' and set the permissions of the file to '{file_permission}' and the permissions of the folder to '{folder_permission}'.",
             "instantiation_dict": {
                 "folder": "tmp",
@@ -15,7 +14,7 @@
             "evals": [
                 {
                     "eval_type": "filesystem",
-                    "reference_answers": {
+                    "eval_procedure": {
                         "exists": {
                             "tmp/test.txt": true,
                             "tmp": true
@@ -75,7 +74,6 @@
         },
         {
             "task_id": 1,
-            "available_apis": ["os"],
             "intent_template": "Remove the file named '{file}' in the folder '{folder}'.",
             "instantiation_dict": {
                 "folder": "tmp",
@@ -84,7 +82,7 @@
             "evals": [
                 {
                     "eval_type": "filesystem",
-                    "reference_answers": {
+                    "eval_procedure": {
                         "exists": {
                             "tmp": true
                         },
@@ -127,7 +125,6 @@
         },
         {
             "task_id": 2,
-            "available_apis": ["os"],
             "intent_template": "Remove the folder named '{folder}'.",
             "instantiation_dict": {
                 "folder": "tmp"
@@ -135,7 +132,7 @@
             "evals": [
                 {
                     "eval_type": "filesystem",
-                    "reference_answers": {
+                    "eval_procedure": {
                         "exists": {
                             "tmp": false
                         }
@@ -162,6 +159,59 @@
                         {
                             "rmdir": {
                                 "path": "tmp"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "task_id": 3,
+            "intent_template": "Save the string '{content}' to a file named '{file}' in the folder '{folder}'.",
+            "instantiation_dict": {
+                "folder": "tmp",
+                "file": "test.txt",
+                "content": "Hello World!"
+            },
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "eval_procedure": {
+                        "exists": {
+                            "tmp/test.txt": true,
+                            "tmp": true
+                        },
+                        "type_check": {
+                            "tmp/test.txt": "file",
+                            "tmp": "folder"
+                        },
+                        "content_check": {
+                            "tmp/test.txt": "Hello World!"
+                        }
+                    }
+                }
+            ],
+            "reset_actions": {
+                "filesystem": [
+                    {
+                        "rmdir": {
+                            "path": "tmp"
+                        }
+                    },
+                    {
+                        "mkdir": {
+                            "path": "tmp"
+                        }
+                    }
+                ]
+            },
+            "reference_action_sequence": {
+                "filesystem": {
+                    "action_sequence": [
+                        {
+                            "create_file": {
+                                "path": "tmp/test.txt",
+                                "content": "Hello World!"
                             }
                         }
                     ]

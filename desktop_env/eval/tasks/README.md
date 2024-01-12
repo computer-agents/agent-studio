@@ -21,7 +21,6 @@ Your Task JSON file should contain the following top-level properties:
 An array of objects, where each object encapsulates a specific task and must include:
 
 - `task_id`: (integer) A unique identifier for the task.
-- `available_apis`: (array of strings) Specifies the APIs available for the task.
 - `intent_template`: (string, null) A template describing the task's intent.
 - `instantiation_dict`: (object, null) A dictionary for instantiation details.
 - `evals`: (array) An array of evaluation objects pertaining to the task.
@@ -33,7 +32,7 @@ An array of objects, where each object encapsulates a specific task and must inc
 Each object in the `evals` array should include:
 
 - `eval_type`: (string) The type of evaluation to be conducted. This should match the name of the evaluator.
-- `reference_answers`: (object) Contains reference answers for the evaluation.
+- `eval_procedure`: (object) Contains the evaluation procedure and the reference answers.
 
 #### Reset Actions
 
@@ -49,13 +48,12 @@ Each object in the `evals` array should include:
     "tasks": [
         {
             "task_id": 0,
-            "available_apis": ["GoogleCalendarService"],
             "intent_template": null,
             "instantiation_dict": null,
             "evals": [
                 {
                     "eval_type": "google_calendar",
-                    "reference_answers": {
+                    "eval_procedure": {
                         "event_match": {
                             "summary": "Meeting with Team",
                             "location": "Office",

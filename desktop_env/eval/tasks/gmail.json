@@ -3,7 +3,6 @@
     "tasks": [
         {
             "task_id": 0,
-            "available_apis": ["GmailService"],
             "intent_template": "Create a draft email with subject '{subject}', content '{content}', and recipient '{recipient}'",
             "instantiation_dict": {
                 "subject": "Automated draft",
@@ -13,7 +12,7 @@
             "evals": [
                 {
                     "eval_type": "gmail",
-                    "reference_answers": {
+                    "eval_procedure": {
                         "email_exact_match": {
                             "subject": "Automated draft",
                             "recipient": "gduser@workspacesamples.dev",

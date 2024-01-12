@@ -34,7 +34,7 @@ class GoogleDocsEvaluator(Evaluator):
     #     score = 1.0
     #     document = configs["eval"]["document"]
     #     index = configs["eval"]["index"]
-    #     for approach, value in configs["eval"]["reference_answers"].items():
+    #     for approach, value in configs["eval"]["eval_procedure"].items():
     #         match approach:
     #             case "string_match":
     #                 pred = GoogleDocsEvaluator.get_text_at_index(document, index)

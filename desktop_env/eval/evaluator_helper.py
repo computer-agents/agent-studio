@@ -48,7 +48,7 @@ def evaluator_router(
             case "gmail":
                 evaluators.append(
                     GmailEvaluator(
-                        reference_answer=eval["reference_answers"],
+                        reference_answer=eval["eval_procedure"],
                         env_config=env_configs["gmail"],
                         reset_actions=reset_actions_dict.get("gmail", []),
                         reference_action_sequence=reference_action_sequence.get(
@@ -59,7 +59,7 @@ def evaluator_router(
             case "google_calendar":
                 evaluators.append(
                     GoogleCalendarEvaluator(
-                        reference_answer=eval["reference_answers"],
+                        reference_answer=eval["eval_procedure"],
                         env_config=env_configs["google_calendar"],
                         reset_actions=reset_actions_dict.get("google_calendar", []),
                         reference_action_sequence=reference_action_sequence.get(
@@ -70,7 +70,7 @@ def evaluator_router(
             case "filesystem":
                 evaluators.append(
                     FilesystemEvaluator(
-                        reference_answer=eval["reference_answers"],
+                        reference_answer=eval["eval_procedure"],
                         env_config=env_configs["filesystem"],
                         reset_actions=reset_actions_dict.get("filesystem", []),
                         reference_action_sequence=reference_action_sequence.get(
