@@ -2,11 +2,16 @@
     "environments": ["filesystem"],
     "tasks": [
         {
-            "task_id": 1,
+            "task_id": 0,
             "available_apis": ["os"],
-            "score": 1.0,
-            "reset": [],
-            "intent_template": null,
+            "intent_template": "Create a file named '{file}' in the folder '{folder}' with the content '{content}' and set the permissions of the file to '{file_permission}' and the permissions of the folder to '{folder_permission}'.",
+            "instantiation_dict": {
+                "folder": "tmp",
+                "folder_permission": "0o775",
+                "file": "test.txt",
+                "file_permission": "0o644",
+                "content": "Hello World!"
+            },
             "evals": [
                 {
                     "eval_type": "filesystem",
@@ -28,14 +33,54 @@
                         }
                     }
                 }
-            ]
+            ],
+            "reset_actions": {
+                "filesystem": [
+                    {
+                        "rmdir": {
+                            "path": "tmp"
+                        }
+                    }
+                ]
+            },
+            "reference_action_sequence": {
+                "filesystem": {
+                    "action_sequence": [
+                        {
+                            "mkdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "create_file": {
+                                "path": "tmp/test.txt",
+                                "content": "Hello World!"
+                            }
+                        },
+                        {
+                            "chmod": {
+                                "path": "tmp/test.txt",
+                                "mode": "0o644"
+                            }
+                        },
+                        {
+                            "chmod": {
+                                "path": "tmp",
+                                "mode": "0o775"
+                            }
+                        }
+                    ]
+                }
+            }
         },
         {
-            "task_id": 2,
+            "task_id": 1,
             "available_apis": ["os"],
-            "score": 2.0,
-            "reset": [],
-            "intent_template": null,
+            "intent_template": "Remove the file named '{file}' in the folder '{folder}'.",
+            "instantiation_dict": {
+                "folder": "tmp",
+                "file": "test.txt"
+            },
             "evals": [
                 {
                     "eval_type": "filesystem",
@@ -45,13 +90,83 @@
                         },
                         "type_check": {
                             "tmp": "folder"
-                        },
-                        "permissions_check": {
-                            "tmp": "drwxrwxr-x"
                         }
                     }
                 }
-            ]
+            ],
+            "reset_actions": {
+                "filesystem": [
+                    {
+                        "rmdir": {
+                            "path": "tmp"
+                        }
+                    },
+                    {
+                        "mkdir": {
+                            "path": "tmp"
+                        }
+                    },
+                    {
+                        "create_file": {
+                            "path": "tmp/test.txt"
+                        }
+                    }
+                ]
+            },
+            "reference_action_sequence": {
+                "filesystem": {
+                    "action_sequence": [
+                        {
+                            "rm": {
+                                "path": "tmp/test.txt"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "task_id": 2,
+            "available_apis": ["os"],
+            "intent_template": "Remove the folder named '{folder}'.",
+            "instantiation_dict": {
+                "folder": "tmp"
+            },
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reference_answers": {
+                        "exists": {
+                            "tmp": false
+                        }
+                    }
+                }
+            ],
+            "reset_actions": {
+                "filesystem": [
+                    {
+                        "rmdir": {
+                            "path": "tmp"
+                        }
+                    },
+                    {
+                        "mkdir": {
+                            "path": "tmp"
+                        }
+                    }
+                ]
+            },
+            "reference_action_sequence": {
+                "filesystem": {
+                    "action_sequence": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        }
+                    ]
+                }
+            }
         }
     ]
 }

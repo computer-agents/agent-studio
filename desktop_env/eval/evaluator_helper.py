@@ -1,3 +1,5 @@
+from typing import List
+
 from desktop_env.eval.evaluator import Evaluator
 from desktop_env.eval.google_evaluators.calendar_evaluator import (
     GoogleCalendarEvaluator,
@@ -20,6 +22,12 @@ class EvaluatorComb:
             score *= cur_score
         return score
 
+    def get_oracle_trajectory(self) -> List[str]:
+        oracle_trajectory = []
+        for evaluator in self.evaluators:
+            oracle_trajectory.extend(evaluator.get_oracle_trajectory())
+        return oracle_trajectory
+
 
 # TODO: register evaluators
 
@@ -34,6 +42,9 @@ def evaluator_router(
     for eval in task_configs["evals"]:
         eval_type = eval["eval_type"]
         reset_actions_dict: dict = task_configs.get("reset_actions", {})
+        reference_action_sequence: dict = task_configs.get(
+            "reference_action_sequence", {}
+        )
         match eval_type:
             case "google_calendar":
                 evaluators.append(
@@ -41,6 +52,9 @@ def evaluator_router(
                         reference_answer=eval["reference_answers"],
                         env_config=env_configs["google_calendar"],
                         reset_actions=reset_actions_dict.get("google_calendar", []),
+                        reference_action_sequence=reference_action_sequence.get(
+                            "google_calendar", {}
+                        ),
                     )
                 )
             case "filesystem":
@@ -49,14 +63,11 @@ def evaluator_router(
                         reference_answer=eval["reference_answers"],
                         env_config=env_configs["filesystem"],
                         reset_actions=reset_actions_dict.get("filesystem", []),
+                        reference_action_sequence=reference_action_sequence.get(
+                            "filesystem", {}
+                        ),
                     )
                 )
-            # case "string_match":
-            #     evaluators.append(StringEvaluator())
-            # case "url_match":
-            #     evaluators.append(URLEvaluator())
-            # case "program_html":
-            #     evaluators.append(HTMLContentEvaluator())
             case _:
                 raise ValueError(f"eval_type {eval_type} is not supported")
 

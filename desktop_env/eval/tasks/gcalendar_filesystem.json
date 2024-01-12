@@ -4,8 +4,6 @@
         {
             "task_id": 0,
             "available_apis": ["GoogleCalendarService", "os"],
-            "score": 1.0,
-            "reset": ["google_calendar", "filesystem"],
             "intent_template": "Create a event on UTC time 5th January 2024 at 10:00 am. The event will last for 1 hour and should be named 'Meeting with Team', located at 'Office', and described as 'Discuss project status'.",
             "instantiation_dict": null,
             "evals": [
@@ -36,8 +34,6 @@
         {
             "task_id": 1,
             "available_apis": ["GoogleCalendarService", "os"],
-            "score": 1.0,
-            "reset": ["google_calendar", "filesystem"],
             "intent_template": "Create a event on CET time 5th January 2024 at 11:00 am. The event will last for 1 hour and should be named 'Meeting with Team', located at 'Office', and described as 'Discuss project status'.",
             "instantiation_dict": null,
             "evals": [
@@ -68,8 +64,6 @@
         {
             "task_id": 2,
             "available_apis": ["GoogleCalendarService", "os"],
-            "score": 1.0,
-            "reset": ["google_calendar", "filesystem"],
             "intent_template": "Save the string 'Hello World!' to a file named 'test.txt' in the folder 'tmp'.",
             "instantiation_dict": null,
             "evals": [
@@ -111,8 +105,6 @@
         {
             "task_id": 3,
             "available_apis": ["GoogleCalendarService", "os"],
-            "score": 1.0,
-            "reset": ["google_calendar", "filesystem"],
             "intent_template": "Export all events from the calendar to a file named 'calendar.txt' in the folder 'tmp'. You only need to export the event's summary to the txt file in time order. Each event should be on a new line. Leave a blank line at the end of the file.",
             "instantiation_dict": null,
             "evals": [
@@ -166,8 +158,6 @@
         {
             "task_id": 4,
             "available_apis": ["GoogleCalendarService", "os"],
-            "score": 1.0,
-            "reset": ["google_calendar", "filesystem"],
             "intent_template": "After a team meeting on 2024-03-01, create a file named 'Meeting_Minutes_20240301.txt' in the 'tmp/Documents/Meetings' folder. The file should contain the string 'Minutes of the meeting held on 2024-03-01'. Also, schedule a follow-up meeting in Google Calendar for 2024-03-08 at 10:00 AM, with a summary 'Follow-up Meeting', located at 'Conference Room', and described as 'Discuss action points from last meeting'.",
             "evals": [
                 {
@@ -217,8 +207,6 @@
         {
             "task_id": 5,
             "available_apis": ["GoogleCalendarService", "os"],
-            "score": 1.0,
-            "reset": ["google_calendar", "filesystem"],
             "intent_template": "After the 'Budget Review' meeting on 2024-04-15, create a file named 'Budget_Review_Summary_20240415.txt' in the 'tmp/Meeting_Summaries' folder. The file should contain 'Summary of Budget Review meeting on 2024-04-15'. Also, schedule a reminder in Google Calendar for 2024-04-22 at 9:00 AM, with a summary 'Budget Review Follow-up', and description 'Reminder to prepare for the follow-up meeting'.",
             "evals": [
                 {
@@ -267,8 +255,6 @@
         {
             "task_id": 6,
             "available_apis": ["GoogleCalendarService", "os"],
-            "score": 1.0,
-            "reset": ["google_calendar", "filesystem"],
             "intent_template": "Reschedule the 'Team Sync' event originally on 2024-05-10 to 2024-05-12 at 2:00 PM.",
             "evals": [
                 {
@@ -307,8 +293,6 @@
         {
             "task_id": 7,
             "available_apis": ["GoogleCalendarService", "os"],
-            "score": 1.0,
-            "reset": ["google_calendar", "filesystem"],
             "intent_template": "Reschedule the 'Team Sync' event originally on 2024-05-10 to 2024-05-12 at 2:00 PM. Then create a file named 'Team_Sync_Rescheduled_20240512.txt' in the 'tmp/Notifications' folder, containing 'Team Sync meeting has been rescheduled to 2024-05-12 at 2:00 PM'.",
             "evals": [
                 {

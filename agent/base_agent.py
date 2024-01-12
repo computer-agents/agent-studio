@@ -1,26 +1,22 @@
-from typing import Any, List
-
-from desktop_env.eval.task_config import TaskConfig
+from desktop_env.computer.env import ComputerEnv
 
 
 class Agent:
     """Base class for agents."""
 
-    def __init__(self, *args: Any) -> None:
-        self.instruction: str | None = None
-        self.history: List = []
+    def __init__(self, env: ComputerEnv, **kwargs) -> None:
+        self.env = env
+        self.instruction: str = ""
 
     def reset(
         self,
-        task_config: TaskConfig,
+        instruction: str,
+        **kwargs,
     ) -> None:
-        self.instruction = task_config.instruction
-        # read system prompt from the file path
-        with open(task_config.system_prompt) as f:
-            self.system_prompt = f.read()
+        self.instruction = instruction
 
-    def step(self, obs):
-        """Perform the next action given the observation."""
+    def run(self):
+        """Perform actions."""
         raise NotImplementedError
 
     def construct_prompt(self, obs):

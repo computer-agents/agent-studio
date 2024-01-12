@@ -12,9 +12,16 @@ class GmailEvaluator(Evaluator):
         reference_answer: dict,
         reset_actions: list[dict],
         env_config: dict,
+        reference_action_sequence: dict,
         eval_tag: str = "",
     ) -> None:
-        super().__init__(reference_answer, reset_actions, env_config, eval_tag)
+        super().__init__(
+            reference_answer=reference_answer,
+            reset_actions=reset_actions,
+            env_config=env_config,
+            reference_action_sequence=reference_action_sequence,
+            eval_tag=eval_tag,
+        )
         self.service = GmailService(token_path=self.env_settings["token_path"])
         self.created_draft_id: str = ""
         self.retrieved_draft: Dict[str, str] | None = None

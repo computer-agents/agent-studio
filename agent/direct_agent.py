@@ -1,5 +1,5 @@
 from agent.base_agent import Agent
-from desktop_env.eval.task_config import TaskConfig
+from desktop_env.computer.env import ComputerEnv
 from llm import setup_llm
 from llm.lm_config import LMConfig
 
@@ -9,26 +9,29 @@ class DirectAgent(Agent):
 
     def __init__(
         self,
+        env: ComputerEnv,
         lm_config: LMConfig,
     ) -> None:
-        super().__init__()
+        super().__init__(env=env)
         self.lm_config = lm_config
         self.llm = setup_llm(lm_config)
 
     def reset(
         self,
-        task_config: TaskConfig,
+        instruction: str,
+        **kwargs,
     ) -> None:
-        super().reset(task_config)
+        super().reset(instruction=instruction)
 
-    def step(self, obs):
-        prompt = self.construct_prompt(obs)
-        response = self.llm.generate_response(prompt)
-        action = self.parse_response(response)
+    def run(self):
+        pass
+        # prompt = self.construct_prompt(obs)
+        # response = self.llm.generate_response(prompt)
+        # action = self.parse_response(response)
 
-        self.history.append({"obs": obs, "action": action})
+        # self.history.append({"obs": obs, "action": action})
 
-        return action
+        # return action
 
     def construct_prompt(self, obs):
         messages = []

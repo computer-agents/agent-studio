@@ -15,21 +15,12 @@
             "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["task_id", "available_apis", "score", "reset", "evals", "intent_template"],
+                "required": ["task_id", "available_apis", "evals", "intent_template"],
                 "properties": {
                     "task_id": {
                         "type": "integer"
                     },
                     "available_apis": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "score": {
-                        "type": "number"
-                    },
-                    "reset": {
                         "type": "array",
                         "items": {
                             "type": "string"
