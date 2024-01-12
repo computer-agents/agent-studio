@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from desktop_env.eval.connectors.gspace.gservice import GoogleService
 
 
@@ -46,12 +48,7 @@ class GoogleCalendarService(GoogleService):
         return {}
 
     def clear_calendar(self, calendar_id: str) -> None:
-        events_result = (
-            self.service.events()
-            .list(calendarId=calendar_id, singleEvents=True)
-            .execute()
-        )
-        events = events_result.get("items", [])
+        events = self.list_events(calendar_id=calendar_id)
 
         for event in events:
             self.service.events().delete(
@@ -60,13 +57,13 @@ class GoogleCalendarService(GoogleService):
 
     def create_event(
         self,
-        summary: str | None,
-        location: str | None,
-        description: str | None,
         start_time: str,
         end_time: str,
+        summary: str | None = None,
+        location: str | None = None,
+        description: str | None = None,
         attendees: list[str] | None = None,
-        calendar_id: str | None = "primary",
+        calendar_id: str = "primary",
         time_zone: str | None = "UTC",
     ) -> dict[str, str]:
         event_info = {
@@ -110,8 +107,23 @@ class GoogleCalendarService(GoogleService):
         )
         return event
 
+    def list_events(self, calendar_id: str = "primary") -> list[dict]:
+        events = []
+        page_token = None
+        while True:
+            events_result = (
+                self.service.events()
+                .list(calendarId=calendar_id, pageToken=page_token)
+                .execute()
+            )
+            events.extend(events_result["items"])
+            page_token = events_result.get("nextPageToken")
+            if not page_token:
+                break
+        return events
+
     def update_event(
-        self, event_id: str, updated_event: dict[str, str], calendar_id: str = "primary"
+        self, event_id: str, updated_event: dict, calendar_id: str = "primary"
     ) -> dict[str, str]:
         event = (
             self.service.events()
@@ -120,18 +132,40 @@ class GoogleCalendarService(GoogleService):
         )
         return event
 
+    @staticmethod
+    def match_time(
+        ref: str,
+        pred: str,
+    ) -> bool:
+        ref_time = datetime.fromisoformat(ref).astimezone().isoformat()
+        pred_time = datetime.fromisoformat(pred).astimezone().isoformat()
+        return ref_time == pred_time
+
+    def event_match_left(
+        self,
+        ref: dict,
+        pred: dict,
+    ) -> bool:
+        for key, item in ref.items():
+            pred_item = pred.get(key, None)
+            if key in ("summary", "description", "location"):
+                if item != pred_item:
+                    return False
+            elif key in ["start", "end"]:
+                if not (
+                    "dateTime" in item
+                    and "dateTime" in pred_item
+                    and self.match_time(item["dateTime"], pred_item["dateTime"])
+                ):
+                    return False
+        return True
+
     def search_events(
-        self, start_time: str, end_time: str, calendar_id: str = "primary"
+        self, reference_event: dict, calendar_id: str = "primary"
     ) -> list[dict[str, str]]:
-        events_result = (
-            self.service.events()
-            .list(
-                calendarId=calendar_id,
-                timeMin=start_time,
-                timeMax=end_time,
-                singleEvents=True,
-                orderBy="startTime",
-            )
-            .execute()
-        )
-        return events_result.get("items", [])
+        events = self.list_events(calendar_id=calendar_id)
+        results = []
+        for event in events:
+            if self.event_match_left(reference_event, event):
+                results.append(event)
+        return results

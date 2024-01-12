@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 
 from desktop_env.computer.env import ComputerEnv
 from desktop_env.eval.evaluator_helper import eval_tasks
@@ -32,7 +33,7 @@ def test_filesystem(
     )
     assert score == (2.0 + 0.0) / (1.0 + 2.0) * 1.0, score
 
-    os.rmdir("tmp")
+    shutil.rmtree("tmp")
     score = eval_tasks(
         task_configs,
         env_configs,

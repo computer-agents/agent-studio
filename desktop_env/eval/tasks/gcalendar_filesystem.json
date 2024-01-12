@@ -162,6 +162,210 @@
                     }
                 ]
             }
+        },
+        {
+            "task_id": 4,
+            "available_apis": ["GoogleCalendarService", "os"],
+            "score": 1.0,
+            "reset": ["google_calendar", "filesystem"],
+            "intent_template": "After a team meeting on 2024-03-01, create a file named 'Meeting_Minutes_20240301.txt' in the 'tmp/Documents/Meetings' folder. The file should contain the string 'Minutes of the meeting held on 2024-03-01'. Also, schedule a follow-up meeting in Google Calendar for 2024-03-08 at 10:00 AM, with a summary 'Follow-up Meeting', located at 'Conference Room', and described as 'Discuss action points from last meeting'.",
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reference_answers": {
+                        "exists": {
+                            "tmp/Documents/Meetings/Meeting_Minutes_20240301.txt": true
+                        },
+                        "content_check": {
+                            "tmp/Documents/Meetings/Meeting_Minutes_20240301.txt": "Minutes of the meeting held on 2024-03-01"
+                        }
+                    }
+                },
+                {
+                    "eval_type": "google_calendar",
+                    "reference_answers": {
+                        "event_match": {
+                            "summary": "Follow-up Meeting",
+                            "location": "Conference Room",
+                            "description": "Discuss action points from last meeting",
+                            "start": {"dateTime": "2024-03-08T10:00:00Z"},
+                            "end": {"dateTime": "2024-03-08T11:00:00Z"}
+                        }
+                    }
+                }
+            ],
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
+                    }
+                ],
+                "filesystem": [
+                    {
+                        "rmdir": {
+                            "path": "tmp"
+                        }
+                    },
+                    {
+                        "mkdir": {
+                            "path": "tmp/Documents/Meetings"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "task_id": 5,
+            "available_apis": ["GoogleCalendarService", "os"],
+            "score": 1.0,
+            "reset": ["google_calendar", "filesystem"],
+            "intent_template": "After the 'Budget Review' meeting on 2024-04-15, create a file named 'Budget_Review_Summary_20240415.txt' in the 'tmp/Meeting_Summaries' folder. The file should contain 'Summary of Budget Review meeting on 2024-04-15'. Also, schedule a reminder in Google Calendar for 2024-04-22 at 9:00 AM, with a summary 'Budget Review Follow-up', and description 'Reminder to prepare for the follow-up meeting'.",
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reference_answers": {
+                        "exists": {
+                            "tmp/Meeting_Summaries/Budget_Review_Summary_20240415.txt": true
+                        },
+                        "content_check": {
+                            "tmp/Meeting_Summaries/Budget_Review_Summary_20240415.txt": "Summary of Budget Review meeting on 2024-04-15"
+                        }
+                    }
+                },
+                {
+                    "eval_type": "google_calendar",
+                    "reference_answers": {
+                        "event_match": {
+                            "summary": "Budget Review Follow-up",
+                            "description": "Reminder to prepare for the follow-up meeting",
+                            "start": {"dateTime": "2024-04-22T09:00:00Z"},
+                            "end": {"dateTime": "2024-04-22T09:30:00Z"}
+                        }
+                    }
+                }
+            ],
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
+                    }
+                ],
+                "filesystem": [
+                    {
+                        "rmdir": {
+                            "path": "tmp"
+                        }
+                    },
+                    {
+                        "mkdir": {
+                            "path": "tmp/Meeting_Summaries"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "task_id": 6,
+            "available_apis": ["GoogleCalendarService", "os"],
+            "score": 1.0,
+            "reset": ["google_calendar", "filesystem"],
+            "intent_template": "Reschedule the 'Team Sync' event originally on 2024-05-10 to 2024-05-12 at 2:00 PM.",
+            "evals": [
+                {
+                    "eval_type": "google_calendar",
+                    "reference_answers": {
+                        "event_match": {
+                            "summary": "Team Sync",
+                            "start": {"dateTime": "2024-05-12T14:00:00Z"},
+                            "end": {"dateTime": "2024-05-12T15:00:00Z"}
+                        },
+                        "check_event_exists": {
+                            "event": {
+                                "summary": "Team Sync",
+                                "start": {"dateTime": "2024-05-10T00:00:00Z"}
+                            },
+                            "exists": false
+                        }
+                    }
+                }
+            ],
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
+                    },
+                    {
+                        "create_event": {
+                            "summary": "Team Sync",
+                            "start": {"dateTime": "2024-05-10T00:00:00Z"},
+                            "end": {"dateTime": "2024-05-10T01:00:00Z"}
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "task_id": 7,
+            "available_apis": ["GoogleCalendarService", "os"],
+            "score": 1.0,
+            "reset": ["google_calendar", "filesystem"],
+            "intent_template": "Reschedule the 'Team Sync' event originally on 2024-05-10 to 2024-05-12 at 2:00 PM. Then create a file named 'Team_Sync_Rescheduled_20240512.txt' in the 'tmp/Notifications' folder, containing 'Team Sync meeting has been rescheduled to 2024-05-12 at 2:00 PM'.",
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reference_answers": {
+                        "exists": {
+                            "tmp/Notifications/Team_Sync_Rescheduled_20240512.txt": true
+                        },
+                        "content_check": {
+                            "tmp/Notifications/Team_Sync_Rescheduled_20240512.txt": "Team Sync meeting has been rescheduled to 2024-05-12 at 2:00 PM"
+                        }
+                    }
+                },
+                {
+                    "eval_type": "google_calendar",
+                    "reference_answers": {
+                        "event_match": {
+                            "summary": "Team Sync",
+                            "start": {"dateTime": "2024-05-12T14:00:00Z"},
+                            "end": {"dateTime": "2024-05-12T15:00:00Z"}
+                        },
+                        "check_event_exists": {
+                            "event": {
+                                "summary": "Team Sync",
+                                "start": {"dateTime": "2024-05-10T00:00:00Z"}
+                            },
+                            "exists": false
+                        }
+                    }
+                }
+            ],
+            "reset_actions": {
+                "google_calendar": [
+                    {
+                        "clear_calendar": {}
+                    },
+                    {
+                        "create_event": {
+                            "summary": "Team Sync",
+                            "start": {"dateTime": "2024-05-10T00:00:00Z"},
+                            "end": {"dateTime": "2024-05-10T01:00:00Z"}
+                        }
+                    }
+                ],
+                "filesystem": [
+                    {
+                        "rmdir": {
+                            "path": "tmp"
+                        }
+                    },
+                    {
+                        "mkdir": {
+                            "path": "tmp/Notifications"
+                        }
+                    }
+                ]
+            }
         }
     ]
 }
