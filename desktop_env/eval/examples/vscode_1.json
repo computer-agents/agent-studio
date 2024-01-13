@@ -2,10 +2,10 @@
     "applications": ["vscode"],
     "task_id": 0,
     "require_login": true,
-    "intent_template": "Install the extension '{{extension}}' in VSCode",
+    "intent_template": "Uninstall the extension '{{extension}}' in VSCode",
     "instantiation_dict": {"extension": "Python by Microsoft"},
     "eval": {
-        "eval_types": ["check_vscode_extension"],
+        "eval_types": ["uninstall_vscode_extension"],
         "reference_answers": ["ms-python.python"],
         "program_html": [
             {

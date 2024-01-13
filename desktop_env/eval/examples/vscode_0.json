@@ -3,10 +3,10 @@
     "task_id": 0,
     "require_login": true,
     "intent_template": "Install the extension '{{extension}}' in VSCode",
-    "instantiation_dict": {"extension": "Github Copilot"},
+    "instantiation_dict": {"extension": "Python by Microsoft"},
     "eval": {
-        "eval_types": ["check_vscode_extension"],
-        "reference_answers": ["GitHub.copilot"],
+        "eval_types": ["installed_vscode_extension"],
+        "reference_answers": ["ms-python.python"],
         "program_html": [
             {
                 "required_contents": [
@@ -17,7 +17,7 @@
     },
     "reference_action_sequence": {
         "action_sequence": [
-            "code --install-extension GitHub.copilot"
+            "code --install-extension ms-python.python"
         ]
     }
 }
