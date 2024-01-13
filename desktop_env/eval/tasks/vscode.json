@@ -9,7 +9,7 @@
                 {
                     "eval_type": "vscode",
                     "eval_procedure": {
-                        "extension_exists": {
+                        "extension_installed": {
                             "extension_id": "DavidAnson.vscode-markdownlint",
                             "exists": true
                         }
@@ -30,6 +30,22 @@
             ],
             "reference_action_sequence": {
             }
+        },
+        {
+            "task_id": 1,
+            "intent_template": "What is the most installed extension on VSCode marketplace when searching for keyword 'Markdown'? Unpublished and unvalidated extensions should not be counted.",
+            "instantiation_dict": {},
+            "evals": [
+                {
+                    "eval_type": "vscode",
+                    "eval_procedure": {
+                        "most_installed_extension": {
+                            "keyword": "Markdown",
+                            "extension_id": "esbenp.prettier-vscode"
+                        }
+                    }
+                }
+            ]
         }
     ]
 }

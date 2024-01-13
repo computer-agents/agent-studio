@@ -19,7 +19,9 @@ class VSCodeEvaluator(Evaluator):
             for action, params in step.items():
                 match action:
                     case "install_extension":
-                        self.vscode_connector.install_extension(params["extension_id"])
+                        self.vscode_connector.install_extension(
+                            params["extension_id"]
+                        )
                     case "uninstall_extension":
                         self.vscode_connector.uninstall_extension(
                             params["extension_id"]
@@ -32,14 +34,22 @@ class VSCodeEvaluator(Evaluator):
         try:
             for approach, value in self.reference_answer.items():
                 match approach:
-                    case "extension_exists":
-                        print(self.vscode_connector.list_extensions(versions=True))
+                    case "extension_installed":
                         if (
-                            self.vscode_connector.extension_exists(
+                            self.vscode_connector.extension_installed(
                                 value["extension_id"]
                             )
                             != value["exists"]
                         ):
+                            score *= 0.0
+                    case "most_installed_extension":
+                        keyword = value["keyword"]
+                        extensions = self.vscode_connector.marketplace_search_by_keyword(keyword)
+                        if len(extensions) == 0:
+                            raise Exception(f"Cannot find extension with keyword: {keyword}, score may be incorrect")
+                        extension = extensions[0]
+                        extension_id = f"{extension['publisher']['publisherName']}.{extension['extensionName']}"
+                        if extension_id != value["extension_id"]:
                             score *= 0.0
         except Exception as e:
             print(f"An error occurred: {e}\nscore may be incorrect")
