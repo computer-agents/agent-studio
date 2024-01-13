@@ -1,8 +1,10 @@
 import os
 import shutil
-import requests
 from enum import Enum
+
+import requests
 from requests.adapters import HTTPAdapter, Retry
+
 
 class FilterType(Enum):
     Tag = 1
@@ -14,6 +16,7 @@ class FilterType(Enum):
     SearchText = 10
     ExcludeWithFlags = 12
 
+
 class SortBy(Enum):
     NoneOrRelevance = 0
     LastUpdatedDate = 1
@@ -23,6 +26,7 @@ class SortBy(Enum):
     PublishedDate = 10
     AverageRating = 6
     WeightedRating = 12
+
 
 class SortOrder(Enum):
     Default = 0
@@ -43,7 +47,7 @@ class VSCodeConnector:
             total=3,
             backoff_factor=1,
             status_forcelist=[429, 500, 502, 503, 504],
-            allowed_methods=["HEAD", "GET", "OPTIONS"]
+            allowed_methods=["HEAD", "GET", "OPTIONS"],
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self.session = requests.Session()
@@ -51,11 +55,11 @@ class VSCodeConnector:
         self.session.mount("http://", adapter)
 
     def marketplace_search(
-            self,
-            query: list[dict],
-            sort_by: SortBy,
-            sort_order: SortOrder,
-        ):
+        self,
+        query: list[dict],
+        sort_by: SortBy,
+        sort_order: SortOrder,
+    ):
         """
         Query Example:
             query = [
@@ -67,37 +71,33 @@ class VSCodeConnector:
         """
         extension_list = []
         for extension in self.get_vscode_extensions(
-                            session=self.session,
-                            query=query,
-                            sort_by=sort_by,
-                            sort_order=sort_order,
-                        ):
+            session=self.session,
+            query=query,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        ):
             extension_list.append(extension)
-            # print(f"Extension: {extension['publisher']['publisherName']}.{extension['extensionName']}")
         return extension_list
 
     def marketplace_search_by_extension_name(
-            self,
-            extension_name: str,
-        ):
+        self,
+        extension_name: str,
+    ):
         """
         Search by extension name
         Default sort by install count descending
         """
         return self.marketplace_search(
             query=[
-                    {
-                        "filterType": FilterType.ExtensionName.value,
-                        "value": extension_name
-                    },
-                ],
+                {"filterType": FilterType.ExtensionName.value, "value": extension_name},
+            ],
             sort_by=SortBy.InstallCount,
             sort_order=SortOrder.Descending,
         )
 
     def marketplace_search_by_keyword(
-            self,
-            keyword: str,
+        self,
+        keyword: str,
     ):
         """
         Search by keyword
@@ -105,11 +105,8 @@ class VSCodeConnector:
         """
         return self.marketplace_search(
             query=[
-                    {
-                        "filterType": FilterType.SearchText.value,
-                        "value": keyword
-                    },
-                ],
+                {"filterType": FilterType.SearchText.value, "value": keyword},
+            ],
             sort_by=SortBy.InstallCount,
             sort_order=SortOrder.Descending,
         )
@@ -178,8 +175,11 @@ class VSCodeConnector:
     @staticmethod
     def get_vscode_extensions(
         session: requests.Session,
+        query: list,
         max_page: int = 2,
         page_size: int = 10,
+        sort_by: SortBy = SortBy.InstallCount,
+        sort_order: SortOrder = SortOrder.Descending,
         include_versions: bool = True,
         include_files: bool = True,
         include_category_and_tags: bool = True,
@@ -192,16 +192,15 @@ class VSCodeConnector:
         include_latest_version_only=False,
         unpublished: bool = True,
         include_name_conflict_info: bool = True,
-        api_version: str='7.2-preview.1',
-        query: list = [],
-        sort_by: SortBy = SortBy.InstallCount,
-        sort_order: SortOrder = SortOrder.Descending,
-        ):
+        api_version: str = "7.2-preview.1",
+    ):
         """
         https://gist.github.com/jossef/8d7681ac0c7fd28e93147aa5044bc129
         """
 
-        headers = {'Accept': f'application/json; charset=utf-8; api-version={api_version}'}
+        headers = {
+            "Accept": f"application/json; charset=utf-8; api-version={api_version}"
+        }
 
         flags = 0
         if include_versions:
@@ -247,25 +246,32 @@ class VSCodeConnector:
                         "criteria": [
                             {
                                 "filterType": FilterType.Target.value,
-                                "value": "Microsoft.VisualStudio.Code"
+                                "value": "Microsoft.VisualStudio.Code",
                             },
-                            *query
+                            *query,
                         ],
                         "pageNumber": page,
                         "pageSize": page_size,
                         "sortBy": sort_by.value,
-                        "sortOrder": sort_order.value
+                        "sortOrder": sort_order.value,
                     }
                 ],
                 "assetTypes": [],
-                "flags": flags
+                "flags": flags,
             }
 
-            r = session.post('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', json=body, headers=headers)
+            r = session.post(
+                (
+                    "https://marketplace.visualstudio.com/"
+                    "_apis/public/gallery/extensionquery"
+                ),
+                json=body,
+                headers=headers,
+            )
             r.raise_for_status()
             response = r.json()
 
-            extensions = response['results'][0]['extensions']
+            extensions = response["results"][0]["extensions"]
             for extension in extensions:
                 yield extension
 
