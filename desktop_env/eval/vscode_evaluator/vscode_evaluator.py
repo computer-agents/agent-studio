@@ -24,6 +24,8 @@ class VSCodeEvaluator(Evaluator):
                         self.vscode_connector.uninstall_extension(
                             params["extension_id"]
                         )
+                    case "uninstall_all_extensions":
+                        self.vscode_connector.uninstall_all_extensions()
 
     def __call__(self):
         score = 1.0
@@ -45,5 +47,6 @@ class VSCodeEvaluator(Evaluator):
 
         return score
 
+    # TODO: Implement this method
     def action2str(self, steps: list[dict]) -> list[str]:
         return [""]

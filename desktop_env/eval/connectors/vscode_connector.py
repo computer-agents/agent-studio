@@ -45,6 +45,7 @@ class VSCodeConnector:
             return extension_list
 
     def uninstall_all_extensions(self) -> bool:
+        # TODO: For safety reasons, disable this method now.
         assert False, "This method is not implemented yet"
         os.system(f"{self.executable_path} --uninstall-extension '*'")
         return self.list_extensions() == []
