@@ -1,7 +1,7 @@
 import os
 import shutil
 
-
+# TODO: maybe merge this to desktop_env/eval/vscode_evaluator/vscode_evaluator.py
 class VSCodeConnector:
     def __init__(
         self,

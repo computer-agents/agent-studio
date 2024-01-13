@@ -40,7 +40,11 @@ def register_evaluators(
                 # Parse the Python file
                 with open(file_path, "r") as f:
                     file_contents = f.read()
-                tree = ast.parse(file_contents)
+                try:
+                    tree = ast.parse(file_contents)
+                except SyntaxError:
+                    print(f"Error parsing {file_path} skipping...")
+                    continue
                 # Check each class definition in the file
                 for node in ast.walk(tree):
                     module_name = (
@@ -63,7 +67,7 @@ def register_evaluators(
                                         registered_classes[new_class.name] = new_class
                                     else:
                                         raise AttributeError
-                                except (ImportError, AttributeError):
+                                except Exception:
                                     print(f"Error importing {module_name} {node.name}")
                                 break
     return registered_classes
