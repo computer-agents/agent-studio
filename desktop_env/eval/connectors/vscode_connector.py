@@ -167,10 +167,11 @@ class VSCodeConnector:
         else:
             return True
 
-    def extension_installed(self, extension_name: str) -> bool:
-        return extension_name in self.list_extensions(
-            versions=True
-        ) or extension_name in self.list_extensions(versions=False)
+    def extension_installed(self, extension_name: str, version: bool = False) -> bool:
+        if version:
+            return extension_name in self.list_extensions(versions=True)
+        else:
+            return extension_name in self.list_extensions(versions=False)
 
     @staticmethod
     def get_vscode_extensions(

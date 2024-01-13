@@ -55,7 +55,7 @@ class VSCodeEvaluator(Evaluator):
                             f"{extension['publisher']['publisherName']}"
                             f".{extension['extensionName']}"
                         )
-                        if extension_id != value["extension_id"]:
+                        if not self.vscode_connector.extension_installed(extension_id):
                             score *= 0.0
         except Exception as e:
             print(f"An error occurred: {e}\nscore may be incorrect")
