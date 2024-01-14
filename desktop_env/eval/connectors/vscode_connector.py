@@ -79,7 +79,7 @@ class VSCodeConnector:
             extension_list.append(extension)
         return extension_list
 
-    def marketplace_search_by_extension_name(
+    def marketplace_search_by_extension_id(
         self,
         extension_name: str,
     ):
@@ -127,7 +127,7 @@ class VSCodeConnector:
     def reset_settings(self) -> None:
         shutil.rmtree(os.path.join(self.workspace_path, ".vscode"))
 
-    def list_extensions(self, versions: bool = True) -> list:
+    def list_extensions(self) -> dict:
         # if extension_list is not None:
         #     if versions:
         #         return [extension.split("@")[0] for extension in extension_list]
@@ -137,41 +137,35 @@ class VSCodeConnector:
         extension_list = (
             os.popen(f"{self.executable_path} --list-extensions --show-versions")
             .read()
+            .strip()
             .split("\n")
         )
-        if versions:
-            return extension_list
-        else:
-            return [extension.split("@")[0] for extension in extension_list]
+        return {
+            extension.split("@")[0]: extension.split("@")[1]
+            for extension in extension_list
+        }
 
     def uninstall_all_extensions(self) -> bool:
         # TODO: For safety reasons, disable this method now.
         assert False, "This method is not implemented yet"
         os.system(f"{self.executable_path} --uninstall-extension '*'")
-        return self.list_extensions() == []
+        return self.list_extensions() == {}
 
     def install_extension(self, extension_name: str) -> bool:
         os.system(f"{self.executable_path} --install-extension {extension_name}")
-        return extension_name in self.list_extensions(
-            versions=True
-        ) or extension_name in self.list_extensions(versions=False)
+        return extension_name in self.list_extensions()
 
     def uninstall_extension(self, extension_name: str) -> bool:
         if "@" in extension_name:
             extension_name = extension_name.split("@")[0]
-        if extension_name in self.list_extensions(versions=False):
+        if extension_name in self.list_extensions():
             os.system(f"{self.executable_path} --uninstall-extension {extension_name}")
-            return extension_name not in self.list_extensions(
-                versions=True
-            ) and extension_name not in self.list_extensions(versions=False)
+            return extension_name not in self.list_extensions()
         else:
             return True
 
-    def extension_installed(self, extension_name: str, version: bool = False) -> bool:
-        if version:
-            return extension_name in self.list_extensions(versions=True)
-        else:
-            return extension_name in self.list_extensions(versions=False)
+    def extension_installed(self, extension_name: str) -> bool:
+        return extension_name in self.list_extensions()
 
     @staticmethod
     def get_vscode_extensions(
