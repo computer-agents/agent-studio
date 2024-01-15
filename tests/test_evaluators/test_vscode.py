@@ -5,10 +5,10 @@ from playground.desktop_env.computer.env import ComputerEnv
 from playground.desktop_env.eval.evaluator_helper import evaluator_router
 
 
-def test_joint(
+def test_vscode(
     computer_env: ComputerEnv,
 ) -> None:
-    config_file = "playground/desktop_env/eval/tasks/joint_evaluation.json"
+    config_file = "playground/desktop_env/eval/tasks/vscode.json"
     with open(config_file, "r") as f:
         task_configs = json.load(f)
     with open("playground/config/environments.json", "r") as f:

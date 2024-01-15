@@ -2,7 +2,7 @@ from typing import Generator
 
 import pytest
 
-from desktop_env.computer.env import ComputerEnv
+from playground.desktop_env.computer.env import ComputerEnv
 
 
 @pytest.fixture(scope="function")

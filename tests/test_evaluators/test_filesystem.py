@@ -1,40 +1,44 @@
 import json
-import os
 
-from desktop_env.computer.env import ComputerEnv
-from desktop_env.eval.evaluator_helper import eval_tasks
+from playground.agent.teacher_forcing_agent import TeacherForcingAgent
+from playground.desktop_env.computer.env import ComputerEnv
+from playground.desktop_env.eval.evaluator_helper import evaluator_router
 
 
 def test_filesystem(
     computer_env: ComputerEnv,
 ) -> None:
-    config_file = "desktop_env/eval/examples/filesystem.json"
+    config_file = "playground/desktop_env/eval/tasks/filesystem.json"
     with open(config_file, "r") as f:
         task_configs = json.load(f)
-    with open("config/environments.json", "r") as f:
+    with open("playground/config/environments.json", "r") as f:
         env_configs = json.load(f)
+    agent = TeacherForcingAgent(env=computer_env)
 
-    os.makedirs("tmp", exist_ok=True)
-    with open("tmp/test.txt", "w") as file:
-        file.write("Hello World!")
-    os.chmod("tmp/test.txt", 0o644)
-    os.chmod("tmp", 0o775)
-    score = eval_tasks(
-        task_configs,
-        env_configs,
-    )
-    assert score == 1.0, score
+    for task_config in task_configs["tasks"]:
+        comb = evaluator_router(task_config, env_configs)
+        comb.reset()
 
-    os.remove("tmp/test.txt")
-    score = eval_tasks(
-        task_configs,
-        env_configs,
-    )
-    assert score == (2.0 + 0.0) / (1.0 + 2.0) * 1.0, score
+        action_sequence_path: str | None = task_configs.get(
+            "action_sequence_path", None
+        )
+        if action_sequence_path is not None:
+            with open(action_sequence_path, "r") as f:
+                tasks = json.load(f)["tasks"]
+                for t in tasks:
+                    if t["task_id"] == task_config["task_id"]:
+                        reference_action_sequence = t["reference_action_sequence"]
+                        break
+        else:
+            reference_action_sequence = None
+        instruction = task_config["intent_template"].format(
+            **task_config["instantiation_dict"]
+        )
+        agent.reset(
+            instruction=instruction,
+            reference_action_sequence=reference_action_sequence,
+        )
+        agent.run()
 
-    os.rmdir("tmp")
-    score = eval_tasks(
-        task_configs,
-        env_configs,
-    )
-    assert score == 0.0, score
+        score = comb()
+        assert score == 1.0

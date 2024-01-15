@@ -15,6 +15,7 @@ A great way to support Playground is by promoting it. You can share it in your b
 pip install -e ".[dev]"
 pip install pre-commit
 pre-commit install
+apt-get install jq  # to validate JSON files
 ```
 
 ### Issue Reporting

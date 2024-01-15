@@ -1,0 +1,89 @@
+{
+    "environments": [
+        "google_calendar",
+        "filesystem"
+    ],
+    "tasks": [
+        {
+            "task_id": 3,
+            "intent_template": "Export all events from the calendar to a file named '{file}' in the folder '{folder}'. You only need to export the event's summary to the txt file in time order. Each event should be on a new line. Leave a blank line at the end of the file.",
+            "instantiation_dict": {
+                "folder": "tmp",
+                "file": "calendar.txt"
+            },
+            "reference_action_sequence": "\nimport json\nfrom playground.desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService\n\ngcalendar_service = GoogleCalendarService(\n    credential_path=\"playground/config/credentials.json\"\n)\nwith open(\"playground/config/environments.json\", \"r\") as f:\n    env_configs = json.load(f)\n    calendar_id = env_configs[\"google_calendar\"][\"env_settings\"][\"calendar_id\"]\n\nevents_result = (\n    gcalendar_service.service.events()\n    .list(calendarId=calendar_id, singleEvents=True)\n    .execute()\n)\nevents = events_result.get(\"items\", [])\n\nwith open(\"tmp/calendar.txt\", \"w\") as f:\n    for event in events:\n        f.write(event[\"summary\"] + \"\\n\")\n"
+        },
+        {
+            "task_id": 4,
+            "intent_template": "After a team meeting on {date}, create a file named '{file}' in the '{folder}' folder. The file should contain the string '{content}'. Also, schedule a follow-up meeting in Google Calendar for {date2} at {time}, with a summary '{summary}', located at '{location}', and described as '{description}'.",
+            "instantiation_dict": {
+                "date": "2024-03-01",
+                "folder": "tmp/Documents/Meetings",
+                "file": "Meeting_Minutes_20240301.txt",
+                "content": "Minutes of the meeting held on 2024-03-01",
+                "date2": "2024-03-08",
+                "time": "10:00 AM",
+                "summary": "Follow-up Meeting",
+                "location": "Conference Room",
+                "description": "Discuss action points from last meeting"
+            },
+            "reference_action_sequence": "\nimport os\nimport json\nfrom pathlib import Path\n\nfrom playground.desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService\n\ngcalendar_service = GoogleCalendarService(\n    credential_path=\"playground/config/credentials.json\"\n)\nwith open(\"playground/config/environments.json\", \"r\") as f:\n    env_configs = json.load(f)\n    calendar_id = env_configs[\"google_calendar\"][\"env_settings\"][\"calendar_id\"]\n\nevent = gcalendar_service.create_event(\n    summary=\"Follow-up Meeting\",\n    location=\"Conference Room\",\n    description=\"Discuss action points from last meeting\",\n    start_time=\"2024-03-08T10:00:00Z\",\n    end_time=\"2024-03-08T11:00:00Z\",\n    calendar_id=calendar_id,\n)\n\npath = \"tmp/Documents/Meetings\"\nPath(path).mkdir(parents=True, exist_ok=True)\nwith open(\"tmp/Documents/Meetings/Meeting_Minutes_20240301.txt\", \"w\") as f:\n    f.write(\"Minutes of the meeting held on 2024-03-01\")\n    "
+        },
+        {
+            "task_id": 5,
+            "intent_template": "After the '{event_name}' meeting on {date1}, create a file named '{file}' in the '{folder}' folder. The file should contain '{content}'. Also, schedule a reminder in Google Calendar for {date2} at {time}, with a summary '{summary}', and description '{description}'.",
+            "instantiation_dict": {
+                "event_name": "Budget Review",
+                "date1": "2024-04-15",
+                "folder": "tmp/Meeting_Summaries",
+                "file": "Budget_Review_Summary_20240415.txt",
+                "content": "Summary of Budget Review meeting on 2024-04-15",
+                "date2": "2024-04-22",
+                "time": "9:00 AM",
+                "summary": "Budget Review Follow-up",
+                "description": "Reminder to prepare for the follow-up meeting"
+            },
+            "reference_action_sequence": "\nimport os\nimport json\nfrom pathlib import Path\n\nfrom playground.desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService\n\ngcalendar_service = GoogleCalendarService(\n    credential_path=\"playground/config/credentials.json\"\n)\nwith open(\"playground/config/environments.json\", \"r\") as f:\n    env_configs = json.load(f)\n    calendar_id = env_configs[\"google_calendar\"][\"env_settings\"][\"calendar_id\"]\n\nevent = gcalendar_service.create_event(\n    summary=\"Budget Review Follow-up\",\n    description=\"Reminder to prepare for the follow-up meeting\",\n    location=\"Conference Room\",\n    start_time=\"2024-04-22T09:00:00Z\",\n    end_time=\"2024-04-22T09:30:00Z\",\n    calendar_id=calendar_id,\n)\n\npath = \"tmp/Meeting_Summaries\"\nPath(path).mkdir(parents=True, exist_ok=True)\nwith open(\"tmp/Meeting_Summaries/Budget_Review_Summary_20240415.txt\", \"w\") as f:\n    f.write(\"Summary of Budget Review meeting on 2024-04-15\")\n"
+        },
+        {
+            "task_id": 6,
+            "intent_template": "Reschedule the '{event_name}' event originally on '{old_date}' to '{new_date}' at '{time}'.",
+            "instantiation_dict": {
+                "event_name": "Team Sync",
+                "old_date": "2024-05-10",
+                "new_date": "2024-05-12",
+                "time": "2:00 PM"
+            },
+            "reference_action_sequence": "\nimport os\nimport json\nfrom pathlib import Path\n\nfrom playground.desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService\n\ngcalendar_service = GoogleCalendarService(\n    credential_path=\"playground/config/credentials.json\"\n)\nwith open(\"playground/config/environments.json\", \"r\") as f:\n    env_configs = json.load(f)\n    calendar_id = env_configs[\"google_calendar\"][\"env_settings\"][\"calendar_id\"]\n\nevents = gcalendar_service.search_events_by_info(\n    {\n        \"summary\": \"Team Sync\",\n        \"start\": {\"dateTime\": \"2024-05-10T00:00:00Z\"},\n        \"end\": {\"dateTime\": \"2024-05-10T01:00:00Z\"}\n    },\n    calendar_id=calendar_id\n)\nassert len(events) == 1\n\ngcalendar_service.update_event(\n    events[0][\"id\"],\n    {\n        \"summary\": \"Team Sync\",\n        \"start\": {\"dateTime\": \"2024-05-12T14:00:00Z\"},\n        \"end\": {\"dateTime\": \"2024-05-12T15:00:00Z\"}\n    },\n    calendar_id=calendar_id\n)\n"
+        },
+        {
+            "task_id": 7,
+            "intent_template": "Reschedule the '{event_name}' event originally on '{old_date}' to '{new_date}' at '{time}'. Then create a file named '{file}' in the '{folder}' folder, containing '{content}'.",
+            "instantiation_dict": {
+                "event_name": "Team Sync",
+                "old_date": "2024-05-10",
+                "new_date": "2024-05-12",
+                "time": "2:00 PM",
+                "folder": "tmp/Notifications",
+                "file": "Team_Sync_Rescheduled_20240512.txt",
+                "content": "Team Sync meeting has been rescheduled to 2024-05-12 at 2:00 PM"
+            },
+            "reference_action_sequence": "\nimport os\nimport json\nfrom pathlib import Path\n\nfrom playground.desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService\n\ngcalendar_service = GoogleCalendarService(\n    credential_path=\"playground/config/credentials.json\"\n)\nwith open(\"playground/config/environments.json\", \"r\") as f:\n    env_configs = json.load(f)\n    calendar_id = env_configs[\"google_calendar\"][\"env_settings\"][\"calendar_id\"]\n\nevents = gcalendar_service.search_events_by_info(\n    {\n        \"summary\": \"Team Sync\",\n        \"start\": {\"dateTime\": \"2024-05-10T00:00:00Z\"},\n        \"end\": {\"dateTime\": \"2024-05-10T01:00:00Z\"}\n    },\n    calendar_id=calendar_id\n)\nassert len(events) == 1\n\ngcalendar_service.update_event(\n    events[0][\"id\"],\n    {\n        \"summary\": \"Team Sync\",\n        \"start\": {\"dateTime\": \"2024-05-12T14:00:00Z\"},\n        \"end\": {\"dateTime\": \"2024-05-12T15:00:00Z\"}\n    },\n    calendar_id=calendar_id\n)\npath = \"tmp/Notifications\"\nPath(path).mkdir(parents=True, exist_ok=True)\nwith open(\"tmp/Notifications/Team_Sync_Rescheduled_20240512.txt\", \"w\") as f:\n    f.write(\"Team Sync meeting has been rescheduled to 2024-05-12 at 2:00 PM\")\n"
+        },
+        {
+            "task_id": 8,
+            "intent_template": "Check if there is a '{event_name}' scheduled on '{date}' in Google Calendar. If it exists, create a folder named '{folder}' in '{location}' and inside it, create two files: '{file1}' with content '{content1}' and '{file2}' with content '{content2}'.",
+            "instantiation_dict": {
+                "event_name": "Project Planning Meeting",
+                "date": "2024-08-10",
+                "folder": "Project_Planning_20240810",
+                "location": "tmp/Meeting_Documents",
+                "file1": "Attendees.txt",
+                "content1": "List of Attendees",
+                "file2": "Agenda.txt",
+                "content2": "Meeting Agenda"
+            },
+            "reference_action_sequence": "\nimport os\nimport json\nfrom pathlib import Path\n\nfrom playground.desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService\n\ngcalendar_service = GoogleCalendarService(\n    credential_path=\"playground/config/credentials.json\"\n)\nwith open(\"playground/config/environments.json\", \"r\") as f:\n    env_configs = json.load(f)\n    calendar_id = env_configs[\"google_calendar\"][\"env_settings\"][\"calendar_id\"]\n\nevents = gcalendar_service.search_events_by_time_range(\n    \"2024-08-10T00:00:00Z\",\n    \"2024-08-10T23:59:59Z\",\n    calendar_id=calendar_id\n)\nreference_event = {\n    \"summary\": \"Project Planning Meeting\",\n}\nresults = []\nfor event in events:\n    if gcalendar_service.event_match_left(reference_event, event):\n        results.append(event)\n\nif len(events) > 0:\n    path = \"tmp/Meeting_Documents/Project_Planning_20240810\"\n    Path(path).mkdir(parents=True, exist_ok=True)\n    with open(\n        \"tmp/Meeting_Documents/Project_Planning_20240810/Attendees.txt\",\n        \"w\") as f:\n        f.write(\"List of Attendees\")\n    with open(\n        \"tmp/Meeting_Documents/Project_Planning_20240810/Agenda.txt\",\n        \"w\") as f:\n        f.write(\"Meeting Agenda\")\n"
+        }
+    ]
+}
