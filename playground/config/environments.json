@@ -1,0 +1,21 @@
+{
+    "google_calendar": {
+        "env_settings": {
+            "credential_path": "playground/config/credentials.json",
+            "calendar_id": "primary"
+        }
+    },
+    "gmail": {
+        "env_settings": {
+            "credential_path": "playground/config/credentials.json"
+        }
+    },
+    "filesystem": {
+    },
+    "vscode": {
+        "env_settings": {
+            "workspace_path": "tmp/vscode_workspace",
+            "executable_path": "code"
+        }
+    }
+}

@@ -1,11 +1,11 @@
 from typing import Any
 
-from desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
-from desktop_env.eval.connectors.gspace.gslides import GoogleSlidesService
+from playground.desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
+from playground.desktop_env.eval.connectors.gspace.gslides import GoogleSlidesService
 
 
 def test_gdocs_connector() -> None:
-    credentials_path = "config/credentials.json"
+    credentials_path = "playground/config/credentials.json"
     slides_service = GoogleSlidesService(credentials_path)
 
     # Create a new presentation

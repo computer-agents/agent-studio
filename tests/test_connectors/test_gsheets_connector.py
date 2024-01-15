@@ -1,11 +1,11 @@
 from typing import Any
 
-from desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
-from desktop_env.eval.connectors.gspace.gsheets import GoogleSheetsService
+from playground.desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
+from playground.desktop_env.eval.connectors.gspace.gsheets import GoogleSheetsService
 
 
 def test_gsheets_connector() -> None:
-    credentials_path = "config/credentials.json"
+    credentials_path = "playground/config/credentials.json"
     sheets_service = GoogleSheetsService(credentials_path)
 
     # Create a new Google Sheet

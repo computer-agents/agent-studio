@@ -1,10 +1,10 @@
 from typing import Any
 
-from desktop_env.eval.connectors.gspace.gforms import GoogleFormsService
+from playground.desktop_env.eval.connectors.gspace.gforms import GoogleFormsService
 
 
 def test_gforms_connector() -> None:
-    credential_path = "config/credentials.json"
+    credential_path = "playground/config/credentials.json"
     form_service = GoogleFormsService(credential_path)
 
     # Create a new form

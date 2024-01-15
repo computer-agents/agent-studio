@@ -1,11 +1,11 @@
 from typing import Any
 
-from desktop_env.eval.connectors.gspace.gdocs import GoogleDocsService
-from desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
+from playground.desktop_env.eval.connectors.gspace.gdocs import GoogleDocsService
+from playground.desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
 
 
 def test_gdocs_connector() -> None:
-    credential_path = "config/credentials.json"
+    credential_path = "playground/config/credentials.json"
     google_docs_service = GoogleDocsService(credential_path)
     drive_service = GoogleDriveService(credential_path)
 

@@ -1,17 +1,17 @@
 import json
 
-from agent.teacher_forcing_agent import TeacherForcingAgent
-from desktop_env.computer.env import ComputerEnv
-from desktop_env.eval.evaluator_helper import evaluator_router
+from playground.agent.teacher_forcing_agent import TeacherForcingAgent
+from playground.desktop_env.computer.env import ComputerEnv
+from playground.desktop_env.eval.evaluator_helper import evaluator_router
 
 
 def test_calendar(
     computer_env: ComputerEnv,
 ) -> None:
-    config_file = "desktop_env/eval/tasks/gcalendar_filesystem.json"
+    config_file = "playground/desktop_env/eval/tasks/gcalendar_filesystem.json"
     with open(config_file, "r") as f:
         task_configs = json.load(f)
-    with open("config/environments.json", "r") as f:
+    with open("playground/config/environments.json", "r") as f:
         env_configs = json.load(f)
     agent = TeacherForcingAgent(env=computer_env)
 

@@ -11,7 +11,7 @@
                 "recipient": "gduser@workspacesamples.dev",
                 "content": "This is automated draft mail"
             },
-            "reference_action_sequence": "from desktop_env.eval.connectors.gspace.gmail import GmailService\nservice = GmailService(credential_path='config/credentials.json')\ncreated_draft_id = service.create_draft(subject='Automated draft', recipient='gduser@workspacesamples.dev', content='This is automated draft mail')"
+            "reference_action_sequence": "from playground.desktop_env.eval.connectors.gspace.gmail import GmailService\nservice = GmailService(credential_path='config/credentials.json')\ncreated_draft_id = service.create_draft(subject='Automated draft', recipient='gduser@workspacesamples.dev', content='This is automated draft mail')"
         }
     ]
 }
