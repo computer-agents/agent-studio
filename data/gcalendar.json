@@ -1,0 +1,29 @@
+{
+    "environments": [
+        "google_calendar"
+    ],
+    "tasks": [
+        {
+            "task_id": 0,
+            "intent_template": "Create an event called '{summary}' at '{location}' on '{start}' to '{end}' to '{description}'",
+            "instantiation_dict": {
+                "summary": [
+                    "Meeting with Team"
+                ],
+                "location": [
+                    "Office"
+                ],
+                "description": [
+                    "Discuss project status"
+                ],
+                "start": [
+                    "2024-01-05 10am"
+                ],
+                "end": [
+                    "11am"
+                ]
+            },
+            "reference_action_sequence": "from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService\nservice = GoogleCalendarService(credential_path='config/credentials.json')\nevent = service.create_event(start_time='2024-01-05T10:00:00Z', end_time='2024-01-05T11:00:00Z', summary='Meeting with Team', location='Office', description='Discuss project status', attendees=None, calendar_id='primary')"
+        }
+    ]
+}

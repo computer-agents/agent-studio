@@ -1,3 +1,5 @@
+from typing import Any
+
 from desktop_env.eval.connectors.vscode_connector import VSCodeConnector
 from desktop_env.eval.evaluator import Evaluator
 
@@ -12,20 +14,29 @@ class VSCodeEvaluator(Evaluator):
             executable_path=self.env_settings["executable_path"],
         )
 
-    def execute(self, steps):
-        for step in steps:
-            action: str
-            params: dict
-            for action, params in step.items():
-                match action:
-                    case "install_extension":
-                        self.vscode_connector.install_extension(params["extension_id"])
-                    case "uninstall_extension":
-                        self.vscode_connector.uninstall_extension(
-                            params["extension_id"]
-                        )
-                    case "uninstall_all_extensions":
-                        self.vscode_connector.uninstall_all_extensions()
+    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
+        try:
+            for step in steps:
+                for action, params in step.items():
+                    match action:
+                        case "install_extension":
+                            self.vscode_connector.install_extension(
+                                params["extension_id"]
+                            )
+                        case "uninstall_extension":
+                            self.vscode_connector.uninstall_extension(
+                                params["extension_id"]
+                            )
+                        case "uninstall_all_extensions":
+                            self.vscode_connector.uninstall_all_extensions()
+                        case _:
+                            raise Exception(
+                                f"Action {action} not supported by Google calendar"
+                            )
+            return True
+        except Exception as e:
+            print(f"An error occurred in Google calendar env: {e}")
+            return False
 
     def __call__(self):
         score = 1.0

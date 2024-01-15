@@ -1,5 +1,6 @@
 {
     "environments": ["google_calendar"],
+    "action_sequence_path": "data/gcalendar.json",
     "tasks": [
         {
             "task_id": 0,
@@ -23,7 +24,7 @@
                             "end": {"dateTime": "2024-01-05T11:00:00Z"}
                         }
                     },
-                    "reset_actions": [
+                    "reset_procedure": [
                         {
                             "deduplicate_event": {
                                 "summary": "Meeting with Team",
@@ -35,22 +36,7 @@
                         }
                     ]
                 }
-            ],
-            "reference_action_sequence": {
-                "google_calendar": {
-                    "action_sequence": [
-                        {
-                            "create_event": {
-                                "summary": "Meeting with Team",
-                                "location": "Office",
-                                "description": "Discuss project status",
-                                "start": {"dateTime": "2024-01-05T10:00:00Z"},
-                                "end": {"dateTime": "2024-01-05T11:00:00Z"}
-                            }
-                        }
-                    ]
-                }
-            }
+            ]
         }
     ]
 }

@@ -6,6 +6,7 @@ import shutil
 import stat
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from desktop_env.eval.evaluator import Evaluator
 
@@ -93,11 +94,9 @@ class FilesystemEvaluator(Evaluator):
     def exists(path: str) -> bool:
         return Path(path).exists()
 
-    def execute(self, steps: list[dict]) -> bool:
+    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
         try:
             for step in steps:
-                action: str
-                params: dict
                 for action, params in step.items():
                     match action:
                         case "create_file":
@@ -165,55 +164,3 @@ class FilesystemEvaluator(Evaluator):
                         score *= float(self.file_metadata_match(path, metadata))
 
         return score
-
-    def action2str(self, steps: list[dict]) -> list[str]:
-        commands = ["import os\nimport shutil\nfrom pathlib import Path\n"]
-        for step in steps:
-            action: str
-            params: dict
-            for action, params in step.items():
-                match action:
-                    case "create_file":
-                        file_name = params["path"]
-                        if "content" in params:
-                            content = params["content"]
-                            commands.append(
-                                f'with open("{file_name}", "w") as f:\n    f.write("{content}")'  # noqa: E501
-                            )
-                        else:
-                            commands.append(f'open("{file_name}", "w").close()')
-                    case "mkdir":
-                        dir_name = params["path"]
-                        commands.append(
-                            f"Path('{dir_name}').mkdir(parents=True, exist_ok=True)"
-                        )
-                    case "rm":
-                        file_name = params["path"]
-                        commands.append(
-                            f"if os.path.exists('{file_name}') and os.path.isfile('{file_name}'):\n    os.remove('{file_name}')"  # noqa: E501
-                        )
-                    case "rmdir":
-                        dir_name = params["path"]
-                        commands.append(
-                            f"if os.path.exists('{dir_name}') and os.path.isdir('{dir_name}'):\n    shutil.rmtree('{dir_name}')"  # noqa: E501
-                        )  # noqa: E501
-                    case "rename":
-                        old_name = params["old_name"]
-                        new_name = params["new_name"]
-                        commands.append(f'os.rename("{old_name}", "{new_name}")')
-                    case "copy":
-                        src = params["src"]
-                        dest = params["dest"]
-                        commands.append(f'os.system("cp {src} {dest}")')
-                    case "move":
-                        src = params["src"]
-                        dest = params["dest"]
-                        commands.append(f'os.system("mv {src} {dest}")')
-                    case "chmod":
-                        file_name = params["path"]
-                        mode = params["mode"]
-                        commands.append(f'os.chmod("{file_name}", int("{mode}", 8))')
-                    case _:
-                        raise Exception(f"Action '{action}' not found")
-
-        return commands

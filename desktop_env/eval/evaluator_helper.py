@@ -21,12 +21,6 @@ class EvaluatorComb:
             score *= cur_score
         return score
 
-    def get_oracle_trajectory(self) -> list[str]:
-        oracle_trajectory = []
-        for evaluator in self.evaluators:
-            oracle_trajectory.extend(evaluator.get_oracle_trajectory())
-        return oracle_trajectory
-
 
 def register_evaluators(
     base_path: str | Path = "desktop_env/eval",
@@ -78,20 +72,15 @@ def evaluator_router(
 
     registered_evaluators: dict[str, type[Evaluator]] = register_evaluators()
     evaluators: list[Evaluator] = []
+
     for eval in task_configs["evals"]:
         eval_type: str = eval["eval_type"]
-        reference_action_sequence: dict = task_configs.get(
-            "reference_action_sequence", {}
-        )
         if eval_type in registered_evaluators:
             evaluators.append(
                 registered_evaluators[eval_type](
                     reference_answer=eval.get("eval_procedure", {}),
-                    reset_actions=eval.get("reset_actions", []),
+                    reset_procedure=eval.get("reset_procedure", []),
                     env_config=env_configs[eval_type],
-                    reference_action_sequence=reference_action_sequence.get(
-                        eval_type, {}
-                    ),
                 )
             )
         else:

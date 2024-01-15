@@ -33,7 +33,7 @@
                             "additionalProperties": false,
                             "anyOf": [
                                 {"required": ["eval_type", "eval_procedure"]},
-                                {"required": ["eval_type", "reset_actions"]}
+                                {"required": ["eval_type", "reset_procedure"]}
                             ],
                             "properties": {
                                 "eval_type": {
@@ -42,7 +42,7 @@
                                 "eval_procedure": {
                                     "type": ["object", "null"]
                                 },
-                                "reset_actions": {
+                                "reset_procedure": {
                                     "type": ["array", "null"],
                                     "items": {
                                         "type": "object"

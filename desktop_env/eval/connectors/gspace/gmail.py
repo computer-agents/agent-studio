@@ -100,10 +100,20 @@ class GmailService(GoogleService):
         decoded_body = base64.urlsafe_b64decode(body_data.encode("ASCII")).decode()
 
         return {
+            "id": recent_draft_id,
             "subject": subject,
             "recipient": recipient,
             "body": decoded_body,
         }
+
+    def delete_draft(self, draft_id: str) -> bool:
+        try:
+            self.service.users().drafts().delete(userId="me", id=draft_id).execute()
+            print(f"Draft with id {draft_id} deleted successfully.")
+            return True
+        except HttpError as error:
+            print(f"An error occurred: {error}")
+            return False
 
     # def create_draft_with_attachment(
     #     self,

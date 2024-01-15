@@ -14,7 +14,7 @@
                             "exists": true
                         }
                     },
-                    "reset_actions": [
+                    "reset_procedure": [
                         {
                             "uninstall_extension": {
                                 "extension_id": "DavidAnson.vscode-markdownlint"

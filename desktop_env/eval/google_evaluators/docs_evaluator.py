@@ -1,85 +1,86 @@
-import os.path
+from typing import Any
 
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-
+from desktop_env.eval.connectors.gspace.gdocs import GoogleDocsService
 from desktop_env.eval.evaluator import Evaluator
 
 
 class GoogleDocsEvaluator(Evaluator):
     name: str = "google_docs"
 
-    @staticmethod
-    def string_match(ref: str, pred: str) -> float:
-        return float(pred == ref)
+    def __init__(
+        self,
+        reference_answer: dict,
+        reset_procedure: list[dict],
+        env_config: dict,
+        eval_tag: str = "",
+    ) -> None:
+        super().__init__(
+            reference_answer=reference_answer,
+            reset_procedure=reset_procedure,
+            env_config=env_config,
+            eval_tag=eval_tag,
+        )
+        self.service = GoogleDocsService(
+            credential_path=self.env_settings["credential_path"]
+        )
+        self.document_id: str = ""
 
-    @staticmethod
-    def get_text_at_index(document, index: int):
-        for element in document["body"]["content"]:
-            if "startIndex" in element and "endIndex" in element:
-                if element["startIndex"] <= index < element["endIndex"]:
-                    # Assuming the element contains text
-                    if "textRun" in element["paragraph"]["elements"][0]:
-                        return element["paragraph"]["elements"][0]["textRun"]["content"]
-        return None
+    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
+        try:
+            for step in steps:
+                action, params = list(step.items())[0]
+                # match action:
+                #     case "create_document":
+                #         # Code to create a new Google Docs document
+                #     case "edit_document":
+                #         # Code to edit a Google Docs document
+                #     # Add other actions specific to Google Docs
+                #     case _:
+                #         raise Exception(
+                #             f"Action {action} not supported by Google Docs"
+                #         )
+            return True
+        except Exception as e:
+            print(f"An error occurred in Google Docs env: {e}")
+            return False
 
-    # def __call__(
-    #     self,
-    #     config_file: Path | str,
-    # ) -> float:
-    #     with open(config_file, "r") as f:
-    #         configs = json.load(f)
+    def __call__(self) -> float:
+        return 0.0
+        # if self.env_settings is None:
+        #     raise ValueError(f"env_settings for {self.name} is None")
+        # calendar_id = self.env_settings["calendar_id"]
+        # score = 1.0
 
-    #     score = 1.0
-    #     document = configs["eval"]["document"]
-    #     index = configs["eval"]["index"]
-    #     for approach, value in configs["eval"]["eval_procedure"].items():
-    #         match approach:
-    #             case "string_match":
-    #                 pred = GoogleDocsEvaluator.get_text_at_index(document, index)
-    #                 score *= self.string_match(ref=value, pred=pred)
+        # try:
+        #     for approach, value in self.reference_answer.items():
+        #         match approach:
+        #             case "event_match":
+        #                 events: list[dict] = self.service.search_events_by_info(
+        #                     value,
+        #                     calendar_id=calendar_id,
+        #                     # if calendar_id is None, fallback to primary calendar
+        #                 )
+        #                 if len(events) == 0:
+        #                     score = 0.0
+        #                 elif len(events) > 1:
+        #                     raise ValueError(f"More than one event found: {events}")
+        #                 else:
+        #                     score *= 1.0
+        #             case "check_event_exists":
+        #                 """
+        #                 Two parameters:
+        #                 - event: the event to look for
+        #                 - exists: whether the event should exist or not
+        #                 """
+        #                 events = self.service.list_events(
+        #                     self.env_settings["calendar_id"]
+        #                 )
+        #                 score *= float(
+        #                     self.check_event_exists(value["event"], events)
+        #                     == value["exists"]
+        #                 )
+        # except Exception as e:
+        #     print(f"An error occurred: {e}\nscore may be incorrect")
+        #     score = 0.0
 
-    #     return score
-
-
-if __name__ == "__main__":
-    # If modifying these scopes, delete the file token.json.
-    scopes = ["https://www.googleapis.com/auth/documents.readonly"]
-
-    # The ID of the document.
-    document_id = "1ABsm2s7XKI2u0VYofeI8y6Pa4te-ycBbrLjMoBu-ZGk"
-
-    creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", scopes)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", scopes)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open("token.json", "w") as token:
-            token.write(creds.to_json())
-
-    try:
-        service = build("docs", "v1", credentials=creds)
-
-        # Retrieve the documents contents from the Docs service.
-        document = service.documents().get(documentId=document_id).execute()
-        print(f"The title of the document is: {document.get('title')}")
-
-        # Get text at a specific index
-        index = 10
-        text_at_index = GoogleDocsEvaluator.get_text_at_index(document, index)
-        print("The text:", text_at_index)
-
-    except HttpError as err:
-        print(err)
+        # return score

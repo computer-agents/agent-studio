@@ -18,14 +18,14 @@ def test_vscode(
     for task_config in task_configs["tasks"]:
         comb = evaluator_router(task_config, env_configs)
         comb.reset()
-        oracle_trajectory = comb.get_oracle_trajectory()
+
         instruction = task_config["intent_template"].format(
             **task_config["instantiation_dict"]
         )
         agent.reset(
             instruction=instruction,
-            oracle_trajectory=oracle_trajectory,
         )
         agent.run()
+
         score = comb()
         assert score == 1.0

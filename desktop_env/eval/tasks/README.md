@@ -25,7 +25,7 @@ An array of objects, where each object encapsulates a specific task and must inc
 - `instantiation_dict`: (object, null) A dictionary for instantiation details.
 - `evals`: (array) An array of evaluation objects pertaining to the task.
 - `reference_action_sequence`: (object, null) A sequence of reference actions for the task (optional).
-- `reset_actions`: (object, null) Actions to reset the environment states (optional).
+- `reset_procedure`: (object, null) Actions to reset the environment states (optional).
 
 #### Evals
 
@@ -36,7 +36,7 @@ Each object in the `evals` array should include:
 
 #### Reset Actions
 
-`reset_actions` (if provided) should include:
+`reset_procedure` (if provided) should include:
 
 - An object where the key is the environment name (e.g., "google_calendar") and the value is an array of actions to reset the state of that environment.
 
@@ -67,7 +67,7 @@ Each object in the `evals` array should include:
             "reference_action_sequence": {
                 "action_sequence": []
             },
-            "reset_actions": {
+            "reset_procedure": {
                 "google_calendar": [
                     {
                         "clear_calendar": {}

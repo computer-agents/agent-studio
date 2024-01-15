@@ -15,14 +15,12 @@ class TeacherForcingAgent(Agent):
         **kwargs,
     ) -> None:
         super().reset(instruction=instruction)
-        self.trajectory = kwargs.get("oracle_trajectory", [])
+        self.trajectory = kwargs.get("reference_action_sequence", "")
 
     def run(self):
-        for action in self.trajectory:
-            print(action)
-            # response = input(
-            #     "Would you like to run this code? (y/n)\n"
-            # )
-            # if response.strip().lower() == "y":
-            for chunk in self.env.run("python", action):
-                print(chunk)
+        # response = input(
+        #     "Would you like to run this code? (y/n)\n"
+        # )
+        # if response.strip().lower() == "y":
+        for chunk in self.env.run("python", self.trajectory):
+            print(chunk)

@@ -10,36 +10,32 @@ class GmailEvaluator(Evaluator):
     def __init__(
         self,
         reference_answer: dict,
-        reset_actions: list[dict],
+        reset_procedure: list[dict],
         env_config: dict,
-        reference_action_sequence: dict,
         eval_tag: str = "",
     ) -> None:
         super().__init__(
             reference_answer=reference_answer,
-            reset_actions=reset_actions,
+            reset_procedure=reset_procedure,
             env_config=env_config,
-            reference_action_sequence=reference_action_sequence,
             eval_tag=eval_tag,
         )
         self.service = GmailService(
             credential_path=self.env_settings["credential_path"]
         )
         self.created_draft_id: str = ""
-        self.retrieved_draft: dict[str, str] | None = None
+        self.retrieved_draft: dict[str, Any] | None = None
 
     @staticmethod
-    def email_exact_match(ref: dict, pred: dict) -> float:
+    def email_exact_match(ref: dict[str, Any], pred: dict[str, Any]) -> float:
         subject_match = ref["subject"] == pred["subject"]
         recipient_match = ref["recipient"] == pred["recipient"]
-        content_match = ref["body"] == pred["body"].strip()
+        content_match = ref["body"].strip() == pred["body"].strip()
         return float(subject_match and recipient_match and content_match)
 
-    def execute(self, steps: list[dict]) -> bool:
+    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
         try:
             for step in steps:
-                action: str
-                params: dict[str, Any]
                 for action, params in step.items():
                     match action:
                         case "create_draft":
@@ -51,6 +47,15 @@ class GmailEvaluator(Evaluator):
                             self.created_draft_id = draft["id"]
                         case "get_recent_draft":
                             self.retrieved_draft = self.service.get_recent_draft()
+                        case "deduplicate_draft":
+                            self.retrieved_draft = self.service.get_recent_draft()
+                            if (
+                                self.retrieved_draft is not None
+                                and self.email_exact_match(self.retrieved_draft, params)
+                            ):
+                                self.service.delete_draft(
+                                    draft_id=self.retrieved_draft["id"]
+                                )
                         case _:
                             raise Exception(f"Action {action} not supported by Gmail")
             return True
@@ -81,25 +86,3 @@ class GmailEvaluator(Evaluator):
             score = 0.0
 
         return score
-
-    def action2str(self, steps: list[dict]) -> list[str]:
-        commands = [
-            f"from desktop_env.eval.connectors.gspace.gmail import GmailService\nservice = GmailService(credential_path='{self.env_settings['credential_path']}')"  # noqa: E501
-        ]
-        for step in steps:
-            action: str
-            params: dict
-            for action, params in step.items():
-                match action:
-                    case "create_draft":
-                        commands.append(
-                            f"created_draft_id = service.create_draft(subject='{params['subject']}', recipient='{params['recipient']}', content='{params['content']}')"  # noqa: E501
-                        )
-                    case "get_recent_draft":
-                        commands.append(
-                            "retrieved_draft = service.get_recent_draft()"  # noqa: E501
-                        )
-                    case _:
-                        raise Exception(f"Action '{action}' not found")
-
-        return commands

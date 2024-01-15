@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Any
 
 from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService
 from desktop_env.eval.evaluator import Evaluator
@@ -10,16 +11,14 @@ class GoogleCalendarEvaluator(Evaluator):
     def __init__(
         self,
         reference_answer: dict,
-        reset_actions: list[dict],
+        reset_procedure: list[dict],
         env_config: dict,
-        reference_action_sequence: dict,
         eval_tag: str = "",
     ) -> None:
         super().__init__(
             reference_answer=reference_answer,
-            reset_actions=reset_actions,
+            reset_procedure=reset_procedure,
             env_config=env_config,
-            reference_action_sequence=reference_action_sequence,
             eval_tag=eval_tag,
         )
         self.service = GoogleCalendarService(
@@ -102,11 +101,9 @@ class GoogleCalendarEvaluator(Evaluator):
                 return True
         return False
 
-    def execute(self, steps: list[dict]) -> bool:
+    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
         try:
             for step in steps:
-                action: str
-                params: dict
                 for action, params in step.items():
                     match action:
                         # case "create_and_cd_calendar":
@@ -215,21 +212,3 @@ class GoogleCalendarEvaluator(Evaluator):
             score = 0.0
 
         return score
-
-    def action2str(self, steps: list[dict]) -> list[str]:
-        commands = [
-            f"from desktop_env.eval.connectors.gspace.gcalendar import GoogleCalendarService\nservice = GoogleCalendarService(credential_path='{self.env_settings['credential_path']}')"  # noqa: E501
-        ]
-        for step in steps:
-            action: str
-            params: dict
-            for action, params in step.items():
-                match action:
-                    case "create_event":
-                        commands.append(
-                            f"event = service.create_event(start_time='{params['start']['dateTime']}', end_time='{params['end']['dateTime']}', summary='{params.get('summary')}', location='{params.get('location')}', description='{params.get('description')}', attendees={params.get('attendees')}, calendar_id='{self.env_settings['calendar_id']}')"  # noqa: E501
-                        )
-                    case _:
-                        raise Exception(f"Action '{action}' not found")
-
-        return commands

@@ -17,7 +17,7 @@
                             "end": {"dateTime": "2024-01-05T12:00:00+01:00"}
                         }
                     },
-                    "reset_actions": [
+                    "reset_procedure": [
                         {
                             "clear_calendar": {}
                         },
@@ -51,7 +51,7 @@
                             "tmp/test.txt": "Hello World!"
                         }
                     },
-                    "reset_actions": [
+                    "reset_procedure": [
                         {
                             "rmdir": {
                                 "path": "tmp"
@@ -82,9 +82,7 @@
                         }
                     ]
                 }
-            ],
-            "reference_action_sequence": {
-            }
+            ]
         }
     ]
 }

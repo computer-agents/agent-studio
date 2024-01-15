@@ -18,14 +18,27 @@ def test_filesystem(
     for task_config in task_configs["tasks"]:
         comb = evaluator_router(task_config, env_configs)
         comb.reset()
-        oracle_trajectory = comb.get_oracle_trajectory()
+
+        action_sequence_path: str | None = task_configs.get(
+            "action_sequence_path", None
+        )
+        if action_sequence_path is not None:
+            with open(action_sequence_path, "r") as f:
+                tasks = json.load(f)["tasks"]
+                for t in tasks:
+                    if t["task_id"] == task_config["task_id"]:
+                        reference_action_sequence = t["reference_action_sequence"]
+                        break
+        else:
+            reference_action_sequence = None
         instruction = task_config["intent_template"].format(
             **task_config["instantiation_dict"]
         )
         agent.reset(
             instruction=instruction,
-            oracle_trajectory=oracle_trajectory,
+            reference_action_sequence=reference_action_sequence,
         )
         agent.run()
+
         score = comb()
         assert score == 1.0

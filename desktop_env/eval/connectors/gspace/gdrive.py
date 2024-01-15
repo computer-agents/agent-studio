@@ -90,3 +90,26 @@ class GoogleDriveService(GoogleService):
             ).execute()
         except HttpError as err:
             print(err)
+
+    def get_recent_documents(self, max_results=1):
+        try:
+            # Query for recent Google Docs documents
+            results = (
+                self.service.files()
+                .list(
+                    pageSize=max_results,
+                    fields="files(id, name, createdTime)",
+                    orderBy="createdTime desc",
+                    q="mimeType='application/vnd.google-apps.document'",
+                )
+                .execute()
+            )
+
+            items = results.get("files", [])
+            if not items:
+                print("No documents found.")
+            else:
+                return items
+        except HttpError as err:
+            print(err)
+            return []

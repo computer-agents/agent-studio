@@ -1,5 +1,6 @@
 {
     "environments": ["filesystem"],
+    "action_sequence_path": "data/filesystem.json",
     "tasks": [
         {
             "task_id": 0,
@@ -31,7 +32,7 @@
                             "tmp/test.txt": "Hello World!"
                         }
                     },
-                    "reset_actions": [
+                    "reset_procedure": [
                         {
                             "rmdir": {
                                 "path": "tmp"
@@ -39,36 +40,7 @@
                         }
                     ]
                 }
-            ],
-            "reference_action_sequence": {
-                "filesystem": {
-                    "action_sequence": [
-                        {
-                            "mkdir": {
-                                "path": "tmp"
-                            }
-                        },
-                        {
-                            "create_file": {
-                                "path": "tmp/test.txt",
-                                "content": "Hello World!"
-                            }
-                        },
-                        {
-                            "chmod": {
-                                "path": "tmp/test.txt",
-                                "mode": "0o644"
-                            }
-                        },
-                        {
-                            "chmod": {
-                                "path": "tmp",
-                                "mode": "0o775"
-                            }
-                        }
-                    ]
-                }
-            }
+            ]
         },
         {
             "task_id": 1,
@@ -88,7 +60,7 @@
                             "tmp": "folder"
                         }
                     },
-                    "reset_actions": [
+                    "reset_procedure": [
                         {
                             "rmdir": {
                                 "path": "tmp"
@@ -106,18 +78,7 @@
                         }
                     ]
                 }
-            ],
-            "reference_action_sequence": {
-                "filesystem": {
-                    "action_sequence": [
-                        {
-                            "rm": {
-                                "path": "tmp/test.txt"
-                            }
-                        }
-                    ]
-                }
-            }
+            ]
         },
         {
             "task_id": 2,
@@ -133,7 +94,7 @@
                             "tmp": false
                         }
                     },
-                    "reset_actions": [
+                    "reset_procedure": [
                         {
                             "rmdir": {
                                 "path": "tmp"
@@ -146,18 +107,7 @@
                         }
                     ]
                 }
-            ],
-            "reference_action_sequence": {
-                "filesystem": {
-                    "action_sequence": [
-                        {
-                            "rmdir": {
-                                "path": "tmp"
-                            }
-                        }
-                    ]
-                }
-            }
+            ]
         },
         {
             "task_id": 3,
@@ -183,7 +133,7 @@
                             "tmp/test.txt": "Hello World!"
                         }
                     },
-                    "reset_actions": [
+                    "reset_procedure": [
                         {
                             "rmdir": {
                                 "path": "tmp"
@@ -196,19 +146,7 @@
                         }
                     ]
                 }
-            ],
-            "reference_action_sequence": {
-                "filesystem": {
-                    "action_sequence": [
-                        {
-                            "create_file": {
-                                "path": "tmp/test.txt",
-                                "content": "Hello World!"
-                            }
-                        }
-                    ]
-                }
-            }
+            ]
         }
     ]
 }

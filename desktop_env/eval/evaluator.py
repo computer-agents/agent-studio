@@ -1,3 +1,6 @@
+from typing import Any
+
+
 class Evaluator(object):
     """Base class for evaluation."""
 
@@ -6,15 +9,13 @@ class Evaluator(object):
     def __init__(
         self,
         reference_answer: dict,
-        reset_actions: list[dict],
+        reset_procedure: list[dict],
         env_config: dict,
-        reference_action_sequence: dict,
         eval_tag: str = "",
     ) -> None:
         self.reference_answer = reference_answer
-        self.reference_action_sequence = reference_action_sequence
         self.eval_tag = eval_tag
-        self.reset_actions = reset_actions
+        self.reset_procedure = reset_procedure
         self.enter_steps: list = env_config["enter"] if "enter" in env_config else []
         self.exit_steps: list = env_config["exit"] if "exit" in env_config else []
         self.env_settings: dict = (
@@ -26,11 +27,11 @@ class Evaluator(object):
     def reset(self) -> bool:
         assert self.phase == "init", "Evaluator is not in the init phase"
         self.phase = "reset"
-        succ = self.execute(self.reset_actions)
+        succ = self.execute(self.reset_procedure)
         self.phase = "eval"
         return succ
 
-    def execute(self, steps: list[dict]) -> bool:
+    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
         raise NotImplementedError
 
     def get_env_settings(self) -> dict:
@@ -38,11 +39,3 @@ class Evaluator(object):
 
     def __call__(self) -> float:
         raise NotImplementedError
-
-    def action2str(self, steps: list[dict]) -> list[str]:
-        raise NotImplementedError
-
-    def get_oracle_trajectory(self) -> list[str]:
-        return self.action2str(
-            self.reference_action_sequence.get("action_sequence", [])
-        )
