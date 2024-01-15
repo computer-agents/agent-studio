@@ -112,5 +112,3 @@ urllib3==2.1.0
 virtualenv==20.25.0
 wcwidth==0.2.13
 yarl==1.9.4
-check-jsonschema==0.27.3
-jsonschema==4.20.0
