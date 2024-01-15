@@ -10,6 +10,9 @@
                 "type": "string"
             }
         },
+        "action_sequence_path": {
+            "type": ["string"]
+        },
         "tasks": {
             "type": "array",
             "items": {
@@ -47,18 +50,6 @@
                                     "items": {
                                         "type": "object"
                                     }
-                                }
-                            }
-                        }
-                    },
-                    "reference_action_sequence": {
-                        "type": ["object", "null"],
-                        "additionalProperties": {
-                            "type": "object",
-                            "additionalProperties": false,
-                            "properties": {
-                                "action_sequence": {
-                                    "type": "array"
                                 }
                             }
                         }

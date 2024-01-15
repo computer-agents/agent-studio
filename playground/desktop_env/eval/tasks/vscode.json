@@ -41,7 +41,7 @@
                             "keyword": "Markdown"
                         }
                     },
-                    "reset_actions": [
+                    "reset_procedure": [
                         {
                             "uninstall_extension": {
                                 "extension_id": "esbenp.prettier-vscode"
@@ -68,7 +68,7 @@
                             "exists": true
                         }
                     },
-                    "reset_actions": [
+                    "reset_procedure": [
                         {
                             "uninstall_extension": {
                                 "extension_id": "DavidAnson.vscode-markdownlint"
@@ -95,7 +95,7 @@
                             "published_before": "2023-01-01T00:00:00Z"
                         }
                     },
-                    "reset_actions": [
+                    "reset_procedure": [
                         {
                             "uninstall_extension": {
                                 "extension_id": "DavidAnson.vscode-markdownlint"

@@ -11,8 +11,7 @@ Playground is a holistic and scalable benchmark for measuring and training an AI
 ## Setup environment
 
 ```bash
-sudo apt-get install gnome-screenshot xclip # If use Ubuntu 22.04
-sudo apt-get install jq # If want to validate JSON files
+apt-get install gnome-screenshot xclip  # If use Ubuntu 22.04
 conda create --name playground python=3.11 -y
 conda activate playground
 pip install -r requirements.txt
