@@ -5,8 +5,7 @@ from playground.desktop_env.eval.connectors.gspace.gslides import GoogleSlidesSe
 
 
 def test_gdocs_connector() -> None:
-    credentials_path = "playground/config/credentials.json"
-    slides_service = GoogleSlidesService(credentials_path)
+    slides_service = GoogleSlidesService()
 
     # Create a new presentation
     presentation_title = "Test Presentation"
@@ -52,6 +51,6 @@ def test_gdocs_connector() -> None:
     print("Deleted a slide.")
 
     # Delete the presentation
-    drive_service = GoogleDriveService(credentials_path)
+    drive_service = GoogleDriveService()
     drive_service.delete_file(file_id=presentation_id)
     print(f"Deleted presentation with ID: {presentation_id}")

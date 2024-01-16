@@ -9,6 +9,9 @@ from pathlib import Path
 from typing import Any
 
 from playground.desktop_env.eval.evaluator import Evaluator
+from playground.utils.logger import Logger
+
+logger = Logger()
 
 
 class FilesystemEvaluator(Evaluator):
@@ -137,7 +140,7 @@ class FilesystemEvaluator(Evaluator):
                             raise Exception(f"Action {action} not found")
             return True
         except Exception as e:
-            print(f"An error occurred in Filesystem env: {e}")
+            logger.error(f"An error occurred in Filesystem env: {e}")
             return False
 
     def __call__(self) -> float:

@@ -4,8 +4,7 @@ from playground.desktop_env.eval.connectors.gspace.gforms import GoogleFormsServ
 
 
 def test_gforms_connector() -> None:
-    credential_path = "playground/config/credentials.json"
-    form_service = GoogleFormsService(credential_path)
+    form_service = GoogleFormsService()
 
     # Create a new form
     form_body = {

@@ -6,16 +6,18 @@ from email.message import EmailMessage
 from googleapiclient.errors import HttpError
 
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
+from playground.utils.logger import Logger
+
+logger = Logger()
 
 
 class GmailService(GoogleService):
-    def __init__(self, credential_path: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             scopes=[
                 "https://www.googleapis.com/auth/gmail.compose",
                 "https://www.googleapis.com/auth/gmail.readonly",
             ],
-            credential_path=credential_path,
             service_name="gmail",
             service_version="v1",
         )
@@ -41,10 +43,10 @@ class GmailService(GoogleService):
                 .execute()
             )
 
-            print(f'Draft id: {draft["id"]}\nDraft message: {draft["message"]}')
+            logger.info(f'Draft id: {draft["id"]}\nDraft message: {draft["message"]}')
 
         except HttpError as error:
-            print(f"An error occurred: {error}")
+            logger.error(f"An error occurred: {error}")
             draft = None
 
         return draft
@@ -55,7 +57,7 @@ class GmailService(GoogleService):
         drafts = results.get("drafts", [])
 
         if not drafts:
-            print("No drafts found.")
+            logger.warn("No drafts found.")
             return None
 
         # Assuming the most recent draft is the first in the list
@@ -84,7 +86,7 @@ class GmailService(GoogleService):
             .get(userId="me", id=message_id, format="full")
             .execute()
         )
-        print("message:", message)
+        logger.info("message:", message)
 
         # Extract headers
         headers = message["payload"]["headers"]
@@ -109,10 +111,10 @@ class GmailService(GoogleService):
     def delete_draft(self, draft_id: str) -> bool:
         try:
             self.service.users().drafts().delete(userId="me", id=draft_id).execute()
-            print(f"Draft with id {draft_id} deleted successfully.")
+            logger.info(f"Draft with id {draft_id} deleted successfully.")
             return True
         except HttpError as error:
-            print(f"An error occurred: {error}")
+            logger.error(f"An error occurred: {error}")
             return False
 
     # def create_draft_with_attachment(

@@ -6,7 +6,7 @@ This guide provides instructions for creating a valid Task JSON file in accordan
 
 Your Task JSON file should contain the following top-level properties:
 
-- `environments`: A list of strings specifying the environments to be used. Any item in this list should match the keys in `playground/config/environments.json`
+- `environments`: A list of strings specifying the environments to be used.
 - `action_sequence_path`: The path to the annotated trajectories.
 - `tasks`: A list of objects, each representing a specific task and must include:
     - `task_id`: (int) A unique identifier for the task.

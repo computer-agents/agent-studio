@@ -2,17 +2,19 @@ from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
+from playground.utils.logger import Logger
+
+logger = Logger()
 
 
 class GoogleDriveService(GoogleService):
     name: str = "google_drive"
 
-    def __init__(self, credential_path: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             scopes=[
                 "https://www.googleapis.com/auth/drive",
             ],
-            credential_path=credential_path,
             service_name="drive",
             service_version="v3",
         )
@@ -34,7 +36,7 @@ class GoogleDriveService(GoogleService):
             )
             return file
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return {}
 
     def download_file(self, file_id: str, output_file: str) -> None:
@@ -56,7 +58,7 @@ class GoogleDriveService(GoogleService):
             )
             return folder
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return {}
 
     def list_files(self, folder_id: str | None = None):
@@ -66,21 +68,21 @@ class GoogleDriveService(GoogleService):
             files = response.get("files", [])
             return files
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return []
 
     def delete_file(self, file_id: str) -> None:
         try:
             self.service.files().delete(fileId=file_id).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)
 
     def delete_folder(self, folder_id: str) -> None:
         try:
             self.service.files().delete(fileId=folder_id).execute()
-            print(f"Folder with ID {folder_id} has been deleted.")
+            logger.info(f"Folder with ID {folder_id} has been deleted.")
         except HttpError as err:
-            print(err)
+            logger.error(err)
 
     def share_file(self, file_id: str, user_email: str, role: str = "reader") -> None:
         user_permission = {"type": "user", "role": role, "emailAddress": user_email}
@@ -89,7 +91,7 @@ class GoogleDriveService(GoogleService):
                 fileId=file_id, body=user_permission
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)
 
     def get_recent_documents(self, max_results=1):
         try:
@@ -107,9 +109,9 @@ class GoogleDriveService(GoogleService):
 
             items = results.get("files", [])
             if not items:
-                print("No documents found.")
+                logger.warn("No documents found.")
             else:
                 return items
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return []

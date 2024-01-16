@@ -4,8 +4,7 @@ from playground.desktop_env.eval.connectors.gspace.gdrive import GoogleDriveServ
 
 
 def test_gdrive_connector() -> None:
-    credential_path = "playground/config/credentials.json"
-    drive_service = GoogleDriveService(credential_path)
+    drive_service = GoogleDriveService()
 
     # Create a folder in Google Drive
     folder = drive_service.create_folder(folder_name="TestFolder")

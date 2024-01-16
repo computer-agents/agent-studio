@@ -4,6 +4,9 @@ import os
 from pathlib import Path
 
 from playground.desktop_env.eval.evaluator import Evaluator
+from playground.utils.logger import Logger
+
+logger = Logger()
 
 
 class EvaluatorComb:
@@ -37,7 +40,7 @@ def register_evaluators(
                 try:
                     tree = ast.parse(file_contents)
                 except SyntaxError:
-                    print(f"Error parsing {file_path} skipping...")
+                    logger.error(f"Error parsing {file_path} skipping...")
                     continue
                 # Check each class definition in the file
                 for node in ast.walk(tree):
@@ -62,7 +65,9 @@ def register_evaluators(
                                     else:
                                         raise AttributeError
                                 except Exception:
-                                    print(f"Error importing {module_name} {node.name}")
+                                    logger.error(
+                                        f"Error importing {module_name} {node.name}"
+                                    )
                                 break
     return registered_classes
 
@@ -70,7 +75,6 @@ def register_evaluators(
 # TODO: need to redesign the evaluator_router
 def evaluator_router(
     task_configs: dict,
-    env_configs: dict,
 ) -> EvaluatorComb:
     """Router to get the evaluator class"""
 
@@ -84,7 +88,6 @@ def evaluator_router(
                 registered_evaluators[eval_type](
                     reference_answer=eval.get("eval_procedure", {}),
                     reset_procedure=eval.get("reset_procedure", []),
-                    env_config=env_configs[eval_type],
                 )
             )
         else:

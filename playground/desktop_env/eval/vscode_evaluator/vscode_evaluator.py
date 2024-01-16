@@ -1,8 +1,13 @@
 from datetime import datetime
 from typing import Any
 
+from playground.config import Config
 from playground.desktop_env.eval.connectors.vscode_connector import VSCodeConnector
 from playground.desktop_env.eval.evaluator import Evaluator
+from playground.utils.logger import Logger
+
+config = Config()
+logger = Logger()
 
 
 class VSCodeEvaluator(Evaluator):
@@ -11,8 +16,8 @@ class VSCodeEvaluator(Evaluator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.vscode_connector = VSCodeConnector(
-            workspace_path=self.env_settings["workspace_path"],
-            executable_path=self.env_settings["executable_path"],
+            workspace_path=config.vscode_workspace_path,
+            executable_path=config.vscode_executable_path,
         )
 
     def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
@@ -34,7 +39,7 @@ class VSCodeEvaluator(Evaluator):
                             raise Exception(f"Action {action} not supported by VS Code")
             return True
         except Exception as e:
-            print(f"An error occurred in VS Code env: {e}")
+            logger.error(f"An error occurred in VS Code env: {e}")
             return False
 
     def match_installed_extension(
@@ -119,7 +124,7 @@ class VSCodeEvaluator(Evaluator):
                         if not self.vscode_connector.extension_installed(extension_id):
                             score *= 0.0
         except Exception as e:
-            print(f"An error occurred: {e}\nscore may be incorrect")
+            logger.error(f"An error occurred: {e}\nscore may be incorrect")
             score = 0.0
 
         return score

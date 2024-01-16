@@ -1,13 +1,15 @@
 from googleapiclient.errors import HttpError
 
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
+from playground.utils.logger import Logger
+
+logger = Logger()
 
 
 class GoogleSheetsService(GoogleService):
-    def __init__(self, credential_path: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
-            credential_path=credential_path,
             service_name="sheets",
             service_version="v4",
         )
@@ -20,7 +22,7 @@ class GoogleSheetsService(GoogleService):
             )
             return spreadsheet
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return {}
 
     def read_range(self, spreadsheet_id: str, range_name: str) -> list:
@@ -33,7 +35,7 @@ class GoogleSheetsService(GoogleService):
             )
             return result.get("values", [])
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return []
 
     def write_range(self, spreadsheet_id: str, range_name: str, values: list) -> None:
@@ -46,7 +48,7 @@ class GoogleSheetsService(GoogleService):
                 body=body,
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)
 
     def append_values(self, spreadsheet_id: str, range_name: str, values: list) -> None:
         body = {"values": values}
@@ -58,7 +60,7 @@ class GoogleSheetsService(GoogleService):
                 body=body,
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)
 
     def clear_range(self, spreadsheet_id: str, range_name: str) -> None:
         try:
@@ -66,4 +68,4 @@ class GoogleSheetsService(GoogleService):
                 spreadsheetId=spreadsheet_id, range=range_name, body={}
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)

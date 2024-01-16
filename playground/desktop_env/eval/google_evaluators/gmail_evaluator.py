@@ -1,7 +1,12 @@
 from typing import Any
 
+from playground.config import Config
 from playground.desktop_env.eval.connectors.gspace.gmail import GmailService
 from playground.desktop_env.eval.evaluator import Evaluator
+from playground.utils.logger import Logger
+
+config = Config()
+logger = Logger()
 
 
 class GmailEvaluator(Evaluator):
@@ -11,18 +16,14 @@ class GmailEvaluator(Evaluator):
         self,
         reference_answer: dict,
         reset_procedure: list[dict],
-        env_config: dict,
         eval_tag: str = "",
     ) -> None:
         super().__init__(
             reference_answer=reference_answer,
             reset_procedure=reset_procedure,
-            env_config=env_config,
             eval_tag=eval_tag,
         )
-        self.service = GmailService(
-            credential_path=self.env_settings["credential_path"]
-        )
+        self.service = GmailService()
         self.created_draft_id: str = ""
         self.retrieved_draft: dict[str, Any] | None = None
 
@@ -60,12 +61,10 @@ class GmailEvaluator(Evaluator):
                             raise Exception(f"Action {action} not supported by Gmail")
             return True
         except Exception as e:
-            print(f"An error occurred in Gmail env: {e}")
+            logger.error(f"An error occurred in Gmail env: {e}")
             return False
 
     def __call__(self) -> float:
-        if self.env_settings is None:
-            raise ValueError(f"env_settings for {self.name} is None")
         score = 1.0
 
         try:
@@ -82,7 +81,7 @@ class GmailEvaluator(Evaluator):
                     case _:
                         raise Exception(f"Method {approach} not found")
         except Exception as e:
-            print(f"An error occurred: {e}\nscore may be incorrect")
+            logger.error(f"An error occurred: {e}\nscore may be incorrect")
             score = 0.0
 
         return score

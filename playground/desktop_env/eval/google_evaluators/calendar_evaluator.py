@@ -1,10 +1,15 @@
 from datetime import datetime, timezone
 from typing import Any
 
+from playground.config import Config
 from playground.desktop_env.eval.connectors.gspace.gcalendar import (
     GoogleCalendarService,
 )
 from playground.desktop_env.eval.evaluator import Evaluator
+from playground.utils.logger import Logger
+
+config = Config()
+logger = Logger()
 
 
 class GoogleCalendarEvaluator(Evaluator):
@@ -14,23 +19,18 @@ class GoogleCalendarEvaluator(Evaluator):
         self,
         reference_answer: dict,
         reset_procedure: list[dict],
-        env_config: dict,
         eval_tag: str = "",
     ) -> None:
         super().__init__(
             reference_answer=reference_answer,
             reset_procedure=reset_procedure,
-            env_config=env_config,
             eval_tag=eval_tag,
         )
-        self.service = GoogleCalendarService(
-            credential_path=self.env_settings["credential_path"]
-        )
+        self.service = GoogleCalendarService()
         self.events: dict = {}
 
     @staticmethod
     def item_match(ref: str | None, pred: str | None) -> float:
-        # print(f"ref: {ref}, pred: {pred}")
         return float(pred == ref)
 
     @staticmethod
@@ -110,7 +110,7 @@ class GoogleCalendarEvaluator(Evaluator):
                     match action:
                         # case "create_and_cd_calendar":
                         #     calendar = self.service.create_calendar(params)
-                        #     self.env_settings["calendar_id"] = calendar["id"]
+                        #     config.google_calendar_id = calendar["id"]
                         # case "cd_calendar":
                         #     if params["id"] != "primary":
                         #         calendar = self.service.find_calendar_by_id(
@@ -120,13 +120,11 @@ class GoogleCalendarEvaluator(Evaluator):
                         #             raise Exception(
                         #                 f"Calendar {params['id']} not found"
                         #             )
-                        #         self.env_settings["calendar_id"] = calendar["id"]
+                        #         config.google_calendar_id = calendar["id"]
                         #     else:
-                        #         self.env_settings["calendar_id"] = "primary"
+                        #         config.google_calendar_id = "primary"
                         case "clear_calendar":
-                            self.service.clear_calendar(
-                                self.env_settings["calendar_id"]
-                            )
+                            self.service.clear_calendar(config.google_calendar_id)
                         case "create_event":
                             event = self.service.create_event(
                                 start_time=params["start"]["dateTime"],
@@ -135,14 +133,14 @@ class GoogleCalendarEvaluator(Evaluator):
                                 location=params.get("location"),
                                 description=params.get("description"),
                                 attendees=params.get("attendees"),
-                                calendar_id=self.env_settings["calendar_id"],
+                                calendar_id=config.google_calendar_id,
                             )
                             self.events[event.get("id")] = event
                         case "deduplicate_event":
                             events = self.service.search_events_by_time_range(
                                 start_time=params["start"]["dateTime"],
                                 end_time=params["end"]["dateTime"],
-                                calendar_id=self.env_settings["calendar_id"],
+                                calendar_id=config.google_calendar_id,
                             )
                             for event in events:
                                 if (
@@ -160,11 +158,11 @@ class GoogleCalendarEvaluator(Evaluator):
                                 ):
                                     self.service.delete_event(
                                         event_id=event["id"],
-                                        calendar_id=self.env_settings["calendar_id"],
+                                        calendar_id=config.google_calendar_id,
                                     )
                         # case "delete_cur_calendar":
                         #     self.service.delete_calendar(
-                        #         self.env_settings["calendar_id"]
+                        #         config.google_calendar_id
                         #     )
                         case _:
                             raise Exception(
@@ -172,13 +170,11 @@ class GoogleCalendarEvaluator(Evaluator):
                             )
             return True
         except Exception as e:
-            print(f"An error occurred in Google calendar env: {e}")
+            logger.error(f"An error occurred in Google calendar env: {e}")
             return False
 
     def __call__(self) -> float:
-        if self.env_settings is None:
-            raise ValueError(f"env_settings for {self.name} is None")
-        calendar_id = self.env_settings["calendar_id"]
+        calendar_id = config.google_calendar_id
         score = 1.0
 
         try:
@@ -202,15 +198,13 @@ class GoogleCalendarEvaluator(Evaluator):
                         - event: the event to look for
                         - exists: whether the event should exist or not
                         """
-                        events = self.service.list_events(
-                            self.env_settings["calendar_id"]
-                        )
+                        events = self.service.list_events(config.google_calendar_id)
                         score *= float(
                             self.check_event_exists(value["event"], events)
                             == value["exists"]
                         )
         except Exception as e:
-            print(f"An error occurred: {e}\nscore may be incorrect")
+            logger.error(f"An error occurred: {e}\nscore may be incorrect")
             score = 0.0
 
         return score

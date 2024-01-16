@@ -8,6 +8,10 @@ import numpy as np
 import pyautogui
 from PIL import Image
 
+from playground.utils.logger import Logger
+
+logger = Logger()
+
 
 class Display:
     def __init__(self, computer):
@@ -39,7 +43,7 @@ class Display:
             os.remove(temp_file.name)
         except Exception as e:
             if self.computer.verbose:
-                print(str(e))
+                logger.error(str(e))
 
         if show:
             # Show the image using matplotlib

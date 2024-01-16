@@ -1,5 +1,8 @@
 from playground.agent.base_agent import Agent
 from playground.desktop_env.computer.env import ComputerEnv
+from playground.utils.logger import Logger
+
+logger = Logger()
 
 
 class TeacherForcingAgent(Agent):
@@ -22,5 +25,6 @@ class TeacherForcingAgent(Agent):
         #     "Would you like to run this code? (y/n)\n"
         # )
         # if response.strip().lower() == "y":
+        logger.info(f"Running code:\n{self.trajectory}")
         for chunk in self.env.run("python", self.trajectory):
-            print(chunk)
+            logger.info(chunk)

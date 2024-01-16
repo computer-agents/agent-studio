@@ -1,15 +1,17 @@
 from googleapiclient.errors import HttpError
 
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
+from playground.utils.logger import Logger
+
+logger = Logger()
 
 
 class GoogleDocsService(GoogleService):
-    def __init__(self, credential_path: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             scopes=[
                 "https://www.googleapis.com/auth/documents",
             ],
-            credential_path=credential_path,
             service_name="docs",
             service_version="v1",
         )
@@ -18,7 +20,7 @@ class GoogleDocsService(GoogleService):
         try:
             document = self.service.documents().get(documentId=document_id).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return {}
         return document
 
@@ -37,7 +39,7 @@ class GoogleDocsService(GoogleService):
             doc = self.service.documents().create(body=body).execute()
             return doc
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return {}
 
     def append_text(self, document_id: str, text: str) -> None:
@@ -56,7 +58,7 @@ class GoogleDocsService(GoogleService):
                 documentId=document_id, body={"requests": requests}
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)
 
     def replace_text(self, document_id: str, old_text: str, new_text: str) -> None:
         requests = [
@@ -72,7 +74,7 @@ class GoogleDocsService(GoogleService):
                 documentId=document_id, body={"requests": requests}
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)
 
     def get_document_title(self, document_id: str) -> str:
         document = self.get_document(document_id)
@@ -96,7 +98,7 @@ class GoogleDocsService(GoogleService):
                 documentId=document_id, body={"requests": requests}
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)
 
     def insert_table(
         self, document_id: str, rows: int, columns: int, index: int = 1
@@ -115,4 +117,4 @@ class GoogleDocsService(GoogleService):
                 documentId=document_id, body={"requests": requests}
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)

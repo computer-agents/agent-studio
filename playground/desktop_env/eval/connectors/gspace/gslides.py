@@ -1,15 +1,17 @@
 from googleapiclient.errors import HttpError
 
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
+from playground.utils.logger import Logger
+
+logger = Logger()
 
 
 class GoogleSlidesService(GoogleService):
     name: str = "google_slides"
 
-    def __init__(self, credential_path: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             scopes=["https://www.googleapis.com/auth/presentations"],
-            credential_path=credential_path,
             service_name="slides",
             service_version="v1",
         )
@@ -20,7 +22,7 @@ class GoogleSlidesService(GoogleService):
             presentation = self.service.presentations().create(body=body).execute()
             return presentation
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return {}
 
     def get_presentation(self, presentation_id: str) -> dict:
@@ -32,7 +34,7 @@ class GoogleSlidesService(GoogleService):
             )
             return presentation
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return {}
 
     def add_slide(self, presentation_id: str, page_id: str | None = None) -> None:
@@ -48,7 +50,7 @@ class GoogleSlidesService(GoogleService):
                 presentationId=presentation_id, body={"requests": requests}
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)
 
     def create_textbox(
         self,
@@ -88,7 +90,7 @@ class GoogleSlidesService(GoogleService):
             ).execute()
             return element_id
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return None
 
     def add_text_to_slide(self, presentation_id: str, page_id: str, text: str) -> None:
@@ -98,7 +100,7 @@ class GoogleSlidesService(GoogleService):
                 presentationId=presentation_id, body={"requests": requests}
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)
 
     def replace_text_in_slide(
         self,
@@ -120,7 +122,7 @@ class GoogleSlidesService(GoogleService):
                 presentationId=presentation_id, body={"requests": requests}
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)
 
     def get_slide_ids(self, presentation_id: str) -> list:
         presentation = self.get_presentation(presentation_id)
@@ -149,4 +151,4 @@ class GoogleSlidesService(GoogleService):
                 presentationId=presentation_id, body={"requests": requests}
             ).execute()
         except HttpError as err:
-            print(err)
+            logger.error(err)

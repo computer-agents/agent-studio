@@ -5,8 +5,7 @@ from playground.desktop_env.eval.connectors.gspace.gsheets import GoogleSheetsSe
 
 
 def test_gsheets_connector() -> None:
-    credentials_path = "playground/config/credentials.json"
-    sheets_service = GoogleSheetsService(credentials_path)
+    sheets_service = GoogleSheetsService()
 
     # Create a new Google Sheet
     new_sheet = sheets_service.create_sheet("Test Sheet")
@@ -40,6 +39,6 @@ def test_gsheets_connector() -> None:
     print("Data cleared from sheet.")
 
     # Delete the spreadsheet
-    drive_service = GoogleDriveService(credentials_path)
+    drive_service = GoogleDriveService()
     drive_service.delete_file(file_id=spreadsheet_id)
     print(f"Deleted sheet with ID: {spreadsheet_id}")

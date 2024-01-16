@@ -5,12 +5,15 @@ from google.oauth2 import credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
+from playground.config import Config
+
+config = Config()
+
 
 class GoogleService(object):
     def __init__(
         self,
         scopes: list[str],
-        credential_path: str,
         service_name: str,
         service_version: str,
         debug: bool = False,
@@ -36,7 +39,7 @@ class GoogleService(object):
         # "https://www.googleapis.com/auth/photoslibrary",
         self.service_name = service_name
         self.service_version = service_version
-        self.creds = self.authenticate(credential_path)
+        self.creds = self.authenticate(config.google_credential_path)
         self.service = build(service_name, service_version, credentials=self.creds)
         self.debug = debug
 

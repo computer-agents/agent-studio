@@ -2,15 +2,17 @@ from datetime import datetime
 from typing import Any
 
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
+from playground.utils.logger import Logger
+
+logger = Logger()
 
 
 class GoogleCalendarService(GoogleService):
-    def __init__(self, credential_path: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             scopes=[
                 "https://www.googleapis.com/auth/calendar",
             ],
-            credential_path=credential_path,
             service_name="calendar",
             service_version="v3",
         )
@@ -39,7 +41,7 @@ class GoogleCalendarService(GoogleService):
             self.service.calendars().delete(calendarId=calendar_id).execute()
             return True
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logger.error(f"An error occurred: {e}")
             return False
 
     def find_calendar_by_id(self, id: str) -> dict[str, str]:
@@ -98,7 +100,7 @@ class GoogleCalendarService(GoogleService):
             ).execute()
             return True
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logger.error(f"An error occurred: {e}")
             return False
 
     def get_event(self, event_id: str, calendar_id: str = "primary") -> dict[str, str]:

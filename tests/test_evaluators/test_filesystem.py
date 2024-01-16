@@ -11,12 +11,10 @@ def test_filesystem(
     config_file = "playground/desktop_env/eval/tasks/filesystem.json"
     with open(config_file, "r") as f:
         task_configs = json.load(f)
-    with open("playground/config/environments.json", "r") as f:
-        env_configs = json.load(f)
     agent = TeacherForcingAgent(env=computer_env)
 
     for task_config in task_configs["tasks"]:
-        comb = evaluator_router(task_config, env_configs)
+        comb = evaluator_router(task_config)
         comb.reset()
 
         action_sequence_path: str | None = task_configs.get(
