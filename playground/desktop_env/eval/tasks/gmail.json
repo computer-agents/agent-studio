@@ -31,6 +31,27 @@
                     ]
                 }
             ]
+        },
+        {
+            "task_id": 1,
+            "intent_template": "Send a email with subject '{subject}', content '{content}', and recipient '{recipient}'",
+            "instantiation_dict": {
+                "subject": "Automated Email",
+                "recipient": "gduser@workspacesamples.dev",
+                "content":"This is automatically sent email"
+            },
+            "evals": [
+                {
+                    "eval_type": "gmail",
+                    "eval_procedure": {
+                        "sent_email_exact_match": {
+                            "subject": "Automated Email",
+                            "recipient": "gduser@workspacesamples.dev",
+                            "body": "This is automatically sent email"
+                        }
+                    }
+                }
+            ]
         }
     ]
 }
