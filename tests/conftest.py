@@ -1,9 +1,9 @@
+import logging
 from typing import Generator
 
 import pytest
 
 from playground.desktop_env.computer.env import ComputerEnv
-from playground.utils.logger import Logger
 
 
 @pytest.fixture(scope="function")
@@ -13,9 +13,9 @@ def computer_env() -> Generator[ComputerEnv, None, None]:
     """
     env = ComputerEnv()
     yield env
-    # env.close()
+    env.terminate()
 
 
 def pytest_configure():
     """Add logger to pytest."""
-    pytest.logger = Logger()
+    pytest.logger = logging.getLogger(__name__)

@@ -1,10 +1,10 @@
+import logging
 from typing import Any
 
 from playground.desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
 from playground.desktop_env.eval.evaluator import Evaluator
-from playground.utils.logger import Logger
 
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 class GoogleDriveEvaluator(Evaluator):
