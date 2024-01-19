@@ -1,12 +1,12 @@
 import ast
 import importlib
+import logging
 import os
 from pathlib import Path
 
 from playground.desktop_env.eval.evaluator import Evaluator
-from playground.utils.logger import Logger
 
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 class EvaluatorComb:

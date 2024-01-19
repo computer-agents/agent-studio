@@ -1,9 +1,10 @@
+import logging
+
 from googleapiclient.errors import HttpError
 
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
-from playground.utils.logger import Logger
 
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 class GoogleDocsService(GoogleService):

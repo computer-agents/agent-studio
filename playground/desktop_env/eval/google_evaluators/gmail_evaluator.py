@@ -1,12 +1,12 @@
+import logging
 from typing import Any
 
 from playground.config import Config
 from playground.desktop_env.eval.connectors.gspace.gmail import GmailService
 from playground.desktop_env.eval.evaluator import Evaluator
-from playground.utils.logger import Logger
 
 config = Config()
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 class GmailEvaluator(Evaluator):

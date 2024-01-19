@@ -2,9 +2,9 @@
 
 # from playground.desktop_env.eval.connectors.gspace.gdocs import GoogleDocsService
 # from playground.desktop_env.eval.evaluator import Evaluator
-# from playground.utils.logger import Logger
+# import logging
 
-# logger = Logger()
+# logger = logging.getLogger(__name__)
 
 
 # class GoogleDocsEvaluator(Evaluator):
