@@ -17,6 +17,7 @@ class GmailService(GoogleService):
             scopes=[
                 "https://www.googleapis.com/auth/gmail.compose",
                 "https://www.googleapis.com/auth/gmail.readonly",
+                "https://mail.google.com/",
             ],
             service_name="gmail",
             service_version="v1",
@@ -176,6 +177,17 @@ class GmailService(GoogleService):
             logger.error(f"An error occurred: {error}")
             return False
 
+    def delete_sent_email(self, sent_email_id: str) -> bool:
+        try:
+            self.service.users().messages().delete(
+                userId="me", id=sent_email_id
+            ).execute()
+            logger.info(f"Sent email with id {sent_email_id} deleted successfully.")
+            return True
+        except HttpError as error:
+            logger.error(f"An error occurred: {error}")
+            return False
+
     # def create_draft_with_attachment(
     #     self,
     #     content: str,
@@ -314,3 +326,4 @@ if __name__ == "__main__":
     )
 
     logger.error(f"sent message: {sent_message}")
+    gmail_service.delete_sent_email(sent_message["id"])
