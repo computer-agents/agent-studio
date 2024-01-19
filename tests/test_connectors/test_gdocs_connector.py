@@ -1,10 +1,10 @@
+import logging
 from typing import Any
 
 from playground.desktop_env.eval.connectors.gspace.gdocs import GoogleDocsService
 from playground.desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
-from playground.utils.logger import Logger
 
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 def test_gdocs_connector() -> None:

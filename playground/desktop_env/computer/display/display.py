@@ -1,3 +1,4 @@
+import logging
 import os
 import tempfile
 import time
@@ -8,9 +9,7 @@ import numpy as np
 import pyautogui
 from PIL import Image
 
-from playground.utils.logger import Logger
-
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 class Display:

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from typing import Any
 
@@ -6,10 +7,9 @@ from playground.desktop_env.eval.connectors.gspace.gcalendar import (
     GoogleCalendarService,
 )
 from playground.desktop_env.eval.evaluator import Evaluator
-from playground.utils.logger import Logger
 
 config = Config()
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 class GoogleCalendarEvaluator(Evaluator):

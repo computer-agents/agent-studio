@@ -1,10 +1,10 @@
+import logging
 from datetime import datetime
 from typing import Any
 
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
-from playground.utils.logger import Logger
 
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 class GoogleCalendarService(GoogleService):

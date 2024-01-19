@@ -1,10 +1,11 @@
+import logging
+
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
-from playground.utils.logger import Logger
 
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 class GoogleDriveService(GoogleService):

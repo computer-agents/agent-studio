@@ -1,11 +1,11 @@
+import logging
 from typing import Any
 
 from googleapiclient.errors import HttpError
 
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
-from playground.utils.logger import Logger
 
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 class GoogleFormsService(GoogleService):
