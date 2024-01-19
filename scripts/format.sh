@@ -26,9 +26,6 @@ check_python_command_exist() {
         isort)
             VERSION=$ISORT_VERSION_REQUIRED
             ;;
-        shellcheck)
-            VERSION=$SHELLCHECK_VERSION_REQUIRED
-            ;;
         *)
             echo "$1 is not a required dependency"
             exit 1
@@ -58,7 +55,6 @@ check_python_command_exist black
 check_python_command_exist flake8
 check_python_command_exist mypy
 check_python_command_exist isort
-check_python_command_exist shellcheck
 
 # this stops git rev-parse from failing if we run this from the .git directory
 builtin cd "$(dirname "${BASH_SOURCE:-$0}")"
@@ -169,7 +165,7 @@ format_all() {
 }
 
 # Format the entire directory.
-format_all "${@}"
+format_all "${@:-}"
 if [ -n "${FORMAT_SH_PRINT_DIFF-}" ]; then git --no-pager diff; fi
 
 # check_docstyle

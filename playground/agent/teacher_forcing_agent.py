@@ -1,8 +1,9 @@
+import logging
+
 from playground.agent.base_agent import Agent
 from playground.desktop_env.computer.env import ComputerEnv
-from playground.utils.logger import Logger
 
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 class TeacherForcingAgent(Agent):

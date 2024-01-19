@@ -1,3 +1,4 @@
+import logging
 import os
 import tempfile
 import time
@@ -11,10 +12,9 @@ import pyautogui
 from PIL import Image, ImageDraw, ImageFont
 
 from playground.config import Config
-from playground.utils.logger import Logger
 
 config = Config()
-logger = Logger()
+logger = logging.getLogger(__name__)
 
 
 class Display:
