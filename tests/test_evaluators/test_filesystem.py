@@ -1,7 +1,7 @@
 import json
 
 from playground.agent.teacher_forcing_agent import TeacherForcingAgent
-from playground.desktop_env.computer.env import ComputerEnv
+from playground.desktop_env import ComputerEnv
 from playground.desktop_env.eval.evaluator_helper import evaluator_router
 
 

@@ -1,5 +1,5 @@
 from playground.agent.base_agent import Agent
-from playground.desktop_env.computer.env import ComputerEnv
+from playground.desktop_env import ComputerEnv
 from playground.llm import setup_llm
 from playground.llm.lm_config import LMConfig
 

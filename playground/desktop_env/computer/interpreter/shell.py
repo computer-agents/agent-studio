@@ -2,7 +2,7 @@ import os
 import platform
 import re
 
-from playground.desktop_env.computer.os.languages.subprocess_language import (
+from playground.desktop_env.computer.interpreter.subprocess_language import (
     SubprocessLanguage,
 )
 
