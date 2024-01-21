@@ -65,9 +65,13 @@ class AllinOneRecorder(Recorder):
                     code = "\n".join(code.split("\n")[1:])
                 else:
                     interpreter = "unknown"
-                code_event = self.events.pop()
+                code_event = None
+                for event in reversed(self.events):
+                    if event.event_type == "code" and event.data == {}:
+                        code_event = event
+                        break
+                assert code_event is not None
                 code_event.data = {"interpreter": interpreter, "code": code}
-                self.events.append(code_event)
 
     def __set_mode(self, mode: MODE) -> None:
         if mode != self.prev_mode:
@@ -92,7 +96,7 @@ class AllinOneRecorder(Recorder):
                 elif "Darwin" in OS:
                     sp.Popen(["open", "-e", self.code_path])
                 else:
-                    logger.error("OS not supported")
+                    logger.error(f"OS {OS} not supported")
                     self.stop()
                 self.events.append(Event(time.time(), "code", {}))
             elif mode == MODE.TYPING:
@@ -264,7 +268,7 @@ class AllinOneRecorder(Recorder):
             }
             json.dump(record_json, open(self.output_file, "w"), indent=4)
         else:
-            logger.error("no events recorded")
+            logger.warn("no events recorded")
 
     def __del__(self) -> None:
         if os.path.exists(self.code_path):
