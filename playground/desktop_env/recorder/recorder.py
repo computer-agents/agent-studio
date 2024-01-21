@@ -1,7 +1,5 @@
 import json
 import logging
-
-# import keyboard
 import os
 import re
 import subprocess as sp
@@ -37,8 +35,8 @@ class AllinOneRecorder(Recorder):
         self.video_available: bool = False
         self.video_screen_region: dict[str, int] = video_screen_region
         self.output_file: str = output_file
-        self.events: list[Event] = []
-        self.prev_mode: MODE | None = None
+        self.events: list[Event] = []  # code events and mode switch events
+        self.prev_mode: MODE = MODE.INIT
         self.shebang_template = re.compile(r"^#!\s*(.+)")
         self.code_path = f"{str(uuid.uuid4())}.txt"
         self.mouse_recorder = MouseRecorder(mouse_options, mouse_fps)
@@ -56,8 +54,8 @@ class AllinOneRecorder(Recorder):
         )
 
     def __save_code(self) -> None:
-        if os.path.exists("code.txt"):
-            with open("code.txt", "r") as f:
+        if os.path.exists(self.code_path):
+            with open(self.code_path, "r") as f:
                 code = f.read()
             if len(code) > 0:
                 firstline = code.split("\n")[0]
@@ -152,7 +150,7 @@ class AllinOneRecorder(Recorder):
         return clean_events
 
     @staticmethod
-    def remove_bad_keys(events: list[Event]) -> list[Event]:
+    def __remove_bad_keys(events: list[Event]) -> list[Event]:
         """
         Remove those keys that only have 'up' event or 'down' event
         """
@@ -166,7 +164,7 @@ class AllinOneRecorder(Recorder):
         return list(reversed(events))
 
     @staticmethod
-    def remove_bad_mouse(events: list[Event]) -> list[Event]:
+    def __remove_bad_mouse(events: list[Event]) -> list[Event]:
         """
         Remove those mouse events that only have 'up' event or 'down' event
         """
@@ -210,13 +208,13 @@ class AllinOneRecorder(Recorder):
         )
         # filter out mouse and keyboard events
         # that are not during the recording time
-        filter_valid_events: Callable = lambda events: [
+        find_recorded_events: Callable = lambda events: [
             e for e in events if video_start_time <= e.time <= video_stop_time
         ]
-        valid_mouse_events = filter_valid_events(self.mouse_recorder.events)
-        valid_mouse_events = self.remove_bad_mouse(valid_mouse_events)
-        valid_key_events = filter_valid_events(self.keyboard_recorder.events)
-        valid_key_events = self.remove_bad_keys(valid_key_events)
+        valid_mouse_events = find_recorded_events(self.mouse_recorder.events)
+        valid_mouse_events = self.__remove_bad_mouse(valid_mouse_events)
+        valid_key_events = find_recorded_events(self.keyboard_recorder.events)
+        valid_key_events = self.__remove_bad_keys(valid_key_events)
         valid_key_mouse_events = valid_mouse_events + valid_key_events
         # convert to json
         if self.video_available:
@@ -224,44 +222,49 @@ class AllinOneRecorder(Recorder):
                 "region": self.video_screen_region,
                 "fps": self.video_recorder.fps,
                 "path": self.video_path,
+                "start_time": self.video_recorder.start_time,
             }
         else:
             video_json = None
         # determine task type
         task_type: str = "unknown"
-        code_start_time: float = float("inf")
+        has_code: bool = False
         for e in self.events:
             if e.event_type == "code":
-                code_start_time = e.time
+                has_code = True
                 break
         if self.video_available:
-            if code_start_time != float("inf"):
+            if has_code:
                 task_type = "hybrid"
             else:
                 task_type = "video_only"
-        elif code_start_time != float("inf"):
+        elif has_code:
             task_type = "api_only"
-        start_time = min(video_start_time, code_start_time)
-        stop_time = max(video_stop_time, self.stop_time)
-        # offset = start_time
-        record_json: dict = {
-            "task_type": task_type,
-            "start_time": start_time,  # - offset
-            "stop_time": stop_time,  # - offset
-            "video": video_json,
-            "events": [],
-        }
         events_all = valid_key_mouse_events + self.events
         events_all.sort()
+        events_all_json = []
         for event in events_all:
-            record_json["events"].append(
+            events_all_json.append(
                 {
                     "time": event.time,  # - offset
                     "event_type": event.event_type,
                     "data": event.data,
                 }
             )
-        json.dump(record_json, open(self.output_file, "w"), indent=4)
+        if len(events_all) > 0:
+            start_time = min(events_all).time
+            stop_time = max(events_all).time
+            # offset = start_time
+            record_json: dict = {
+                "task_type": task_type,
+                "start_time": start_time,  # - offset
+                "stop_time": stop_time,  # - offset
+                "video": video_json,
+                "events": events_all_json,
+            }
+            json.dump(record_json, open(self.output_file, "w"), indent=4)
+        else:
+            logger.error("no events recorded")
 
     def __del__(self) -> None:
         if os.path.exists(self.code_path):
@@ -281,7 +284,7 @@ if __name__ == "__main__":
             "width": width,
             "height": height,
         },
-        video_fps=5,
+        video_fps=1,
         output_file="record.json",
         mouse_fps=5,  # framerate of mouse movement
     )
