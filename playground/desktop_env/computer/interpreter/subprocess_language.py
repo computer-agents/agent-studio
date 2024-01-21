@@ -6,7 +6,7 @@ import threading
 import time
 import traceback
 
-from playground.desktop_env.computer.os.languages.base_language import BaseLanguage
+from playground.desktop_env.computer.interpreter.base_language import BaseLanguage
 
 
 class SubprocessLanguage(BaseLanguage):

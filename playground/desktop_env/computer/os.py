@@ -2,8 +2,8 @@ import platform
 
 import pyperclip
 
-from playground.desktop_env.computer.os.languages.python import Python
-from playground.desktop_env.computer.os.languages.shell import Shell
+from playground.desktop_env.computer.interpreter.python import Python
+from playground.desktop_env.computer.interpreter.shell import Shell
 
 
 class Os:

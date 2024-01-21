@@ -8,7 +8,7 @@ import traceback
 
 from jupyter_client import KernelManager
 
-from playground.desktop_env.computer.os.languages.base_language import BaseLanguage
+from playground.desktop_env.computer.interpreter.base_language import BaseLanguage
 
 # Supresses a weird debugging error
 os.environ["PYDEVD_DISABLE_FILE_VALIDATION"] = "1"
