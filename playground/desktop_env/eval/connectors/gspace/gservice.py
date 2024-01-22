@@ -1,14 +1,17 @@
 import os
+import json
+import logging
 
 from google.auth.transport.requests import Request
 from google.oauth2 import credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from google.auth import exceptions
 
 from playground.config import Config
 
 config = Config()
-
+logger = logging.getLogger(__name__)
 
 class GoogleService(object):
     def __init__(
@@ -44,29 +47,39 @@ class GoogleService(object):
         self.debug = debug
 
     def authenticate(self, credential_path: str) -> credentials.Credentials | None:
-        creds = None
-        # The file token.json stores the user's access and refresh tokens, and is
-        # created automatically when the authorization flow completes for the first
-        # time.
         token_path = os.path.join(
             os.path.dirname(credential_path), f"{self.service_name}_token.json"
         )
+        with open(credential_path, "r") as f:
+            credential = json.loads(f.read())
         if os.path.exists(token_path):
-            creds = credentials.Credentials.from_authorized_user_file(
-                token_path, self.scopes
-            )
+            with open(token_path, "r") as f:
+                token = json.loads(f.read())
+        else:
+            token = None
+        try:
+            creds = self.update_token_crediential(credential, token)
+        except exceptions.RefreshError:
+            creds = self.update_token_crediential(credential, None)
+        if creds is None:
+            logger.error("Failed to authenticate")
+            raise Exception("Failed to authenticate")
+        else:
+            with open(token_path, "w") as token:
+                token.write(creds.to_json())
+        return creds
+
+    def update_token_crediential(
+            self, credential: dict, token: dict | None
+        ) -> credentials.Credentials | None:
+        creds = None
+        if token is not None:
+            creds = credentials.Credentials.from_authorized_user_info(token, self.scopes)
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    credential_path,
-                    self.scopes,
-                )
+                flow = InstalledAppFlow.from_client_config(credential, self.scopes)
                 creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-            with open(token_path, "w") as token:
-                token.write(creds.to_json())
-
         return creds
