@@ -1,0 +1,183 @@
+{
+    "environments": ["google_drive", "filesystem"],
+    "tasks": [
+        {
+            "task_id": 0,
+            "intent": "Upload a file named 'Sample Document' with content from '/tmp/test.txt' to Google Drive",
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reset_procedure": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "create_file": {
+                                "path": "tmp/test.txt",
+                                "content": "This is a test file."
+                            }
+                        }
+                    ]
+                },
+                {
+                    "eval_type": "google_drive",
+                    "eval_procedure": {
+                        "file_match": {
+                            "name": "Sample Document",
+                            "content": "This is a test file."
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "task_id": 1,
+            "intent": "Upload a file named 'Test Document' with content from '/tmp/sample.txt' to Google Drive",
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reset_procedure": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "create_file": {
+                                "path": "tmp/sample.txt"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "eval_type": "google_drive",
+                    "eval_procedure": {
+                        "file_match": {
+                            "name": "Test Document"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "task_id": 2,
+            "intent": "List all files in the folder with name 'TestFolder'",
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reset_procedure": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "create_file": {
+                                "path": "tmp/test.txt",
+                                "content": "This is a test file."
+                            }
+                        }
+                    ]
+                },
+                {
+                    "eval_type": "google_drive",
+                    "reset_procedure": [
+                        {
+                            "init_folder": {
+                                "name": "TestFolder",
+                                "file_name": "Test Document",
+                                "file_path": "tmp/test.txt",
+                                "mime_type": "text/plain"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "eval_type": "qa",
+                    "eval_procedure": {
+                        "string_match": "Test Document"
+                    }
+                }
+            ]
+        },
+        {
+            "task_id": 3,
+            "intent": "Upload local folder 'tmp' to the drive folder 'TestFolder'",
+            "evals": [
+                {
+                    "eval_type": "filesystem",
+                    "reset_procedure": [
+                        {
+                            "rmdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "mkdir": {
+                                "path": "tmp"
+                            }
+                        },
+                        {
+                            "create_file": {
+                                "path": "tmp/test.txt",
+                                "content": "This is a test file."
+                            }
+                        }
+                    ]
+                },
+                {
+                    "eval_type": "google_drive",
+                    "eval_procedure": {
+                        "file_list_match": {
+                            "name": "TestFolder",
+                            "files": [
+                                {
+                                    "name": "Test Document"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "task_id": 4,
+            "intent": "Delete the folder with name 'TestFolder' from Google Drive",
+            "evals": [
+                {
+                    "eval_type": "google_drive",
+                    "eval_procedure": {
+                        "folder_exists": {
+                            "name": "TestFolder",
+                            "answer": false
+                        }
+                    },
+                    "reset_procedure": [
+                        {
+                            "init_folder": {
+                                "name": "TestFolder"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

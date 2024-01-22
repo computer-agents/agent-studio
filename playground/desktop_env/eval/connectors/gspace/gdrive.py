@@ -1,3 +1,5 @@
+import codecs
+import io
 import logging
 
 from googleapiclient.errors import HttpError
@@ -93,6 +95,63 @@ class GoogleDriveService(GoogleService):
             ).execute()
         except HttpError as err:
             logger.error(err)
+
+    # Function to search for a file by name in Google Drive
+    def search_file(self, file_name):
+        results = (
+            self.service.files()
+            .list(q=f"name='{file_name}'", spaces="drive", fields="files(id)")
+            .execute()
+        )
+        file_ids = [f["id"] for f in results.get("files", [])]
+        return file_ids
+
+    # Function to download and compare file content
+    def compare_file_content(self, file_id, content):
+        # Get file metadata to check MIME type
+        file_metadata = (
+            self.service.files().get(fileId=file_id, fields="mimeType").execute()
+        )
+        mime_type = file_metadata["mimeType"]
+
+        # If the file is a Google Docs file, export it in 'text/plain' format
+        if mime_type == "application/vnd.google-apps.document":
+            request = self.service.files().export_media(
+                fileId=file_id, mimeType="text/plain"
+            )
+            fh = io.BytesIO()
+            downloader = MediaIoBaseDownload(fh, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+            drive_content = fh.getvalue().decode()
+        else:
+            # Handle other file types (binary content)
+            request = self.service.files().get_media(fileId=file_id)
+            fh = io.BytesIO()
+            downloader = MediaIoBaseDownload(fh, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+            drive_content = fh.getvalue().decode()
+
+        drive_content = drive_content.lstrip(codecs.BOM_UTF8.decode("utf-8"))
+
+        return content.strip() == drive_content.strip()
+
+    # Function to search for a folder by name in Google Drive
+    def search_folder(self, folder_name):
+        results = (
+            self.service.files()
+            .list(
+                q=f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}'",  # noqa: E501
+                spaces="drive",
+                fields="files(id, name)",
+            )
+            .execute()
+        )
+        folder_ids = [f["id"] for f in results.get("files", [])]
+        return folder_ids
 
     def get_recent_documents(self, max_results=1):
         try:
