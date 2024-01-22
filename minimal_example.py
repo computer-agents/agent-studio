@@ -1,6 +1,6 @@
 import time
 
-from playground.desktop_env.computer.env import ComputerEnv
+from playground.desktop_env import ComputerEnv
 
 computer = ComputerEnv()
 

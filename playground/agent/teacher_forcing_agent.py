@@ -1,7 +1,7 @@
 import logging
 
 from playground.agent.base_agent import Agent
-from playground.desktop_env.computer.env import ComputerEnv
+from playground.desktop_env import ComputerEnv
 
 logger = logging.getLogger(__name__)
 

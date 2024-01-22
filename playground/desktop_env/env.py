@@ -1,9 +1,9 @@
 import json
 
-from playground.desktop_env.computer.display.display import Display
-from playground.desktop_env.computer.keyboard.keyboard import Keyboard
-from playground.desktop_env.computer.mouse.mouse import Mouse
-from playground.desktop_env.computer.os.os import Os
+from playground.desktop_env.computer.display import Display
+from playground.desktop_env.computer.keyboard import Keyboard
+from playground.desktop_env.computer.mouse import Mouse
+from playground.desktop_env.computer.os import Os
 
 
 class ComputerEnv:
