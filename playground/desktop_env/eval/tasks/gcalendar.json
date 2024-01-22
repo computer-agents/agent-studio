@@ -26,7 +26,7 @@
                     },
                     "reset_procedure": [
                         {
-                            "deduplicate_event": {
+                            "overwrite_event": {
                                 "summary": "Meeting with Team",
                                 "location": "Office",
                                 "description": "Discuss project status",

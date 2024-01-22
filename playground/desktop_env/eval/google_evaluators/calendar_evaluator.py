@@ -136,30 +136,29 @@ class GoogleCalendarEvaluator(Evaluator):
                                 calendar_id=config.google_calendar_id,
                             )
                             self.events[event.get("id")] = event
-                        case "deduplicate_event":
-                            events = self.service.search_events_by_time_range(
-                                start_time=params["start"]["dateTime"],
-                                end_time=params["end"]["dateTime"],
+                        case "overwrite_event":
+                            """
+                            overwrite the existing event
+                            Maybe duplicated with "create_event" action
+                            """
+                            events = self.service.search_events_by_info(
+                                params,
                                 calendar_id=config.google_calendar_id,
                             )
                             for event in events:
-                                if (
-                                    event["summary"] == params["summary"]
-                                    and event["location"] == params["location"]
-                                    and event["description"] == params["description"]
-                                    and self.time_match(
-                                        event["start"]["dateTime"],
-                                        params["start"]["dateTime"],
-                                    )
-                                    and self.time_match(
-                                        event["end"]["dateTime"],
-                                        params["end"]["dateTime"],
-                                    )
-                                ):
-                                    self.service.delete_event(
-                                        event_id=event["id"],
-                                        calendar_id=config.google_calendar_id,
-                                    )
+                                self.service.delete_event(
+                                    event_id=event["id"],
+                                    calendar_id=config.google_calendar_id,
+                                )
+                            event = self.service.create_event(
+                                start_time=params["start"]["dateTime"],
+                                end_time=params["end"]["dateTime"],
+                                summary=params.get("summary"),
+                                location=params.get("location"),
+                                description=params.get("description"),
+                                attendees=params.get("attendees"),
+                                calendar_id=config.google_calendar_id,
+                            )
                         # case "delete_cur_calendar":
                         #     self.service.delete_calendar(
                         #         config.google_calendar_id
