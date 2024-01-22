@@ -17,10 +17,10 @@ class EvaluatorComb:
         for evaluator in self.evaluators:
             evaluator.reset()
 
-    def __call__(self) -> float:
+    def __call__(self, **kwargs) -> float:
         score = 1.0
         for evaluator in self.evaluators:
-            cur_score = evaluator()
+            cur_score = evaluator(**kwargs)
             score *= cur_score
         return score
 

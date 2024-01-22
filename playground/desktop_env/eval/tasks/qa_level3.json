@@ -1,0 +1,45 @@
+[
+    {
+        "task_id": "00d579ea-0889-4fd9-a771-2c8d79835c8d",
+        "intent": "Assuming scientists in the famous youtube video The Thinking Machine (Artificial Intelligence in the 1960s) were interviewed the same year, what is the name of the scientist predicting the sooner thinking machines or robots? Answer using the format First name Last name",
+        "level": 3,
+        "file_names": [],
+        "Annotator Metadata": {
+            "Steps": "1. Search \"The Thinking Machine (Artificial Intelligence in the 1960s)\" and open the YouTube result\n2. Listen to the video.\n3. Search for a transcript to confirm, due to struggling to feel confident in my answer.\n4. Fail to find a transcript.\n5. Watch again, finding again that Claude Shannon predicted AI in 5-10 years, which is the soonest.",
+            "Number of steps": "5",
+            "How long did this take?": "15 minutes",
+            "Tools": "1. web browser\n2. video recognition tools",
+            "Number of tools": "2"
+        },
+        "evals": [
+            {
+                "eval_type": "qa",
+                "eval_procedure": {
+                    "string_match": "Claude Shannon"
+                }
+            }
+        ]
+    },
+    {
+        "task_id": "9b54f9d9-35ee-4a14-b62f-d130ea00317f",
+        "Question": "Which of the text elements under CATEGORIES in the XML would contain the one food in the spreadsheet that does not appear a second time under a different name?",
+        "Level": 3,
+        "Final answer": "Soups and Stews",
+        "file_name": "9b54f9d9-35ee-4a14-b62f-d130ea00317f.zip",
+        "Annotator Metadata": {
+            "Steps": "1. Open the spreadsheet.\n2. Go through each item, eliminating ones that have duplicates under a different name (e.g. clam = geoduck, sandwich = hoagie, dried cranberries = craisins...).\n3. (Optional) Look up any unrecognizable food names.\n4. Note the remaining unique food (turtle soup).\n5. Open the XML.\n6. Find the CATEGORIES label.\n7. Note the matching text element for the food (Soups and Stews).",
+            "Number of steps": "7",
+            "How long did this take?": "15 minutes",
+            "Tools": "1. Excel file access\n2. XML file access\n3. (Optional) Web browser\n4. (Optional) Search engine",
+            "Number of tools": "4"
+        },
+        "evals": [
+            {
+                "eval_type": "qa",
+                "eval_procedure": {
+                    "string_match": "Soups and Stews"
+                }
+            }
+        ]
+    }
+]
