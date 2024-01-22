@@ -24,8 +24,6 @@ class Config(metaclass=Singleton):
     vscode_executable_path: str = "code"
 
     def __init__(self) -> None:
-        project_root = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        self.log_dir = os.path.join(project_root, "./logs/")
+        work_dir = os.getcwd()
+        self.log_dir = os.path.join(work_dir, "./logs/")
         Path(self.log_dir).mkdir(parents=True, exist_ok=True)
