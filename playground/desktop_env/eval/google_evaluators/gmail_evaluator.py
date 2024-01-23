@@ -34,7 +34,9 @@ class GmailEvaluator(Evaluator):
         content_match = ref["body"].strip() == pred["body"].strip()
         return float(subject_match and recipient_match and content_match)
 
-    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
+    def execute(
+        self, steps: list[dict[str, dict[str, Any]]], response: str | None = None
+    ) -> float:
         try:
             for step in steps:
                 for action, params in step.items():
@@ -64,7 +66,7 @@ class GmailEvaluator(Evaluator):
             logger.error(f"An error occurred in Gmail env: {e}")
             return False
 
-    def __call__(self) -> float:
+    def __call__(self, response: str | None = None) -> float:
         score = 1.0
 
         try:

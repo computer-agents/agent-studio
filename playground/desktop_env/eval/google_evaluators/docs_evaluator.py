@@ -24,7 +24,7 @@
 #         self.service = GoogleDocsService()
 #         self.document_id: str = ""
 
-#     def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
+#     def execute(self, steps: list[dict[str, dict[str, Any]]], response: str | None = None) -> float:  # noqa: E501
 #         try:
 #             for step in steps:
 #                 action, params = list(step.items())[0]
@@ -43,7 +43,7 @@
 #             logger.error(f"An error occurred in Google Docs env: {e}")
 #             return False
 
-#     def __call__(self) -> float:
+#     def __call__(self, response: str | None = None) -> float:
 #         return 0.0
 #         # calendar_id = config.google_calendar_id
 #         # score = 1.0

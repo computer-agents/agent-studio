@@ -1,42 +1,39 @@
-{
-    "environments": ["google_calendar"],
-    "action_sequence_path": "data/gcalendar.json",
-    "tasks": [
-        {
-            "task_id": 0,
-            "intent_template": "Create an event called '{summary}' at '{location}' on '{start}' to '{end}' to '{description}'",
-            "instantiation_dict": {
-                "summary": ["Meeting with Team"],
-                "location": ["Office"],
-                "description": ["Discuss project status"],
-                "start": ["2024-01-05 10am"],
-                "end": ["11am"]
-            },
-            "evals": [
-                {
-                    "eval_type": "google_calendar",
-                    "eval_procedure": {
-                        "event_match": {
+[
+    {
+        "task_id": 0,
+        "intent": "Create an event called 'Meeting with Team' at 'Office' on 2024-01-05 10am to 11am to 'Discuss project status'",
+        "evals": [
+            {
+                "eval_type": "google_calendar",
+                "eval_procedure": {
+                    "event_match": {
+                        "summary": "Meeting with Team",
+                        "location": "Office",
+                        "description": "Discuss project status",
+                        "start": {
+                            "dateTime": "2024-01-05T10:00:00Z"
+                        },
+                        "end": {
+                            "dateTime": "2024-01-05T11:00:00Z"
+                        }
+                    }
+                },
+                "reset_procedure": [
+                    {
+                        "deduplicate_event": {
                             "summary": "Meeting with Team",
                             "location": "Office",
                             "description": "Discuss project status",
-                            "start": {"dateTime": "2024-01-05T10:00:00Z"},
-                            "end": {"dateTime": "2024-01-05T11:00:00Z"}
-                        }
-                    },
-                    "reset_procedure": [
-                        {
-                            "deduplicate_event": {
-                                "summary": "Meeting with Team",
-                                "location": "Office",
-                                "description": "Discuss project status",
-                                "start": {"dateTime": "2024-01-05T10:00:00Z"},
-                                "end": {"dateTime": "2024-01-05T11:00:00Z"}
+                            "start": {
+                                "dateTime": "2024-01-05T10:00:00Z"
+                            },
+                            "end": {
+                                "dateTime": "2024-01-05T11:00:00Z"
                             }
                         }
-                    ]
-                }
-            ]
-        }
-    ]
-}
+                    }
+                ]
+            }
+        ]
+    }
+]

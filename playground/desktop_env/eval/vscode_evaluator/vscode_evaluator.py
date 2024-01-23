@@ -20,7 +20,9 @@ class VSCodeEvaluator(Evaluator):
             executable_path=config.vscode_executable_path,
         )
 
-    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
+    def execute(
+        self, steps: list[dict[str, dict[str, Any]]], response: str | None = None
+    ) -> float:
         try:
             for step in steps:
                 for action, params in step.items():

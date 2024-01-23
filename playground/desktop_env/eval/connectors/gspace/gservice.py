@@ -1,17 +1,18 @@
-import os
 import json
 import logging
+import os
 
+from google.auth import exceptions
 from google.auth.transport.requests import Request
 from google.oauth2 import credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from google.auth import exceptions
 
 from playground.config import Config
 
 config = Config()
 logger = logging.getLogger(__name__)
+
 
 class GoogleService(object):
     def __init__(
@@ -70,11 +71,13 @@ class GoogleService(object):
         return creds
 
     def update_token_crediential(
-            self, credential: dict, token: dict | None
-        ) -> credentials.Credentials | None:
+        self, credential: dict, token: dict | None
+    ) -> credentials.Credentials | None:
         creds = None
         if token is not None:
-            creds = credentials.Credentials.from_authorized_user_info(token, self.scopes)
+            creds = credentials.Credentials.from_authorized_user_info(
+                token, self.scopes
+            )
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:

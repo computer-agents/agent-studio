@@ -22,18 +22,15 @@ class GoogleDriveEvaluator(Evaluator):
             eval_tag=eval_tag,
         )
         self.service = GoogleDriveService()
-        # Additional properties as needed, e.g., created_file_id
 
-    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
+    def execute(
+        self, steps: list[dict[str, dict[str, Any]]], response: str | None = None
+    ) -> float:
+        score = 1.0
         try:
             for step in steps:
                 for action, params in step.items():
                     match action:
-                        case "upload_file":
-                            pass
-                        case "download_file":
-                            # Perform file download and verify content
-                            pass
                         case "init_folder":
                             folder = self.service.create_folder(
                                 folder_name=params["name"]
@@ -46,62 +43,44 @@ class GoogleDriveEvaluator(Evaluator):
                                     mime_type=params["mime_type"],
                                     folder_id=folder_id,
                                 )
-                        case "list_files":
-                            # List files and compare with expected list
-                            pass
-                        case "delete_file":
-                            # Delete a specified file
-                            pass
+                        case "file_match":
+                            file_ids = self.service.search_file(params["name"])
+                            if "content" in params:
+                                score *= float(
+                                    self.service.compare_file_content(
+                                        file_ids[0], params["content"]
+                                    )
+                                )
+                            elif len(file_ids) == 0:
+                                score = 0.0
+                        case "folder_exists":
+                            folder_ids = self.service.search_folder(params["name"])
+                            if params["exists"]:
+                                score = len(folder_ids) > 0
+                            else:
+                                print("ss:", len(folder_ids))
+                                score = len(folder_ids) == 0
+                        case "folder_match":
+                            folder_ids = self.service.search_folder(params["name"])
+                            if len(folder_ids) == 0:
+                                score = 0.0
+                            else:
+                                files = self.service.list_files(folder_ids[0])
+                                score *= float(
+                                    len(files) == len(params["files"])
+                                    and all(
+                                        [
+                                            ref["name"] == pred["name"]
+                                            for ref, pred in zip(params["files"], files)
+                                        ]
+                                    )
+                                )
                         case _:
                             raise Exception(
                                 f"Action {action} not supported by Google Drive"
                             )
-            return True
         except Exception as e:
-            logger.error(f"An error occurred in Google Drive env: {e}")
-            return False
-
-    def __call__(self) -> float:
-        score = 1.0
-
-        try:
-            for approach, value in self.reference_answer.items():
-                match approach:
-                    case "file_match":
-                        file_ids = self.service.search_file(value["name"])
-                        if "content" in value:
-                            score *= float(
-                                self.service.compare_file_content(
-                                    file_ids[0], value["content"]
-                                )
-                            )
-                        elif len(file_ids) == 0:
-                            score = 0.0
-                    case "folder_exists":
-                        folder_ids = self.service.search_folder(value["name"])
-                        if value["answer"]:
-                            score = len(folder_ids) > 0
-                        else:
-                            score = len(folder_ids) == 0
-                    case "folder_match":
-                        folder_ids = self.service.search_folder(value["name"])
-                        if len(folder_ids) == 0:
-                            score = 0.0
-                        else:
-                            files = self.service.list_files(folder_ids[0])
-                            score *= float(
-                                len(files) == len(value["files"])
-                                and all(
-                                    [
-                                        ref["name"] == pred["name"]
-                                        for ref, pred in zip(value["files"], files)
-                                    ]
-                                )
-                            )
-                    case _:
-                        raise Exception(f"Method {approach} not found")
-        except Exception as e:
-            logger.error(f"An error occurred: {e}\nscore may be incorrect")
+            logger.error(f"An error occurred in Google Drive: {e}")
             score = 0.0
 
         return score

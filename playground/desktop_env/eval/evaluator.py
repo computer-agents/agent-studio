@@ -1,4 +1,7 @@
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 class Evaluator(object):
@@ -15,17 +18,15 @@ class Evaluator(object):
         self.reference_answer = reference_answer
         self.eval_tag = eval_tag
         self.reset_procedure = reset_procedure
-        self.phase: str = "init"
 
-    def reset(self) -> bool:
-        assert self.phase == "init", "Evaluator is not in the init phase"
-        self.phase = "reset"
-        succ = self.execute(self.reset_procedure)
-        self.phase = "eval"
-        return succ
-
-    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
+    def execute(
+        self, steps: list[dict[str, dict[str, Any]]], response: str | None = None
+    ) -> float:
         raise NotImplementedError
 
-    def __call__(self) -> float:
-        raise NotImplementedError
+    def reset(self) -> None:
+        self.execute(self.reset_procedure)
+
+    def __call__(self, response: str | None = None) -> float:
+        """Evaluate the outcome of the task."""
+        return self.execute([self.reference_answer], response)

@@ -4,14 +4,14 @@ from playground.desktop_env import ComputerEnv
 from playground.desktop_env.eval.evaluator_helper import evaluator_router
 
 
-def test_calendar(
+def test_gdrive(
     computer_env: ComputerEnv,
 ) -> None:
-    config_file = "playground/desktop_env/eval/tasks/gcalendar_filesystem.json"
+    config_file = "playground/desktop_env/eval/tasks/gdrive.json"
     with open(config_file, "r") as f:
         task_configs = json.load(f)
 
-    for task_config in task_configs[5:]:
+    for task_config in task_configs:
         comb = evaluator_router(task_config)
         comb.reset()
         # Tip: run pytest with -s, and finish the task by hand during this input

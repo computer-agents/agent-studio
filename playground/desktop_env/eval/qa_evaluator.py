@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from playground.desktop_env.eval.evaluator import Evaluator
 
@@ -8,11 +9,22 @@ logger = logging.getLogger(__name__)
 class QAEvaluator(Evaluator):
     name: str = "qa"
 
-    def __call__(self, **kwargs) -> float:
+    def execute(
+        self, steps: list[dict[str, dict[str, Any]]], response: str | None = None
+    ) -> float:
         score = 1.0
-        for approach, value in self.reference_answer.items():
-            match approach:
-                case "string_match":
-                    score *= float(kwargs["output"] == value)
+        try:
+            for step in steps:
+                for action, params in step.items():
+                    match action:
+                        case "string_match":
+                            score *= float(params == response)
+                        case _:
+                            raise Exception(
+                                f"Action {action} not supported by Google Drive"
+                            )
+        except Exception as e:
+            logger.error(f"An error occurred in Google Drive: {e}")
+            score = 0.0
 
         return score

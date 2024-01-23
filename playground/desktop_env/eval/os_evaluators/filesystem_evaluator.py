@@ -97,7 +97,10 @@ class FilesystemEvaluator(Evaluator):
     def exists(path: str) -> bool:
         return Path(path).exists()
 
-    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
+    def execute(
+        self, steps: list[dict[str, dict[str, Any]]], response: str | None = None
+    ) -> float:
+        score = 1.0
         try:
             for step in steps:
                 for action, params in step.items():
@@ -136,34 +139,30 @@ class FilesystemEvaluator(Evaluator):
                             file_name = params["path"]
                             mode: int = int(params["mode"], 8)
                             os.chmod(file_name, mode)
+                        case "exists":
+                            for path, exists in params.items():
+                                score *= float(
+                                    FilesystemEvaluator.exists(path) == exists
+                                )
+                        case "type_check":
+                            for path, content in params.items():
+                                if content == "file":
+                                    score *= float(Path(path).is_file())
+                                elif content == "folder":
+                                    score *= float(Path(path).is_dir())
+                        case "permissions_check":
+                            for path, permissions in params.items():
+                                score *= float(self.permission_match(path, permissions))
+                        case "content_check":
+                            for path, content in params.items():
+                                score *= float(self.file_content_match(path, content))
+                        case "metadata_check":
+                            for path, metadata in params.items():
+                                score *= float(self.file_metadata_match(path, metadata))
                         case _:
                             raise Exception(f"Action {action} not found")
-            return True
         except Exception as e:
             logger.error(f"An error occurred in Filesystem env: {e}")
-            return False
-
-    def __call__(self) -> float:
-        score = 1.0
-        for approach, value in self.reference_answer.items():
-            match approach:
-                case "exists":
-                    for path, exists in value.items():
-                        score *= float(FilesystemEvaluator.exists(path) == exists)
-                case "type_check":
-                    for path, content in value.items():
-                        if content == "file":
-                            score *= float(Path(path).is_file())
-                        elif content == "folder":
-                            score *= float(Path(path).is_dir())
-                case "permissions_check":
-                    for path, permissions in value.items():
-                        score *= float(self.permission_match(path, permissions))
-                case "content_check":
-                    for path, content in value.items():
-                        score *= float(self.file_content_match(path, content))
-                case "metadata_check":
-                    for path, metadata in value.items():
-                        score *= float(self.file_metadata_match(path, metadata))
+            score = 0.0
 
         return score
