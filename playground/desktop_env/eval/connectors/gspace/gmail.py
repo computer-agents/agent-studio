@@ -108,6 +108,65 @@ class GmailService(GoogleService):
             "body": decoded_body,
         }
 
+    def get_recent_sent_mail(self) -> dict[str, str] | None:
+        # List all sent mails
+        results = (
+            self.service.users()
+            .messages()
+            .list(userId="me", labelIds=["SENT"])
+            .execute()
+        )
+        sent_mails = results.get("messages", [])
+        if not sent_mails:
+            logger.warn("No sent mails found.")
+            return None
+
+        # Assuming the most recent sent mail is the first in the list
+        recent_sent_mail_id = sent_mails[0]["id"]
+
+        # Retrieve the most recent sent mail
+        sent_mail = (
+            self.service.users()
+            .messages()
+            .get(userId="me", id=recent_sent_mail_id)
+            .execute()
+        )
+
+        # Get the message ID from the sent mail
+        message_id = sent_mail["id"]
+
+        # Retrieve the full message using the message ID
+        message = (
+            self.service.users()
+            .messages()
+            .get(userId="me", id=message_id, format="full")
+            .execute()
+        )
+
+        # Extract headers
+        headers = message["payload"]["headers"]
+        subject = next(
+            header["value"] for header in headers if header["name"].lower() == "subject"
+        )
+        recipient = next(
+            header["value"] for header in headers if header["name"].lower() == "to"
+        )
+
+        # Decode the body content
+        if message["payload"]["body"]["size"] == 0:
+            # If the body is empty, return empty string
+            decoded_body = ""
+        else:
+            body_data = message["payload"]["body"]["data"]
+            decoded_body = base64.urlsafe_b64decode(body_data.encode("ASCII")).decode()
+
+        return {
+            "id": recent_sent_mail_id,
+            "subject": subject,
+            "recipient": recipient,
+            "body": decoded_body,
+        }
+
     def delete_draft(self, draft_id: str) -> bool:
         try:
             self.service.users().drafts().delete(userId="me", id=draft_id).execute()
@@ -198,37 +257,60 @@ class GmailService(GoogleService):
 
     #     return msg
 
-    # def send_message(
-    #     self,
-    #     content: str,
-    #     sender: str,
-    #     recipient: str,
-    #     subject: str,
-    # ):
-    #     """Create and send an email message
-    #     Print the returned  message id
-    #     Returns: Message object, including message id
-    #     """
-    #     # TODO: should examine the agent behavior before sending
-    #     try:
-    #         message = EmailMessage()
-    #         message.set_content(content)  # "This is automated draft mail"
-    #         message["To"] = recipient  # "gduser1@workspacesamples.dev"
-    #         message["From"] = sender  # "gduser2@workspacesamples.dev"
-    #         message["Subject"] = subject  # "Automated draft"
+    def send_message(
+        self,
+        content: str,
+        recipient: str,
+        subject: str,
+        sender: str = "",
+    ):
+        """Create and send an email message
+        Print the returned  message id
+        Returns: Message object, including message id
+        """
+        # TODO: should examine the agent behavior before sending
+        # TODO: prompt the user to confirm before sending, like in open interpreter
+        try:
+            message = EmailMessage()
+            message.set_content(content)  # "This is automated draft mail"
+            message["To"] = recipient  # "gduser1@workspacesamples.dev"
+            if sender == "":
+                message["From"] = (
+                    self.service.users()
+                    .getProfile(userId="me")
+                    .execute()["emailAddress"]
+                )
+            else:
+                message["From"] = sender  # "gduser2@workspacesamples.dev"
+            message["Subject"] = subject  # "Automated draft"
 
-    #         encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+            encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
-    #         create_message = {"raw": encoded_message}
-    #         send_message = (
-    #             self.service.users()
-    #             .messages()
-    #             .send(userId="me", body=create_message)
-    #             .execute()
-    #         )
-    #         print(f'Message Id: {send_message["id"]}')
-    #     except HttpError as error:
-    #         print(f"An error occurred: {error}")
-    #         send_message = None
+            create_message = {"raw": encoded_message}
+            send_message = (
+                self.service.users()
+                .messages()
+                .send(userId="me", body=create_message)
+                .execute()
+            )
+            print(f'Message Id: {send_message["id"]}')
+        except HttpError as error:
+            print(f"An error occurred: {error}")
+            send_message = None
 
-    #     return send_message
+        return send_message
+
+
+# Test APIs
+if __name__ == "__main__":
+    gmail_service = GmailService()
+    return_dict = gmail_service.get_recent_sent_mail()
+    logger.error(f"return dict: {return_dict}")
+
+    sent_message = gmail_service.send_message(
+        content="This is automated mail",
+        recipient="gduser1@workspacesamples.dev",
+        subject="Automated mail",
+    )
+
+    logger.error(f"sent message: {sent_message}")

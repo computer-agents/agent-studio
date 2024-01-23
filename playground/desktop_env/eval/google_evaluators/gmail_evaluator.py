@@ -80,6 +80,14 @@ class GmailEvaluator(Evaluator):
                             score = 0.0
                         else:
                             score = self.email_exact_match(value, retrieved_draft)
+                    case "sent_email_exact_match":
+                        sent_email: dict[
+                            str, str
+                        ] | None = self.service.get_recent_sent_mail()
+                        if sent_email is None:
+                            score = 0.0
+                        else:
+                            score = self.email_exact_match(value, sent_email)
                     case _:
                         raise Exception(f"Method {approach} not found")
         except Exception as e:
