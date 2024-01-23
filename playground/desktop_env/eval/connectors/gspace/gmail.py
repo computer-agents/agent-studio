@@ -9,6 +9,8 @@ from googleapiclient.errors import HttpError
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
 
 logger = logging.getLogger(__name__)
+SEND = 1
+DELETE = 2
 
 
 class GmailService(GoogleService):
@@ -179,11 +181,13 @@ class GmailService(GoogleService):
 
     def delete_sent_email(self, sent_email_id: str) -> bool:
         try:
-            self.service.users().messages().delete(
-                userId="me", id=sent_email_id
-            ).execute()
-            logger.info(f"Sent email with id {sent_email_id} deleted successfully.")
-            return True
+            if self._confirm(DELETE):
+                self.service.users().messages().delete(
+                    userId="me", id=sent_email_id
+                ).execute()
+                logger.info(f"Sent email with id {sent_email_id} deleted successfully.")
+                return True
+            return False
         except HttpError as error:
             logger.error(f"An error occurred: {error}")
             return False
@@ -269,6 +273,25 @@ class GmailService(GoogleService):
 
     #     return msg
 
+    def _confirm(self, type=SEND):
+        # Haven't figure out how to get user input in pytest, so comment these lines
+        # if type == SEND:
+        #     words = ["send", "Sending", "sent"]
+        # elif type == DELETE:
+        #     words = ["delete", "Deleting", "deleted"]
+        # else:
+        #     raise Exception(f"Type {type} not supported by Gmail")
+
+        # user_input = input(
+        # f"Do you want to {words[0]} the email? (y/n): "
+        # ).strip().lower()
+        # if user_input == 'y':
+        #     logger.info(f"{words[1]} email...")
+        #     return True
+        # logger.info(f"Email not {words[2]}. Evaluation results may be incorrect.")
+        # return False
+        return True
+
     def send_message(
         self,
         content: str,
@@ -299,13 +322,18 @@ class GmailService(GoogleService):
             encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
             create_message = {"raw": encoded_message}
-            send_message = (
-                self.service.users()
-                .messages()
-                .send(userId="me", body=create_message)
-                .execute()
-            )
-            print(f'Message Id: {send_message["id"]}')
+            # prompt the user to confirm before sending
+            if self._confirm(SEND):
+                # if True:
+                send_message = (
+                    self.service.users()
+                    .messages()
+                    .send(userId="me", body=create_message)
+                    .execute()
+                )
+                print(f'Message Id: {send_message["id"]}')
+            else:
+                send_message = None
         except HttpError as error:
             print(f"An error occurred: {error}")
             send_message = None
