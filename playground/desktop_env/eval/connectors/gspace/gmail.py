@@ -25,6 +25,55 @@ class GmailService(GoogleService):
             service_version="v1",
         )
 
+    def get_message(self, message_id):
+        # Retrieve the full message using the message ID
+        try:
+            message = (
+                self.service.users()
+                .messages()
+                .get(userId="me", id=message_id, format="full")
+                .execute()
+            )
+            return message
+        except HttpError as err:
+            print(err)
+            return None
+
+    def get_subject(self, message):
+        headers = message["payload"]["headers"]
+        subject = next(
+            header["value"] for header in headers if header["name"].lower() == "subject"
+        )
+        return subject
+
+    def get_body(self, message):
+        # Decode the body content
+        if message["payload"]["body"]["size"] == 0:
+            # Check if there are multiple parts
+            if "parts" in message["payload"]:
+                for part in message["payload"]["parts"]:
+                    if part["mimeType"] == "text/plain":
+                        body_data = part["body"]["data"]
+                        decoded_body = base64.urlsafe_b64decode(
+                            body_data.encode("ASCII")
+                        ).decode()
+                        break
+            else:
+                # If the body is empty, return empty string
+                decoded_body = ""
+        else:
+            body_data = message["payload"]["body"]["data"]
+            decoded_body = base64.urlsafe_b64decode(body_data.encode("ASCII")).decode()
+
+        return decoded_body
+
+    def get_recipient(self, message):
+        headers = message["payload"]["headers"]
+        recipient = next(
+            header["value"] for header in headers if header["name"].lower() == "to"
+        )
+        return recipient
+
     def create_draft(
         self,
         subject: str,
@@ -70,39 +119,11 @@ class GmailService(GoogleService):
         draft = (
             self.service.users().drafts().get(userId="me", id=recent_draft_id).execute()
         )
-
-        # Get the message ID from the draft
         message_id = draft["message"]["id"]
-
-        # Retrieve the full message using the message ID
-        message = (
-            self.service.users()
-            .messages()
-            .get(userId="me", id=message_id, format="full")
-            .execute()
-        )
-
-        # Retrieve the full message using the message ID
-        message = (
-            self.service.users()
-            .messages()
-            .get(userId="me", id=message_id, format="full")
-            .execute()
-        )
-        logger.info("message:", message)
-
-        # Extract headers
-        headers = message["payload"]["headers"]
-        subject = next(
-            header["value"] for header in headers if header["name"].lower() == "subject"
-        )
-        recipient = next(
-            header["value"] for header in headers if header["name"].lower() == "to"
-        )
-
-        # Decode the body content
-        body_data = message["payload"]["body"]["data"]
-        decoded_body = base64.urlsafe_b64decode(body_data.encode("ASCII")).decode()
+        message = self.get_message(message_id)
+        subject = self.get_subject(message)
+        recipient = self.get_recipient(message)
+        decoded_body = self.get_body(message)
 
         return {
             "id": recent_draft_id,
@@ -134,34 +155,11 @@ class GmailService(GoogleService):
             .get(userId="me", id=recent_sent_mail_id)
             .execute()
         )
-
-        # Get the message ID from the sent mail
         message_id = sent_mail["id"]
-
-        # Retrieve the full message using the message ID
-        message = (
-            self.service.users()
-            .messages()
-            .get(userId="me", id=message_id, format="full")
-            .execute()
-        )
-
-        # Extract headers
-        headers = message["payload"]["headers"]
-        subject = next(
-            header["value"] for header in headers if header["name"].lower() == "subject"
-        )
-        recipient = next(
-            header["value"] for header in headers if header["name"].lower() == "to"
-        )
-
-        # Decode the body content
-        if message["payload"]["body"]["size"] == 0:
-            # If the body is empty, return empty string
-            decoded_body = ""
-        else:
-            body_data = message["payload"]["body"]["data"]
-            decoded_body = base64.urlsafe_b64decode(body_data.encode("ASCII")).decode()
+        message = self.get_message(message_id)
+        subject = self.get_subject(message)
+        recipient = self.get_recipient(message)
+        decoded_body = self.get_body(message)
 
         return {
             "id": recent_sent_mail_id,
@@ -181,6 +179,14 @@ class GmailService(GoogleService):
 
     def delete_sent_email(self, sent_email_id: str) -> bool:
         try:
+            email_to_delete = self.get_message(sent_email_id)
+            subject = self.get_subject(email_to_delete)
+            recipient = self.get_recipient(email_to_delete)
+            snippet = email_to_delete["snippet"]
+            logger.info(
+                f"The email to delete:\nSubject: {subject}\n"
+                f"Recipient: {recipient}\nSnippet: {snippet}"
+            )
             if self._confirm(DELETE):
                 self.service.users().messages().delete(
                     userId="me", id=sent_email_id
@@ -274,23 +280,21 @@ class GmailService(GoogleService):
     #     return msg
 
     def _confirm(self, type=SEND):
-        # Haven't figure out how to get user input in pytest, so comment these lines
-        # if type == SEND:
-        #     words = ["send", "Sending", "sent"]
-        # elif type == DELETE:
-        #     words = ["delete", "Deleting", "deleted"]
-        # else:
-        #     raise Exception(f"Type {type} not supported by Gmail")
+        if type == SEND:
+            words = ["send", "Sending", "sent"]
+        elif type == DELETE:
+            words = ["delete", "Deleting", "deleted"]
+        else:
+            raise Exception(f"Type {type} not supported by Gmail")
 
-        # user_input = input(
-        # f"Do you want to {words[0]} the email? (y/n): "
-        # ).strip().lower()
-        # if user_input == 'y':
-        #     logger.info(f"{words[1]} email...")
-        #     return True
-        # logger.info(f"Email not {words[2]}. Evaluation results may be incorrect.")
-        # return False
-        return True
+        user_input = (
+            input(f"Do you want to {words[0]} the email? (y/n): ").strip().lower()
+        )
+        if user_input == "y":
+            logger.info(f"{words[1]} email...")
+            return True
+        logger.info(f"Email not {words[2]}. Evaluation results may be incorrect.")
+        return False
 
     def send_message(
         self,
@@ -339,19 +343,3 @@ class GmailService(GoogleService):
             send_message = None
 
         return send_message
-
-
-# Test APIs
-if __name__ == "__main__":
-    gmail_service = GmailService()
-    return_dict = gmail_service.get_recent_sent_mail()
-    logger.error(f"return dict: {return_dict}")
-
-    sent_message = gmail_service.send_message(
-        content="This is automated mail",
-        recipient="gduser1@workspacesamples.dev",
-        subject="Automated mail",
-    )
-
-    logger.error(f"sent message: {sent_message}")
-    gmail_service.delete_sent_email(sent_message["id"])

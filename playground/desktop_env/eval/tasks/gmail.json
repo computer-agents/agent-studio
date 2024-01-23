@@ -1,66 +1,50 @@
-{
-    "environments": ["gmail"],
-    "action_sequence_path": "data/gmail.json",
-    "tasks": [
-        {
-            "task_id": 0,
-            "intent_template": "Create a draft email with subject '{subject}', content '{content}', and recipient '{recipient}'",
-            "instantiation_dict": {
-                "subject": "Automated draft",
-                "recipient": "gduser@workspacesamples.dev",
-                "content": "This is automated draft mail"
-            },
-            "evals": [
-                {
-                    "eval_type": "gmail",
-                    "eval_procedure": {
-                        "email_exact_match": {
+[
+    {
+        "task_id": 0,
+        "intent": "Create a draft email with subject 'Automated draft', content 'This is automated draft mail', and recipient 'gduser@workspacesamples.dev'",
+        "evals": [
+            {
+                "eval_type": "gmail",
+                "eval_procedure": {
+                    "email_exact_match": {
+                        "subject": "Automated draft",
+                        "recipient": "gduser@workspacesamples.dev",
+                        "body": "This is automated draft mail"
+                    }
+                },
+                "reset_procedure": [
+                    {
+                        "deduplicate_draft": {
                             "subject": "Automated draft",
                             "recipient": "gduser@workspacesamples.dev",
                             "body": "This is automated draft mail"
                         }
-                    },
-                    "reset_procedure": [
-                        {
-                            "deduplicate_draft": {
-                                "subject": "Automated draft",
-                                "recipient": "gduser@workspacesamples.dev",
-                                "body": "This is automated draft mail"
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "task_id": 1,
-            "intent_template": "Send a email with subject '{subject}', content '{content}', and recipient '{recipient}'",
-            "instantiation_dict": {
-                "subject": "Automated Email",
-                "recipient": "gduser1@workspacesamples.dev",
-                "content":"This is automatically sent email"
-            },
-            "evals": [
-                {
-                    "eval_type": "gmail",
-                    "eval_procedure": {
-                        "sent_email_exact_match": {
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "task_id": 1,
+        "intent": "Send an email with subject 'Automated Email', content 'This is automatically sent email', and recipient '{GMAIL_RECIPIENT}'",
+        "evals": [
+            {
+                "eval_type": "gmail",
+                "eval_procedure": {
+                    "sent_email_exact_match": {
+                        "subject": "Automated Email",
+                        "body": "This is automatically sent email"
+                    }
+                },
+                "reset_procedure": [
+                    {
+                        "delete_sent_email": {
                             "subject": "Automated Email",
-                            "recipient": "gduser1@workspacesamples.dev",
                             "body": "This is automatically sent email"
                         }
-                    },
-                    "reset_procedure": [
-                        {
-                            "delete_sent_email": {
-                                "subject": "Automated Email",
-                                "recipient": "gduser1@workspacesamples.dev",
-                                "body": "This is automatically sent email"
-                            }
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
-}
+                    }
+                ]
+            }
+        ]
+    }
+]
