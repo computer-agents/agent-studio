@@ -2,10 +2,10 @@ import codecs
 import io
 import logging
 
-from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
+from playground.desktop_env.eval.google_evaluators.utils import confirm_action
 
 logger = logging.getLogger(__name__)
 
@@ -31,16 +31,12 @@ class GoogleDriveService(GoogleService):
     ) -> dict:
         file_metadata = {"name": file_name, "parents": [folder_id] if folder_id else []}
         media = MediaFileUpload(file_path, mimetype=mime_type)
-        try:
-            file = (
-                self.service.files()
-                .create(body=file_metadata, media_body=media, fields="id")
-                .execute()
-            )
-            return file
-        except HttpError as err:
-            logger.error(err)
-            return {}
+        file = (
+            self.service.files()
+            .create(body=file_metadata, media_body=media, fields="id")
+            .execute()
+        )
+        return file
 
     def download_file(self, file_id: str, output_file: str) -> None:
         request = self.service.files().get_media(fileId=file_id)
@@ -55,59 +51,46 @@ class GoogleDriveService(GoogleService):
             "name": folder_name,
             "mimeType": "application/vnd.google-apps.folder",
         }
-        try:
-            folder = (
-                self.service.files().create(body=file_metadata, fields="id").execute()
-            )
-            return folder
-        except HttpError as err:
-            logger.error(err)
-            return {}
+        folder = self.service.files().create(body=file_metadata, fields="id").execute()
+        return folder
 
     def list_files(self, folder_id: str | None = None):
         query = f"'{folder_id}' in parents" if folder_id else ""
-        try:
-            response = self.service.files().list(q=query).execute()
-            files = response.get("files", [])
-            return files
-        except HttpError as err:
-            logger.error(err)
-            return []
+        response = self.service.files().list(q=query).execute()
+        files = response.get("files", [])
+        return files
 
+    @confirm_action
     def delete_file(self, file_id: str) -> None:
-        try:
-            self.service.files().delete(fileId=file_id).execute()
-        except HttpError as err:
-            logger.error(err)
+        self.service.files().delete(fileId=file_id).execute()
 
+    @confirm_action
     def delete_folder(self, folder_id: str) -> None:
-        try:
-            self.service.files().delete(fileId=folder_id).execute()
-            logger.info(f"Folder with ID {folder_id} has been deleted.")
-        except HttpError as err:
-            logger.error(err)
+        self.service.files().delete(fileId=folder_id).execute()
+        logger.info(f"Folder with ID {folder_id} has been deleted.")
 
     def share_file(self, file_id: str, user_email: str, role: str = "reader") -> None:
         user_permission = {"type": "user", "role": role, "emailAddress": user_email}
-        try:
-            self.service.permissions().create(
-                fileId=file_id, body=user_permission
-            ).execute()
-        except HttpError as err:
-            logger.error(err)
+        self.service.permissions().create(
+            fileId=file_id, body=user_permission
+        ).execute()
 
-    # Function to search for a file by name in Google Drive
-    def search_file(self, file_name):
+    def search_file(self, condition: str) -> list[str]:
         results = (
             self.service.files()
-            .list(q=f"name='{file_name}'", spaces="drive", fields="files(id)")
+            .list(q=condition, spaces="drive", fields="files(id)")
             .execute()
         )
         file_ids = [f["id"] for f in results.get("files", [])]
         return file_ids
 
+    def search_file_by_name(self, file_name: str) -> list[str]:
+        """Search for a file by name in Google Drive."""
+        condition = f"name='{file_name}'"
+        return self.search_file(condition)
+
     # Function to download and compare file content
-    def compare_file_content(self, file_id, content):
+    def compare_file_content(self, file_id: str, content: str) -> bool:
         # Get file metadata to check MIME type
         file_metadata = (
             self.service.files().get(fileId=file_id, fields="mimeType").execute()
@@ -153,25 +136,17 @@ class GoogleDriveService(GoogleService):
         folder_ids = [f["id"] for f in results.get("files", [])]
         return folder_ids
 
-    def get_recent_documents(self, max_results=1):
-        try:
-            # Query for recent Google Docs documents
-            results = (
-                self.service.files()
-                .list(
-                    pageSize=max_results,
-                    fields="files(id, name, createdTime)",
-                    orderBy="createdTime desc",
-                    q="mimeType='application/vnd.google-apps.document'",
-                )
-                .execute()
+    def get_recent_files(self, condition: str, max_results: int = 1) -> list[str]:
+        results = (
+            self.service.files()
+            .list(
+                pageSize=max_results,
+                fields="files(id, name, createdTime)",
+                orderBy="createdTime desc",
+                q=condition,
             )
+            .execute()
+        )
 
-            items = results.get("files", [])
-            if not items:
-                logger.warn("No documents found.")
-            else:
-                return items
-        except HttpError as err:
-            logger.error(err)
-            return []
+        file_ids = [f["id"] for f in results.get("files", [])]
+        return file_ids

@@ -23,6 +23,7 @@ class VSCodeEvaluator(Evaluator):
     def execute(
         self, steps: list[dict[str, dict[str, Any]]], response: str | None = None
     ) -> float:
+        score = 1.0
         try:
             for step in steps:
                 for action, params in step.items():
@@ -39,10 +40,11 @@ class VSCodeEvaluator(Evaluator):
                             self.vscode_connector.uninstall_all_extensions()
                         case _:
                             raise Exception(f"Action {action} not supported by VS Code")
-            return True
         except Exception as e:
             logger.error(f"An error occurred in VS Code env: {e}")
-            return False
+            score = 0.0
+
+        return score
 
     def match_installed_extension(
         self,

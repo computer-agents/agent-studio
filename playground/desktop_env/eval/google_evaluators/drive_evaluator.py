@@ -44,7 +44,7 @@ class GoogleDriveEvaluator(Evaluator):
                                     folder_id=folder_id,
                                 )
                         case "file_match":
-                            file_ids = self.service.search_file(params["name"])
+                            file_ids = self.service.search_file_by_name(params["name"])
                             if "content" in params:
                                 score *= float(
                                     self.service.compare_file_content(
@@ -53,12 +53,17 @@ class GoogleDriveEvaluator(Evaluator):
                                 )
                             elif len(file_ids) == 0:
                                 score = 0.0
+                        case "file_exists":
+                            file_ids = self.service.search_file_by_name(params["name"])
+                            if params["exists"]:
+                                score = len(file_ids) > 0
+                            else:
+                                score = len(file_ids) == 0
                         case "folder_exists":
                             folder_ids = self.service.search_folder(params["name"])
                             if params["exists"]:
                                 score = len(folder_ids) > 0
                             else:
-                                print("ss:", len(folder_ids))
                                 score = len(folder_ids) == 0
                         case "folder_match":
                             folder_ids = self.service.search_folder(params["name"])

@@ -2,14 +2,12 @@ import logging
 from typing import Any
 
 from playground.desktop_env.eval.connectors.gspace.gdocs import GoogleDocsService
-from playground.desktop_env.eval.connectors.gspace.gdrive import GoogleDriveService
 
 logger = logging.getLogger(__name__)
 
 
 def test_gdocs_connector() -> None:
     google_docs_service = GoogleDocsService()
-    drive_service = GoogleDriveService()
 
     # Create a new document
     new_document = google_docs_service.create_document("Test Document")
@@ -17,7 +15,7 @@ def test_gdocs_connector() -> None:
     logger.info(f"Created document with ID: {document_id}")
 
     # Get recently created document
-    document = drive_service.get_recent_documents()
+    document = google_docs_service.get_recent_documents()
     logger.info(document)
 
     # Append text to the document
@@ -36,5 +34,5 @@ def test_gdocs_connector() -> None:
     # Insert a table
     google_docs_service.insert_table(document_id, 2, 3)  # 2 rows, 3 columns
 
-    drive_service.delete_file(file_id=document_id)
+    google_docs_service.delete_doc_by_id(document_id)
     logger.info(f"Deleted document with ID: {document_id}")

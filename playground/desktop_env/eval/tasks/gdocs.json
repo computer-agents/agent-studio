@@ -1,0 +1,50 @@
+[
+    {
+        "task_id": 0,
+        "intent": "Create a new document with title 'Sample Document' and content 'This is the content of the sample document'",
+        "evals": [
+            {
+                "eval_type": "google_docs",
+                "eval_procedure": {
+                    "doc_exact_match": {
+                        "title": "Sample Document",
+                        "content": "This is the content of the sample document"
+                    }
+                },
+                "reset_procedure": [
+                    {
+                        "deduplicate_doc": {
+                            "title": "Sample Document",
+                            "content": "This is the content of the sample document"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "task_id": 1,
+        "intent": "Permanently delete the most recent document with title 'Sample Document'",
+        "evals": [
+            {
+                "eval_type": "google_docs",
+                "reset_procedure": [
+                    {
+                        "create_doc": {
+                            "title": "Sample Document"
+                        }
+                    }
+                ]
+            },
+            {
+                "eval_type": "google_drive",
+                "eval_procedure": {
+                    "file_exists": {
+                        "name": "Sample Document",
+                        "exists": false
+                    }
+                }
+            }
+        ]
+    }
+]
