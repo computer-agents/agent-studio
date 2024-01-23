@@ -37,7 +37,7 @@
             "intent_template": "Send a email with subject '{subject}', content '{content}', and recipient '{recipient}'",
             "instantiation_dict": {
                 "subject": "Automated Email",
-                "recipient": "gduser@workspacesamples.dev",
+                "recipient": "gduser1@workspacesamples.dev",
                 "content":"This is automatically sent email"
             },
             "evals": [
@@ -46,10 +46,19 @@
                     "eval_procedure": {
                         "sent_email_exact_match": {
                             "subject": "Automated Email",
-                            "recipient": "gduser@workspacesamples.dev",
+                            "recipient": "gduser1@workspacesamples.dev",
                             "body": "This is automatically sent email"
                         }
-                    }
+                    },
+                    "reset_procedure": [
+                        {
+                            "delete_sent_email": {
+                                "subject": "Automated Email",
+                                "recipient": "gduser1@workspacesamples.dev",
+                                "body": "This is automatically sent email"
+                            }
+                        }
+                    ]
                 }
             ]
         }

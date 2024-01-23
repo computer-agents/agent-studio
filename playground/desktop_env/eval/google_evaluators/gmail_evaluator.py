@@ -59,6 +59,17 @@ class GmailEvaluator(Evaluator):
                                 self.service.delete_draft(
                                     draft_id=self.retrieved_draft["id"]
                                 )
+                        case "delete_sent_email":
+                            self.recent_sent_mail = self.service.get_recent_sent_mail()
+                            if (
+                                self.recent_sent_mail is not None
+                                and self.email_exact_match(
+                                    self.recent_sent_mail, params
+                                )
+                            ):
+                                self.service.delete_sent_email(
+                                    sent_email_id=self.recent_sent_mail["id"]
+                                )
                         case _:
                             raise Exception(f"Action {action} not supported by Gmail")
             return True
