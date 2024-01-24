@@ -1,0 +1,48 @@
+[
+    {
+        "task_id": 0,
+        "intent": "Create a new presentation with title 'Sample Presentation'",
+        "evals": [
+            {
+                "eval_type": "google_slides",
+                "eval_procedure": {
+                    "presentation_exact_match": {
+                        "title": "Sample Presentation"
+                    }
+                },
+                "reset_procedure": [
+                    {
+                        "deduplicate_presentation": {
+                            "title": "Sample Presentation"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "task_id": 1,
+        "intent": "Permanently delete the most recent presentation with title 'Sample Presentation'",
+        "evals": [
+            {
+                "eval_type": "google_slides",
+                "reset_procedure": [
+                    {
+                        "create_presentation": {
+                            "title": "Sample Presentation"
+                        }
+                    }
+                ]
+            },
+            {
+                "eval_type": "google_drive",
+                "eval_procedure": {
+                    "file_exists": {
+                        "name": "Sample Presentation",
+                        "exists": false
+                    }
+                }
+            }
+        ]
+    }
+]
