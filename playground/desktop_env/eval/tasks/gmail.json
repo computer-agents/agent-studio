@@ -46,5 +46,34 @@
                 ]
             }
         ]
+    },
+    {
+        "task_id": 2,
+        "intent": "Send the most recent draft to the recipient",
+        "evals": [
+            {
+                "eval_type": "gmail",
+                "eval_procedure": {
+                    "sent_email_exact_match": {
+                        "subject": "Automated draft",
+                        "recipient": "gduser1@workspacesamples.dev",
+                        "body": "This is automated draft mail"
+                    }
+                },
+                "reset_procedure": [
+                    {
+                        "create_draft": {
+                            "subject": "Automated draft",
+                            "recipient": "gduser1@workspacesamples.dev",
+                            "content": "This is automated draft mail"
+                        },
+                        "delete_sent_email": {
+                            "subject": "Automated draft",
+                            "body": "This is automated draft email"
+                        }
+                    }
+                ]
+            }
+        ]
     }
 ]
