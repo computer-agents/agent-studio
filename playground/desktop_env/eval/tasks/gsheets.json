@@ -1,0 +1,48 @@
+[
+    {
+        "task_id": 0,
+        "intent": "Create a new spreadsheet with title 'Sample Spreadsheet'",
+        "evals": [
+            {
+                "eval_type": "google_sheets",
+                "eval_procedure": {
+                    "spreadsheet_exact_match": {
+                        "title": "Sample Spreadsheet"
+                    }
+                },
+                "reset_procedure": [
+                    {
+                        "deduplicate_spreadsheet": {
+                            "title": "Sample Spreadsheet"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "task_id": 1,
+        "intent": "Permanently delete the most recent spreadsheet with title 'Sample Spreadsheet'",
+        "evals": [
+            {
+                "eval_type": "google_sheets",
+                "reset_procedure": [
+                    {
+                        "create_spreadsheet": {
+                            "title": "Sample Spreadsheet"
+                        }
+                    }
+                ]
+            },
+            {
+                "eval_type": "google_drive",
+                "eval_procedure": {
+                    "file_exists": {
+                        "name": "Sample Spreadsheet",
+                        "exists": false
+                    }
+                }
+            }
+        ]
+    }
+]

@@ -8,7 +8,7 @@ def test_gsheets_connector() -> None:
     sheets_service = GoogleSheetsService()
 
     # Create a new Google Sheet
-    new_sheet = sheets_service.create_sheet("Test Sheet")
+    new_sheet = sheets_service.create_spreadsheet("Test Sheet")
     if not new_sheet:
         print("Failed to create a new Google Sheet.")
         return

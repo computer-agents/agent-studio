@@ -107,102 +107,95 @@ class GoogleCalendarEvaluator(Evaluator):
         self, steps: list[dict[str, dict[str, Any]]], response: str | None = None
     ) -> float:
         score = 1.0
-        try:
-            for step in steps:
-                for action, params in step.items():
-                    match action:
-                        # case "create_and_cd_calendar":
-                        #     calendar = self.service.create_calendar(params)
-                        #     config.google_calendar_id = calendar["id"]
-                        # case "cd_calendar":
-                        #     if params["id"] != "primary":
-                        #         calendar = self.service.find_calendar_by_id(
-                        #             params["id"]
-                        #         )
-                        #         if calendar == {}:
-                        #             raise Exception(
-                        #                 f"Calendar {params['id']} not found"
-                        #             )
-                        #         config.google_calendar_id = calendar["id"]
-                        #     else:
-                        #         config.google_calendar_id = "primary"
-                        case "clear_calendar":
-                            self.service.clear_calendar(config.google_calendar_id)
-                        case "create_event":
-                            event = self.service.create_event(
-                                start_time=params["start"]["dateTime"],
-                                end_time=params["end"]["dateTime"],
-                                summary=params.get("summary"),
-                                location=params.get("location"),
-                                description=params.get("description"),
-                                attendees=params.get("attendees"),
-                                calendar_id=config.google_calendar_id,
-                            )
-                            self.events[event.get("id")] = event
-                        case "deduplicate_event":
-                            events = self.service.search_events_by_time_range(
-                                start_time=params["start"]["dateTime"],
-                                end_time=params["end"]["dateTime"],
-                                calendar_id=config.google_calendar_id,
-                            )
-                            for event in events:
-                                if (
-                                    event["summary"] == params["summary"]
-                                    and (
-                                        ("location" not in params)
-                                        or (event["location"] == params["location"])
-                                    )
-                                    and (
-                                        ("description" not in params)
-                                        or (
-                                            event["description"]
-                                            == params["description"]
-                                        )
-                                    )
-                                    and self.time_match(
-                                        event["start"]["dateTime"],
-                                        params["start"]["dateTime"],
-                                    )
-                                    and self.time_match(
-                                        event["end"]["dateTime"],
-                                        params["end"]["dateTime"],
-                                    )
-                                ):
-                                    self.service.delete_event(
-                                        event_id=event["id"],
-                                        calendar_id=config.google_calendar_id,
-                                    )
-                        # case "delete_cur_calendar":
-                        #     self.service.delete_calendar(
-                        #         config.google_calendar_id
-                        #     )
-                        case "event_match":
-                            events = self.service.search_events_by_info(
-                                params,
-                            )
-                            if len(events) == 0:
-                                score = 0.0
-                            elif len(events) > 1:
-                                raise ValueError(f"More than one event found: {events}")
-                            else:
-                                score *= 1.0
-                        case "check_event_exists":
-                            """
-                            Two parameters:
-                            - event: the event to look for
-                            - exists: whether the event should exist or not
-                            """
-                            events = self.service.list_events(config.google_calendar_id)
-                            score *= float(
-                                self.check_event_exists(params["event"], events)
-                                == params["exists"]
-                            )
-                        case _:
-                            raise Exception(
-                                f"Action {action} not supported by Google calendar"
-                            )
-        except Exception as e:
-            logger.error(f"An error occurred in Google calendar env: {e}")
-            score = 0.0
+        for step in steps:
+            for action, params in step.items():
+                match action:
+                    # case "create_and_cd_calendar":
+                    #     calendar = self.service.create_calendar(params)
+                    #     config.google_calendar_id = calendar["id"]
+                    # case "cd_calendar":
+                    #     if params["id"] != "primary":
+                    #         calendar = self.service.find_calendar_by_id(
+                    #             params["id"]
+                    #         )
+                    #         if calendar == {}:
+                    #             raise Exception(
+                    #                 f"Calendar {params['id']} not found"
+                    #             )
+                    #         config.google_calendar_id = calendar["id"]
+                    #     else:
+                    #         config.google_calendar_id = "primary"
+                    case "clear_calendar":
+                        self.service.clear_calendar(config.google_calendar_id)
+                    case "create_event":
+                        event = self.service.create_event(
+                            start_time=params["start"]["dateTime"],
+                            end_time=params["end"]["dateTime"],
+                            summary=params.get("summary"),
+                            location=params.get("location"),
+                            description=params.get("description"),
+                            attendees=params.get("attendees"),
+                            calendar_id=config.google_calendar_id,
+                        )
+                        self.events[event.get("id")] = event
+                    case "deduplicate_event":
+                        events = self.service.search_events_by_time_range(
+                            start_time=params["start"]["dateTime"],
+                            end_time=params["end"]["dateTime"],
+                            calendar_id=config.google_calendar_id,
+                        )
+                        for event in events:
+                            if (
+                                event["summary"] == params["summary"]
+                                and (
+                                    ("location" not in params)
+                                    or (event["location"] == params["location"])
+                                )
+                                and (
+                                    ("description" not in params)
+                                    or (event["description"] == params["description"])
+                                )
+                                and self.time_match(
+                                    event["start"]["dateTime"],
+                                    params["start"]["dateTime"],
+                                )
+                                and self.time_match(
+                                    event["end"]["dateTime"],
+                                    params["end"]["dateTime"],
+                                )
+                            ):
+                                self.service.delete_event(
+                                    event_id=event["id"],
+                                    calendar_id=config.google_calendar_id,
+                                )
+                    # case "delete_cur_calendar":
+                    #     self.service.delete_calendar(
+                    #         config.google_calendar_id
+                    #     )
+                    case "event_match":
+                        events = self.service.search_events_by_info(
+                            params,
+                        )
+                        if len(events) == 0:
+                            score = 0.0
+                        elif len(events) > 1:
+                            raise ValueError(f"More than one event found: {events}")
+                        else:
+                            score *= 1.0
+                    case "check_event_exists":
+                        """
+                        Two parameters:
+                        - event: the event to look for
+                        - exists: whether the event should exist or not
+                        """
+                        events = self.service.list_events(config.google_calendar_id)
+                        score *= float(
+                            self.check_event_exists(params["event"], events)
+                            == params["exists"]
+                        )
+                    case _:
+                        raise Exception(
+                            f"Action {action} not supported by Google calendar"
+                        )
 
         return score
