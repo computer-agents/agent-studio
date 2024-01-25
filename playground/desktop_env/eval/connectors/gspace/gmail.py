@@ -46,18 +46,33 @@ class GmailService(GoogleService):
         )
         return subject
 
+    def get_attachment_name(self, message):
+        # headers = message["payload"]["filename"]
+        # print(f'header name: {[header["name"].lower() for header in headers]}')
+        # for header in headers:
+        # logger.error(f"header name: {header['name'].lower()}")
+        # logger.error(message["payload"].keys())
+        # logger.error(headers)
+        # attachment_name = next(
+        #     header["value"] for header in headers \
+        # if header["name"].lower() == "attachment"
+        # )
+        attachment_name = "aaa"
+        return attachment_name
+
     def get_body(self, message):
         # Decode the body content
         if message["payload"]["body"]["size"] == 0:
             # Check if there are multiple parts
             if "parts" in message["payload"]:
                 for part in message["payload"]["parts"]:
-                    if part["mimeType"] == "text/plain":
-                        body_data = part["body"]["data"]
-                        decoded_body = base64.urlsafe_b64decode(
-                            body_data.encode("ASCII")
-                        ).decode()
-                        break
+                    for small_part in part["parts"]:
+                        if small_part["mimeType"] == "text/plain":
+                            body_data = small_part["body"]["data"]
+                            decoded_body = base64.urlsafe_b64decode(
+                                body_data.encode("ASCII")
+                            ).decode()
+                            return decoded_body
             else:
                 # If the body is empty, return empty string
                 decoded_body = ""
@@ -124,12 +139,14 @@ class GmailService(GoogleService):
         subject = self.get_subject(message)
         recipient = self.get_recipient(message)
         decoded_body = self.get_body(message)
+        attachment_name = self.get_attachment_name(message)
 
         return {
             "id": recent_draft_id,
             "subject": subject,
             "recipient": recipient,
             "body": decoded_body,
+            "attachment": attachment_name,
         }
 
     def get_recent_sent_mail(self) -> dict[str, str] | None:
