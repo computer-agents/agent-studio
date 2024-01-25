@@ -1,7 +1,7 @@
 [
     {
         "task_id": 0,
-        "intent": "Create a draft email with subject 'Automated draft', content 'This is automated draft mail', and recipient 'gduser@workspacesamples.dev'",
+        "intent": "Create a draft email with subject 'Automated draft', content 'This is automated draft mail', attached file name 'attachment.txt', and recipient 'gduser@workspacesamples.dev'",
         "evals": [
             {
                 "eval_type": "gmail",
@@ -9,7 +9,8 @@
                     "email_exact_match": {
                         "subject": "Automated draft",
                         "recipient": "gduser@workspacesamples.dev",
-                        "body": "This is automated draft mail"
+                        "body": "This is automated draft mail",
+                        "attachment": "attachment.txt"
                     }
                 },
                 "reset_procedure": [
@@ -17,7 +18,8 @@
                         "deduplicate_draft": {
                             "subject": "Automated draft",
                             "recipient": "gduser@workspacesamples.dev",
-                            "body": "This is automated draft mail"
+                            "body": "This is automated draft mail",
+                            "attachment": "attachment.txt"
                         }
                     }
                 ]

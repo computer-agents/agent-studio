@@ -11,7 +11,7 @@ def test_gmail(
     with open(config_file, "r") as f:
         task_configs = json.load(f)
 
-    for task_config in task_configs[1:]:
+    for task_config in task_configs:
         comb = evaluator_router(task_config)
         comb.reset()
         # Tip: run pytest with -s, and finish the task by hand during this input
