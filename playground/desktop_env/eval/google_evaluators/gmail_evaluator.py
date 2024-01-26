@@ -46,7 +46,16 @@ class GmailEvaluator(Evaluator):
             pred["recipient"]
         )
         content_match = ref["body"].strip() == pred["body"].strip()
-        return float(subject_match and recipient_match and content_match)
+        if "attachment" in ref:
+            if "attachment" not in pred:
+                file_name_match = False
+            else:
+                file_name_match = ref["attachment"] == pred["attachment"]
+        else:
+            file_name_match = True
+        return float(
+            subject_match and recipient_match and content_match and file_name_match
+        )
 
     def execute(
         self, steps: list[dict[str, dict[str, Any]]], response: str | None = None
