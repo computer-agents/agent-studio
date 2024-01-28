@@ -101,68 +101,62 @@ class FilesystemEvaluator(Evaluator):
         self, steps: list[dict[str, dict[str, Any]]], response: str | None = None
     ) -> float:
         score = 1.0
-        try:
-            for step in steps:
-                for action, params in step.items():
-                    match action:
-                        case "create_file":
-                            file_name = params["path"]
-                            if "content" in params:
-                                with open(file_name, "w") as f:
-                                    f.write(params["content"])
-                            else:
-                                open(file_name, "w").close()
-                        case "mkdir":
-                            dir_name = Path(params["path"])
-                            dir_name.mkdir(parents=True, exist_ok=True)
-                        case "rm":
-                            file_name = params["path"]
-                            if os.path.exists(file_name) and os.path.isfile(file_name):
-                                os.remove(file_name)
-                        case "rmdir":
-                            dir_name = params["path"]
-                            if os.path.exists(dir_name) and os.path.isdir(dir_name):
-                                shutil.rmtree(dir_name)
-                        case "rename":
-                            old_name = params["old_name"]
-                            new_name = params["new_name"]
-                            os.rename(old_name, new_name)
-                        case "copy":
-                            src = params["src"]
-                            dest = params["dest"]
-                            os.system(f"cp {src} {dest}")
-                        case "move":
-                            src = params["src"]
-                            dest = params["dest"]
-                            os.system(f"mv {src} {dest}")
-                        case "chmod":
-                            file_name = params["path"]
-                            mode: int = int(params["mode"], 8)
-                            os.chmod(file_name, mode)
-                        case "exists":
-                            for path, exists in params.items():
-                                score *= float(
-                                    FilesystemEvaluator.exists(path) == exists
-                                )
-                        case "type_check":
-                            for path, content in params.items():
-                                if content == "file":
-                                    score *= float(Path(path).is_file())
-                                elif content == "folder":
-                                    score *= float(Path(path).is_dir())
-                        case "permissions_check":
-                            for path, permissions in params.items():
-                                score *= float(self.permission_match(path, permissions))
-                        case "content_check":
-                            for path, content in params.items():
-                                score *= float(self.file_content_match(path, content))
-                        case "metadata_check":
-                            for path, metadata in params.items():
-                                score *= float(self.file_metadata_match(path, metadata))
-                        case _:
-                            raise Exception(f"Action {action} not found")
-        except Exception as e:
-            logger.error(f"An error occurred in Filesystem env: {e}")
-            score = 0.0
+        for step in steps:
+            for action, params in step.items():
+                match action:
+                    case "create_file":
+                        file_name = params["path"]
+                        if "content" in params:
+                            with open(file_name, "w") as f:
+                                f.write(params["content"])
+                        else:
+                            open(file_name, "w").close()
+                    case "mkdir":
+                        dir_name = Path(params["path"])
+                        dir_name.mkdir(parents=True, exist_ok=True)
+                    case "rm":
+                        file_name = params["path"]
+                        if os.path.exists(file_name) and os.path.isfile(file_name):
+                            os.remove(file_name)
+                    case "rmdir":
+                        dir_name = params["path"]
+                        if os.path.exists(dir_name) and os.path.isdir(dir_name):
+                            shutil.rmtree(dir_name)
+                    case "rename":
+                        old_name = params["old_name"]
+                        new_name = params["new_name"]
+                        os.rename(old_name, new_name)
+                    case "copy":
+                        src = params["src"]
+                        dest = params["dest"]
+                        os.system(f"cp {src} {dest}")
+                    case "move":
+                        src = params["src"]
+                        dest = params["dest"]
+                        os.system(f"mv {src} {dest}")
+                    case "chmod":
+                        file_name = params["path"]
+                        mode: int = int(params["mode"], 8)
+                        os.chmod(file_name, mode)
+                    case "exists":
+                        for path, exists in params.items():
+                            score *= float(FilesystemEvaluator.exists(path) == exists)
+                    case "type_check":
+                        for path, content in params.items():
+                            if content == "file":
+                                score *= float(Path(path).is_file())
+                            elif content == "folder":
+                                score *= float(Path(path).is_dir())
+                    case "permissions_check":
+                        for path, permissions in params.items():
+                            score *= float(self.permission_match(path, permissions))
+                    case "content_check":
+                        for path, content in params.items():
+                            score *= float(self.file_content_match(path, content))
+                    case "metadata_check":
+                        for path, metadata in params.items():
+                            score *= float(self.file_metadata_match(path, metadata))
+                    case _:
+                        raise Exception(f"Action {action} not found")
 
         return score
