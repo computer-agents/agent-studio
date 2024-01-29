@@ -86,7 +86,7 @@ def evaluator_router(
         if eval_type in registered_evaluators:
             evaluators.append(
                 registered_evaluators[eval_type](
-                    reference_answer=eval.get("eval_procedure", {}),
+                    eval_procedure=eval.get("eval_procedure", {}),
                     reset_procedure=eval.get("reset_procedure", []),
                 )
             )

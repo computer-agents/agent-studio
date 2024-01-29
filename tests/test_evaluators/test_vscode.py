@@ -1,24 +1,110 @@
-import json
-
-from playground.desktop_env import ComputerEnv
+# pytest -s tests/test_evaluators/test_vscode.py
 from playground.desktop_env.eval.evaluator_helper import evaluator_router
 
+TASK_CONFIGS = [
+    {
+        "evals": [
+            {
+                "eval_type": "vscode",
+                "eval_procedure": [
+                    {
+                        "extension_installed": {
+                            "extension_id": "DavidAnson.vscode-markdownlint",
+                            "exists": True,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "uninstall_extension": {
+                            "extension_id": "DavidAnson.vscode-markdownlint"
+                        }
+                    },
+                    {
+                        "install_extension": {
+                            "extension_id": "DavidAnson.vscode-markdownlint"
+                        }
+                    },
+                ],
+            }
+        ],
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "vscode",
+                "eval_procedure": [
+                    {"most_installed_extension": {"keyword": "Markdown"}}
+                ],
+                "reset_procedure": [
+                    {
+                        "uninstall_extension": {
+                            "extension_id": "esbenp.prettier-vscode"
+                        },
+                        "install_extension": {"extension_id": "esbenp.prettier-vscode"},
+                    }
+                ],
+            }
+        ],
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "vscode",
+                "eval_procedure": [
+                    {
+                        "extension_installed": {
+                            "extension_id": "DavidAnson.vscode-markdownlint",
+                            "version": "0.49.0",
+                            "exists": True,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "uninstall_extension": {
+                            "extension_id": "DavidAnson.vscode-markdownlint"
+                        },
+                        "install_extension": {
+                            "extension_id": "DavidAnson.vscode-markdownlint@0.49.0"
+                        },
+                    }
+                ],
+            }
+        ],
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "vscode",
+                "eval_procedure": [
+                    {
+                        "extension_installed": {
+                            "extension_id": "DavidAnson.vscode-markdownlint",
+                            "exists": True,
+                            "published_before": "2023-01-01T00:00:00Z",
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "uninstall_extension": {
+                            "extension_id": "DavidAnson.vscode-markdownlint"
+                        },
+                        "install_extension": {
+                            "extension_id": "DavidAnson.vscode-markdownlint@0.47.0"
+                        },
+                    }
+                ],
+            }
+        ],
+    },
+]
 
-def test_vscode(
-    computer_env: ComputerEnv,
-) -> None:
-    config_file = "playground/desktop_env/eval/tasks/vscode.json"
-    with open(config_file, "r") as f:
-        task_configs = json.load(f)
 
-    for task_config in task_configs:
+def test_vscode():
+    for task_config in TASK_CONFIGS:
         comb = evaluator_router(task_config)
         comb.reset()
-        # Tip: run pytest with -s, and finish the task by hand during this input
-        response = input(
-            "Finish the task or answer the question, and press Enter to eval\n"
-            f"The task is: {task_config['intent']}"
-        )
-
-        score = comb(**{"response": response})
+        score = comb()
         assert score == 1.0

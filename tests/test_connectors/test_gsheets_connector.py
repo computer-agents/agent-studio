@@ -40,5 +40,5 @@ def test_gsheets_connector() -> None:
 
     # Delete the spreadsheet
     drive_service = GoogleDriveService()
-    drive_service.delete_file(file_id=spreadsheet_id)
+    drive_service.delete_file_by_id(file_id=spreadsheet_id)
     print(f"Deleted sheet with ID: {spreadsheet_id}")

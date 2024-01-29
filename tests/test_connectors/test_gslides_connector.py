@@ -52,5 +52,5 @@ def test_gdocs_connector() -> None:
 
     # Delete the presentation
     drive_service = GoogleDriveService()
-    drive_service.delete_file(file_id=presentation_id)
+    drive_service.delete_file_by_id(file_id=presentation_id)
     print(f"Deleted presentation with ID: {presentation_id}")

@@ -32,7 +32,7 @@ def test_gdrive_connector() -> None:
     print("Downloaded the file.")
 
     # Delete the folder
-    drive_service.delete_folder(folder_id=folder_id)
+    drive_service.delete_folder_by_id(folder_id=folder_id)
     print("Folder deleted.")
 
     # # Share the file with another user (not tested)

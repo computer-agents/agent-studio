@@ -1,24 +1,145 @@
-import json
-
-from playground.desktop_env import ComputerEnv
+# pytest -s tests/test_evaluators/test_gdrive.py
 from playground.desktop_env.eval.evaluator_helper import evaluator_router
 
+TASK_CONFIGS = [
+    {
+        "evals": [
+            {
+                "eval_type": "filesystem",
+                "reset_procedure": [
+                    {"rmdir": {"path": "tmp"}},
+                    {"mkdir": {"path": "tmp"}},
+                    {
+                        "create_file": {
+                            "path": "tmp/test.txt",
+                            "content": "This is a test file.",
+                        }
+                    },
+                ],
+            },
+            {
+                "eval_type": "google_drive",
+                "eval_procedure": [
+                    {
+                        "check_file_exists": {
+                            "file_name": "Sample Document",
+                            "content": "This is a test file.",
+                            "exists": True,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {"delete_file": {"file_name": "Sample Document"}},
+                    {
+                        "upload_file": {
+                            "name": "Sample Document",
+                            "path": "tmp/test.txt",
+                            "mime_type": "text/plain",
+                        }
+                    },
+                ],
+            },
+        ]
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "filesystem",
+                "reset_procedure": [
+                    {"rmdir": {"path": "tmp"}},
+                    {"mkdir": {"path": "tmp"}},
+                    {"create_file": {"path": "tmp/sample.txt"}},
+                ],
+            },
+            {
+                "eval_type": "google_drive",
+                "eval_procedure": [
+                    {
+                        "check_file_exists": {
+                            "file_name": "Test Document",
+                            "exists": True,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {"delete_file": {"file_name": "Test Document"}},
+                    {
+                        "upload_file": {
+                            "name": "Test Document",
+                            "path": "tmp/sample.txt",
+                            "mime_type": "text/plain",
+                        }
+                    },
+                ],
+            },
+        ]
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "filesystem",
+                "reset_procedure": [
+                    {"rmdir": {"path": "tmp"}},
+                    {"mkdir": {"path": "tmp"}},
+                    {
+                        "create_file": {
+                            "path": "tmp/test.txt",
+                            "content": "This is a test file.",
+                        }
+                    },
+                ],
+            },
+            {
+                "eval_type": "google_drive",
+                "eval_procedure": [
+                    {
+                        "check_folder_exists": {
+                            "folder_name": "tmp",
+                            "file_list": [{"name": "test.txt"}],
+                            "exists": True,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {"delete_folder": {"folder_name": "tmp"}},
+                    {
+                        "create_folder": {
+                            "folder_name": "tmp",
+                            "file_list": [
+                                {
+                                    "name": "test.txt",
+                                    "path": "tmp/test.txt",
+                                    "mime_type": "text/plain",
+                                }
+                            ],
+                        }
+                    },
+                ],
+            },
+        ]
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "google_drive",
+                "eval_procedure": [
+                    {
+                        "check_folder_exists": {
+                            "folder_name": "TestFolder",
+                            "exists": False,
+                        }
+                    }
+                ],
+                "reset_procedure": [{"delete_folder": {"folder_name": "TestFolder"}}],
+            }
+        ]
+    },
+]
 
-def test_gdrive(
-    computer_env: ComputerEnv,
-) -> None:
-    config_file = "playground/desktop_env/eval/tasks/gdrive.json"
-    with open(config_file, "r") as f:
-        task_configs = json.load(f)
 
-    for task_config in task_configs:
+def test_gdrive():
+    for task_config in TASK_CONFIGS:
         comb = evaluator_router(task_config)
         comb.reset()
-        # Tip: run pytest with -s, and finish the task by hand during this input
-        response = input(
-            "Finish the task or answer the question, and press Enter to eval\n"
-            f"The task is: {task_config['intent']}"
-        )
-
-        score = comb(**{"response": response})
+        score = comb()
         assert score == 1.0

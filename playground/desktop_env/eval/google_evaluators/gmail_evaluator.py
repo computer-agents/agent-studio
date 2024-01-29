@@ -26,14 +26,12 @@ class GmailEvaluator(Evaluator):
 
     def __init__(
         self,
-        reference_answer: dict,
+        eval_procedure: list[dict],
         reset_procedure: list[dict],
-        eval_tag: str = "",
     ) -> None:
         super().__init__(
-            reference_answer=reference_answer,
+            eval_procedure=eval_procedure,
             reset_procedure=reset_procedure,
-            eval_tag=eval_tag,
         )
         self.service = GmailService()
         self.created_draft_id: str = ""

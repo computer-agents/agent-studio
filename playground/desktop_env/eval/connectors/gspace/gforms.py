@@ -1,9 +1,7 @@
 import logging
 from typing import Any
 
-from googleapiclient.errors import HttpError
-
-from playground.desktop_env.eval.connectors.gspace.gservice import GoogleService
+from playground.desktop_env.eval.connectors.gservice import GoogleService
 
 logger = logging.getLogger(__name__)
 
@@ -19,33 +17,22 @@ class GoogleFormsService(GoogleService):
         )
 
     def create_form(self, form_body: dict[str, Any]) -> dict:
-        try:
-            form = self.service.forms().create(body=form_body).execute()
-            return form
-        except HttpError as err:
-            logger.error(err)
-            return {}
+        form = self.service.forms().create(body=form_body).execute()
+        return form
 
     def add_question(self, form_id: str, question: dict[str, Any], index: int) -> None:
-        try:
-            body = {
-                "requests": [
-                    {
-                        "createItem": {
-                            "item": question,
-                            "location": {"index": index},
-                        }
+        body = {
+            "requests": [
+                {
+                    "createItem": {
+                        "item": question,
+                        "location": {"index": index},
                     }
-                ]
-            }
-            self.service.forms().batchUpdate(formId=form_id, body=body).execute()
-        except HttpError as err:
-            logger.error(f"An error occurred: {err}")
+                }
+            ]
+        }
+        self.service.forms().batchUpdate(formId=form_id, body=body).execute()
 
     def get_form(self, form_id: str) -> dict:
-        try:
-            form = self.service.forms().get(formId=form_id).execute()
-            return form
-        except HttpError as err:
-            logger.error(err)
-            return {}
+        form = self.service.forms().get(formId=form_id).execute()
+        return form

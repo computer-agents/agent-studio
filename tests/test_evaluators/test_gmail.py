@@ -20,5 +20,8 @@ def test_gmail(
             f"The task is: {task_config['intent']}"
         )
 
-        score = comb(**{"response": response})
+        if len(response) > 0:
+            score = comb(**{"response": response})
+        else:
+            score = comb()
         assert score == 1.0
