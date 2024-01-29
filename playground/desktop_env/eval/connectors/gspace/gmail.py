@@ -51,6 +51,17 @@ class GmailService(GoogleService):
 
         return None
 
+    def get_cc(self, message):
+        headers = message["payload"]["headers"]
+        try:
+            cc = next(
+                header["value"] for header in headers if header["name"].lower() == "cc"
+            )
+        except StopIteration:
+            cc = None
+        logger.error(f"cc: {cc}")
+        return cc
+
     def get_body(self, message):
         # Decode the body content
         if message["payload"]["body"]["size"] == 0:
@@ -134,6 +145,7 @@ class GmailService(GoogleService):
         recipient = self.get_recipient(message)
         decoded_body = self.get_body(message)
         attachment_name = self.get_attachment_name(message)
+        cc = self.get_cc(message)
 
         return {
             "id": recent_draft_id,
@@ -141,6 +153,7 @@ class GmailService(GoogleService):
             "recipient": recipient,
             "body": decoded_body,
             "attachment": attachment_name,
+            "cc": cc,
         }
 
     def get_recent_sent_mail(self) -> dict[str, str] | None:

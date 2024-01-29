@@ -44,15 +44,20 @@ class GmailEvaluator(Evaluator):
             pred["recipient"]
         )
         content_match = ref["body"].strip() == pred["body"].strip()
-        if "attachment" in ref:
-            if "attachment" not in pred:
-                file_name_match = False
+
+        key_matches = []
+        for key in ["attachment", "cc"]:
+            if key in ref:
+                if key not in pred:
+                    key_match = False
+                else:
+                    key_match = ref[key] == pred[key]
             else:
-                file_name_match = ref["attachment"] == pred["attachment"]
-        else:
-            file_name_match = True
+                key_match = True
+            key_matches.append(key_match)
+
         return float(
-            subject_match and recipient_match and content_match and file_name_match
+            subject_match and recipient_match and content_match and all(key_matches)
         )
 
     def execute(
