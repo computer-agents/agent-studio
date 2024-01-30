@@ -1,42 +1,189 @@
-import json
+# pytest -s tests/test_evaluators/test_gmail.py
+import pytest
 
-from playground.agent.teacher_forcing_agent import TeacherForcingAgent
-from playground.desktop_env import ComputerEnv
 from playground.desktop_env.eval.evaluator_helper import evaluator_router
 
+TASK_CONFIGS = [
+    {
+        "evals": [
+            {
+                "eval_type": "gmail",
+                "eval_procedure": [
+                    {
+                        "check_draft_exists": {
+                            "draft_info": {
+                                "subject": "Automated draft",
+                                "recipient": "gduser@workspacesamples.dev",
+                                "body": "This is automated draft mail",
+                            },
+                            "exists": False,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "delete_draft": {
+                            "draft_info": {
+                                "subject": "Automated draft",
+                                "recipient": "gduser@workspacesamples.dev",
+                                "body": "This is automated draft mail",
+                            }
+                        }
+                    }
+                ],
+            }
+        ]
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "gmail",
+                "eval_procedure": [
+                    {
+                        "check_draft_exists": {
+                            "draft_info": {
+                                "subject": "Automated draft",
+                                "recipient": "gduser@workspacesamples.dev",
+                                "body": "This is automated draft mail",
+                            },
+                            "exists": True,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "create_draft": {
+                            "draft_info": {
+                                "subject": "Automated draft",
+                                "recipient": "gduser@workspacesamples.dev",
+                                "body": "This is automated draft mail",
+                            }
+                        }
+                    }
+                ],
+            }
+        ]
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "gmail",
+                "eval_procedure": [
+                    {
+                        "check_draft_exists": {
+                            "draft_info": {
+                                "subject": "Automated draft",
+                                "recipient": "gduser@workspacesamples.dev",
+                                "body": "This is automated draft mail",
+                            },
+                            "exists": False,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "delete_draft": {
+                            "draft_info": {
+                                "subject": "Automated draft",
+                                "recipient": "gduser@workspacesamples.dev",
+                                "body": "This is automated draft mail",
+                            }
+                        }
+                    }
+                ],
+            }
+        ]
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "gmail",
+                "eval_procedure": [
+                    {
+                        "check_sent_message_exists": {
+                            "message_info": {
+                                "subject": "Automated Email",
+                                "body": "This is automatically sent message",
+                            },
+                            "exists": False,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "delete_sent_message": {
+                            "message_info": {
+                                "subject": "Automated Email",
+                                "body": "This is automatically sent message",
+                            }
+                        }
+                    }
+                ],
+            }
+        ]
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "gmail",
+                "eval_procedure": [
+                    {
+                        "check_sent_message_exists": {
+                            "message_info": {
+                                "subject": "Automated Email",
+                                "body": "This is automatically sent message",
+                            },
+                            "exists": True,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "send_message": {
+                            "message_info": {
+                                "subject": "Automated Email",
+                                "body": "This is automatically sent message",
+                            }
+                        }
+                    }
+                ],
+            }
+        ]
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "gmail",
+                "eval_procedure": [
+                    {
+                        "check_sent_message_exists": {
+                            "message_info": {
+                                "subject": "Automated Email",
+                                "body": "This is automatically sent message",
+                            },
+                            "exists": False,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "delete_sent_message": {
+                            "message_info": {
+                                "subject": "Automated Email",
+                                "body": "This is automatically sent message",
+                            }
+                        }
+                    }
+                ],
+            }
+        ]
+    },
+]
 
-def test_gmail(
-    computer_env: ComputerEnv,
-) -> None:
-    config_file = "playground/desktop_env/eval/tasks/gmail.json"
-    with open(config_file, "r") as f:
-        task_configs = json.load(f)
-    agent = TeacherForcingAgent(env=computer_env)
 
-    for task_config in task_configs["tasks"]:
-        comb = evaluator_router(task_config)
-        comb.reset()
-
-        action_sequence_path: str | None = task_configs.get(
-            "action_sequence_path", None
-        )
-        if action_sequence_path is not None:
-            with open(action_sequence_path, "r") as f:
-                tasks = json.load(f)["tasks"]
-                for t in tasks:
-                    if t["task_id"] == task_config["task_id"]:
-                        reference_action_sequence = t["reference_action_sequence"]
-                        break
-        else:
-            reference_action_sequence = None
-        instruction = task_config["intent_template"].format(
-            **task_config["instantiation_dict"]
-        )
-        agent.reset(
-            instruction=instruction,
-            reference_action_sequence=reference_action_sequence,
-        )
-        agent.run()
-
-        score = comb()
-        assert score == 1.0
+@pytest.mark.parametrize("task_config", TASK_CONFIGS)
+def test_gmail(task_config):
+    comb = evaluator_router(task_config)
+    comb.reset()
+    score = comb()
+    assert score == 1.0

@@ -17,10 +17,10 @@ class EvaluatorComb:
         for evaluator in self.evaluators:
             evaluator.reset()
 
-    def __call__(self) -> float:
+    def __call__(self, **kwargs) -> float:
         score = 1.0
         for evaluator in self.evaluators:
-            cur_score = evaluator()
+            cur_score = evaluator(**kwargs)
             score *= cur_score
         return score
 
@@ -86,7 +86,7 @@ def evaluator_router(
         if eval_type in registered_evaluators:
             evaluators.append(
                 registered_evaluators[eval_type](
-                    reference_answer=eval.get("eval_procedure", {}),
+                    eval_procedure=eval.get("eval_procedure", {}),
                     reset_procedure=eval.get("reset_procedure", []),
                 )
             )

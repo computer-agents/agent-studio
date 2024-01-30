@@ -20,6 +20,7 @@ class Config(metaclass=Singleton):
 
     google_credential_path: str = "playground/config/credentials.json"
     google_calendar_id: str = "primary"
+    gmail_recipient: str = "gduser1@workspacesamples.dev"
     vscode_workspace_path: str = "tmp/vscode_workspace"
     vscode_executable_path: str = "code"
 

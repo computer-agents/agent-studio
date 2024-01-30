@@ -1,83 +1,186 @@
-# from typing import Any
+import logging
 
-# from playground.desktop_env.eval.connectors.gspace.gdocs import GoogleDocsService
-# from playground.desktop_env.eval.evaluator import Evaluator
-# import logging
+from playground.desktop_env.eval.connectors.gservice import GoogleService
+from playground.desktop_env.eval.evaluator import Evaluator
+from playground.desktop_env.eval.google_evaluators.drive_evaluator import (
+    GoogleDriveService,
+)
+from playground.desktop_env.eval.google_evaluators.utils import confirm_action
 
-# logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
-# class GoogleDocsEvaluator(Evaluator):
-#     name: str = "google_docs"
+class GoogleDocsService(GoogleService):
+    def __init__(self) -> None:
+        super().__init__(
+            scopes=[
+                "https://www.googleapis.com/auth/documents",
+            ],
+            service_name="docs",
+            service_version="v1",
+        )
+        self.drive_service = GoogleDriveService()
 
-#     def __init__(
-#         self,
-#         reference_answer: dict,
-#         reset_procedure: list[dict],
-#         eval_tag: str = "",
-#     ) -> None:
-#         super().__init__(
-#             reference_answer=reference_answer,
-#             reset_procedure=reset_procedure,
-#             eval_tag=eval_tag,
-#         )
-#         self.service = GoogleDocsService()
-#         self.document_id: str = ""
+    def create_document(self, title: str, content: str | None = None) -> dict:
+        """Creates a document with the given title and content."""
+        body = {"title": title}
+        doc = self.service.documents().create(body=body).execute()
+        if content:
+            self.append_text(doc["documentId"], content)
+        return doc
 
-#     def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
-#         try:
-#             for step in steps:
-#                 action, params = list(step.items())[0]
-#                 # match action:
-#                 #     case "create_document":
-#                 #         # Code to create a new Google Docs document
-#                 #     case "edit_document":
-#                 #         # Code to edit a Google Docs document
-#                 #     # Add other actions specific to Google Docs
-#                 #     case _:
-#                 #         raise Exception(
-#                 #             f"Action {action} not supported by Google Docs"
-#                 #         )
-#             return True
-#         except Exception as e:
-#             logger.error(f"An error occurred in Google Docs env: {e}")
-#             return False
+    def get_document(self, document_id: str) -> dict:
+        """Gets a document by its ID."""
+        document = self.service.documents().get(documentId=document_id).execute()
+        return document
 
-#     def __call__(self) -> float:
-#         return 0.0
-#         # calendar_id = config.google_calendar_id
-#         # score = 1.0
+    def get_text_at_index(self, document, index):
+        """Gets the text at the given index in the document."""
+        for element in document["body"]["content"]:
+            if "startIndex" in element and "endIndex" in element:
+                if element["startIndex"] <= index < element["endIndex"]:
+                    # Assuming the element contains text
+                    if "textRun" in element["paragraph"]["elements"][0]:
+                        return element["paragraph"]["elements"][0]["textRun"]["content"]
+        return None
 
-#         # try:
-#         #     for approach, value in self.reference_answer.items():
-#         #         match approach:
-#         #             case "event_match":
-#         #                 events: list[dict] = self.service.search_events_by_info(
-#         #                     value,
-#         #                     calendar_id=calendar_id,
-#         #                     # if calendar_id is None, fallback to primary calendar
-#         #                 )
-#         #                 if len(events) == 0:
-#         #                     score = 0.0
-#         #                 elif len(events) > 1:
-#         #                     raise ValueError(f"More than one event found: {events}")
-#         #                 else:
-#         #                     score *= 1.0
-#         #             case "check_event_exists":
-#         #                 """
-#         #                 Two parameters:
-#         #                 - event: the event to look for
-#         #                 - exists: whether the event should exist or not
-#         #                 """
-#         #                 events = self.service.list_events(
-#         #                     config.google_calendar_id
-#         #                 )
-#         #                 score *= float(
-#         #                     self.check_event_exists(value["event"], events)
-#         #                     == value["exists"]
-#         #                 )
-#         # except Exception as e:
-#         #     logger.error(f"An error occurred: {e}\nscore may be incorrect")
-#         #     score = 0.0
+    def append_text(self, document_id: str, text: str) -> None:
+        """Appends text to the document."""
+        requests = [
+            {
+                "insertText": {
+                    "location": {
+                        "index": 1,
+                    },
+                    "text": text,
+                }
+            }
+        ]
+        self.service.documents().batchUpdate(
+            documentId=document_id, body={"requests": requests}
+        ).execute()
 
-#         # return score
+    def replace_text(self, document_id: str, old_text: str, new_text: str) -> None:
+        """Replaces text in the document."""
+        requests = [
+            {
+                "replaceAllText": {
+                    "containsText": {"text": old_text, "matchCase": "true"},
+                    "replaceText": new_text,
+                }
+            }
+        ]
+        self.service.documents().batchUpdate(
+            documentId=document_id, body={"requests": requests}
+        ).execute()
+
+    def get_document_title(self, document_id: str) -> str:
+        """Gets the title of the document."""
+        document = self.get_document(document_id)
+        if document:
+            return document.get("title", "")
+        return ""
+
+    @confirm_action
+    def delete_text(self, document_id: str, start_index: int, end_index: int) -> None:
+        """Deletes text in the document."""
+        requests = [
+            {
+                "deleteContentRange": {
+                    "range": {
+                        "startIndex": start_index,
+                        "endIndex": end_index,
+                    }
+                }
+            }
+        ]
+        self.service.documents().batchUpdate(
+            documentId=document_id, body={"requests": requests}
+        ).execute()
+
+    def insert_table(
+        self, document_id: str, rows: int, columns: int, index: int = 1
+    ) -> None:
+        """Inserts a table at the given index in the document."""
+        requests = [
+            {
+                "insertTable": {
+                    "rows": rows,
+                    "columns": columns,
+                    "location": {"index": index},
+                }
+            }
+        ]
+        self.service.documents().batchUpdate(
+            documentId=document_id, body={"requests": requests}
+        ).execute()
+
+    def search_doc_by_title(self, title: str) -> list[str]:
+        """Searches for documents with the given title."""
+        condition = (
+            f"name='{title}' and mimeType='application/vnd.google-apps.document'"
+        )
+        doc_ids = self.drive_service.search_file_by_condition(condition)
+        return doc_ids
+
+    def delete_doc_by_id(self, doc_id: str) -> None:
+        """Deletes a document by its ID."""
+        document = self.get_document(doc_id)
+        logger.info(f"Deleting document: {document['title']}")
+        self.drive_service.delete_file_by_id(doc_id)
+
+    def delete_document(self, title: str, content: str) -> None:
+        """Deletes a document with the given title and content."""
+        doc_ids = self.search_doc_by_title(title)
+        if len(doc_ids) != 0:
+            for doc_id in doc_ids:
+                if self.drive_service.compare_file_content(doc_id, content):
+                    self.delete_doc_by_id(doc_id)
+
+    def check_doc_exists(
+        self, title: str, exists: bool, content: str | None = None
+    ) -> bool:
+        """Checks if the document matches the given parameters."""
+        doc_ids = self.search_doc_by_title(title)
+        doc_exists = False
+        if len(doc_ids) != 0:
+            for doc_id in doc_ids:
+                title_match = self.get_document_title(doc_id) == title
+                if content is None:
+                    content_match = True
+                else:
+                    content_match = self.drive_service.compare_file_content(
+                        doc_id, content
+                    )
+                if title_match and content_match:
+                    doc_exists = True
+                    break
+        return doc_exists == exists
+
+
+class GoogleDocsEvaluator(Evaluator):
+    name: str = "google_docs"
+
+    def __init__(
+        self,
+        eval_procedure: list[dict],
+        reset_procedure: list[dict],
+    ) -> None:
+        super().__init__(
+            eval_procedure=eval_procedure,
+            reset_procedure=reset_procedure,
+        )
+        self.service = GoogleDocsService()
+        self.evaluation_handlers = {
+            "check_doc_exists": self.service.check_doc_exists,
+        }
+        self.reset_handlers = {
+            "create_document": self.service.create_document,
+            "delete_document": self.service.delete_document,
+        }
+        self.feedback_handlers = {
+            "check_doc_exists": lambda title, exists, content=None: (
+                f"The error occured when checking the existence of {title}. "
+                f"It should be {exists}."
+            )
+        }

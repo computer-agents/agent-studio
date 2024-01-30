@@ -3,13 +3,163 @@ from datetime import datetime, timezone
 from typing import Any
 
 from playground.config import Config
-from playground.desktop_env.eval.connectors.gspace.gcalendar import (
-    GoogleCalendarService,
-)
+from playground.desktop_env.eval.connectors.gservice import GoogleService
 from playground.desktop_env.eval.evaluator import Evaluator
+from playground.desktop_env.eval.google_evaluators.utils import confirm_action
 
 config = Config()
 logger = logging.getLogger(__name__)
+
+
+def time_match(timestamp1: str, timestamp2: str) -> bool:
+    """Checks if the pred time matches the ref time."""
+    timestamp1 = timestamp1.replace("Z", "+00:00")
+    timestamp2 = timestamp2.replace("Z", "+00:00")
+    dt1 = datetime.fromisoformat(timestamp1).astimezone(timezone.utc)
+    dt2 = datetime.fromisoformat(timestamp2).astimezone(timezone.utc)
+
+    return dt1 == dt2
+
+
+def event_match(
+    event1: dict,
+    event2: dict,
+) -> bool:
+    """Checks if the event2 matches the event1."""
+    for key, value in event1.items():
+        pred_value = event2.get(key, None)
+        if key in ["summary", "description", "location"]:
+            if value != pred_value:
+                return False
+        elif key in ["start", "end"]:
+            if not (
+                "dateTime" in value
+                and "dateTime" in pred_value
+                and time_match(value["dateTime"], pred_value["dateTime"])
+            ):
+                return False
+    return True
+
+
+class GoogleCalendarService(GoogleService):
+    def __init__(self) -> None:
+        super().__init__(
+            scopes=[
+                "https://www.googleapis.com/auth/calendar",
+            ],
+            service_name="calendar",
+            service_version="v3",
+        )
+
+    def create_event(
+        self,
+        event_info: dict[str, Any],
+    ) -> None:
+        """Creates an event on the calendar."""
+        self.service.events().insert(
+            calendarId=config.google_calendar_id, body=event_info
+        ).execute()
+
+    def list_events(self) -> list[dict]:
+        """Lists all events on the calendar."""
+        events = []
+        page_token = None
+        while True:
+            events_result = (
+                self.service.events()
+                .list(calendarId=config.google_calendar_id, pageToken=page_token)
+                .execute()
+            )
+            events.extend(events_result["items"])
+            page_token = events_result.get("nextPageToken")
+            if not page_token:
+                break
+        return events
+
+    def search_events_by_time_range(
+        self,
+        start_time: str,
+        end_time: str,
+    ) -> list[dict[str, Any]]:
+        """Searches for events that fall within the given time range."""
+        events = []
+        page_token = None
+        while True:
+            events_result = (
+                self.service.events()
+                .list(
+                    calendarId=config.google_calendar_id,
+                    timeMin=start_time,
+                    timeMax=end_time,
+                    singleEvents=True,
+                )
+                .execute()
+            )
+            events.extend(events_result["items"])
+            page_token = events_result.get("nextPageToken")
+            if not page_token:
+                break
+        return events
+
+    def search_events(self, event_info: dict[str, Any]) -> list[dict[str, str]]:
+        """Searches for events that match the reference event."""
+        events = self.search_events_by_time_range(
+            start_time=event_info["start"]["dateTime"],
+            end_time=event_info["end"]["dateTime"],
+        )
+        results = []
+        for event in events:
+            if event_match(event_info, event):
+                results.append(event)
+        return results
+
+    @confirm_action
+    def delete_event_by_id(self, event_id: str) -> None:
+        """Deletes an event on the calendar."""
+        self.service.events().delete(
+            calendarId=config.google_calendar_id, eventId=event_id
+        ).execute()
+        logger.info(f"Event with ID {event_id} has been deleted.")
+
+    def delete_event(
+        self,
+        event_info: dict[str, Any],
+    ) -> None:
+        """Deletes events that match the given event."""
+        events = self.search_events_by_time_range(
+            start_time=event_info["start"]["dateTime"],
+            end_time=event_info["end"]["dateTime"],
+        )
+        for event in events:
+            if event_match(event_info, event):
+                logger.info(f"Deleting event: {event['summary']}")
+                self.delete_event_by_id(event["id"])
+
+    def clear_calendar(self) -> None:
+        """Deletes all events on the calendar."""
+
+        @confirm_action
+        def _clear_calendar() -> None:
+            events = self.list_events()
+            for event in events:
+                self.service.events().delete(
+                    calendarId=config.google_calendar_id, eventId=event["id"]
+                ).execute()
+            logger.info("All events have been deleted.")
+
+        logger.info("Clearing all events on the calendar")
+        _clear_calendar()
+
+    def check_event_exists(
+        self,
+        event_info: dict[str, Any],
+        exists: bool,
+    ) -> bool:
+        """Checks if the given event exists."""
+        events = self.search_events(event_info)
+        event_exists = len(events) > 0
+
+        return event_exists == exists
 
 
 class GoogleCalendarEvaluator(Evaluator):
@@ -17,194 +167,25 @@ class GoogleCalendarEvaluator(Evaluator):
 
     def __init__(
         self,
-        reference_answer: dict,
+        eval_procedure: list[dict],
         reset_procedure: list[dict],
-        eval_tag: str = "",
     ) -> None:
         super().__init__(
-            reference_answer=reference_answer,
+            eval_procedure=eval_procedure,
             reset_procedure=reset_procedure,
-            eval_tag=eval_tag,
         )
         self.service = GoogleCalendarService()
-        self.events: dict = {}
-
-    @staticmethod
-    def item_match(ref: str | None, pred: str | None) -> float:
-        return float(pred == ref)
-
-    @staticmethod
-    def list_match(ref: list, pred: list) -> float:
-        score = 1.0
-        for i in range(len(ref)):
-            match_score = 0.0
-            for j in range(len(pred)):
-                if isinstance(ref[i], dict):
-                    match_score = GoogleCalendarEvaluator.dict_match_left(
-                        ref=ref[i], pred=pred[j]
-                    )
-                else:
-                    match_score = GoogleCalendarEvaluator.item_match(
-                        ref=ref[i], pred=pred[j]
-                    )
-                if match_score > 0.0:
-                    break
-            score *= match_score
-        return score
-
-    @staticmethod
-    def time_match(timestamp1: str, timestamp2: str) -> float:
-        """Checks if the pred time matches the ref time."""
-        timestamp1 = timestamp1.replace("Z", "+00:00")
-        timestamp2 = timestamp2.replace("Z", "+00:00")
-        dt1 = datetime.fromisoformat(timestamp1).astimezone(timezone.utc)
-        dt2 = datetime.fromisoformat(timestamp2).astimezone(timezone.utc)
-
-        return dt1 == dt2
-
-    @staticmethod
-    def dict_match_left(
-        ref: dict[str, str] | dict[str, list] | dict[str, dict],
-        pred: dict[str, str] | dict[str, list] | dict[str, dict],
-    ) -> float:
-        """
-        Checks if the pred dict matches the ref dict. Only checks the keys in ref.
-        :param ref: The reference dict.
-        :param pred: The dict to be checked.
-        :return: 1.0 if the dicts match, 0.0 otherwise.
-        """
-        score = 1.0
-        for key, item in ref.items():
-            pred_item = pred.get(key, None)
-            if isinstance(item, dict) and isinstance(pred_item, dict):
-                score *= GoogleCalendarEvaluator.dict_match_left(
-                    ref=item, pred=pred_item
-                )
-            elif isinstance(item, list) and isinstance(pred_item, list):
-                score *= GoogleCalendarEvaluator.list_match(ref=item, pred=pred_item)
-            elif isinstance(item, (str, int, float)) and isinstance(
-                pred_item, (str, int, float)
-            ):
-                score *= GoogleCalendarEvaluator.item_match(ref=item, pred=pred_item)
-            else:
-                return 0.0
-        return score
-
-    @staticmethod
-    def check_event_exists(reference_event: dict, actual_events: list[dict]) -> bool:
-        """
-        Checks if a given event exists in the list of actual events.
-        :param reference_event: The event to look for.
-        :param actual_events: list of events to search within.
-        :return: True if the event exists, False otherwise.
-        """
-        for event in actual_events:
-            if GoogleCalendarEvaluator.dict_match_left(reference_event, event):
-                return True
-        return False
-
-    def execute(self, steps: list[dict[str, dict[str, Any]]]) -> bool:
-        try:
-            for step in steps:
-                for action, params in step.items():
-                    match action:
-                        # case "create_and_cd_calendar":
-                        #     calendar = self.service.create_calendar(params)
-                        #     config.google_calendar_id = calendar["id"]
-                        # case "cd_calendar":
-                        #     if params["id"] != "primary":
-                        #         calendar = self.service.find_calendar_by_id(
-                        #             params["id"]
-                        #         )
-                        #         if calendar == {}:
-                        #             raise Exception(
-                        #                 f"Calendar {params['id']} not found"
-                        #             )
-                        #         config.google_calendar_id = calendar["id"]
-                        #     else:
-                        #         config.google_calendar_id = "primary"
-                        case "clear_calendar":
-                            self.service.clear_calendar(config.google_calendar_id)
-                        case "create_event":
-                            event = self.service.create_event(
-                                start_time=params["start"]["dateTime"],
-                                end_time=params["end"]["dateTime"],
-                                summary=params.get("summary"),
-                                location=params.get("location"),
-                                description=params.get("description"),
-                                attendees=params.get("attendees"),
-                                calendar_id=config.google_calendar_id,
-                            )
-                            self.events[event.get("id")] = event
-                        case "deduplicate_event":
-                            events = self.service.search_events_by_time_range(
-                                start_time=params["start"]["dateTime"],
-                                end_time=params["end"]["dateTime"],
-                                calendar_id=config.google_calendar_id,
-                            )
-                            for event in events:
-                                if (
-                                    event["summary"] == params["summary"]
-                                    and event["location"] == params["location"]
-                                    and event["description"] == params["description"]
-                                    and self.time_match(
-                                        event["start"]["dateTime"],
-                                        params["start"]["dateTime"],
-                                    )
-                                    and self.time_match(
-                                        event["end"]["dateTime"],
-                                        params["end"]["dateTime"],
-                                    )
-                                ):
-                                    self.service.delete_event(
-                                        event_id=event["id"],
-                                        calendar_id=config.google_calendar_id,
-                                    )
-                        # case "delete_cur_calendar":
-                        #     self.service.delete_calendar(
-                        #         config.google_calendar_id
-                        #     )
-                        case _:
-                            raise Exception(
-                                f"Action {action} not supported by Google calendar"
-                            )
-            return True
-        except Exception as e:
-            logger.error(f"An error occurred in Google calendar env: {e}")
-            return False
-
-    def __call__(self) -> float:
-        calendar_id = config.google_calendar_id
-        score = 1.0
-
-        try:
-            for approach, value in self.reference_answer.items():
-                match approach:
-                    case "event_match":
-                        events: list[dict] = self.service.search_events_by_info(
-                            value,
-                            calendar_id=calendar_id,
-                            # if calendar_id is None, fallback to primary calendar
-                        )
-                        if len(events) == 0:
-                            score = 0.0
-                        elif len(events) > 1:
-                            raise ValueError(f"More than one event found: {events}")
-                        else:
-                            score *= 1.0
-                    case "check_event_exists":
-                        """
-                        Two parameters:
-                        - event: the event to look for
-                        - exists: whether the event should exist or not
-                        """
-                        events = self.service.list_events(config.google_calendar_id)
-                        score *= float(
-                            self.check_event_exists(value["event"], events)
-                            == value["exists"]
-                        )
-        except Exception as e:
-            logger.error(f"An error occurred: {e}\nscore may be incorrect")
-            score = 0.0
-
-        return score
+        self.evaluation_handlers = {
+            "check_event_exists": self.service.check_event_exists,
+        }
+        self.reset_handlers = {
+            "create_event": self.service.create_event,
+            "delete_event": self.service.delete_event,
+            "clear_calendar": self.service.clear_calendar,
+        }
+        self.feedback_handlers = {
+            "check_event_exists": lambda event_info, exists: (
+                f"The error occured when checking the existence of {event_info}. "
+                f"It should be {exists}."
+            )
+        }
