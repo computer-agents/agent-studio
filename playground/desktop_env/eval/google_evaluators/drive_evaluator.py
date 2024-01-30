@@ -80,6 +80,13 @@ class GoogleDriveService(GoogleService):
         file_metadata = self.service.files().get(fileId=file_id).execute()
         return file_metadata["name"]
 
+    def rename_file(self, file_id: str, new_name: str) -> None:
+        """Renames a file in Google Drive."""
+        file_metadata = {"name": new_name}
+        self.service.files().update(
+            fileId=file_id, body=file_metadata, fields="id"
+        ).execute()
+
     def search_file_by_condition(self, condition: str) -> list[str]:
         """Searches for a file in Google Drive."""
         results = (
@@ -100,7 +107,10 @@ class GoogleDriveService(GoogleService):
         results = (
             self.service.files()
             .list(
-                q=f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}'",  # noqa: E501
+                q=(
+                    f"mimeType='application/vnd.google-apps.folder' "
+                    f"and name='{folder_name}'"
+                ),
                 spaces="drive",
                 fields="files(id, name)",
             )
@@ -108,21 +118,6 @@ class GoogleDriveService(GoogleService):
         )
         folder_ids = [f["id"] for f in results.get("files", [])]
         return folder_ids
-
-    def get_recent_files(self, condition: str, max_results: int = 1) -> list[str]:
-        results = (
-            self.service.files()
-            .list(
-                pageSize=max_results,
-                fields="files(id, name, createdTime)",
-                orderBy="createdTime desc",
-                q=condition,
-            )
-            .execute()
-        )
-
-        file_ids = [f["id"] for f in results.get("files", [])]
-        return file_ids
 
     @confirm_action
     def delete_file_by_id(self, file_id: str) -> None:
@@ -241,6 +236,12 @@ class GoogleDriveEvaluator(Evaluator):
             "delete_folder": self.service.delete_folder,
         }
         self.feedback_handlers = {
-            "check_file_exists": lambda file_name, exists: f"The error occured when checking the existence of {file_name}. It should be {exists}.",  # noqa: E501
-            "check_folder_exists": lambda folder_name, exists: f"The error occured when checking the existence of {folder_name}. It should be {exists}.",  # noqa: E501
+            "check_file_exists": lambda file_name, exists, content=None: (
+                f"The error occured when checking the existence of {file_name}. "
+                f"It should be {exists}."
+            ),
+            "check_folder_exists": lambda folder_name, exists, file_list=None: (
+                f"The error occured when checking the existence of {folder_name}. "
+                f"It should be {exists}."
+            ),
         }

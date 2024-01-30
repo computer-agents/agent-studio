@@ -79,13 +79,6 @@ class GoogleSheetsService(GoogleService):
             spreadsheetId=spreadsheet_id, range=range_name, body={}
         ).execute()
 
-    def get_recent_spreadsheets(self, max_results=1) -> list[str]:
-        """Retrieves the most recent Google Sheets spreadsheets."""
-        spreadsheet_ids = self.drive_service.get_recent_files(
-            "mimeType='application/vnd.google-apps.spreadsheet'", max_results
-        )
-        return spreadsheet_ids
-
     def search_spreadsheet_by_title(self, title: str) -> list[str]:
         """Searches for Google Sheets spreadsheets with the given title."""
         condition = (
@@ -154,5 +147,8 @@ class GoogleSheetsEvaluator(Evaluator):
             "delete_spreadsheet": self.service.delete_spreadsheet,
         }
         self.feedback_handlers = {
-            "check_spreadsheet_exists": lambda title, exists: f"The error occured when checking the existence of {title}. It should be {exists}.",  # noqa: E501
+            "check_spreadsheet_exists": lambda title, exists, content=None: (
+                f"The error occured when checking the existence of {title}. "
+                f"It should be {exists}."
+            ),
         }

@@ -1,4 +1,6 @@
 # pytest -s tests/test_evaluators/test_gdrive.py
+import pytest
+
 from playground.desktop_env.eval.evaluator_helper import evaluator_router
 
 TASK_CONFIGS = [
@@ -137,9 +139,9 @@ TASK_CONFIGS = [
 ]
 
 
-def test_gdrive():
-    for task_config in TASK_CONFIGS:
-        comb = evaluator_router(task_config)
-        comb.reset()
-        score = comb()
-        assert score == 1.0
+@pytest.mark.parametrize("task_config", TASK_CONFIGS)
+def test_gdrive(task_config):
+    comb = evaluator_router(task_config)
+    comb.reset()
+    score = comb()
+    assert score == 1.0

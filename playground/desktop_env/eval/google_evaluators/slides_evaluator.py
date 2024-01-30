@@ -150,13 +150,6 @@ class GoogleSlidesService(GoogleService):
             presentationId=presentation_id, body={"requests": requests}
         ).execute()
 
-    def get_recent_presentations(self, max_results=1) -> list[str]:
-        """Retrieves the most recent Google Slides presentations."""
-        presentation_ids = self.drive_service.get_recent_files(
-            "mimeType='application/vnd.google-apps.presentation'", max_results
-        )
-        return presentation_ids
-
     def search_presentation_by_title(self, title: str) -> list[str]:
         """Searches for Google Slides presentations with the given title."""
         condition = (
@@ -224,5 +217,8 @@ class GoogleSlidesEvaluator(Evaluator):
             "delete_presentation": self.service.delete_presentation,
         }
         self.feedback_handlers = {
-            "check_presentation_exists": lambda title, exists: f"The error occured when checking the existence of {title}. It should be {exists}.",  # noqa: E501
+            "check_presentation_exists": lambda title, exists, content=None: (
+                f"The error occured when checking the existence of {title}. "
+                f"It should be {exists}."
+            ),
         }

@@ -115,13 +115,6 @@ class GoogleDocsService(GoogleService):
             documentId=document_id, body={"requests": requests}
         ).execute()
 
-    def get_recent_documents(self, max_results=1) -> list[str]:
-        """Gets the IDs of the most recent documents."""
-        doc_ids = self.drive_service.get_recent_files(
-            "mimeType='application/vnd.google-apps.document'", max_results
-        )
-        return doc_ids
-
     def search_doc_by_title(self, title: str) -> list[str]:
         """Searches for documents with the given title."""
         condition = (
@@ -186,5 +179,8 @@ class GoogleDocsEvaluator(Evaluator):
             "delete_document": self.service.delete_document,
         }
         self.feedback_handlers = {
-            "check_doc_exists": lambda title, exists: f"The error occured when checking the existence of {title}. It should be {exists}."  # noqa: E501
+            "check_doc_exists": lambda title, exists, content=None: (
+                f"The error occured when checking the existence of {title}. "
+                f"It should be {exists}."
+            )
         }

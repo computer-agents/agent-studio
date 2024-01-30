@@ -76,15 +76,6 @@ class GoogleCalendarService(GoogleService):
                 break
         return events
 
-    def search_events(self, event_info: dict[str, Any]) -> list[dict[str, str]]:
-        """Searches for events that match the reference event."""
-        events = self.list_events()
-        results = []
-        for event in events:
-            if event_match(event_info, event):
-                results.append(event)
-        return results
-
     def search_events_by_time_range(
         self,
         start_time: str,
@@ -109,6 +100,18 @@ class GoogleCalendarService(GoogleService):
             if not page_token:
                 break
         return events
+
+    def search_events(self, event_info: dict[str, Any]) -> list[dict[str, str]]:
+        """Searches for events that match the reference event."""
+        events = self.search_events_by_time_range(
+            start_time=event_info["start"]["dateTime"],
+            end_time=event_info["end"]["dateTime"],
+        )
+        results = []
+        for event in events:
+            if event_match(event_info, event):
+                results.append(event)
+        return results
 
     @confirm_action
     def delete_event_by_id(self, event_id: str) -> None:
@@ -181,5 +184,8 @@ class GoogleCalendarEvaluator(Evaluator):
             "clear_calendar": self.service.clear_calendar,
         }
         self.feedback_handlers = {
-            "check_event_exists": lambda event_info, exists: f"The error occured when checking the existence of {event_info}. It should be {exists}."  # noqa: E501
+            "check_event_exists": lambda event_info, exists: (
+                f"The error occured when checking the existence of {event_info}. "
+                f"It should be {exists}."
+            )
         }

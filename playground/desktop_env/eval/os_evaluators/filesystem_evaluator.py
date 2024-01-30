@@ -189,9 +189,19 @@ class FilesystemEvaluator(Evaluator):
             "chmod": chmod,
         }
         self.feedback_handlers = {
-            "exists": lambda file_to_check: f"The error occured when checking {file_to_check}.",  # noqa: E501
-            "type_check": lambda file_to_check: f"The error occured when checking {file_to_check}.",  # noqa: E501
-            "permissions_check": lambda file_to_check: f"The error occured when checking {file_to_check}.",  # noqa: E501
-            "content_check": lambda file_to_check: f"The error occured when checking {file_to_check}.",  # noqa: E501
-            "metadata_check": lambda file_to_check: f"The error occured when checking {file_to_check}.",  # noqa: E501
+            "exists": lambda file_to_check: (
+                f"The error occured when checking {file_to_check}."
+            ),
+            "type_check": lambda file_to_check: (
+                f"The error occured when checking {file_to_check}."
+            ),
+            "permissions_check": lambda file_to_check: (
+                f"The error occured when checking {file_to_check}."
+            ),
+            "content_check": lambda file_to_check: (
+                f"The error occured when checking {file_to_check}."
+            ),
+            "metadata_check": lambda file_to_check: (
+                f"The error occured when checking {file_to_check}."
+            ),
         }

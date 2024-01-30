@@ -21,5 +21,7 @@ class QAEvaluator(Evaluator):
             "string_match": lambda response, answer: response == answer,
         }
         self.feedback_handlers = {
-            "string_match": lambda response: f"The answer is incorrect: {response}."
+            "string_match": lambda response, answer=None: (
+                f"The answer is incorrect: {response}."
+            )
         }

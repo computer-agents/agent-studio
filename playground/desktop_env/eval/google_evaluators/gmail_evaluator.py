@@ -25,21 +25,18 @@ def extract_email(s):
     return emails[0] if emails else None
 
 
-def email_match(email1: dict[str, Any], email2: dict[str, Any]) -> bool:
-    """Checks if the email2 matches the email1."""
-    result = email1["subject"] == email2["subject"]
-    result &= extract_email(email1["recipient"]) == extract_email(email2["recipient"])
-    result &= email1["body"].strip() == email2["body"].strip()
-
-    for key in ["attachment", "cc"]:
-        if key in email1:
-            if key not in email2:
-                key_match = False
-            else:
-                key_match = email1[key] == email2[key]
-        else:
-            key_match = True
-        result &= key_match
+def message_match(msg_to_match: dict[str, Any], ref_msg: dict[str, Any]) -> bool:
+    """Checks if the msg_to_match matches the ref_msg."""
+    result = True
+    if "recipient" in ref_msg:
+        result &= extract_email(msg_to_match["recipient"]) == extract_email(
+            ref_msg["recipient"]
+        )
+    if "body" in ref_msg:
+        result &= msg_to_match["body"].strip() == ref_msg["body"].strip()
+    for key in ["subject", "attachment", "cc"]:
+        if ref_msg.get(key, None) is not None:
+            result &= msg_to_match[key] == ref_msg[key]
 
     return result
 
@@ -56,7 +53,7 @@ class GmailService(GoogleService):
             service_version="v1",
         )
 
-    def get_subject(self, message):
+    def get_subject(self, message: dict[str, Any]) -> str:
         """Retrieves the subject of the message."""
         headers = message["payload"]["headers"]
         subject = next(
@@ -64,7 +61,7 @@ class GmailService(GoogleService):
         )
         return subject
 
-    def get_attachment_name(self, message):
+    def get_attachment_name(self, message: dict[str, Any]) -> str | None:
         """Retrieves the name of the attachment, if any."""
         if "parts" not in message["payload"]:
             return None
@@ -76,7 +73,7 @@ class GmailService(GoogleService):
 
         return None
 
-    def get_cc(self, message):
+    def get_cc(self, message: dict[str, Any]) -> str | None:
         """Retrieves the cc of the message, if any."""
         headers = message["payload"]["headers"]
         try:
@@ -85,11 +82,11 @@ class GmailService(GoogleService):
             )
         except StopIteration:
             cc = None
-        logger.error(f"cc: {cc}")
         return cc
 
-    def get_body(self, message):
+    def get_body(self, message: dict[str, Any]) -> str:
         """Decodes the body of the message."""
+
         if message["payload"]["body"]["size"] == 0:
             # Check if there are multiple parts
             if "parts" in message["payload"]:
@@ -118,7 +115,7 @@ class GmailService(GoogleService):
 
         return decoded_body
 
-    def get_recipient(self, message):
+    def get_recipient(self, message: dict[str, Any]) -> str:
         """Retrieves the recipient of the message."""
         headers = message["payload"]["headers"]
         recipient = next(
@@ -126,7 +123,7 @@ class GmailService(GoogleService):
         )
         return recipient
 
-    def get_message(self, message_id: str):
+    def get_message(self, message_id: str) -> dict[str, Any]:
         """Retrieves the full message using the message ID."""
         message = (
             self.service.users()
@@ -135,7 +132,6 @@ class GmailService(GoogleService):
             .execute()
         )
         return {
-            "id": message["message"]["id"],
             "subject": self.get_subject(message),
             "recipient": self.get_recipient(message),
             "body": self.get_body(message),
@@ -143,7 +139,7 @@ class GmailService(GoogleService):
             "cc": self.get_cc(message),
         }
 
-    def create_draft(self, draft_info: dict[str, Any]):
+    def create_draft(self, draft_info: dict[str, Any]) -> dict[str, Any]:
         """Creates a draft email message in the user's mailbox."""
         message = EmailMessage()
         message.set_content(draft_info["body"])  # "This is automated draft mail"
@@ -159,33 +155,21 @@ class GmailService(GoogleService):
             .execute()
         )
 
-        logger.info(f'Draft id: {draft["id"]}\nDraft message: {draft["message"]}')
+        logger.info(f'Draft message: {draft["message"]}')
 
         return draft
 
     def send_message(
         self,
-        draft_info: dict[str, Any],
-    ):
-        """
-        Creates and sends an email message.
-            Returns: Message object, including message id
-        """
+        message_info: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Creates and sends an email message."""
         message = EmailMessage()
-        message.set_content(draft_info["body"])  # "This is automated draft mail"
-        message["To"] = draft_info["recipient"]  # "gduser1@workspacesamples.dev"
-        if draft_info.get("sender", None) is None:
-            message["From"] = (
-                self.service.users().getProfile(userId="me").execute()["emailAddress"]
-            )
-        else:
-            message["From"] = draft_info["sender"]  # "gduser2@workspacesamples.dev"
-        message["Subject"] = draft_info["subject"]  # "Automated draft"
-
+        message.set_content(message_info["body"])
+        message["To"] = message_info.get("recipient", config.gmail_recipient)
+        message["Subject"] = message_info["subject"]
         encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
-
         create_message = {"raw": encoded_message}
-        send_message = None
 
         @confirm_action
         def _send():
@@ -195,95 +179,103 @@ class GmailService(GoogleService):
                 .send(userId="me", body=create_message)
                 .execute()
             )
-            logger.info(f'Message sent. ID: {send_message["id"]}')
+            logger.info("Message sent successfully.")
+            return send_message
 
-        logger.info("Sending the message...")
-        _send()
+        logger.info(f"Sending the message {message_info}.")
+        return _send()
 
-        return send_message
-
-    def list_drafts(self) -> list[dict[str, Any]]:
-        """Lists all drafts."""
-        results = self.service.users().drafts().list(userId="me").execute()
-        draft_ids = [f["id"] for f in results.get("drafts", [])]
-        print("Dd:", results)
-        raise Exception
-        drafts = [self.get_message(draft_id) for draft_id in draft_ids]
-        return drafts
-
-    def list_sent_emails(self) -> list[dict[str, Any]]:
-        """Lists all sent emails."""
-        results = (
-            self.service.users()
-            .messages()
-            .list(userId="me", labelIds=["SENT"])
-            .execute()
-        )
-        sent_email_ids = [f["id"] for f in results.get("messages", [])]
-        sent_emails = [
-            self.get_message(sent_email_id) for sent_email_id in sent_email_ids
-        ]
-        return sent_emails
-
-    def search_drafts(self, draft_info: dict[str, Any]) -> list[dict[str, Any]]:
-        """Searches for drafts that match the given criteria."""
-        drafts = self.list_drafts()
-        matching_drafts = []
-        for draft in drafts:
-            if email_match(draft, draft_info):
-                matching_drafts.append(draft)
-        return matching_drafts
-
-    def search_sent_emails(
-        self, sent_email_info: dict[str, Any]
+    def search_messages(
+        self, message_info: dict[str, Any], message_type: str
     ) -> list[dict[str, Any]]:
-        """Searches for sent emails that match the given criteria."""
-        sent_emails = self.list_sent_emails()
-        matching_sent_emails = []
-        for sent_email in sent_emails:
-            if email_match(sent_email, sent_email_info):
-                matching_sent_emails.append(sent_email)
-        return matching_sent_emails
+        """Searches the messages that match the given criteria."""
+        # Construct the search query
+        search_query = ""
+        if "subject" in message_info:
+            search_query += f'subject:{message_info["subject"]} '
+        if "recipient" in message_info:
+            search_query += f'to:{message_info["recipient"]} '
+        if "cc" in message_info:
+            search_query += f'cc:{message_info["cc"]} '
+
+        match message_type:
+            case "messages":
+                search_result = (
+                    self.service.users()
+                    .messages()
+                    .list(userId="me", q=search_query)
+                    .execute()
+                )
+                messages = []
+                for m in search_result.get("messages", []):
+                    msg = self.get_message(m["id"])
+                    msg["id"] = m["id"]
+                    messages.append(msg)
+            case "drafts":
+                search_result = (
+                    self.service.users()
+                    .drafts()
+                    .list(userId="me", q=search_query)
+                    .execute()
+                )
+                messages = []
+                for m in search_result.get("drafts", []):
+                    msg = self.get_message(m["message"]["id"])
+                    msg["id"] = m["id"]
+                    messages.append(msg)
+            case _:
+                raise ValueError("message_type must be 'messages' or 'drafts'")
+
+        matching_messages = []
+        for msg in messages:
+            if message_match(msg, message_info):
+                matching_messages.append(msg)
+
+        return matching_messages
 
     @confirm_action
     def delete_draft_by_id(self, draft_id: str) -> None:
         """Deletes the draft with the given ID."""
         self.service.users().drafts().delete(userId="me", id=draft_id).execute()
-        logger.info(f"Draft with id {draft_id} deleted successfully.")
+        logger.info("Draft deleted successfully.")
 
     def delete_draft(self, draft_info: dict[str, Any]) -> None:
         """Deletes the draft that matches the given criteria."""
-        drafts = self.search_drafts(draft_info)
+        drafts = self.search_messages(message_info=draft_info, message_type="drafts")
         for draft in drafts:
-            logger.info(f"Deleting draft with subject {draft['sub ject']}")
+            logger.info(f"Deleting draft with subject {draft['subject']}")
             self.delete_draft_by_id(draft["id"])
 
     @confirm_action
-    def delete_sent_email_by_id(self, sent_email_id: str) -> None:
-        """Deletes the sent email with the given ID."""
-        self.service.users().messages().delete(userId="me", id=sent_email_id).execute()
-        logger.info(f"Sent email with id {sent_email_id} deleted successfully.")
+    def delete_sent_message_by_id(self, message_id: str) -> None:
+        """Deletes the sent message with the given ID."""
+        self.service.users().messages().delete(userId="me", id=message_id).execute()
+        logger.info(f"Sent message with id {message_id} deleted successfully.")
 
-    def delete_sent_email(self, sent_email_info: dict[str, Any]) -> None:
-        """Deletes the sent email with the given criteria."""
-        sent_emails = self.search_sent_emails(sent_email_info)
-        for sent_email in sent_emails:
-            logger.info(f"Deleting sent email with subject {sent_email['subject']}")
-            self.delete_sent_email_by_id(sent_email["id"])
+    def delete_sent_message(self, message_info: dict[str, Any]) -> None:
+        """Deletes the sent message with the given criteria."""
+        sent_messages = self.search_messages(
+            message_info=message_info, message_type="messages"
+        )
+        for sent_message in sent_messages:
+            logger.info(f"Deleting sent message with subject {sent_message['subject']}")
+            self.delete_sent_message_by_id(sent_message["id"])
 
     def check_draft_exists(self, draft_info: dict[str, Any], exists: bool) -> bool:
         """Checks if the given draft exists."""
-        drafts = self.search_drafts(draft_info)
+        drafts = self.search_messages(message_info=draft_info, message_type="drafts")
         draft_exists = len(drafts) > 0
         return draft_exists == exists
 
-    def check_sent_email_exists(
-        self, sent_email_info: dict[str, Any], exists: bool
+    def check_sent_message_exists(
+        self, message_info: dict[str, Any], exists: bool
     ) -> bool:
-        """Checks if the given sent email exists."""
-        sent_emails = self.search_sent_emails(sent_email_info)
-        sent_email_exists = len(sent_emails) > 0
-        return sent_email_exists == exists
+        """Checks if the given sent message exists."""
+        sent_messages = self.search_messages(
+            message_info=message_info, message_type="messages"
+        )
+        sent_message_exists = len(sent_messages) > 0
+        return sent_message_exists == exists
 
 
 class GmailEvaluator(Evaluator):
@@ -301,10 +293,21 @@ class GmailEvaluator(Evaluator):
         self.service = GmailService()
         self.evaluation_handlers = {
             "check_draft_exists": self.service.check_draft_exists,
-            "check_sent_email_exists": self.service.check_sent_email_exists,
+            "check_sent_message_exists": self.service.check_sent_message_exists,
         }
         self.reset_handlers = {
             "create_draft": self.service.create_draft,
             "delete_draft": self.service.delete_draft,
-            "delete_sent_email": self.service.delete_sent_email,
+            "delete_sent_message": self.service.delete_sent_message,
+            "send_message": self.service.send_message,
+        }
+        self.feedback_handlers = {
+            "check_draft_exists": lambda draft_info, exists: (
+                f"The error occured when checking if the existence of "
+                f"the draft {draft_info}. It should be {exists}."
+            ),
+            "check_sent_message_exists": lambda message_info, exists: (
+                f"The error occured when checking if the existence of "
+                f"the sent message {message_info}. It should be {exists}."
+            ),
         }
