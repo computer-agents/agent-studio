@@ -3,8 +3,10 @@ import time
 import pyautogui
 import pytest
 
-from playground.env.desktop_env.recorder.screen_recorder import ScreenRecorder
-from playground.env.desktop_env.utils import WindowManager
+from playground.env.desktop_env.recorder.screen_recorder import (
+    ScreenRecorder,
+    WindowManager,
+)
 
 
 @pytest.mark.skip(reason="Can only be tested manually.")

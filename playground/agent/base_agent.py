@@ -1,6 +1,6 @@
 import logging
 
-from playground.agent.python import Python
+from playground.agent.runtime import PythonRuntime
 from playground.config import Config
 from playground.utils.human_utils import confirm_action
 
@@ -13,7 +13,7 @@ class Agent:
 
     def __init__(self, env: str, record_path: str, **kwargs) -> None:
         self.env = env
-        self.runtime: Python | None = None
+        self.runtime: PythonRuntime | None = None
         match env:
             case "desktop":
                 from playground.env.desktop_env.recorder.agent_recorder import (
@@ -39,7 +39,7 @@ class Agent:
         self.record_screen = record_screen
         if self.runtime is not None:
             self.runtime.close()
-        self.runtime = Python()
+        self.runtime = PythonRuntime()
 
         if self.record_screen:
             self.recorder.reset(

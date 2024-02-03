@@ -12,7 +12,7 @@ os.environ["PYDEVD_DISABLE_FILE_VALIDATION"] = "1"
 os.environ["ANSI_COLORS_DISABLED"] = "1"
 
 
-class Python:
+class PythonRuntime:
     def __init__(self):
         self.km = KernelManager(kernel_name="python3")
         self.km.start_kernel()

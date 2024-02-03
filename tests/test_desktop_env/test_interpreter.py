@@ -1,12 +1,12 @@
 import pytest
 
-from playground.agent.python import Python
+from playground.agent.runtime import PythonRuntime
 
 
 @pytest.fixture(scope="function")
 def python_interpreter():
     """Provides the instance of Python for the test."""
-    env = Python()
+    env = PythonRuntime()
     yield env
     env.close()
 
