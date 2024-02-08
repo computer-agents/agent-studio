@@ -41,6 +41,7 @@ class Config(metaclass=Singleton):
     provider: str = "openai"
     max_retries: int = 3
     model: str = "gpt-4-1106-vision-preview"
+    eval_model: str = "gpt-4-1106-vision-preview"
     temperature: float = 0.0
     max_tokens: int = 4096
     OPENAI_API_KEY: str = "your_openai_api_key"

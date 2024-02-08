@@ -4,8 +4,10 @@ import logging
 import os
 from pathlib import Path
 
+from playground.config import Config
 from playground.env.desktop_env.eval.evaluator import Evaluator
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 
@@ -85,12 +87,25 @@ def evaluator_router(
     for eval in task_configs["evals"]:
         eval_type: str = eval["eval_type"]
         if eval_type in registered_evaluators:
-            evaluators.append(
-                registered_evaluators[eval_type](
-                    eval_procedure=eval.get("eval_procedure", {}),
-                    reset_procedure=eval.get("reset_procedure", []),
+            if eval_type == "model":
+                from playground.llm import setup_model
+
+                model = setup_model(config.eval_model)
+                evaluators.append(
+                    registered_evaluators[eval_type](
+                        eval_procedure=[],
+                        reset_procedure=[],
+                        model=model,
+                        instruction=task_configs["instruction"],
+                    )
                 )
-            )
+            else:
+                evaluators.append(
+                    registered_evaluators[eval_type](
+                        eval_procedure=eval.get("eval_procedure", []),
+                        reset_procedure=eval.get("reset_procedure", []),
+                    )
+                )
         else:
             raise ValueError(f"eval_type {eval_type} is not supported")
 

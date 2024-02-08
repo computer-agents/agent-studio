@@ -8,12 +8,6 @@ logger = logging.getLogger(__name__)
 class HumanEvaluator(Evaluator):
     name: str = "human"
 
-    def __init__(self) -> None:
-        pass
-
-    def reset(self) -> None:
-        pass
-
     def __call__(self, **kwargs) -> tuple[float, str]:
         score = float(input("Is the task successful? (y/n): ") == "y")
         feedback = input("Type any feedback and press Enter (or press Enter to skip): ")

@@ -3,6 +3,7 @@ import logging
 import uuid
 
 from playground.config import Config
+from playground.llm import setup_model
 from playground.utils.json_utils import read_jsonl
 
 config = Config()
@@ -24,14 +25,7 @@ def create_parser():
 
 
 def setup_agent(args):
-    match args.provider:
-        case "openai":
-            from playground.llm.openai import OpenAIProvider
-
-            model = OpenAIProvider()
-        case _:
-            raise NotImplementedError(f"Provider {args.provider} not implemented")
-
+    model = setup_model(args.model)
     match args.agent:
         case "dummy":
             from playground.agent.base_agent import Agent

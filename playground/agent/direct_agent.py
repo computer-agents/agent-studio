@@ -46,15 +46,18 @@ class DirectAgent(Agent):
             messages: list[dict[str, Any]] = []
             messages.append({"role": "system", "content": self.system_prompt})
             for step in self.trajectory:
+                user_content = [
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": encode_image(step["obs"])},
+                    }
+                ]
+                if "res" in step:
+                    user_content.append({"type": "text", "text": step["res"]})
                 messages.append(
                     {
                         "role": "user",
-                        "content": [
-                            {
-                                "type": "image_url",
-                                "image_url": {"url": encode_image(step["obs"])},
-                            }
-                        ],
+                        "content": user_content,
                     }
                 )
                 messages.append({"role": "assistant", "content": step["act"]})
@@ -69,7 +72,7 @@ class DirectAgent(Agent):
                     ],
                 }
             )
-            response = self.model.generate_response(
+            response, info = self.model.generate_response(
                 messages=messages, model=config.model
             )
             raw_code = extract_from_response(response)

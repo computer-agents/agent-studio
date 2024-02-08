@@ -13,6 +13,7 @@ class Evaluator:
         self,
         eval_procedure: list[dict[str, dict[str, Any]]],
         reset_procedure: list[dict[str, dict[str, Any]]],
+        **kwargs,
     ) -> None:
         self.eval_procedure = eval_procedure
         self.reset_procedure = reset_procedure
