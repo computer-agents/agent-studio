@@ -1,7 +1,7 @@
 # pytest -s tests/test_evaluators/test_gdrive.py
 import pytest
 
-from playground.desktop_env.eval.evaluator_helper import evaluator_router
+from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
 
 TASK_CONFIGS = [
     {

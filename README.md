@@ -8,6 +8,10 @@
 
 Playground is a holistic and scalable benchmark for measuring and training an AI's general intelligence across the world's supply of games, websites and other applications, in both online desktop and mobile environments. Agents need such a comprehensive and online environment to explore and learn the knowledge of the digital world.
 
+## Contributing
+
+We welcome and value contributions from everyone, no matter the scale. Please check out [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get involved.
+
 ## Setup environment
 
 ```bash
@@ -22,15 +26,24 @@ pip install -e .
 
 ### Google Workspace
 
-[Enable Google APIs, configure OAuth, and download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment)
+[Enable Google APIs, configure OAuth, download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), and adjust configurations [here](playground/config/config.py).
 
-## Contributing
+## Get Started
 
-We welcome and value contributions from everyone, no matter the scale. Please check out [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get involved.
+```bash
+python run.py --mode eval
+```
+
+```bash
+python run.py --mode record --env desktop
+```
+
+## Data
+
+The agent trajectories can be found [here](https://huggingface.co/datasets/agentplayground/playground_data)
 
 ## Acknowledgement
 
-- Open Interpreter
-- WebArena
-- UAC
-- vLLM
+- [Open Interpreter](https://github.com/KillianLucas/open-interpreter)
+- [UAC]()
+- [WebArena](https://github.com/web-arena-x/webarena)
