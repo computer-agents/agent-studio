@@ -75,16 +75,15 @@ class HumanRecorder(Recorder):
         self.screen_recorder.stop()
         self.mouse_recorder.stop()
         self.keyboard_recorder.stop()
-        logger.info("Recording stopped")
 
     def wait_exit(self) -> None:
         try:
-            logger.info("Waiting for exit")
+            logger.info("Waiting for exit...")
             self.keyboard_recorder.wait_exit()
             self.mouse_recorder.wait_exit()
             self.screen_recorder.wait_exit()
         finally:
-            logger.info("start post processing")
+            logger.info("Saving recording...")
             self.save()
 
     def save(self) -> None:

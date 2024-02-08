@@ -4,7 +4,7 @@ from typing import Callable
 
 from pynput import keyboard
 
-from playground.env.desktop_env.recorder.base_recorder import MODE, Event, Recorder
+from playground.env.desktop_env.recorder.base_recorder import Event, Recorder
 
 logger = logging.getLogger(__name__)
 
@@ -60,18 +60,17 @@ class KeyboardRecorder(Recorder):
     def _on_press(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
         """The callback function when a key is pressed."""
         if key is not None:
-            if self.mode == MODE.TYPING:
-                if isinstance(key, keyboard.KeyCode):
-                    key_id = key.vk
-                else:
-                    key_id = str(key)
-                self.events.append(
-                    Event(
-                        time.time(),
-                        "keyboard",
-                        {"action": "down", "key": key_id, "note": str(key)},
-                    )
+            if isinstance(key, keyboard.KeyCode):
+                key_id = key.vk
+            else:
+                key_id = str(key)
+            self.events.append(
+                Event(
+                    time.time(),
+                    "keyboard",
+                    {"action": "down", "key": key_id, "note": str(key)},
                 )
+            )
 
             canonical_key = self.listener.canonical(key)
             for hotkey in self.hotkeys.values():
@@ -80,18 +79,17 @@ class KeyboardRecorder(Recorder):
     def _on_release(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
         """The callback function when a key is released."""
         if key is not None:
-            if self.mode == MODE.TYPING:
-                if isinstance(key, keyboard.KeyCode):
-                    key_id = key.vk
-                else:
-                    key_id = str(key)
-                self.events.append(
-                    Event(
-                        time.time(),
-                        "keyboard",
-                        {"action": "up", "key": key_id, "note": str(key)},
-                    )
+            if isinstance(key, keyboard.KeyCode):
+                key_id = key.vk
+            else:
+                key_id = str(key)
+            self.events.append(
+                Event(
+                    time.time(),
+                    "keyboard",
+                    {"action": "up", "key": key_id, "note": str(key)},
                 )
+            )
 
             canonical_key = self.listener.canonical(key)
             for hotkey in self.hotkeys.values():

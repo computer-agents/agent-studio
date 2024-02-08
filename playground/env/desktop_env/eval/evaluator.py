@@ -29,23 +29,23 @@ class Evaluator:
                 else:
                     raise ValueError(f"Action {action} is not supported for reset.")
 
-    def __call__(self, response: str | None = None) -> float:
+    def __call__(self, **kwargs) -> tuple[float, str]:
         """Evaluate the outcome of the task."""
         score = 1.0
-        feedbacks = []
+        feedback = ""
         for step in self.eval_procedure:
             for action, params in step.items():
                 if action in self.evaluation_handlers:
-                    if response is not None:
-                        params["response"] = response
+                    for k, v in kwargs.items():
+                        params[k] = v
                     if not self.evaluation_handlers[action](**params):
                         score = 0.0
-                        feedbacks.append(self.feedback_handlers[action](**params))
+                        feedback += self.feedback_handlers[action](**params) + "\n"
                 else:
                     raise ValueError(
                         f"Action {action} is not supported for {self.name} evaluation."
                     )
         if score == 0.0:
-            logger.info(f"Evaluation failed due to {feedbacks}")
+            logger.info(f"Evaluation failed due to {feedback}")
 
-        return score
+        return score, feedback

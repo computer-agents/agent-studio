@@ -14,7 +14,7 @@ class HumanEvaluator(Evaluator):
     def reset(self) -> None:
         pass
 
-    def __call__(self, response: str | None = None) -> float:
-        feedback = input("Is the task successful? (y/n): ")
-        # TODO: semantic feedback for verbal RL
-        return 1.0 if feedback == "y" else 0.0
+    def __call__(self, **kwargs) -> tuple[float, str]:
+        score = float(input("Is the task successful? (y/n): ") == "y")
+        feedback = input("Type any feedback and press Enter (or press Enter to skip): ")
+        return score, feedback

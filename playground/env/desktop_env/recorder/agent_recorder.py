@@ -4,6 +4,7 @@ import platform
 import time
 
 import pyautogui
+from numpy.typing import NDArray
 
 from playground.config import Config
 from playground.env.desktop_env.recorder.base_recorder import Event, Recorder
@@ -55,12 +56,10 @@ class AgentRecorder(Recorder):
     def start(self) -> None:
         assert self.record_screen
         self.screen_recorder.start()
-        logger.info("Start recording")
 
     def stop(self) -> None:
         assert self.record_screen
         self.screen_recorder.stop()
-        logger.info("Recording stopped")
 
     def pause(self):
         assert self.record_screen
@@ -108,3 +107,6 @@ class AgentRecorder(Recorder):
             data=[self.record_dict],
             file_path=os.path.join(self.record_path, "tasks.jsonl"),
         )
+
+    def get_screenshot(self) -> NDArray:
+        return self.screen_recorder.current_frame

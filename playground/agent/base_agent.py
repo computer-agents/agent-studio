@@ -1,7 +1,11 @@
 import logging
+from typing import Any
+
+from numpy.typing import NDArray
 
 from playground.agent.runtime import PythonRuntime
 from playground.config import Config
+from playground.llm.base_model import BaseModel
 from playground.utils.human_utils import confirm_action
 
 config = Config()
@@ -11,8 +15,9 @@ logger = logging.getLogger(__name__)
 class Agent:
     """Base class for agents."""
 
-    def __init__(self, env: str, record_path: str, **kwargs) -> None:
+    def __init__(self, env: str, model: BaseModel, record_path: str, **kwargs) -> None:
         self.env = env
+        self.model = model
         self.runtime: PythonRuntime | None = None
         match env:
             case "desktop":
@@ -24,7 +29,7 @@ class Agent:
             case _:
                 raise ValueError(f"Invalid env: {env}.")
         self.instruction: str = ""
-        self.trajectory: list = []
+        self.trajectory: list[dict[str, Any]] = []
         self.record_screen: bool = False
 
     def reset(
@@ -47,57 +52,41 @@ class Agent:
             )
             self.recorder.start()
 
-    def step(self, raw_code: str) -> None:
+    def step(self, code: str) -> dict:
         """Executes and records the given code in the environment."""
-        self.recorder.add_event(raw_code)
-        end_of_episode = raw_code.endswith(config.stop_code)
-        if end_of_episode:
-            code = raw_code[: -len(config.stop_code)]
-        else:
-            code = raw_code
+
+        @confirm_action
+        def _step_helper() -> dict:
+            if self.record_screen:
+                self.recorder.resume()
+            assert self.runtime is not None, "The agent is not reset."
+            return self.runtime.exec(code)
 
         if self.record_screen:
             self.recorder.pause()
         logger.info(f"Executing code:\n{code}")
-        result = self._step_helper(code)
+        result = _step_helper(code)
         logger.info(f"Output: {result}")
-
-        if end_of_episode:
-            if self.record_screen:
-                self.recorder.stop()
-            self.recorder.save()
-
-    @confirm_action
-    def _step_helper(self, code: str) -> dict:
-        if self.record_screen:
-            self.recorder.resume()
-        assert self.runtime is not None, "The agent is not reset."
-        result = self.runtime.exec(code)
 
         return result
 
     def run(self) -> list:
-        """The main logic of the agent."""
-        match self.env:
-            case "desktop":
-                init_code = (
-                    "from playground.env.desktop_env import Shell, Keyboard, Mouse\n\n"
-                    "shell = Shell()\nkeyboard = Keyboard()\nmouse = Mouse()\n"
-                )
-                self.step(init_code)
-            case _:
-                raise ValueError(f"Invalid env: {self.env}.")
+        """The main logic of the agent.
 
-        return self.trajectory
+        Returns: The trajectory of the agent.
+        """
+        raise NotImplementedError
+
+    def get_obs(self) -> NDArray | None:
+        """Gets the observation from the environment."""
+        assert not config.use_video, "Video-as-observation is not supported yet."
+        if self.record_screen:
+            obs = self.recorder.get_screenshot()
+        else:
+            obs = None
+
+        return obs
 
     def close(self) -> None:
         if self.runtime is not None:
             self.runtime.close()
-
-    def construct_prompt(self, obs):
-        """Construct the prompt given the observation."""
-        raise NotImplementedError
-
-    def parse_response(self, response):
-        """Parse the response from the LLM."""
-        raise NotImplementedError

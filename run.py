@@ -24,12 +24,22 @@ def create_parser():
 
 
 def setup_agent(args):
+    match args.provider:
+        case "openai":
+            from playground.llm.openai import OpenAIProvider
+
+            model = OpenAIProvider()
+        case _:
+            raise NotImplementedError(f"Provider {args.provider} not implemented")
+
     match args.agent:
         case "dummy":
             from playground.agent.base_agent import Agent
 
             agent = Agent(
-                env=args.env, record_path="playground_data/trajectories/dummy"
+                env=args.env,
+                model=model,
+                record_path="playground_data/trajectories/dummy",
             )
         case _:
             raise ValueError(f"Invalid agent: {args.agent}.")
@@ -72,7 +82,6 @@ def eval(args) -> None:
             logger.info(f"Task instruction: {instruction}")
 
             agent.reset(
-                env=args.env,
                 task_id=task_id,
                 instruction=instruction,
                 record_screen=record_screen,

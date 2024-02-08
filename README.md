@@ -38,6 +38,10 @@ python run.py --mode eval
 python run.py --mode record --env desktop
 ```
 
+## Data
+
+The agent trajectories can be found [here](https://huggingface.co/datasets/agentplayground/playground_data)
+
 ## Acknowledgement
 
 - [Open Interpreter](https://github.com/KillianLucas/open-interpreter)

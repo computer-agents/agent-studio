@@ -41,15 +41,11 @@ class Recorder(metaclass=Singleton):
     """Singleton for recorder."""
 
     def __init__(self) -> None:
-        self.mode: MODE = MODE.INIT
         self.start_time: float = 0
         self.stop_time: float = float("inf")
 
     def reset(self, **kwargs) -> None:
         raise NotImplementedError
-
-    def set_mode(self, mode: MODE) -> None:
-        self.mode = mode
 
     def start(self) -> None:
         raise NotImplementedError

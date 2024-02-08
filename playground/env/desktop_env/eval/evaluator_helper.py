@@ -17,12 +17,14 @@ class EvaluatorComb:
         for evaluator in self.evaluators:
             evaluator.reset()
 
-    def __call__(self, **kwargs) -> float:
+    def __call__(self, **kwargs) -> tuple[float, str]:
         score = 1.0
+        feedback = ""
         for evaluator in self.evaluators:
-            cur_score = evaluator(**kwargs)
+            cur_score, cur_feedback = evaluator(**kwargs)
             score *= cur_score
-        return score
+            feedback += cur_feedback
+        return score, feedback
 
 
 def register_evaluators(
@@ -72,7 +74,6 @@ def register_evaluators(
     return registered_classes
 
 
-# TODO: need to redesign the evaluator_router
 def evaluator_router(
     task_configs: dict,
 ) -> EvaluatorComb:

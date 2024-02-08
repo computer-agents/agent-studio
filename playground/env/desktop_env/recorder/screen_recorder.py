@@ -204,7 +204,7 @@ class ScreenRecorder(Recorder):
     def _capture_screen(self):
         self.window_manager.send_to_background()
         self.start_time = time.time()
-        logger.info("Screen capture started")
+        logger.info("Screen recorder started")
         with mss.mss(with_cursor=False) as sct:
             while self.is_recording:
                 capture_time = time.time()
