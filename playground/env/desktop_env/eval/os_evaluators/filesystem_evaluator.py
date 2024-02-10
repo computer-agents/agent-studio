@@ -1,10 +1,6 @@
 import logging
 import os
 import platform
-# TODO: support for Windows
-if platform.system() != "Windows":
-    import pwd
-    import grp
 import shutil
 import stat
 from datetime import datetime
@@ -12,6 +8,12 @@ from pathlib import Path
 
 from playground.env.desktop_env.eval.evaluator import Evaluator
 from playground.utils.human_utils import confirm_action
+
+# TODO: support for Windows
+if platform.system() != "Windows":
+    import grp
+    import pwd
+
 
 logger = logging.getLogger(__name__)
 

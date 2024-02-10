@@ -2,7 +2,6 @@
 import pytest
 
 from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
-from playground.env.desktop_env.eval.os_evaluators.filesystem_evaluator import FilesystemEvaluator
 
 TASK_CONFIGS = [
     {
