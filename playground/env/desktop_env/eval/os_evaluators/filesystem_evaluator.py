@@ -1,7 +1,10 @@
-import grp
 import logging
 import os
-import pwd
+import platform
+# TODO: support for Windows
+if platform.system() != "Windows":
+    import pwd
+    import grp
 import shutil
 import stat
 from datetime import datetime
@@ -61,7 +64,10 @@ def move(src: str, dest: str) -> None:
 
 
 def chmod(path: str, mode: str) -> None:
-    os.chmod(path, int(mode, 8))
+    if platform.system() != "Windows":
+        os.chmod(path, int(mode, 8))
+    else:
+        logger.warning("Chmod is not supported on this platform.")
 
 
 def type_check(file_to_check: dict[str, str]) -> bool:
@@ -78,20 +84,23 @@ def type_check(file_to_check: dict[str, str]) -> bool:
 
 
 def permissions_check(file_to_check: dict[str, str]) -> bool:
-    for path, expected_permissions in file_to_check.items():
-        try:
-            # Compare permissions as octal
-            st_mode = os.stat(path).st_mode & 0o777
-            if st_mode != int(expected_permissions, 8):
+    if platform.system() != "Windows":
+        for path, expected_permissions in file_to_check.items():
+            try:
+                # Compare permissions as octal
+                st_mode = os.stat(path).st_mode & 0o777
+                if st_mode != int(expected_permissions, 8):
+                    return False
+            except ValueError:
+                # Convert permissions to a readable format
+                st_mode = os.stat(path).st_mode
+                actual_permissions = stat.filemode(st_mode)
+                if actual_permissions != expected_permissions:
+                    return False
+            except IOError:
                 return False
-        except ValueError:
-            # Convert permissions to a readable format
-            st_mode = os.stat(path).st_mode
-            actual_permissions = stat.filemode(st_mode)
-            if actual_permissions != expected_permissions:
-                return False
-        except IOError:
-            return False
+    else:
+        logger.warning("Permissions check is not supported on this platform.")
     return True
 
 
@@ -139,13 +148,19 @@ def metadata_check(file_to_check: dict[str, dict]) -> bool:
                     if file_stat.st_size != value:
                         return False
                 elif key == "owner":
-                    file_owner = pwd.getpwuid(file_stat.st_uid).pw_name
-                    if file_owner != value:
-                        return False
+                    if platform.system() != "Windows":
+                        file_owner = pwd.getpwuid(file_stat.st_uid).pw_name
+                        if file_owner != value:
+                            return False
+                    else:
+                        logger.warning("Owner check is not supported on this platform.")
                 elif key == "group":
-                    file_group = grp.getgrgid(file_stat.st_gid).gr_name
-                    if file_group != value:
-                        return False
+                    if platform.system() != "Windows":
+                        file_group = grp.getgrgid(file_stat.st_gid).gr_name
+                        if file_group != value:
+                            return False
+                    else:
+                        logger.warning("Group check is not supported on this platform.")
 
         except IOError:
             return False
