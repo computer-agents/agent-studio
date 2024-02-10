@@ -16,13 +16,13 @@ TASK_CONFIGS = [
                                 {
                                     "type": "text",
                                     "compare_method": "exact",
-                                    "value": "hi"
+                                    "value": "hi",
                                 },
                                 {
                                     "type": "text",
                                     "compare_method": "exact",
-                                    "value": "Welcome to the playground!"
-                                }
+                                    "value": "Welcome to the playground!",
+                                },
                             ],
                         }
                     }
@@ -30,7 +30,12 @@ TASK_CONFIGS = [
                 "reset_procedure": [
                     {"delete_recent_messages": {"chat_id": "me", "n": 2}},
                     {"send_message": {"chat_id": "me", "message": "hi"}},
-                    {"send_message": {"chat_id": "me", "message": "Welcome to the playground!"}}
+                    {
+                        "send_message": {
+                            "chat_id": "me",
+                            "message": "Welcome to the playground!",
+                        }
+                    },
                 ],
             }
         ]

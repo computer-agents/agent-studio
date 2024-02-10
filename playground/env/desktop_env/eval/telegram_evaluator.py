@@ -1,7 +1,7 @@
-import time
 import logging
+import time
 
-from pyrogram import Client
+from pyrogram.client import Client
 from pyrogram.errors import FloodWait
 
 from playground.config import Config
@@ -12,50 +12,58 @@ logger = logging.getLogger(__name__)
 
 config = Config()
 
+
 class TelegramService:
     def __init__(self) -> None:
-        self.__app_id: str = config.telegram_api_id
+        self.__app_id: str | int = config.telegram_api_id
         self.__app_hash: str = config.telegram_api_hash
         self.__service = Client(
             "playground_account",
             self.__app_id,
             self.__app_hash,
-            workdir=config.telegram_workdir if hasattr(config, "telegram_workdir") else "playground/config",
+            workdir=config.telegram_workdir
+            if hasattr(config, "telegram_workdir")
+            else "playground/config",
         )
-        self.__service.start()
-
-    def __del__(self) -> None:
-        self.__service.stop()
 
     def __get_message_type(self, message) -> str:
         if message.text:
-            return 'text'
+            return "text"
         elif message.photo:
-            return 'photo'
+            return "photo"
         elif message.document:
-            return 'document'
+            return "document"
         elif message.video:
-            return 'video'
-        return 'unknown'
+            return "video"
+        return "unknown"
 
     def message_match(self, chat_id: int | str, ref_messages: list[dict]):
-        messages = self.__service.get_chat_history(chat_id, limit=len(ref_messages))
+        def _message_match(chat_id, ref_messages):
+            with self.__service:
+                messages = self.__service.get_chat_history(
+                    chat_id, limit=len(ref_messages)
+                )
+                messages = [message for message in messages]
 
-        # messages returned from the API are in reverse chronological order
-        # so we need to reverse the reference messages
-        for message, ref_messages in zip(messages, reversed(ref_messages)):
-            message_type = self.__get_message_type(message)
+                # messages returned from the API are in reverse chronological order
+                # so we need to reverse the reference messages
+                for message, ref_message in zip(messages, reversed(ref_messages)):
+                    message_type = self.__get_message_type(message)
 
-            if message_type == ref_messages.get("type"):
-                if message_type == 'text' and self.match_text(message.text, ref_messages):
-                    continue
-                else:
-                    return False
-                # Extend here for other types like 'photo', 'document', etc.
-            else:
-                return False
+                    if message_type == ref_message.get("type"):
+                        if message_type == "text" and self.match_text(
+                            message.text, ref_message
+                        ):
+                            continue
+                        else:
+                            return False
+                        # Extend here for other types like 'photo', 'document', etc.
+                    else:
+                        return False
+                return True
 
-        return True
+        result = _message_match(chat_id, ref_messages)
+        return result
 
     def match_text(self, text, ref_messages):
         compare_method = ref_messages.get("compare_method", "")
@@ -64,30 +72,32 @@ class TelegramService:
         else:
             return False
 
-    def send_message(self, chat_id, message):
-        self.__service.send_message(chat_id, message)
+    def send_message(self, chat_id: str | int, message: str):
+        with self.__service:
+            self.__service.send_message(chat_id, message)
 
-    def delete_recent_messages(self, chat_id, n):
+    def delete_recent_messages(self, chat_id: str | int, n: int):
         @confirm_action
-        def _delete_recent_messages(chat_id, n):
-            messages = self.__service.get_chat_history(chat_id, limit=n)
-            message_ids = [message.id for message in messages]
+        def _delete_recent_messages(chat_id: str | int, n: int):
+            with self.__service:
+                messages = self.__service.get_chat_history(chat_id, limit=n)
+                message_ids = [message.id for message in messages]
 
-            try:
-                self.__service.delete_messages(chat_id, message_ids)
-                return True
-            except FloodWait as e:
-                # Handle the case where too many requests are sent to the Telegram API
-                logger.warn(f"Rate limit exceeded. Sleeping for {e.x} seconds.")
-                time.sleep(e.x)
-                return False
-            except Exception as e:
-                # Handle other possible exceptions
-                print(f"An error occurred: {e}")
-                return False
+                try:
+                    self.__service.delete_messages(chat_id, message_ids)
+                    return True
+                except FloodWait:
+                    logger.warn("Rate limit exceeded. Sleeping for 1 seconds.")
+                    time.sleep(1)
+                    return False
+                except Exception as e:
+                    # Handle other possible exceptions
+                    print(f"An error occurred: {e}")
+                    return False
 
-        print(f"Deleting {n} recent messages from {chat_id}")
+        print(f"Are you sure you want to delete {n} recent messages from {chat_id}")
         _delete_recent_messages(chat_id, n)
+
 
 class TelegramEvaluator(Evaluator):
     name: str = "telegram"
