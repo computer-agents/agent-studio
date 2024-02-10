@@ -30,7 +30,7 @@ class EvaluatorComb:
 
 
 def register_evaluators(
-    base_path: str | Path = "playground/desktop_env/eval",
+    base_path: str | Path = "playground/env/desktop_env/eval",
 ) -> dict[str, type[Evaluator]]:
     registered_classes = {}
     for root, _, files in os.walk(base_path):
