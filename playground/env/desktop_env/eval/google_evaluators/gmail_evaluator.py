@@ -261,7 +261,7 @@ class GmailService(GoogleService):
             logger.info(f"Deleting sent message with subject {sent_message['subject']}")
             self.delete_sent_message_by_id(sent_message["id"])
 
-    def check_draft_exists(self, draft_info: dict[str, Any], exists: bool) -> bool:
+    def check_draft_exists(self, draft_info: dict[str, Any], exists: bool) -> None:
         """Checks if the given draft exists."""
         drafts = self.search_messages(message_info=draft_info, message_type="drafts")
         draft_exists = len(drafts) > 0

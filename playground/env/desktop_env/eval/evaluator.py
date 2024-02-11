@@ -3,11 +3,14 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 class FeedBackException(Exception):
     """Exception to be raised when evaluation failed."""
+
     def __init__(self, message: str) -> None:
         super().__init__(message)
         self.message = message
+
 
 class Evaluator:
     """Base class for evaluation."""

@@ -176,7 +176,7 @@ class GoogleSlidesService(GoogleService):
 
     def check_presentation_exists(
         self, title: str, exists: bool, content: str | None = None
-    ) -> bool:
+    ) -> None:
         """Checks if the presentation matches the given parameters."""
         presentation_ids = self.search_presentation_by_title(title)
         presentation_exists = False

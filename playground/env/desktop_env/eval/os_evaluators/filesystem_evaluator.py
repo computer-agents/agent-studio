@@ -120,12 +120,11 @@ def content_check(file_to_check: dict[str, str]) -> None:
                 )
         except IOError:
             raise FeedBackException(
-                f"The error occurd when checking {path} content. "
-                f"Can't access path."
+                f"The error occurd when checking {path} content. " f"Can't access path."
             )
 
 
-def metadata_check(file_to_check: dict[str, dict]) ->  None:
+def metadata_check(file_to_check: dict[str, dict]) -> None:
     """
     metadata is a dictionary of the form:
     {
@@ -150,7 +149,8 @@ def metadata_check(file_to_check: dict[str, dict]) ->  None:
                 if key == "last_modified":
                     if not _compare_time(file_stat.st_mtime, value):
                         raise FeedBackException(
-                            f"The error occurd when checking {path} last modified time. "
+                            f"The error occurd "
+                            f"when checking {path} last modified time. "
                             f"Expected: {value}, but get: {file_stat.st_mtime}"
                         )
                 elif key == "creation_time":

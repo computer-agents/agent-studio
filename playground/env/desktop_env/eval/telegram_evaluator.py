@@ -39,9 +39,7 @@ class TelegramService:
 
     def message_match(self, chat_id: int | str, ref_messages: list[dict]) -> None:
         with self.__service:
-            messages = self.__service.get_chat_history(
-                chat_id, limit=len(ref_messages)
-            )
+            messages = self.__service.get_chat_history(chat_id, limit=len(ref_messages))
             messages = [message for message in messages]
 
             # messages returned from the API are in reverse chronological order
@@ -56,7 +54,8 @@ class TelegramService:
                         continue
                     else:
                         raise FeedBackException(
-                            f"The error occured when checking the message with {chat_id}. "
+                            f"The error occured "
+                            f"when checking the message with {chat_id}. "
                             f"Text message does not match."
                             f"Expect {ref_message.get('value')}, but get {message.text}"
                         )
@@ -67,7 +66,6 @@ class TelegramService:
                         f"Message type does not match"
                         f"Expect {ref_message.get('type')}, but get {message_type}"
                     )
-
 
     def match_text(self, text: str, ref_messages: dict):
         compare_method = ref_messages.get("compare_method", "")
