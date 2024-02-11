@@ -52,6 +52,11 @@ class Config(metaclass=Singleton):
     vscode_workspace_path: str = "tmp/vscode_workspace"
     vscode_executable_path: str = "code"
 
+    # Pyrogram config
+    telegram_workdir: str = "playground/config"
+    telegram_api_id: int | str = "your telegram_api_id"
+    telegram_api_hash: str = "your_telegram_api_hash"
+
     def __init__(self) -> None:
         project_root = os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
