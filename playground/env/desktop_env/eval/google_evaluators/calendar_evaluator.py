@@ -4,7 +4,7 @@ from typing import Any
 
 from playground.config import Config
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedBackException
 from playground.utils.human_utils import confirm_action
 
 config = Config()
@@ -154,12 +154,16 @@ class GoogleCalendarService(GoogleService):
         self,
         event_info: dict[str, Any],
         exists: bool,
-    ) -> bool:
+    ) -> None:
         """Checks if the given event exists."""
         events = self.search_events(event_info)
         event_exists = len(events) > 0
 
-        return event_exists == exists
+        if event_exists != exists:
+            raise FeedBackException(
+                f"The error occured when checking the existence of {event_info}. "
+                f"It should be {exists}."
+            )
 
 
 class GoogleCalendarEvaluator(Evaluator):
@@ -182,10 +186,4 @@ class GoogleCalendarEvaluator(Evaluator):
             "create_event": self.service.create_event,
             "delete_event": self.service.delete_event,
             "clear_calendar": self.service.clear_calendar,
-        }
-        self.feedback_handlers = {
-            "check_event_exists": lambda event_info, exists: (
-                f"The error occured when checking the existence of {event_info}. "
-                f"It should be {exists}."
-            )
         }

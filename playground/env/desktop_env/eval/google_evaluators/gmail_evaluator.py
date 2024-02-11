@@ -6,7 +6,7 @@ from typing import Any
 
 from playground.config import Config
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedBackException
 from playground.utils.human_utils import confirm_action
 
 config = Config()
@@ -265,17 +265,25 @@ class GmailService(GoogleService):
         """Checks if the given draft exists."""
         drafts = self.search_messages(message_info=draft_info, message_type="drafts")
         draft_exists = len(drafts) > 0
-        return draft_exists == exists
+        if draft_exists != exists:
+            raise FeedBackException(
+                f"The error occured when checking if the existence of "
+                f"the draft {draft_info}. It should be {exists}."
+            )
 
     def check_sent_message_exists(
         self, message_info: dict[str, Any], exists: bool
-    ) -> bool:
+    ) -> None:
         """Checks if the given sent message exists."""
         sent_messages = self.search_messages(
             message_info=message_info, message_type="messages"
         )
         sent_message_exists = len(sent_messages) > 0
-        return sent_message_exists == exists
+        if sent_message_exists != exists:
+            raise FeedBackException(
+                f"The error occured when checking if the existence of "
+                f"the sent message {message_info}. It should be {exists}."
+            )
 
 
 class GmailEvaluator(Evaluator):
@@ -300,14 +308,4 @@ class GmailEvaluator(Evaluator):
             "delete_draft": self.service.delete_draft,
             "delete_sent_message": self.service.delete_sent_message,
             "send_message": self.service.send_message,
-        }
-        self.feedback_handlers = {
-            "check_draft_exists": lambda draft_info, exists: (
-                f"The error occured when checking if the existence of "
-                f"the draft {draft_info}. It should be {exists}."
-            ),
-            "check_sent_message_exists": lambda message_info, exists: (
-                f"The error occured when checking if the existence of "
-                f"the sent message {message_info}. It should be {exists}."
-            ),
         }
