@@ -1,7 +1,6 @@
-import grp
 import logging
 import os
-import pwd
+import platform
 import shutil
 import stat
 from datetime import datetime
@@ -9,6 +8,8 @@ from pathlib import Path
 
 from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.utils.human_utils import confirm_action
+
+# TODO: support for Windows
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,10 @@ def move(src: str, dest: str) -> None:
 
 
 def chmod(path: str, mode: str) -> None:
-    os.chmod(path, int(mode, 8))
+    if platform.system() != "Windows":
+        os.chmod(path, int(mode, 8))
+    else:
+        logger.warning("Chmod is not supported on this platform.")
 
 
 def type_check(file_to_check: dict[str, str]) -> None:
@@ -83,29 +87,33 @@ def type_check(file_to_check: dict[str, str]) -> None:
 
 
 def permissions_check(file_to_check: dict[str, str]) -> None:
-    for path, expected_permissions in file_to_check.items():
-        try:
-            # Compare permissions as octal
-            st_mode = os.stat(path).st_mode & 0o777
-            if st_mode != int(expected_permissions, 8):
+    if platform.system() != "Windows":
+        for path, expected_permissions in file_to_check.items():
+            try:
+                # Compare permissions as octal
+                st_mode = os.stat(path).st_mode & 0o777
+                if st_mode != int(expected_permissions, 8):
+                    raise FeedbackException(
+                        f"The error occurd when checking {path} permissions. "
+                        f"Expected: {expected_permissions}, but get: {oct(st_mode)}"
+                    )
+            except ValueError:
+                # Convert permissions to a readable format
+                st_mode = os.stat(path).st_mode
+                actual_permissions = stat.filemode(st_mode)
+                if actual_permissions != expected_permissions:
+                    raise FeedbackException(
+                        f"The error occurd when checking {path} permissions. "
+                        f"Expected: {expected_permissions}, "
+                        f"but get: {actual_permissions}"
+                    )
+            except IOError:
                 raise FeedbackException(
                     f"The error occurd when checking {path} permissions. "
-                    f"Expected: {expected_permissions}, but get: {oct(st_mode)}"
+                    f"Can't access path."
                 )
-        except ValueError:
-            # Convert permissions to a readable format
-            st_mode = os.stat(path).st_mode
-            actual_permissions = stat.filemode(st_mode)
-            if actual_permissions != expected_permissions:
-                raise FeedbackException(
-                    f"The error occurd when checking {path} permissions. "
-                    f"Expected: {expected_permissions}, but get: {actual_permissions}"
-                )
-        except IOError:
-            raise FeedbackException(
-                f"The error occurd when checking {path} permissions. "
-                f"Can't access path."
-            )
+    else:
+        logger.warning("Permissions check is not supported on this platform.")
 
 
 def content_check(file_to_check: dict[str, str]) -> None:
@@ -166,19 +174,30 @@ def metadata_check(file_to_check: dict[str, dict]) -> None:
                             f"Expected: {value}, but get: {file_stat.st_size}"
                         )
                 elif key == "owner":
-                    file_owner = pwd.getpwuid(file_stat.st_uid).pw_name
-                    if file_owner != value:
-                        raise FeedbackException(
-                            f"The error occurd when checking {path} owner. "
-                            f"Expected: {value}, but get: {file_owner}"
-                        )
+                    if platform.system() != "Windows":
+                        import pwd
+
+                        file_owner = pwd.getpwuid(file_stat.st_uid).pw_name
+                        if file_owner != value:
+                            raise FeedbackException(
+                                f"The error occurd when checking {path} owner. "
+                                f"Expected: {value}, but get: {file_owner}"
+                            )
+                    else:
+                        logger.warning("Owner check is not supported on this platform.")
                 elif key == "group":
-                    file_group = grp.getgrgid(file_stat.st_gid).gr_name
-                    if file_group != value:
-                        raise FeedbackException(
-                            f"The error occurd when checking {path} group. "
-                            f"Expected: {value}, but get: {file_group}"
-                        )
+                    if platform.system() != "Windows":
+                        import grp
+
+                        file_group = grp.getgrgid(file_stat.st_gid).gr_name
+                        if file_group != value:
+                            raise FeedbackException(
+                                f"The error occurd when checking {path} group. "
+                                f"Expected: {value}, but get: {file_group}"
+                            )
+                    else:
+                        logger.warning("Group check is not supported on this platform.")
+
         except IOError:
             raise FeedbackException(
                 f"The error occurd when checking {path} metadata. "
