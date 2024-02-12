@@ -7,7 +7,7 @@ import stat
 from datetime import datetime
 from pathlib import Path
 
-from playground.env.desktop_env.eval.evaluator import Evaluator
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
@@ -64,50 +64,67 @@ def chmod(path: str, mode: str) -> None:
     os.chmod(path, int(mode, 8))
 
 
-def type_check(file_to_check: dict[str, str]) -> bool:
+def type_check(file_to_check: dict[str, str]) -> None:
     for path, expected_type in file_to_check.items():
         if expected_type == "file":
             if not Path(path).is_file():
-                return False
+                raise FeedbackException(
+                    f"The error occurd when checking {path} type. "
+                    f"Expected: {expected_type}, but get: folder"
+                )
         elif expected_type == "folder":
             if not Path(path).is_dir():
-                return False
+                raise FeedbackException(
+                    f"The error occurd when checking {path} type. "
+                    f"Expected: {expected_type}, but get: file"
+                )
         else:
             raise ValueError(f"Unknown type {expected_type}")
-    return True
 
 
-def permissions_check(file_to_check: dict[str, str]) -> bool:
+def permissions_check(file_to_check: dict[str, str]) -> None:
     for path, expected_permissions in file_to_check.items():
         try:
             # Compare permissions as octal
             st_mode = os.stat(path).st_mode & 0o777
             if st_mode != int(expected_permissions, 8):
-                return False
+                raise FeedbackException(
+                    f"The error occurd when checking {path} permissions. "
+                    f"Expected: {expected_permissions}, but get: {oct(st_mode)}"
+                )
         except ValueError:
             # Convert permissions to a readable format
             st_mode = os.stat(path).st_mode
             actual_permissions = stat.filemode(st_mode)
             if actual_permissions != expected_permissions:
-                return False
+                raise FeedbackException(
+                    f"The error occurd when checking {path} permissions. "
+                    f"Expected: {expected_permissions}, but get: {actual_permissions}"
+                )
         except IOError:
-            return False
-    return True
+            raise FeedbackException(
+                f"The error occurd when checking {path} permissions. "
+                f"Can't access path."
+            )
 
 
-def content_check(file_to_check: dict[str, str]) -> bool:
+def content_check(file_to_check: dict[str, str]) -> None:
     for path, expected_content in file_to_check.items():
         try:
             with open(path, "r") as file:
                 content = file.read()
             if content != expected_content:
-                return False
+                raise FeedbackException(
+                    f"The error occurd when checking {path} content. "
+                    f"Expected: {expected_content}, but get: {content}"
+                )
         except IOError:
-            return False
-    return True
+            raise FeedbackException(
+                f"The error occurd when checking {path} content. " f"Can't access path."
+            )
 
 
-def metadata_check(file_to_check: dict[str, dict]) -> bool:
+def metadata_check(file_to_check: dict[str, dict]) -> None:
     """
     metadata is a dictionary of the form:
     {
@@ -131,32 +148,51 @@ def metadata_check(file_to_check: dict[str, dict]) -> bool:
             for key, value in metadata.items():
                 if key == "last_modified":
                     if not _compare_time(file_stat.st_mtime, value):
-                        return False
+                        raise FeedbackException(
+                            f"The error occurd "
+                            f"when checking {path} last modified time. "
+                            f"Expected: {value}, but get: {file_stat.st_mtime}"
+                        )
                 elif key == "creation_time":
                     if not _compare_time(file_stat.st_ctime, value):
-                        return False
+                        raise FeedbackException(
+                            f"The error occurd when checking {path} creation time. "
+                            f"Expected: {value}, but get: {file_stat.st_ctime}"
+                        )
                 elif key == "size":
                     if file_stat.st_size != value:
-                        return False
+                        raise FeedbackException(
+                            f"The error occurd when checking {path} size. "
+                            f"Expected: {value}, but get: {file_stat.st_size}"
+                        )
                 elif key == "owner":
                     file_owner = pwd.getpwuid(file_stat.st_uid).pw_name
                     if file_owner != value:
-                        return False
+                        raise FeedbackException(
+                            f"The error occurd when checking {path} owner. "
+                            f"Expected: {value}, but get: {file_owner}"
+                        )
                 elif key == "group":
                     file_group = grp.getgrgid(file_stat.st_gid).gr_name
                     if file_group != value:
-                        return False
-
+                        raise FeedbackException(
+                            f"The error occurd when checking {path} group. "
+                            f"Expected: {value}, but get: {file_group}"
+                        )
         except IOError:
-            return False
-    return True
+            raise FeedbackException(
+                f"The error occurd when checking {path} metadata. "
+                f"Can't access path."
+            )
 
 
-def exists(file_to_check: dict[str, bool]) -> bool:
+def exists(file_to_check: dict[str, bool]) -> None:
     for path, expected in file_to_check.items():
         if expected != Path(path).exists():
-            return False
-    return True
+            raise FeedbackException(
+                f"The error occurd when checking {path} existence. "
+                f"Expected: {expected}, but get: {not expected}"
+            )
 
 
 class FilesystemEvaluator(Evaluator):
@@ -187,21 +223,4 @@ class FilesystemEvaluator(Evaluator):
             "copy": copy,
             "move": move,
             "chmod": chmod,
-        }
-        self.feedback_handlers = {
-            "exists": lambda file_to_check: (
-                f"The error occured when checking {file_to_check}."
-            ),
-            "type_check": lambda file_to_check: (
-                f"The error occured when checking {file_to_check}."
-            ),
-            "permissions_check": lambda file_to_check: (
-                f"The error occured when checking {file_to_check}."
-            ),
-            "content_check": lambda file_to_check: (
-                f"The error occured when checking {file_to_check}."
-            ),
-            "metadata_check": lambda file_to_check: (
-                f"The error occured when checking {file_to_check}."
-            ),
         }

@@ -1,13 +1,17 @@
 import logging
 from typing import Any
 
-from playground.env.desktop_env.eval.evaluator import Evaluator
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 
 logger = logging.getLogger(__name__)
 
 
 class QAEvaluator(Evaluator):
     name: str = "qa"
+
+    def string_match(self, response: str, answer: str) -> None:
+        if response != answer:
+            raise FeedbackException(f"The answer is incorrect: {response}.")
 
     def __init__(
         self,
@@ -19,10 +23,5 @@ class QAEvaluator(Evaluator):
             reset_procedure=reset_procedure,
         )
         self.evaluation_handlers = {
-            "string_match": lambda response, answer: response == answer,
-        }
-        self.feedback_handlers = {
-            "string_match": lambda response, answer=None: (
-                f"The answer is incorrect: {response}."
-            )
+            "string_match": self.string_match,
         }
