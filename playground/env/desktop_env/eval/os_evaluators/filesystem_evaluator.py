@@ -10,10 +10,6 @@ from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackExcepti
 from playground.utils.human_utils import confirm_action
 
 # TODO: support for Windows
-if platform.system() != "Windows":
-    import grp
-    import pwd
-
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +104,8 @@ def permissions_check(file_to_check: dict[str, str]) -> None:
                 if actual_permissions != expected_permissions:
                     raise FeedbackException(
                         f"The error occurd when checking {path} permissions. "
-                        f"Expected: {expected_permissions}, but get: {actual_permissions}"
+                        f"Expected: {expected_permissions}, "
+                        f"but get: {actual_permissions}"
                     )
             except IOError:
                 raise FeedbackException(
@@ -177,13 +174,29 @@ def metadata_check(file_to_check: dict[str, dict]) -> None:
                             f"Expected: {value}, but get: {file_stat.st_size}"
                         )
                 elif key == "owner":
-                    file_owner = pwd.getpwuid(file_stat.st_uid).pw_name
-                    if file_owner != value:
-                        return False
+                    if platform.system() != "Windows":
+                        import pwd
+
+                        file_owner = pwd.getpwuid(file_stat.st_uid).pw_name
+                        if file_owner != value:
+                            raise FeedbackException(
+                                f"The error occurd when checking {path} owner. "
+                                f"Expected: {value}, but get: {file_owner}"
+                            )
+                    else:
+                        logger.warning("Owner check is not supported on this platform.")
                 elif key == "group":
-                    file_group = grp.getgrgid(file_stat.st_gid).gr_name
-                    if file_group != value:
-                        return False
+                    if platform.system() != "Windows":
+                        import grp
+
+                        file_group = grp.getgrgid(file_stat.st_gid).gr_name
+                        if file_group != value:
+                            raise FeedbackException(
+                                f"The error occurd when checking {path} group. "
+                                f"Expected: {value}, but get: {file_group}"
+                            )
+                    else:
+                        logger.warning("Group check is not supported on this platform.")
 
         except IOError:
             raise FeedbackException(
