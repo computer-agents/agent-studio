@@ -3,7 +3,7 @@ from typing import Any
 
 from playground.config import Config
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedBackException
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
@@ -99,7 +99,7 @@ class GoogleFormsService(GoogleService):
                     form_exists = True
                     break
         if form_exists != exists:
-            raise FeedBackException(
+            raise FeedbackException(
                 f"The error occurred when checking the existence of {form_info}. "
                 f"It should be {exists}."
             )

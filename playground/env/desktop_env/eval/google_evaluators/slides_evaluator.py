@@ -1,7 +1,7 @@
 import logging
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedBackException
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
@@ -194,7 +194,7 @@ class GoogleSlidesService(GoogleService):
                     break
 
         if presentation_exists != exists:
-            raise FeedBackException(
+            raise FeedbackException(
                 f"The error occured when checking the existence of {title}. "
                 f"It should be {exists}."
             )

@@ -5,7 +5,7 @@ import logging
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedBackException
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
@@ -157,7 +157,7 @@ class GoogleDriveService(GoogleService):
             file_exists &= self.compare_file_content(file_ids[0], content)
 
         if file_exists != exists:
-            raise FeedBackException(
+            raise FeedbackException(
                 f"The error occured when checking the existence of {file_name}. "
                 f"It should be {exists}."
             )
@@ -174,7 +174,7 @@ class GoogleDriveService(GoogleService):
                 [f1["name"] == f2["name"] for f1, f2 in zip(file_list, files)]
             )
         if folder_exists != exists:
-            raise FeedBackException(
+            raise FeedbackException(
                 f"The error occured when checking the existence of {folder_name}. "
                 f"It should be {exists}."
             )

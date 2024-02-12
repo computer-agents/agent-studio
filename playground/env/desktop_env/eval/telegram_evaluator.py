@@ -5,7 +5,7 @@ from pyrogram.client import Client
 from pyrogram.errors import FloodWait
 
 from playground.config import Config
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedBackException
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class TelegramService:
                     ):
                         continue
                     else:
-                        raise FeedBackException(
+                        raise FeedbackException(
                             f"The error occured "
                             f"when checking the message with {chat_id}. "
                             f"Text message does not match."
@@ -61,7 +61,7 @@ class TelegramService:
                         )
                     # Extend here for other types like 'photo', 'document', etc.
                 else:
-                    raise FeedBackException(
+                    raise FeedbackException(
                         f"The error occured when checking the message with {chat_id}. "
                         f"Message type does not match"
                         f"Expect {ref_message.get('type')}, but get {message_type}"

@@ -4,7 +4,7 @@ from typing import Any
 
 from playground.config import Config
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedBackException
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.utils.human_utils import confirm_action
 
 config = Config()
@@ -160,7 +160,7 @@ class GoogleCalendarService(GoogleService):
         event_exists = len(events) > 0
 
         if event_exists != exists:
-            raise FeedBackException(
+            raise FeedbackException(
                 f"The error occured when checking the existence of {event_info}. "
                 f"It should be {exists}."
             )

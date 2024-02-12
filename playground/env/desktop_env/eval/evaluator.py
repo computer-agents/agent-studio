@@ -4,7 +4,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-class FeedBackException(Exception):
+class FeedbackException(Exception):
     """Exception to be raised when evaluation failed."""
 
     def __init__(self, message: str) -> None:
@@ -48,14 +48,14 @@ class Evaluator:
                         params[k] = v
                     try:
                         self.evaluation_handlers[action](**params)
-                    except FeedBackException as e:
+                    except FeedbackException as e:
                         score = 0.0
                         feedback += e.message + "\n"
                     except Exception as e:
                         score = 0.0
                         feedback += (
                             f"Evaluator {self.name} failed due to {e}\n"
-                            f"Score may not be accurate.\n"
+                            "Score may not be accurate.\n"
                         )
                         logger.error(f"Evaluation failed due to {e}")
                 else:

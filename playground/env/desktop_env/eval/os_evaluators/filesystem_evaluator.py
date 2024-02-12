@@ -7,7 +7,7 @@ import stat
 from datetime import datetime
 from pathlib import Path
 
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedBackException
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
@@ -68,13 +68,13 @@ def type_check(file_to_check: dict[str, str]) -> None:
     for path, expected_type in file_to_check.items():
         if expected_type == "file":
             if not Path(path).is_file():
-                raise FeedBackException(
+                raise FeedbackException(
                     f"The error occurd when checking {path} type. "
                     f"Expected: {expected_type}, but get: folder"
                 )
         elif expected_type == "folder":
             if not Path(path).is_dir():
-                raise FeedBackException(
+                raise FeedbackException(
                     f"The error occurd when checking {path} type. "
                     f"Expected: {expected_type}, but get: file"
                 )
@@ -88,7 +88,7 @@ def permissions_check(file_to_check: dict[str, str]) -> None:
             # Compare permissions as octal
             st_mode = os.stat(path).st_mode & 0o777
             if st_mode != int(expected_permissions, 8):
-                raise FeedBackException(
+                raise FeedbackException(
                     f"The error occurd when checking {path} permissions. "
                     f"Expected: {expected_permissions}, but get: {oct(st_mode)}"
                 )
@@ -97,12 +97,12 @@ def permissions_check(file_to_check: dict[str, str]) -> None:
             st_mode = os.stat(path).st_mode
             actual_permissions = stat.filemode(st_mode)
             if actual_permissions != expected_permissions:
-                raise FeedBackException(
+                raise FeedbackException(
                     f"The error occurd when checking {path} permissions. "
                     f"Expected: {expected_permissions}, but get: {actual_permissions}"
                 )
         except IOError:
-            raise FeedBackException(
+            raise FeedbackException(
                 f"The error occurd when checking {path} permissions. "
                 f"Can't access path."
             )
@@ -114,12 +114,12 @@ def content_check(file_to_check: dict[str, str]) -> None:
             with open(path, "r") as file:
                 content = file.read()
             if content != expected_content:
-                raise FeedBackException(
+                raise FeedbackException(
                     f"The error occurd when checking {path} content. "
                     f"Expected: {expected_content}, but get: {content}"
                 )
         except IOError:
-            raise FeedBackException(
+            raise FeedbackException(
                 f"The error occurd when checking {path} content. " f"Can't access path."
             )
 
@@ -148,39 +148,39 @@ def metadata_check(file_to_check: dict[str, dict]) -> None:
             for key, value in metadata.items():
                 if key == "last_modified":
                     if not _compare_time(file_stat.st_mtime, value):
-                        raise FeedBackException(
+                        raise FeedbackException(
                             f"The error occurd "
                             f"when checking {path} last modified time. "
                             f"Expected: {value}, but get: {file_stat.st_mtime}"
                         )
                 elif key == "creation_time":
                     if not _compare_time(file_stat.st_ctime, value):
-                        raise FeedBackException(
+                        raise FeedbackException(
                             f"The error occurd when checking {path} creation time. "
                             f"Expected: {value}, but get: {file_stat.st_ctime}"
                         )
                 elif key == "size":
                     if file_stat.st_size != value:
-                        raise FeedBackException(
+                        raise FeedbackException(
                             f"The error occurd when checking {path} size. "
                             f"Expected: {value}, but get: {file_stat.st_size}"
                         )
                 elif key == "owner":
                     file_owner = pwd.getpwuid(file_stat.st_uid).pw_name
                     if file_owner != value:
-                        raise FeedBackException(
+                        raise FeedbackException(
                             f"The error occurd when checking {path} owner. "
                             f"Expected: {value}, but get: {file_owner}"
                         )
                 elif key == "group":
                     file_group = grp.getgrgid(file_stat.st_gid).gr_name
                     if file_group != value:
-                        raise FeedBackException(
+                        raise FeedbackException(
                             f"The error occurd when checking {path} group. "
                             f"Expected: {value}, but get: {file_group}"
                         )
         except IOError:
-            raise FeedBackException(
+            raise FeedbackException(
                 f"The error occurd when checking {path} metadata. "
                 f"Can't access path."
             )
@@ -189,7 +189,7 @@ def metadata_check(file_to_check: dict[str, dict]) -> None:
 def exists(file_to_check: dict[str, bool]) -> None:
     for path, expected in file_to_check.items():
         if expected != Path(path).exists():
-            raise FeedBackException(
+            raise FeedbackException(
                 f"The error occurd when checking {path} existence. "
                 f"Expected: {expected}, but get: {not expected}"
             )

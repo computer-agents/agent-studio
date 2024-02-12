@@ -6,7 +6,7 @@ from typing import Any
 
 from playground.config import Config
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedBackException
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.utils.human_utils import confirm_action
 
 config = Config()
@@ -266,7 +266,7 @@ class GmailService(GoogleService):
         drafts = self.search_messages(message_info=draft_info, message_type="drafts")
         draft_exists = len(drafts) > 0
         if draft_exists != exists:
-            raise FeedBackException(
+            raise FeedbackException(
                 f"The error occured when checking if the existence of "
                 f"the draft {draft_info}. It should be {exists}."
             )
@@ -280,7 +280,7 @@ class GmailService(GoogleService):
         )
         sent_message_exists = len(sent_messages) > 0
         if sent_message_exists != exists:
-            raise FeedBackException(
+            raise FeedbackException(
                 f"The error occured when checking if the existence of "
                 f"the sent message {message_info}. It should be {exists}."
             )
