@@ -185,5 +185,5 @@ TASK_CONFIGS = [
 def test_gmail(task_config):
     comb = evaluator_router(task_config)
     comb.reset()
-    score = comb()
-    assert score == 1.0
+    score, feedback = comb()
+    assert score == 1.0, feedback

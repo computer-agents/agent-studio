@@ -47,5 +47,5 @@ TASK_CONFIGS = [
 def test_telegram(task_config):
     comb = evaluator_router(task_config)
     comb.reset()
-    score = comb()
-    assert score[0] == 1.0, score
+    score, feedback = comb()
+    assert score == 1.0, feedback

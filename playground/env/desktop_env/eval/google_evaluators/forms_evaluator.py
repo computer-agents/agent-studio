@@ -3,7 +3,7 @@ from typing import Any
 
 from playground.config import Config
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
@@ -88,7 +88,7 @@ class GoogleFormsService(GoogleService):
                 if form_match(self.get_form(form_id), form_info):
                     self.delete_form_by_id(form_id)
 
-    def check_form_exists(self, form_info: dict[str, Any], exists: bool) -> bool:
+    def check_form_exists(self, form_info: dict[str, Any], exists: bool) -> None:
         """Checks if the form matches the given parameters."""
         form_ids = self.search_form_by_title(form_info["title"])
         form_exists = False
@@ -98,7 +98,11 @@ class GoogleFormsService(GoogleService):
                 if form_match(form, form_info):
                     form_exists = True
                     break
-        return form_exists == exists
+        if form_exists != exists:
+            raise FeedbackException(
+                f"The error occurred when checking the existence of {form_info}. "
+                f"It should be {exists}."
+            )
 
 
 class GoogleFormsEvaluator(Evaluator):
@@ -120,10 +124,4 @@ class GoogleFormsEvaluator(Evaluator):
         self.reset_handlers = {
             "create_form": self.service.create_form,
             "delete_form": self.service.delete_form,
-        }
-        self.feedback_handlers = {
-            "check_form_exists": lambda form_info, exists: (
-                f"The error occurred when checking the existence of {form_info}. "
-                f"It should be {exists}."
-            )
         }

@@ -1,7 +1,7 @@
 import logging
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
@@ -105,7 +105,7 @@ class GoogleSheetsService(GoogleService):
 
     def check_spreadsheet_exists(
         self, title: str, exists: bool, content: str | None = None
-    ) -> bool:
+    ) -> None:
         """Checks if the spreadsheet matches the given parameters."""
         spreadsheet_ids = self.search_spreadsheet_by_title(title)
         print("ss:", spreadsheet_ids)
@@ -123,7 +123,11 @@ class GoogleSheetsService(GoogleService):
                     spreadsheet_exists = True
                     break
 
-        return spreadsheet_exists == exists
+        if spreadsheet_exists != exists:
+            raise FeedbackException(
+                f"The error occured when checking the existence of {title}. "
+                f"It should be {exists}."
+            )
 
 
 class GoogleSheetsEvaluator(Evaluator):
@@ -145,10 +149,4 @@ class GoogleSheetsEvaluator(Evaluator):
         self.reset_handlers = {
             "create_spreadsheet": self.service.create_spreadsheet,
             "delete_spreadsheet": self.service.delete_spreadsheet,
-        }
-        self.feedback_handlers = {
-            "check_spreadsheet_exists": lambda title, exists, content=None: (
-                f"The error occured when checking the existence of {title}. "
-                f"It should be {exists}."
-            ),
         }
