@@ -1,7 +1,7 @@
 import logging
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
@@ -176,7 +176,7 @@ class GoogleSlidesService(GoogleService):
 
     def check_presentation_exists(
         self, title: str, exists: bool, content: str | None = None
-    ) -> bool:
+    ) -> None:
         """Checks if the presentation matches the given parameters."""
         presentation_ids = self.search_presentation_by_title(title)
         presentation_exists = False
@@ -193,7 +193,11 @@ class GoogleSlidesService(GoogleService):
                     presentation_exists = True
                     break
 
-        return presentation_exists == exists
+        if presentation_exists != exists:
+            raise FeedbackException(
+                f"The error occured when checking the existence of {title}. "
+                f"It should be {exists}."
+            )
 
 
 class GoogleSlidesEvaluator(Evaluator):
@@ -215,10 +219,4 @@ class GoogleSlidesEvaluator(Evaluator):
         self.reset_handlers = {
             "create_presentation": self.service.create_presentation,
             "delete_presentation": self.service.delete_presentation,
-        }
-        self.feedback_handlers = {
-            "check_presentation_exists": lambda title, exists, content=None: (
-                f"The error occured when checking the existence of {title}. "
-                f"It should be {exists}."
-            ),
         }

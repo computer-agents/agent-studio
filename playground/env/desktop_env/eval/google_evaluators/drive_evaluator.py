@@ -5,7 +5,7 @@ import logging
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
@@ -149,18 +149,22 @@ class GoogleDriveService(GoogleService):
 
     def check_file_exists(
         self, file_name: str, exists: bool, content: str | None = None
-    ) -> bool:
+    ) -> None:
         """Checks if a file exists in Google Drive."""
         file_ids = self.search_file(file_name)
         file_exists = len(file_ids) > 0
         if content is not None:
             file_exists &= self.compare_file_content(file_ids[0], content)
 
-        return file_exists == exists
+        if file_exists != exists:
+            raise FeedbackException(
+                f"The error occured when checking the existence of {file_name}. "
+                f"It should be {exists}."
+            )
 
     def check_folder_exists(
         self, folder_name: str, exists: bool, file_list: list[dict] | None = None
-    ) -> bool:
+    ) -> None:
         """Checks if a folder exists in Google Drive."""
         folder_ids = self.search_folder(folder_name)
         folder_exists = len(folder_ids) > 0
@@ -169,7 +173,11 @@ class GoogleDriveService(GoogleService):
             folder_exists &= len(files) == len(file_list) and all(
                 [f1["name"] == f2["name"] for f1, f2 in zip(file_list, files)]
             )
-        return folder_exists == exists
+        if folder_exists != exists:
+            raise FeedbackException(
+                f"The error occured when checking the existence of {folder_name}. "
+                f"It should be {exists}."
+            )
 
     def compare_file_content(self, file_id: str, content: str) -> bool:
         """Compares the content of a file in Google Drive with the given content."""
@@ -234,14 +242,4 @@ class GoogleDriveEvaluator(Evaluator):
             "upload_file": self.service.upload_file,
             "delete_file": self.service.delete_file,
             "delete_folder": self.service.delete_folder,
-        }
-        self.feedback_handlers = {
-            "check_file_exists": lambda file_name, exists, content=None: (
-                f"The error occured when checking the existence of {file_name}. "
-                f"It should be {exists}."
-            ),
-            "check_folder_exists": lambda folder_name, exists, file_list=None: (
-                f"The error occured when checking the existence of {folder_name}. "
-                f"It should be {exists}."
-            ),
         }

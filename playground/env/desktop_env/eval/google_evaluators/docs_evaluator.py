@@ -1,7 +1,7 @@
 import logging
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator
+from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
@@ -139,7 +139,7 @@ class GoogleDocsService(GoogleService):
 
     def check_doc_exists(
         self, title: str, exists: bool, content: str | None = None
-    ) -> bool:
+    ) -> None:
         """Checks if the document matches the given parameters."""
         doc_ids = self.search_doc_by_title(title)
         doc_exists = False
@@ -155,7 +155,11 @@ class GoogleDocsService(GoogleService):
                 if title_match and content_match:
                     doc_exists = True
                     break
-        return doc_exists == exists
+        if doc_exists != exists:
+            raise FeedbackException(
+                f"The error occured when checking the existence of {title}. "
+                f"It should be {exists}."
+            )
 
 
 class GoogleDocsEvaluator(Evaluator):
@@ -177,10 +181,4 @@ class GoogleDocsEvaluator(Evaluator):
         self.reset_handlers = {
             "create_document": self.service.create_document,
             "delete_document": self.service.delete_document,
-        }
-        self.feedback_handlers = {
-            "check_doc_exists": lambda title, exists, content=None: (
-                f"The error occured when checking the existence of {title}. "
-                f"It should be {exists}."
-            )
         }
