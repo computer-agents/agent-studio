@@ -12,6 +12,26 @@ class FeedbackException(Exception):
         self.message = message
 
 
+def evaluation_handler(name):
+    if type(name) is not str:
+        raise ValueError("Evaluation handler must have a name.")
+    def decorator(func):
+        setattr(func, "evaluation_handler", True)
+        setattr(func, "name", name)
+        return func
+    return decorator
+
+
+def reset_handler(name):
+    if type(name) is not str:
+        raise ValueError("Reset handler must have a name.")
+    def decorator(func):
+        setattr(func, "reset_handler", True)
+        setattr(func, "name", name)
+        return func
+    return decorator
+
+
 class Evaluator:
     """Base class for evaluation."""
 
@@ -28,26 +48,6 @@ class Evaluator:
         self.evaluation_handlers: dict[str, Any] = {}
         self.reset_handlers: dict[str, Any] = {}
         self.auto_register_handlers()
-
-    @staticmethod
-    def evaluation_handler(name):
-        if type(name) is not str:
-            raise ValueError("Evaluation handler must have a name.")
-        def decorator(func):
-            setattr(func, "evaluation_handler", True)
-            setattr(func, "name", name)
-            return func
-        return decorator
-
-    @staticmethod
-    def reset_handler(name):
-        if type(name) is not str:
-            raise ValueError("Reset handler must have a name.")
-        def decorator(func):
-            setattr(func, "reset_handler", True)
-            setattr(func, "name", name)
-            return func
-        return decorator
 
     def auto_register_handlers(self) -> None:
         """Register a handler for a specific action."""
