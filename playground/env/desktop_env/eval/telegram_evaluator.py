@@ -114,10 +114,28 @@ class TelegramEvaluator(Evaluator):
             reset_procedure=reset_procedure,
         )
         self.service = TelegramService()
-        self.evaluation_handlers = {
-            "message_match": self.service.message_match,
-        }
-        self.reset_handlers = {
-            "send_message": self.service.send_message,
-            "delete_recent_messages": self.service.delete_recent_messages,
-        }
+
+    @Evaluator.evaluation_handler("message_match")
+    def message_match(self, **kwargs):
+        """
+        Check if the messages in the chat match the reference messages.
+
+        Args:
+            chat_id (str | int): Chat id.
+            ref_messages (list[dict]): List of reference messages.
+
+        Raises:
+            FeedbackException: If the messages do not match.
+
+        Returns:
+            None
+        """
+        self.service.message_match(**kwargs)
+
+    @Evaluator.reset_handler("send_message")
+    def send_message(self, **kwargs):
+        self.service.send_message(**kwargs)
+
+    @Evaluator.reset_handler("delete_recent_messages")
+    def delete_recent_messages(self, **kwargs):
+        self.service.delete_recent_messages(**kwargs)
