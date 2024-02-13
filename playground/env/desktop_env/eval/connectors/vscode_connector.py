@@ -7,6 +7,10 @@ from requests.adapters import HTTPAdapter, Retry
 
 
 class FilterType(Enum):
+    """
+    Filter type for marketplace search
+    """
+
     Tag = 1
     ExtensionId = 4
     Category = 5
@@ -18,6 +22,10 @@ class FilterType(Enum):
 
 
 class SortBy(Enum):
+    """
+    Result sorting options for marketplace search
+    """
+
     NoneOrRelevance = 0
     LastUpdatedDate = 1
     Title = 2
@@ -29,6 +37,10 @@ class SortBy(Enum):
 
 
 class SortOrder(Enum):
+    """
+    Sort order for marketplace search
+    """
+
     Default = 0
     Ascending = 1
     Descending = 2
@@ -61,13 +73,24 @@ class VSCodeConnector:
         sort_order: SortOrder,
     ):
         """
-        Query Example:
+        Search for extensions in the marketplace
+
+        Args:
+            query (list[dict]): List of query filters
+            sort_by (SortBy): Sort by option
+            sort_order (SortOrder): Sort order option
+
+        Returns:
+            list: List of extensions
+
+        Example::
+
             query = [
-                    {
-                        "filterType": FilterType.ExtensionName.value,
-                        "value": "DavidAnson.vscode-markdownlint"
-                    },
-                ]
+                        {
+                            "filterType": FilterType.ExtensionName.value,
+                            "value": "DavidAnson.vscode-markdownlint"
+                        },
+                    ]
         """
         extension_list = []
         for extension in self.get_vscode_extensions(

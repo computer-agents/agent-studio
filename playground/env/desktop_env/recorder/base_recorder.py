@@ -5,6 +5,10 @@ from playground.utils.singleton import Singleton
 
 
 class MouseOptions(Flag):
+    """
+    Mouse options for the recorder. Log move, click and scroll, respectively.
+    """
+
     LOG_MOVE = 1 << 0
     LOG_CLICK = 1 << 1
     LOG_SCROLL = 1 << 2
@@ -12,6 +16,10 @@ class MouseOptions(Flag):
 
 
 class MODE(Enum):
+    """
+    The mode of the recorder. Switched by hotkeys.
+    """
+
     INIT = auto()
     CODING = auto()
     TYPING = auto()

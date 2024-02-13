@@ -1,16 +1,12 @@
 import os
+from dataclasses import dataclass
 from pathlib import Path
 
-from playground.utils.singleton import Singleton
 
-
-class Config(metaclass=Singleton):
-    """Singleton for config.
-
-    Attributes:
-        seed: The random seed.
-        resolution: The resolution of the screen.
-        video_fps: The FPS of the video.
+@dataclass
+class Config:
+    """
+    Singleton for config.
     """
 
     seed: int = 42

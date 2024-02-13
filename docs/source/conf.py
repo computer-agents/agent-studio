@@ -32,7 +32,17 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
+    "autoapi.extension",
 ]
+
+autoapi_dirs = ['../../playground']
+autoapi_options = [
+    'members',
+    'undoc-members',
+    'show-module-summary',
+    "show-inheritance",
+    # 'imported-members',
+    ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -55,7 +65,6 @@ html_title = project
 html_theme = "sphinx_book_theme"
 html_logo = "assets/logos/playground-logo-text-light.png"
 html_theme_options = {
-    "logo_only": True,
     "path_to_docs": "docs/source",
     "repository_url": "https://github.com/ltzheng/playground",
     "use_repository_button": True,
