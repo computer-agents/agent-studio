@@ -117,8 +117,10 @@ class FilesystemEvaluator(Evaluator):
         Check file metadata.
 
         Args:
-            file_to_check: dict[str, dict]: Dictionary with file path as key and metadata as value.
-                Metadata is a dictionary with keys: last_modified, creation_time, size, owner, group.
+            file_to_check: dict[str, dict]:
+                Dictionary with file path as key and metadata as value.
+                Metadata is a dictionary with keys:
+                last_modified, creation_time, size, owner, group.
                 last_modified and creation_time are in ISO format.
                 size is in bytes.
                 owner and group are strings.

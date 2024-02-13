@@ -10,6 +10,7 @@ class FilterType(Enum):
     """
     Filter type for marketplace search
     """
+
     Tag = 1
     ExtensionId = 4
     Category = 5
@@ -24,6 +25,7 @@ class SortBy(Enum):
     """
     Result sorting options for marketplace search
     """
+
     NoneOrRelevance = 0
     LastUpdatedDate = 1
     Title = 2
@@ -38,6 +40,7 @@ class SortOrder(Enum):
     """
     Sort order for marketplace search
     """
+
     Default = 0
     Ascending = 1
     Descending = 2
