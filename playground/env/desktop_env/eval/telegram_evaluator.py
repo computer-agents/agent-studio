@@ -5,7 +5,12 @@ from pyrogram.client import Client
 from pyrogram.errors import FloodWait
 
 from playground.config import Config
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
+from playground.env.desktop_env.eval.evaluator import (
+    Evaluator,
+    FeedbackException,
+    evaluation_handler,
+    reset_handler,
+)
 from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
@@ -38,6 +43,13 @@ class TelegramService:
         return "unknown"
 
     def message_match(self, chat_id: int | str, ref_messages: list[dict]) -> None:
+        def _match_text(text: str, ref_messages: dict):
+            compare_method = ref_messages.get("compare_method", "")
+            if compare_method == "exact":
+                return text == ref_messages.get("value", "")
+            else:
+                return False
+
         with self.__service:
             messages = self.__service.get_chat_history(chat_id, limit=len(ref_messages))
             messages = [message for message in messages]
@@ -48,7 +60,7 @@ class TelegramService:
                 message_type = self.__get_message_type(message)
 
                 if message_type == ref_message.get("type"):
-                    if message_type == "text" and self.match_text(
+                    if message_type == "text" and _match_text(
                         message.text, ref_message
                     ):
                         continue
@@ -66,13 +78,6 @@ class TelegramService:
                         f"Message type does not match"
                         f"Expect {ref_message.get('type')}, but get {message_type}"
                     )
-
-    def match_text(self, text: str, ref_messages: dict):
-        compare_method = ref_messages.get("compare_method", "")
-        if compare_method == "exact":
-            return text == ref_messages.get("value", "")
-        else:
-            return False
 
     def send_message(self, chat_id: str | int, message: str):
         with self.__service:
@@ -114,10 +119,63 @@ class TelegramEvaluator(Evaluator):
             reset_procedure=reset_procedure,
         )
         self.service = TelegramService()
-        self.evaluation_handlers = {
-            "message_match": self.service.message_match,
-        }
-        self.reset_handlers = {
-            "send_message": self.service.send_message,
-            "delete_recent_messages": self.service.delete_recent_messages,
-        }
+
+    @evaluation_handler("message_match")
+    def message_match(self, **kwargs):
+        """
+        Check if the messages in the chat match the reference messages.
+
+        Args:
+            chat_id (str | int): Chat id.
+            ref_messages (list[dict]): List of reference messages.
+
+        Raises:
+            FeedbackException: If the messages do not match.
+
+        Returns:
+            None
+
+        Example::
+
+            ref_messages = [
+                {
+                    "type": "text",
+                    "compare_method": "exact",
+                    "value": "hi",
+                },
+                {
+                    "type": "text",
+                    "compare_method": "exact",
+                    "value": "Welcome to the playground!",
+                },
+            ]
+        """
+        self.service.message_match(**kwargs)
+
+    @reset_handler("send_message")
+    def send_message(self, **kwargs):
+        """
+        Send a message to specific chat.
+
+        Args:
+            chat_id (str | int): Chat id.
+            message (str): Message to be sent.
+
+        Returns:
+            None
+        """
+        self.service.send_message(**kwargs)
+
+    @reset_handler("delete_recent_messages")
+    def delete_recent_messages(self, **kwargs):
+        """
+        Delete recent messages from specific chat.
+
+        Args:
+            chat_id (str | int): Chat id.
+            n (int): Number of messages to be deleted.
+
+        Returns:
+            None
+        """
+        self.service.delete_recent_messages(**kwargs)

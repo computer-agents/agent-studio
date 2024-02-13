@@ -3,7 +3,12 @@ from typing import Any
 
 from playground.config import Config
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
+from playground.env.desktop_env.eval.evaluator import (
+    Evaluator,
+    FeedbackException,
+    evaluation_handler,
+    reset_handler,
+)
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
@@ -118,10 +123,26 @@ class GoogleFormsEvaluator(Evaluator):
             reset_procedure=reset_procedure,
         )
         self.service = GoogleFormsService()
-        self.evaluation_handlers = {
-            "check_form_exists": self.service.check_form_exists,
-        }
-        self.reset_handlers = {
-            "create_form": self.service.create_form,
-            "delete_form": self.service.delete_form,
-        }
+
+    @evaluation_handler("check_form_exists")
+    def check_form_exists(
+        self,
+        form_info: dict[str, Any],
+        exists: bool,
+    ) -> None:
+        self.service.check_form_exists(form_info, exists)
+
+    @reset_handler("create_form")
+    def create_form(
+        self,
+        title: str,
+        description: str | None = None,
+    ) -> None:
+        self.service.create_form(title, description)
+
+    @reset_handler("delete_form")
+    def delete_form(
+        self,
+        form_info: dict[str, Any],
+    ) -> None:
+        self.service.delete_form(form_info)
