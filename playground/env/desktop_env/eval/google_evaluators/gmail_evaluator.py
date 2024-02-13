@@ -6,7 +6,12 @@ from typing import Any
 
 from playground.config import Config
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import *
+from playground.env.desktop_env.eval.evaluator import (
+    Evaluator,
+    FeedbackException,
+    evaluation_handler,
+    reset_handler,
+)
 from playground.utils.human_utils import confirm_action
 
 config = Config()

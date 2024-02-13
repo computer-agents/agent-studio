@@ -1,7 +1,12 @@
 import logging
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import *
+from playground.env.desktop_env.eval.evaluator import (
+    Evaluator,
+    FeedbackException,
+    evaluation_handler,
+    reset_handler,
+)
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )

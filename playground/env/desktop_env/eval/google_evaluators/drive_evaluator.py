@@ -5,7 +5,12 @@ import logging
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import *
+from playground.env.desktop_env.eval.evaluator import (
+    Evaluator,
+    FeedbackException,
+    evaluation_handler,
+    reset_handler,
+)
 from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
@@ -247,7 +252,9 @@ class GoogleDriveEvaluator(Evaluator):
         self.service.check_folder_exists(folder_name, exists, file_list)
 
     @reset_handler("create_folder")
-    def create_folder(self, folder_name: str, file_list: list[dict] | None = None) -> None:
+    def create_folder(
+        self, folder_name: str, file_list: list[dict] | None = None
+    ) -> None:
         self.service.create_folder(folder_name, file_list)
 
     @reset_handler("upload_file")

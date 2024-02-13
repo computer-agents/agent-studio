@@ -6,7 +6,12 @@ import stat
 from datetime import datetime
 from pathlib import Path
 
-from playground.env.desktop_env.eval.evaluator import *
+from playground.env.desktop_env.eval.evaluator import (
+    Evaluator,
+    FeedbackException,
+    evaluation_handler,
+    reset_handler,
+)
 from playground.utils.human_utils import confirm_action
 
 # TODO: support for Windows
@@ -101,7 +106,8 @@ class FilesystemEvaluator(Evaluator):
                     )
             except IOError:
                 raise FeedbackException(
-                    f"The error occurd when checking {path} content. " f"Can't access path."
+                    f"The error occurd when checking {path} content. "
+                    f"Can't access path."
                 )
 
     @staticmethod
@@ -158,7 +164,9 @@ class FilesystemEvaluator(Evaluator):
                                     f"Expected: {value}, but get: {file_owner}"
                                 )
                         else:
-                            logger.warning("Owner check is not supported on this platform.")
+                            logger.warning(
+                                "Owner check is not supported on this platform."
+                            )
                     elif key == "group":
                         if platform.system() != "Windows":
                             import grp
@@ -170,7 +178,9 @@ class FilesystemEvaluator(Evaluator):
                                     f"Expected: {value}, but get: {file_group}"
                                 )
                         else:
-                            logger.warning("Group check is not supported on this platform.")
+                            logger.warning(
+                                "Group check is not supported on this platform."
+                            )
 
             except IOError:
                 raise FeedbackException(
