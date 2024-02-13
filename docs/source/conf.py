@@ -13,6 +13,7 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+from pathlib import Path
 
 
 # -- Project information -----------------------------------------------------
@@ -35,7 +36,7 @@ extensions = [
     "autoapi.extension",
 ]
 
-autoapi_dirs = ['../../playground']
+autoapi_dirs = [Path(__file__).parent.parent.parent / "playground"]
 autoapi_options = [
     'members',
     'undoc-members',
