@@ -15,20 +15,24 @@ class FeedbackException(Exception):
 def evaluation_handler(name):
     if type(name) is not str:
         raise ValueError("Evaluation handler must have a name.")
+
     def decorator(func):
         setattr(func, "evaluation_handler", True)
         setattr(func, "name", name)
         return func
+
     return decorator
 
 
 def reset_handler(name):
     if type(name) is not str:
         raise ValueError("Reset handler must have a name.")
+
     def decorator(func):
         setattr(func, "reset_handler", True)
         setattr(func, "name", name)
         return func
+
     return decorator
 
 
@@ -55,14 +59,14 @@ class Evaluator:
             f = getattr(self, func_name)
             if callable(f):
                 name = getattr(f, "name", None)
-                if getattr(f, "evaluation_handler", False) == True:
+                if getattr(f, "evaluation_handler", False) is True:
                     if name is None or name in self.evaluation_handlers:
                         raise ValueError(
                             f"Registration for handler {name} failed."
                             f"Current handlers: {self.evaluation_handlers}"
                         )
                     self.evaluation_handlers[name] = f
-                if getattr(f, "reset_handler", False) == True:
+                if getattr(f, "reset_handler", False) is True:
                     if name is None or name in self.reset_handlers:
                         raise ValueError(
                             f"Registration for handler {name} failed."

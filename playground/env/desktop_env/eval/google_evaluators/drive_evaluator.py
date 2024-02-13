@@ -5,7 +5,12 @@ import logging
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
+from playground.env.desktop_env.eval.evaluator import (
+    Evaluator,
+    FeedbackException,
+    evaluation_handler,
+    reset_handler,
+)
 from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
@@ -233,13 +238,39 @@ class GoogleDriveEvaluator(Evaluator):
             reset_procedure=reset_procedure,
         )
         self.service = GoogleDriveService()
-        self.evaluation_handlers = {
-            "check_file_exists": self.service.check_file_exists,
-            "check_folder_exists": self.service.check_folder_exists,
-        }
-        self.reset_handlers = {
-            "create_folder": self.service.create_folder,
-            "upload_file": self.service.upload_file,
-            "delete_file": self.service.delete_file,
-            "delete_folder": self.service.delete_folder,
-        }
+
+    @evaluation_handler("check_file_exists")
+    def check_file_exists(
+        self, file_name: str, exists: bool, content: str | None = None
+    ) -> None:
+        self.service.check_file_exists(file_name, exists, content)
+
+    @evaluation_handler("check_folder_exists")
+    def check_folder_exists(
+        self, folder_name: str, exists: bool, file_list: list[dict] | None = None
+    ) -> None:
+        self.service.check_folder_exists(folder_name, exists, file_list)
+
+    @reset_handler("create_folder")
+    def create_folder(
+        self, folder_name: str, file_list: list[dict] | None = None
+    ) -> None:
+        self.service.create_folder(folder_name, file_list)
+
+    @reset_handler("upload_file")
+    def upload_file(
+        self,
+        name: str,
+        path: str,
+        mime_type: str,
+        folder_id: str | None = None,
+    ) -> None:
+        self.service.upload_file(name, path, mime_type, folder_id)
+
+    @reset_handler("delete_file")
+    def delete_file(self, file_name: str) -> None:
+        self.service.delete_file(file_name)
+
+    @reset_handler("delete_folder")
+    def delete_folder(self, folder_name: str) -> None:
+        self.service.delete_folder(folder_name)

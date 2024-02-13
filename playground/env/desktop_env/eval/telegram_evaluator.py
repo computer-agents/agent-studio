@@ -5,7 +5,12 @@ from pyrogram.client import Client
 from pyrogram.errors import FloodWait
 
 from playground.config import Config
-from playground.env.desktop_env.eval.evaluator import *
+from playground.env.desktop_env.eval.evaluator import (
+    Evaluator,
+    FeedbackException,
+    evaluation_handler,
+    reset_handler,
+)
 from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
@@ -129,6 +134,21 @@ class TelegramEvaluator(Evaluator):
 
         Returns:
             None
+
+        Example::
+
+            ref_messages = [
+                {
+                    "type": "text",
+                    "compare_method": "exact",
+                    "value": "hi",
+                },
+                {
+                    "type": "text",
+                    "compare_method": "exact",
+                    "value": "Welcome to the playground!",
+                },
+            ]
         """
         self.service.message_match(**kwargs)
 

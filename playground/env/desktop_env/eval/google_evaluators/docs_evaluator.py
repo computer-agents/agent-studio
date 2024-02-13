@@ -1,7 +1,12 @@
 import logging
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
+from playground.env.desktop_env.eval.evaluator import (
+    Evaluator,
+    FeedbackException,
+    evaluation_handler,
+    reset_handler,
+)
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
@@ -175,10 +180,54 @@ class GoogleDocsEvaluator(Evaluator):
             reset_procedure=reset_procedure,
         )
         self.service = GoogleDocsService()
-        self.evaluation_handlers = {
-            "check_doc_exists": self.service.check_doc_exists,
-        }
-        self.reset_handlers = {
-            "create_document": self.service.create_document,
-            "delete_document": self.service.delete_document,
-        }
+
+    @evaluation_handler("check_doc_exists")
+    def check_doc_exists(
+        self,
+        title: str,
+        exists: bool,
+        content: str | None = None,
+    ) -> None:
+        """
+        Checks if the document matches the given parameters.
+
+        Args:
+            title (str): Document title.
+            exists (bool): Whether the document should exist.
+            content (str | None): Document content.
+
+        Raises:
+            FeedbackException: If the document exists does not match the expected value.
+
+        Returns:
+            None
+        """
+        self.service.check_doc_exists(title, exists, content)
+
+    @reset_handler("create_document")
+    def create_document(self, title: str, content: str | None = None) -> dict:
+        """
+        Creates a document with the given title and content.
+
+        Args:
+            title (str): Document title.
+            content (str | None): Document content.
+
+        Returns:
+            dict: Document information.
+        """
+        return self.service.create_document(title, content)
+
+    @reset_handler("delete_document")
+    def delete_document(self, title: str, content: str) -> None:
+        """
+        Deletes a document with the given title and content.
+
+        Args:
+            title (str): Document title.
+            content (str): Document content.
+
+        Returns:
+            None
+        """
+        self.service.delete_document(title, content)
