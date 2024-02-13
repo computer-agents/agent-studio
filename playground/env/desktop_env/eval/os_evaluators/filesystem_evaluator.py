@@ -134,14 +134,28 @@ def content_check(file_to_check: dict[str, str]) -> None:
 
 def metadata_check(file_to_check: dict[str, dict]) -> None:
     """
-    metadata is a dictionary of the form:
-    {
-        "last_modified": "2021-09-01T12:00:00",
-        "creation_time": "2021-09-01T12:00:00",
-        "size": 1000,
-        "owner": "user",
-        "group": "group"
-    }
+    Check file metadata.
+
+    Args:
+        file_to_check: dict[str, dict]: Dictionary with file path as key and metadata as value.
+            Metadata is a dictionary with keys: last_modified, creation_time, size, owner, group.
+            last_modified and creation_time are in ISO format.
+            size is in bytes.
+            owner and group are strings.
+
+    Raises:
+        FeedbackException: If metadata doesn't match expected values.
+
+    Example::
+
+        file_to_check = {
+            "tmp/test.txt": {
+                "last_modified": "2021-09-01T12:00:00",
+                "creation_time": "2021-09-01T12:00:00",
+                "size": 1000,
+                "owner": "user",
+                "group": "group"
+            }
     """
 
     def _compare_time(file_time: float, expected_iso_time: str) -> bool:

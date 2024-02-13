@@ -36,6 +36,13 @@ extensions = [
 ]
 
 autoapi_dirs = ['../../playground']
+autoapi_options = [
+    'members',
+    'undoc-members',
+    'show-module-summary',
+    "show-inheritance",
+    # 'imported-members',
+    ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
