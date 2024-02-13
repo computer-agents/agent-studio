@@ -12,8 +12,8 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
       - name: Install dependencies
         run: |
           pip install -r docs/requirements-docs.txt
@@ -21,7 +21,7 @@ jobs:
         run: |
           sphinx-build docs/source docs/build
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v3.9.3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/Zhiyuan/docs' }}
         with:
           publish_branch: gh-pages
