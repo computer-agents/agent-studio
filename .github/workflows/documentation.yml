@@ -3,7 +3,7 @@ name: documentation
 on:
   push:
     branches:
-      - Zhiyuan/docs
+      - main
 
 permissions:
   contents: write
@@ -22,7 +22,7 @@ jobs:
           sphinx-build docs/source docs/build
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3.9.3
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/Zhiyuan/docs' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
