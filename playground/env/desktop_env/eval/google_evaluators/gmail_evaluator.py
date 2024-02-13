@@ -6,7 +6,7 @@ from typing import Any
 
 from playground.config import Config
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
+from playground.env.desktop_env.eval.evaluator import *
 from playground.utils.human_utils import confirm_action
 
 config = Config()
@@ -299,13 +299,47 @@ class GmailEvaluator(Evaluator):
             reset_procedure=reset_procedure,
         )
         self.service = GmailService()
-        self.evaluation_handlers = {
-            "check_draft_exists": self.service.check_draft_exists,
-            "check_sent_message_exists": self.service.check_sent_message_exists,
-        }
-        self.reset_handlers = {
-            "create_draft": self.service.create_draft,
-            "delete_draft": self.service.delete_draft,
-            "delete_sent_message": self.service.delete_sent_message,
-            "send_message": self.service.send_message,
-        }
+
+    @evaluation_handler("check_draft_exists")
+    def check_draft_exists(
+        self,
+        draft_info: dict[str, Any],
+        exists: bool,
+    ) -> None:
+        self.service.check_draft_exists(draft_info, exists)
+
+    @evaluation_handler("check_sent_message_exists")
+    def check_sent_message_exists(
+        self,
+        message_info: dict[str, Any],
+        exists: bool,
+    ) -> None:
+        self.service.check_sent_message_exists(message_info, exists)
+
+    @reset_handler("create_draft")
+    def create_draft(
+        self,
+        draft_info: dict[str, Any],
+    ) -> None:
+        self.service.create_draft(draft_info)
+
+    @reset_handler("delete_draft")
+    def delete_draft(
+        self,
+        draft_info: dict[str, Any],
+    ) -> None:
+        self.service.delete_draft(draft_info)
+
+    @reset_handler("delete_sent_message")
+    def delete_sent_message(
+        self,
+        message_info: dict[str, Any],
+    ) -> None:
+        self.service.delete_sent_message(message_info)
+
+    @reset_handler("send_message")
+    def send_message(
+        self,
+        message_info: dict[str, Any],
+    ) -> None:
+        self.service.send_message(message_info)

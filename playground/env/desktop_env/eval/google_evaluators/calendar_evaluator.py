@@ -4,7 +4,7 @@ from typing import Any
 
 from playground.config import Config
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
+from playground.env.desktop_env.eval.evaluator import *
 from playground.utils.human_utils import confirm_action
 
 config = Config()
@@ -150,21 +150,6 @@ class GoogleCalendarService(GoogleService):
         logger.info("Clearing all events on the calendar")
         _clear_calendar()
 
-    def check_event_exists(
-        self,
-        event_info: dict[str, Any],
-        exists: bool,
-    ) -> None:
-        """Checks if the given event exists."""
-        events = self.search_events(event_info)
-        event_exists = len(events) > 0
-
-        if event_exists != exists:
-            raise FeedbackException(
-                f"The error occured when checking the existence of {event_info}. "
-                f"It should be {exists}."
-            )
-
 
 class GoogleCalendarEvaluator(Evaluator):
     name: str = "google_calendar"
@@ -179,11 +164,66 @@ class GoogleCalendarEvaluator(Evaluator):
             reset_procedure=reset_procedure,
         )
         self.service = GoogleCalendarService()
-        self.evaluation_handlers = {
-            "check_event_exists": self.service.check_event_exists,
-        }
-        self.reset_handlers = {
-            "create_event": self.service.create_event,
-            "delete_event": self.service.delete_event,
-            "clear_calendar": self.service.clear_calendar,
-        }
+
+    @evaluation_handler("check_event_exists")
+    def check_event_exists(
+        self,
+        event_info: dict[str, Any],
+        exists: bool,
+    ) -> None:
+        """
+        Check if the event exists on the calendar.
+
+        Args:
+            event_info (dict[str, Any]): Event information.
+            exists (bool): Whether the event should exist.
+
+        Raises:
+            FeedbackException: If the event exists does not match the expected value.
+
+        Returns:
+            None
+
+        Example::
+
+            event_info = {
+                "summary": "Meeting with John",
+                "description": "Discuss the project",
+                "location": "Office",
+                "start": {
+                    "dateTime": "2022-01-01T10:00:00Z",
+                },
+                "end": {
+                    "dateTime": "2022-01-01T11:00:00Z",
+                },
+            }
+        """
+        events = self.service.search_events(event_info)
+        event_exists = len(events) > 0
+
+        if event_exists != exists:
+            raise FeedbackException(
+                f"The error occured when checking the existence of {event_info}. "
+                f"It should be {exists}."
+            )
+
+    @reset_handler("clear_calendar")
+    def clear_calendar(self) -> None:
+        """Clears all events on the calendar."""
+        self.service.clear_calendar()
+
+    @reset_handler("create_event")
+    def create_event(
+        self,
+        event_info: dict[str, Any],
+    ) -> None:
+        """Creates an event on the calendar."""
+        self.service.create_event(event_info)
+
+    @reset_handler("delete_event")
+    def delete_event(
+        self,
+        event_info: dict[str, Any],
+    ) -> None:
+        """Deletes events that match the given event."""
+        self.service.delete_event(event_info)

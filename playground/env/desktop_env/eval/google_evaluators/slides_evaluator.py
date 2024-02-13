@@ -1,7 +1,7 @@
 import logging
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
+from playground.env.desktop_env.eval.evaluator import *
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
@@ -213,10 +213,20 @@ class GoogleSlidesEvaluator(Evaluator):
             reset_procedure=reset_procedure,
         )
         self.service = GoogleSlidesService()
-        self.evaluation_handlers = {
-            "check_presentation_exists": self.service.check_presentation_exists,
-        }
-        self.reset_handlers = {
-            "create_presentation": self.service.create_presentation,
-            "delete_presentation": self.service.delete_presentation,
-        }
+
+    @evaluation_handler("check_presentation_exists")
+    def check_presentation_exists(
+        self,
+        title: str,
+        exists: bool,
+        content: str | None = None,
+    ) -> None:
+        self.service.check_presentation_exists(title, exists, content)
+
+    @reset_handler("create_presentation")
+    def create_presentation(self, title: str) -> None:
+        self.service.create_presentation(title)
+
+    @reset_handler("delete_presentation")
+    def delete_presentation(self, title: str, content: str | None = None) -> None:
+        self.service.delete_presentation(title, content)

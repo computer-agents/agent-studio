@@ -129,6 +129,21 @@ class TelegramEvaluator(Evaluator):
 
         Returns:
             None
+
+        Example::
+
+            ref_messages = [
+                {
+                    "type": "text",
+                    "compare_method": "exact",
+                    "value": "hi",
+                },
+                {
+                    "type": "text",
+                    "compare_method": "exact",
+                    "value": "Welcome to the playground!",
+                },
+            ]
         """
         self.service.message_match(**kwargs)
 

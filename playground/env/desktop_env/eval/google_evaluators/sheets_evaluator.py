@@ -1,7 +1,7 @@
 import logging
 
 from playground.env.desktop_env.eval.connectors.gservice import GoogleService
-from playground.env.desktop_env.eval.evaluator import Evaluator, FeedbackException
+from playground.env.desktop_env.eval.evaluator import *
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
@@ -143,10 +143,20 @@ class GoogleSheetsEvaluator(Evaluator):
             reset_procedure=reset_procedure,
         )
         self.service = GoogleSheetsService()
-        self.evaluation_handlers = {
-            "check_spreadsheet_exists": self.service.check_spreadsheet_exists,
-        }
-        self.reset_handlers = {
-            "create_spreadsheet": self.service.create_spreadsheet,
-            "delete_spreadsheet": self.service.delete_spreadsheet,
-        }
+
+    @evaluation_handler("check_spreadsheet_exists")
+    def check_spreadsheet_exists(
+        self,
+        title: str,
+        exists: bool,
+        content: str | None = None,
+    ) -> None:
+        self.service.check_spreadsheet_exists(title, exists, content)
+
+    @reset_handler("create_spreadsheet")
+    def create_spreadsheet(self, title: str) -> None:
+        self.service.create_spreadsheet(title)
+
+    @reset_handler("delete_spreadsheet")
+    def delete_spreadsheet(self, title: str, content: str | None = None) -> None:
+        self.service.delete_spreadsheet(title, content)
