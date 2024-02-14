@@ -98,7 +98,7 @@ class TelegramService:
                         file_name=message.document.file_name,
                         in_memory=True,
                     )
-                    if isinstance(downloaded_file, BytesIO):
+                    if not isinstance(downloaded_file, BytesIO):
                         raise LookupError(
                             f"File {message.document.file_name} not found. "
                             f"Failed to download"
