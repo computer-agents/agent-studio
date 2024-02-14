@@ -25,14 +25,15 @@ TASK_CONFIGS = [
                                 },
                                 {
                                     "type": "document",
-                                    "file_path": "playground_data/evaluation/telegram/GitHub-logo.png",
+                                    "file_path": "playground_data/evaluation/"
+                                    "telegram/GitHub-logo.png",
                                     "caption": "GitHub logo.",
                                     "replyto": {
                                         "type": "text",
                                         "compare_method": "exact",
                                         "value": "hi",
-                                    }
-                                }
+                                    },
+                                },
                             ],
                         }
                     }
@@ -42,18 +43,16 @@ TASK_CONFIGS = [
                     {
                         "send_messages": {
                             "chat_id": "me",
-                            "messages": [
-                                "hi",
-                                "Welcome to the playground!"
-                            ]
+                            "messages": ["hi", "Welcome to the playground!"],
                         }
                     },
                     {
                         "send_document": {
                             "chat_id": "me",
                             "replyto_offset": 1,
-                            "file_path": "playground_data/evaluation/telegram/GitHub-logo.png",
-                            "caption": "GitHub logo."
+                            "file_path": "playground_data/evaluation"
+                            "/telegram/GitHub-logo.png",
+                            "caption": "GitHub logo.",
                         }
                     },
                 ],

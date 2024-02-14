@@ -53,18 +53,21 @@ class TelegramService:
                 return False
 
         def _match_one_message(message: Message, ref_message: dict, message_type: str):
-            if (ref_message.get("replyto", None) is None) != \
-                (message.reply_to_message_id is None):
+            if (ref_message.get("replyto", None) is None) != (
+                message.reply_to_message_id is None
+            ):
                 raise FeedbackException(
                     f"The error occured when checking the message with {chat_id}. "
                     f"Replyto message does not match."
-                    f"Expect {ref_message.get('replyto')}, but get {message.reply_to_message_id}"
+                    f"Expect {ref_message.get('replyto')}, "
+                    f"but get {message.reply_to_message_id}"
                 )
             elif ref_message.get("replyto", None) is not None:
                 replyto_ref = ref_message.get("replyto")
                 if replyto_ref is None or message.reply_to_message_id is None:
                     raise LookupError(
-                        f"Can't find the replyto message for the message with {chat_id} "
+                        f"Can't find the replyto message "
+                        f"for the message with {chat_id} "
                         f"Find message: {message}"
                         f"Reference message: {ref_message}"
                     )
@@ -78,7 +81,7 @@ class TelegramService:
                     replyto_message,
                     replyto_ref,
                     # recersively verify all replyto messages
-                    self.__get_message_type(replyto_message)
+                    self.__get_message_type(replyto_message),
                 )
             match message_type:
                 case "text":
@@ -95,7 +98,7 @@ class TelegramService:
                         file_name=message.document.file_name,
                         in_memory=True,
                     )
-                    if type(downloaded_file) != BytesIO:
+                    if isinstance(downloaded_file, BytesIO):
                         raise LookupError(
                             f"File {message.document.file_name} not found. "
                             f"Failed to download"
@@ -106,7 +109,8 @@ class TelegramService:
 
                     if downloaded_file.getvalue() != file_ref.getvalue():
                         raise FeedbackException(
-                            f"The error occured when checking the message with {chat_id}. "
+                            f"The error occured when "
+                            f"checking the message with {chat_id}. "
                             f"Document file does not match."
                         )
                 # Extend here for other types like 'photo', 'video', etc.
@@ -117,10 +121,7 @@ class TelegramService:
                     )
 
         with self.__service:
-            messages = self.__service.get_chat_history(
-                chat_id,
-                limit=len(ref_messages)
-            )
+            messages = self.__service.get_chat_history(chat_id, limit=len(ref_messages))
             messages = [message for message in messages]
 
             # messages returned from the API are in reverse chronological order
@@ -167,11 +168,11 @@ class TelegramService:
         return next(messages).id
 
     def send_messages(
-            self,
-            chat_id: str | int,
-            messages: list[str],
-            replyto_offset: int | None = None,
-        ):
+        self,
+        chat_id: str | int,
+        messages: list[str],
+        replyto_offset: int | None = None,
+    ):
         with self.__service:
             if replyto_offset is not None:
                 replyto_message_id = self._get_last_message_id(chat_id) - replyto_offset
@@ -185,12 +186,12 @@ class TelegramService:
                 )
 
     def send_document(
-            self,
-            chat_id: str | int,
-            file_path: str,
-            caption: str,
-            replyto_offset: int | None = None
-        ):
+        self,
+        chat_id: str | int,
+        file_path: str,
+        caption: str,
+        replyto_offset: int | None = None,
+    ):
         with self.__service:
             if replyto_offset is not None:
                 replyto_message_id = self._get_last_message_id(chat_id) - replyto_offset
@@ -229,12 +230,19 @@ class TelegramEvaluator(Evaluator):
             ref_messages (list[dict]): List of reference messages.
                 Each reference message is a dictionary with the following keys:
 
-                - type (str): Type of the message. Supported types are 'text', 'document'.
-                - compare_method (str): Method to compare the message. Supported methods is 'exact'.
-                - value (str): Value to compare with the message. Only used when compare_method is 'exact'.
-                - file_path (str, optional): Path to the file. Only used when type is 'document'.
-                - caption (str, optional): Caption of the file. Only used when type is 'document'.
-                - replyto (dict, optional): Reference message to reply to. Required keys are the same as the ref_messages (for recursive matching).
+                - type (str): Type of the message. \
+                    valid values are 'text', 'document'.
+                - compare_method (str): Method to compare the message. \
+                    Supported methods is 'exact'.
+                - value (str): Value to compare with the message. \
+                    Only used when compare_method is 'exact'.
+                - file_path (str, optional): Path to the file. \
+                    Only used when type is 'document'.
+                - caption (str, optional): Caption of the file. \
+                    Only used when type is 'document'.
+                - replyto (dict, optional): Reference message to reply to. \
+                    Required keys are the same as the ref_messages \
+                    (for recursive matching).
 
         Raises:
             FeedbackException: If the messages do not match.
@@ -287,7 +295,10 @@ class TelegramEvaluator(Evaluator):
         Args:
             chat_id (str | int): Chat id.
             n (int): Number of messages to be deleted.
-            replyto_offset (int, optional): Offset of the message to reply to. Defaults to None. The offset is counted from the last message. E.g. 0 means reply to the last message, 1 means reply to the second last message, etc.
+            replyto_offset (int, optional): Offset of the message to reply to. \
+                Defaults to None. The offset is counted from the last message. \
+                E.g. 0 means reply to the last message, \
+                1 means reply to the second last message, etc.
 
         Returns:
             None
@@ -303,7 +314,10 @@ class TelegramEvaluator(Evaluator):
             chat_id (str | int): Chat id.
             file_path (str): Path to the document.
             caption (str, optional): Caption of the document. Defaults to "".
-            replyto_offset (int, optional): Offset of the message to reply to. Defaults to None. The offset is counted from the last message. E.g. 0 means reply to the last message, 1 means reply to the second last message, etc.
+            replyto_offset (int, optional): Offset of the message to reply to. \
+                Defaults to None. The offset is counted from the last message. \
+                E.g. 0 means reply to the last message, \
+                1 means reply to the second last message, etc.
 
         Returns:
             None
