@@ -1,10 +1,11 @@
-import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
+from playground.utils.singleton import Singleton
 
-@dataclass
-class Config:
+
+@dataclass(frozen=True)
+class Config(metaclass=Singleton):
     """
     Singleton for config.
     """
@@ -12,9 +13,9 @@ class Config:
     seed: int = 42
     python_timeout: int = 10
 
-    task_config_paths: dict = {
+    task_config_paths: dict = field(default_factory=lambda: {
         "desktop": "playground/tasks/desktop.jsonl",
-    }
+    })
 
     stop_code: str = "\nexit()"
     use_video = False
@@ -53,12 +54,11 @@ class Config:
     telegram_api_id: int | str = "your telegram_api_id"
     telegram_api_hash: str = "your_telegram_api_hash"
 
+    project_root: Path = Path(__file__).resolve().parents[2]
+    log_dir: Path = project_root / "logs/"
+
     def __init__(self) -> None:
-        project_root = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        self.log_dir = os.path.join(project_root, "./logs/")
-        Path(self.log_dir).mkdir(parents=True, exist_ok=True)
+        self.log_dir.mkdir(parents=True, exist_ok=True)
 
     def __str__(self) -> str:
         return str(self.__dict__)
