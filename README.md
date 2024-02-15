@@ -28,6 +28,10 @@ pip install -e .
 
 [Enable Google APIs, configure OAuth, download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), and adjust configurations [here](playground/config/config.py).
 
+### Telegram
+
+The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtain the telegram API key by following Telegram’s instructions and rules at https://core.telegram.org/api/obtaining_api_id. After obtaining `api_id` and `api_hash`, modify the `telegram_api_id` and `telegram_api_hash` parameters [here](playground/config/config.py).
+
 ## Get Started
 
 ```bash

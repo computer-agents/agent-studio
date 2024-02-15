@@ -1,8 +1,10 @@
 import logging
 import time
+from io import BytesIO
 
 from pyrogram.client import Client
 from pyrogram.errors import FloodWait
+from pyrogram.types import Message
 
 from playground.config import Config
 from playground.env.desktop_env.eval.evaluator import (
@@ -50,38 +52,91 @@ class TelegramService:
             else:
                 return False
 
-        with self.__service:
-            messages = self.__service.get_chat_history(chat_id, limit=len(ref_messages))
-            messages = [message for message in messages]
-
-            # messages returned from the API are in reverse chronological order
-            # so we need to reverse the reference messages
-            for message, ref_message in zip(messages, reversed(ref_messages)):
-                message_type = self.__get_message_type(message)
-
-                if message_type == ref_message.get("type"):
-                    if message_type == "text" and _match_text(
-                        message.text, ref_message
-                    ):
-                        continue
-                    else:
+        def _match_one_message(message: Message, ref_message: dict, message_type: str):
+            if (ref_message.get("replyto", None) is None) != (
+                message.reply_to_message_id is None
+            ):
+                raise FeedbackException(
+                    f"The error occured when checking the message with {chat_id}. "
+                    f"Replyto message does not match."
+                    f"Expect {ref_message.get('replyto')}, "
+                    f"but get {message.reply_to_message_id}"
+                )
+            elif ref_message.get("replyto", None) is not None:
+                replyto_ref = ref_message.get("replyto")
+                if replyto_ref is None or message.reply_to_message_id is None:
+                    raise LookupError(
+                        f"Can't find the replyto message "
+                        f"for the message with {chat_id} "
+                        f"Find message: {message}"
+                        f"Reference message: {ref_message}"
+                    )
+                replyto_message = self.__service.get_chat_history(
+                    message.chat.id,
+                    limit=1,
+                    offset_id=message.reply_to_message_id + 1,
+                )
+                replyto_message = next(replyto_message)
+                _match_one_message(
+                    replyto_message,
+                    replyto_ref,
+                    # recersively verify all replyto messages
+                    self.__get_message_type(replyto_message),
+                )
+            match message_type:
+                case "text":
+                    if not _match_text(message.text, ref_message):
                         raise FeedbackException(
                             f"The error occured "
                             f"when checking the message with {chat_id}. "
                             f"Text message does not match."
                             f"Expect {ref_message.get('value')}, but get {message.text}"
                         )
-                    # Extend here for other types like 'photo', 'document', etc.
-                else:
+                case "document":
+                    downloaded_file = self.__service.download_media(
+                        message.document.file_id,
+                        file_name=message.document.file_name,
+                        in_memory=True,
+                    )
+                    if not isinstance(downloaded_file, BytesIO):
+                        raise LookupError(
+                            f"File {message.document.file_name} not found. "
+                            f"Failed to download"
+                        )
+
+                    with open(ref_message.get("file_path", ""), "rb") as f:
+                        file_ref = BytesIO(f.read())
+
+                    if downloaded_file.getvalue() != file_ref.getvalue():
+                        raise FeedbackException(
+                            f"The error occured when "
+                            f"checking the message with {chat_id}. "
+                            f"Document file does not match."
+                        )
+                # Extend here for other types like 'photo', 'video', etc.
+                case _:
+                    raise FeedbackException(
+                        f"The error occured when checking the message with {chat_id}. "
+                        f"Message type {message_type} not supported."
+                    )
+
+        with self.__service:
+            messages = self.__service.get_chat_history(chat_id, limit=len(ref_messages))
+            messages = [message for message in messages]
+
+            # messages returned from the API are in reverse chronological order
+            # so we need to reverse the reference messages
+            for message, ref_message in zip((messages), reversed(ref_messages)):
+                message_type = self.__get_message_type(message)
+
+                if message_type != ref_message.get("type"):
                     raise FeedbackException(
                         f"The error occured when checking the message with {chat_id}. "
                         f"Message type does not match"
                         f"Expect {ref_message.get('type')}, but get {message_type}"
                     )
 
-    def send_message(self, chat_id: str | int, message: str):
-        with self.__service:
-            self.__service.send_message(chat_id, message)
+                _match_one_message(message, ref_message, message_type)
 
     def delete_recent_messages(self, chat_id: str | int, n: int):
         @confirm_action
@@ -104,6 +159,51 @@ class TelegramService:
 
         print(f"Are you sure you want to delete {n} recent messages from {chat_id}")
         _delete_recent_messages(chat_id, n)
+
+    def _get_last_message_id(self, chat_id: str | int) -> int:
+        """
+        Must be called within a context manager (with self.__service).
+        """
+        messages = self.__service.get_chat_history(chat_id, limit=1)
+        return next(messages).id
+
+    def send_messages(
+        self,
+        chat_id: str | int,
+        messages: list[str],
+        replyto_offset: int | None = None,
+    ):
+        with self.__service:
+            if replyto_offset is not None:
+                replyto_message_id = self._get_last_message_id(chat_id) - replyto_offset
+            else:
+                replyto_message_id = None
+            for message in messages:
+                self.__service.send_message(
+                    chat_id=chat_id,
+                    text=message,
+                    reply_to_message_id=replyto_message_id,
+                )
+
+    def send_document(
+        self,
+        chat_id: str | int,
+        file_path: str,
+        caption: str,
+        replyto_offset: int | None = None,
+    ):
+        with self.__service:
+            if replyto_offset is not None:
+                replyto_message_id = self._get_last_message_id(chat_id) - replyto_offset
+            else:
+                replyto_message_id = None
+            self.__service.send_document(
+                chat_id,
+                file_path,
+                caption=caption,
+                force_document=True,
+                reply_to_message_id=replyto_message_id,
+            )
 
 
 class TelegramEvaluator(Evaluator):
@@ -128,6 +228,21 @@ class TelegramEvaluator(Evaluator):
         Args:
             chat_id (str | int): Chat id.
             ref_messages (list[dict]): List of reference messages.
+                Each reference message is a dictionary with the following keys:
+
+                - type (str): Type of the message. \
+                    valid values are 'text', 'document'.
+                - compare_method (str): Method to compare the message. \
+                    Supported methods is 'exact'.
+                - value (str): Value to compare with the message. \
+                    Only used when compare_method is 'exact'.
+                - file_path (str, optional): Path to the file. \
+                    Only used when type is 'document'.
+                - caption (str, optional): Caption of the file. \
+                    Only used when type is 'document'.
+                - replyto (dict, optional): Reference message to reply to. \
+                    Required keys are the same as the ref_messages \
+                    (for recursive matching).
 
         Raises:
             FeedbackException: If the messages do not match.
@@ -141,30 +256,36 @@ class TelegramEvaluator(Evaluator):
                 {
                     "type": "text",
                     "compare_method": "exact",
-                    "value": "hi",
-                },
-                {
-                    "type": "text",
-                    "compare_method": "exact",
                     "value": "Welcome to the playground!",
                 },
+                {
+                    "type": "document",
+                    "file_path": "playground_data/test/telegram/GitHub-logo.png",
+                    "caption": "GitHub logo.",
+                    "replyto": {
+                        "type": "text",
+                        "compare_method": "exact",
+                        "value": "hi",
+                    }
+                }
             ]
         """
         self.service.message_match(**kwargs)
 
-    @reset_handler("send_message")
-    def send_message(self, **kwargs):
+    @reset_handler("send_messages")
+    def send_messages(self, **kwargs):
         """
         Send a message to specific chat.
 
         Args:
             chat_id (str | int): Chat id.
-            message (str): Message to be sent.
+            messages (list[str]): List of messages to be sent.
+                messages are in the order of sending.
 
         Returns:
             None
         """
-        self.service.send_message(**kwargs)
+        self.service.send_messages(**kwargs)
 
     @reset_handler("delete_recent_messages")
     def delete_recent_messages(self, **kwargs):
@@ -174,8 +295,31 @@ class TelegramEvaluator(Evaluator):
         Args:
             chat_id (str | int): Chat id.
             n (int): Number of messages to be deleted.
+            replyto_offset (int, optional): Offset of the message to reply to. \
+                Defaults to None. The offset is counted from the last message. \
+                E.g. 0 means reply to the last message, \
+                1 means reply to the second last message, etc.
 
         Returns:
             None
         """
         self.service.delete_recent_messages(**kwargs)
+
+    @reset_handler("send_document")
+    def send_document(self, **kwargs):
+        """
+        Send a document to specific chat.
+
+        Args:
+            chat_id (str | int): Chat id.
+            file_path (str): Path to the document.
+            caption (str, optional): Caption of the document. Defaults to "".
+            replyto_offset (int, optional): Offset of the message to reply to. \
+                Defaults to None. The offset is counted from the last message. \
+                E.g. 0 means reply to the last message, \
+                1 means reply to the second last message, etc.
+
+        Returns:
+            None
+        """
+        self.service.send_document(**kwargs)

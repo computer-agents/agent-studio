@@ -23,17 +23,36 @@ TASK_CONFIGS = [
                                     "compare_method": "exact",
                                     "value": "Welcome to the playground!",
                                 },
+                                {
+                                    "type": "document",
+                                    "file_path": "playground_data/test/"
+                                    "telegram/GitHub-logo.png",
+                                    "caption": "GitHub logo.",
+                                    "replyto": {
+                                        "type": "text",
+                                        "compare_method": "exact",
+                                        "value": "hi",
+                                    },
+                                },
                             ],
                         }
                     }
                 ],
                 "reset_procedure": [
-                    {"delete_recent_messages": {"chat_id": "me", "n": 2}},
-                    {"send_message": {"chat_id": "me", "message": "hi"}},
+                    {"delete_recent_messages": {"chat_id": "me", "n": 3}},
                     {
-                        "send_message": {
+                        "send_messages": {
                             "chat_id": "me",
-                            "message": "Welcome to the playground!",
+                            "messages": ["hi", "Welcome to the playground!"],
+                        }
+                    },
+                    {
+                        "send_document": {
+                            "chat_id": "me",
+                            "replyto_offset": 1,
+                            "file_path": "playground_data/test"
+                            "/telegram/GitHub-logo.png",
+                            "caption": "GitHub logo.",
                         }
                     },
                 ],
