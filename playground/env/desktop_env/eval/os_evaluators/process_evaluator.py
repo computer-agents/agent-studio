@@ -4,7 +4,12 @@ from typing import Any
 import psutil
 import logging
 
-from playground.desktop_env.eval.evaluator import Evaluator
+from playground.env.desktop_env.eval.evaluator import (
+    Evaluator,
+    FeedbackException,
+    evaluation_handler,
+    reset_handler,
+)
 
 logger = logging.getLogger(__name__)
 
