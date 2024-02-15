@@ -39,7 +39,8 @@ class ProcessEvaluator(Evaluator):
     @evaluation_handler("match_process")
     def match_process(self, name: str) -> None:
         """
-        Check if a process with the given name is running.
+        Check if a process with the given name is running. \
+                Can be a regex pattern.
 
         Args:
             name (str): Name of the process to check.
@@ -70,7 +71,7 @@ class ProcessEvaluator(Evaluator):
         Kill all processes with the given name.
 
         Args:
-            name (str): Name pattern of the process to kill.\
+            name (str): Name pattern of the process to kill. \
                 Can be a regex pattern.
 
         Raises:
