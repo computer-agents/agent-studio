@@ -1,10 +1,8 @@
-from dataclasses import dataclass, field
 from pathlib import Path
 
 from playground.utils.singleton import Singleton
 
 
-@dataclass(frozen=True)
 class Config(metaclass=Singleton):
     """
     Singleton for config.
@@ -13,11 +11,9 @@ class Config(metaclass=Singleton):
     seed: int = 42
     python_timeout: int = 10
 
-    task_config_paths: dict = field(
-        default_factory=lambda: {
-            "desktop": "playground/tasks/desktop.jsonl",
-        }
-    )
+    task_config_paths: dict  = {
+        "desktop": "playground_data/tasks/desktop.jsonl",
+    }
 
     stop_code: str = "\nexit()"
     use_video = False
@@ -37,7 +33,7 @@ class Config(metaclass=Singleton):
     # repeating_action_failure_th = 3
 
     # LM config
-    provider: str = "openai"
+    provider: str = "gemini"
     max_retries: int = 3
     # model: str = "gpt-4-1106-vision-preview"
     model: str = "gemini-pro-vision"

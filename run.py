@@ -35,6 +35,14 @@ def setup_agent(args):
                 model=model,
                 record_path="playground_data/trajectories/dummy",
             )
+        case "direct":
+            from playground.agent.direct_agent import DirectAgent
+
+            agent = DirectAgent(
+                env=args.env,
+                model=model,
+                record_path="playground_data/trajectories/direct",
+            )
         case _:
             raise ValueError(f"Invalid agent: {args.agent}.")
 
@@ -67,7 +75,7 @@ def eval(args) -> None:
     scores = {}
     for task_config in task_configs:
         try:
-            task_id = task_config["id"]
+            task_id = task_config["task_id"]
             record_screen = task_config.get("visual", False)
             comb = evaluator_router(task_config)
             comb.reset()
@@ -133,6 +141,7 @@ def record(args) -> None:
 def main():
     parser = create_parser()
     args = parser.parse_args()
+    logger.info(f"Running with args: {args}")
 
     match args.mode:
         case "eval":

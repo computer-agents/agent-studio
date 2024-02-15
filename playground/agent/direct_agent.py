@@ -3,7 +3,7 @@ from typing import Any
 
 from playground.agent.base_agent import Agent
 from playground.config import Config
-from playground.llm.utils import encode_image, extract_from_response
+from playground.llm.utils import extract_from_response
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -41,39 +41,14 @@ class DirectAgent(Agent):
         for _ in range(config.max_step):
             # Get the observation from the environment.
             obs = self.get_obs()
-
-            # Get the response from the LLM and parse the code.
-            messages: list[dict[str, Any]] = []
-            messages.append({"role": "system", "content": self.system_prompt})
-            for step in self.trajectory:
-                user_content = [
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": encode_image(step["obs"])},
-                    }
-                ]
-                if "res" in step:
-                    user_content.append({"type": "text", "text": step["res"]})
-                messages.append(
-                    {
-                        "role": "user",
-                        "content": user_content,
-                    }
-                )
-                messages.append({"role": "assistant", "content": step["act"]})
-            messages.append(
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": encode_image(obs)},
-                        }
-                    ],
-                }
+            messages_to_model = self.model._compose_messages(
+                obs=obs,
+                trajectory=self.trajectory,
+                system_prompt=self.system_prompt,
             )
             response, info = self.model.generate_response(
-                messages=messages, model=config.model
+                messages=messages_to_model,
+                model=config.model
             )
             raw_code = extract_from_response(response)
 

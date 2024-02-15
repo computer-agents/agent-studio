@@ -2,9 +2,6 @@ import pyautogui
 
 
 class Mouse:
-    def __init__(self, computer):
-        self.computer = computer
-
     def scroll(self, clicks):
         """Scrolls the mouse wheel up or down."""
         pyautogui.scroll(clicks)

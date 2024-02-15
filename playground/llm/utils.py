@@ -27,7 +27,7 @@ def extract_from_response(response: str, backtick="```") -> str:
     return extracted_string
 
 
-def encode_image(image: str | Image.Image | np.ndarray) -> str:
+def encode_image(image: str | Image.Image | np.ndarray | None) -> str:
     if isinstance(image, str):
         if os.path.exists(image):
             with open(image, "rb") as image_file:

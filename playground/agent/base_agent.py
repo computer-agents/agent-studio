@@ -56,7 +56,7 @@ class Agent:
         """Executes and records the given code in the environment."""
 
         @confirm_action
-        def _step_helper() -> dict:
+        def _step_helper(code: str) -> dict:
             if self.record_screen:
                 self.recorder.resume()
             assert self.runtime is not None, "The agent is not reset."
@@ -64,9 +64,9 @@ class Agent:
 
         if self.record_screen:
             self.recorder.pause()
-        logger.info(f"Executing code:\n{code}")
+        logger.info(f"Executing code:\n{code}\n")
         result = _step_helper(code)
-        logger.info(f"Output: {result}")
+        logger.info(f"Output: {result}\n")
 
         return result
 
