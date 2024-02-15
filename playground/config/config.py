@@ -13,9 +13,11 @@ class Config(metaclass=Singleton):
     seed: int = 42
     python_timeout: int = 10
 
-    task_config_paths: dict = field(default_factory=lambda: {
-        "desktop": "playground/tasks/desktop.jsonl",
-    })
+    task_config_paths: dict = field(
+        default_factory=lambda: {
+            "desktop": "playground/tasks/desktop.jsonl",
+        }
+    )
 
     stop_code: str = "\nexit()"
     use_video = False
