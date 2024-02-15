@@ -15,9 +15,7 @@ class OpenAIProvider(BaseModel):
     def __init__(self, **kwargs: Any) -> None:
         self.client = OpenAI(api_key=config.OPENAI_API_KEY)
 
-    def generate_response(
-        self, messages: list[dict[str, Any]], **kwargs
-    ) -> tuple[str, dict[str, int]]:
+    def generate_response(self, messages: list, **kwargs) -> tuple[str, dict[str, int]]:
         """Creates a chat completion using the OpenAI API."""
 
         model = kwargs.get("model", config.model)

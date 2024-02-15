@@ -39,11 +39,14 @@ class Config(metaclass=Singleton):
     # LM config
     provider: str = "openai"
     max_retries: int = 3
-    model: str = "gpt-4-1106-vision-preview"
-    eval_model: str = "gpt-4-1106-vision-preview"
+    # model: str = "gpt-4-1106-vision-preview"
+    model: str = "gemini-pro-vision"
+    # eval_model: str = "gpt-4-1106-vision-preview"
+    eval_model: str = "gemini-pro-vision"
     temperature: float = 0.0
     max_tokens: int = 4096
     OPENAI_API_KEY: str = "your_openai_api_key"
+    GEMINI_API_KEY: str = "your_gemini_api_key"
 
     google_credential_path: str = "playground/config/credentials.json"
     google_calendar_id: str = "primary"
