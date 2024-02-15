@@ -1,47 +1,98 @@
+import logging
+from typing import Any
+
 from playground.agent.base_agent import Agent
-from playground.desktop_env import ComputerEnv
-from playground.llm import setup_llm
-from playground.llm.lm_config import LMConfig
+from playground.config import Config
+from playground.llm.utils import encode_image, extract_from_response
+
+config = Config()
+logger = logging.getLogger(__name__)
 
 
 class DirectAgent(Agent):
-    """LLM agents."""
-
-    def __init__(
-        self,
-        env: ComputerEnv,
-        lm_config: LMConfig,
-    ) -> None:
-        super().__init__(env=env)
-        self.lm_config = lm_config
-        self.llm = setup_llm(lm_config)
+    """Zero-shot LLM agents."""
 
     def reset(
         self,
+        task_id: str,
         instruction: str,
+        record_screen: bool = False,
         **kwargs,
     ) -> None:
-        super().reset(instruction=instruction)
+        super().reset(
+            task_id=task_id, instruction=instruction, record_screen=record_screen
+        )
+        with open(config.system_prompt_path, "r") as f:
+            self.system_prompt = f.read()
 
-    def run(self):
-        pass
-        # prompt = self.construct_prompt(obs)
-        # response = self.llm.generate_response(prompt)
-        # action = self.parse_response(response)
+    def run(self) -> list:
+        # Initialize the interface the agent needs.
+        match self.env:
+            case "desktop":
+                init_code = (
+                    "from playground.env.desktop_env import Shell, Keyboard, Mouse\n\n"
+                    "shell = Shell()\nkeyboard = Keyboard()\nmouse = Mouse()\n"
+                )
+                self.step(init_code)
+            case _:
+                raise ValueError(f"Invalid env: {self.env}.")
 
-        # self.history.append({"obs": obs, "action": action})
+        # Loop until the task is done or the max step is reached.
+        for _ in range(config.max_step):
+            # Get the observation from the environment.
+            obs = self.get_obs()
 
-        # return action
+            # Get the response from the LLM and parse the code.
+            messages: list[dict[str, Any]] = []
+            messages.append({"role": "system", "content": self.system_prompt})
+            for step in self.trajectory:
+                user_content = [
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": encode_image(step["obs"])},
+                    }
+                ]
+                if "res" in step:
+                    user_content.append({"type": "text", "text": step["res"]})
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": user_content,
+                    }
+                )
+                messages.append({"role": "assistant", "content": step["act"]})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": encode_image(obs)},
+                        }
+                    ],
+                }
+            )
+            response, info = self.model.generate_response(
+                messages=messages, model=config.model
+            )
+            raw_code = extract_from_response(response)
 
-    def construct_prompt(self, obs):
-        messages = []
-        messages.append({"role": "system", "text": self.system_prompt})
-        for step in self.history:
-            messages.append({"role": "user", "text": step["obs"]})
-            messages.append({"role": "assistant", "text": step["action"]})
-        messages.append({"role": "user", "text": obs})
+            # Execute the code and record the result.
+            self.recorder.add_event(raw_code)
+            done = raw_code.endswith(config.stop_code)
+            if done:
+                code = raw_code[: -len(config.stop_code)]
+            else:
+                code = raw_code
+            result = self.step(code)
+            self.trajectory.append(
+                {"obs": obs, "act": raw_code, "res": result, "done": done}
+            )
+            if done:
+                break
 
-        return messages
+        if self.record_screen:
+            self.recorder.stop()
+        self.recorder.save()
 
-    def parse_response(self, response):
-        return response
+        return self.trajectory

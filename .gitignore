@@ -121,7 +121,6 @@ celerybeat.pid
 # Environments
 .env
 .venv
-env/
 venv/
 ENV/
 env.bak/
@@ -166,3 +165,4 @@ cython_debug/
 
 *token.json
 credentials.json
+*.session

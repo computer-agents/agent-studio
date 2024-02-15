@@ -1,42 +1,124 @@
-import json
+# pytest -s tests/test_evaluators/test_gcalendar.py
+import pytest
 
-from playground.agent.teacher_forcing_agent import TeacherForcingAgent
-from playground.desktop_env import ComputerEnv
-from playground.desktop_env.eval.evaluator_helper import evaluator_router
+from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
+
+TASK_CONFIGS = [
+    {
+        "evals": [
+            {
+                "eval_type": "google_calendar",
+                "eval_procedure": [
+                    {
+                        "check_event_exists": {
+                            "event_info": {
+                                "summary": "Meeting with Team",
+                                "location": "Office",
+                                "description": "Discuss project status",
+                                "start": {"dateTime": "2024-01-05T10:00:00Z"},
+                                "end": {"dateTime": "2024-01-05T11:00:00Z"},
+                            },
+                            "exists": False,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "delete_event": {
+                            "event_info": {
+                                "summary": "Meeting with Team",
+                                "location": "Office",
+                                "description": "Discuss project status",
+                                "start": {"dateTime": "2024-01-05T10:00:00Z"},
+                                "end": {"dateTime": "2024-01-05T11:00:00Z"},
+                            }
+                        }
+                    },
+                ],
+            }
+        ]
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "google_calendar",
+                "eval_procedure": [
+                    {
+                        "check_event_exists": {
+                            "event_info": {
+                                "summary": "Meeting with Team",
+                                "location": "Office",
+                                "description": "Discuss project status",
+                                "start": {"dateTime": "2024-01-05T10:00:00Z"},
+                                "end": {"dateTime": "2024-01-05T11:00:00Z"},
+                            },
+                            "exists": True,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "create_event": {
+                            "event_info": {
+                                "summary": "Meeting with Team",
+                                "location": "Office",
+                                "description": "Discuss project status",
+                                "start": {
+                                    "dateTime": "2024-01-05T10:00:00Z",
+                                    "timezone": "UTC",
+                                },
+                                "end": {
+                                    "dateTime": "2024-01-05T11:00:00Z",
+                                    "timezone": "UTC",
+                                },
+                                "attendees": [],
+                            }
+                        }
+                    },
+                ],
+            }
+        ]
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "google_calendar",
+                "eval_procedure": [
+                    {
+                        "check_event_exists": {
+                            "event_info": {
+                                "summary": "Meeting with Team",
+                                "location": "Office",
+                                "description": "Discuss project status",
+                                "start": {"dateTime": "2024-01-05T10:00:00Z"},
+                                "end": {"dateTime": "2024-01-05T11:00:00Z"},
+                            },
+                            "exists": False,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "delete_event": {
+                            "event_info": {
+                                "summary": "Meeting with Team",
+                                "location": "Office",
+                                "description": "Discuss project status",
+                                "start": {"dateTime": "2024-01-05T10:00:00Z"},
+                                "end": {"dateTime": "2024-01-05T11:00:00Z"},
+                            }
+                        }
+                    },
+                ],
+            }
+        ]
+    },
+]
 
 
-def test_calendar(
-    computer_env: ComputerEnv,
-) -> None:
-    config_file = "playground/desktop_env/eval/tasks/gcalendar.json"
-    with open(config_file, "r") as f:
-        task_configs = json.load(f)
-    agent = TeacherForcingAgent(env=computer_env)
-
-    for task_config in task_configs["tasks"]:
-        comb = evaluator_router(task_config)
-        comb.reset()
-
-        action_sequence_path: str | None = task_configs.get(
-            "action_sequence_path", None
-        )
-        if action_sequence_path is not None:
-            with open(action_sequence_path, "r") as f:
-                tasks = json.load(f)["tasks"]
-                for t in tasks:
-                    if t["task_id"] == task_config["task_id"]:
-                        reference_action_sequence = t["reference_action_sequence"]
-                        break
-        else:
-            reference_action_sequence = None
-        instruction = task_config["intent_template"].format(
-            **task_config["instantiation_dict"]
-        )
-        agent.reset(
-            instruction=instruction,
-            reference_action_sequence=reference_action_sequence,
-        )
-
-        agent.run()
-        score = comb()
-        assert score == 1.0
+@pytest.mark.parametrize("task_config", TASK_CONFIGS)
+def test_calendar(task_config):
+    comb = evaluator_router(task_config)
+    comb.reset()
+    score, feedback = comb()
+    assert score == 1.0, feedback
