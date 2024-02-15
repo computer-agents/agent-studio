@@ -28,6 +28,7 @@ google-api-python-client==2.112.0
 google-auth==2.26.1
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.0
+google-cloud-aiplatform==1.42.0
 googleapis-common-protos==1.62.0
 greenlet==3.0.3
 h11==0.14.0

@@ -1,5 +1,4 @@
 import logging
-from typing import Any
 
 from playground.agent.base_agent import Agent
 from playground.config import Config
@@ -47,8 +46,7 @@ class DirectAgent(Agent):
                 system_prompt=self.system_prompt,
             )
             response, info = self.model.generate_response(
-                messages=messages_to_model,
-                model=config.model
+                messages=messages_to_model, model=config.model
             )
             raw_code = extract_from_response(response)
 
