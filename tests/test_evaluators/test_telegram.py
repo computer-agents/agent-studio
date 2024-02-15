@@ -25,7 +25,7 @@ TASK_CONFIGS = [
                                 },
                                 {
                                     "type": "document",
-                                    "file_path": "playground_data/evaluation/"
+                                    "file_path": "playground_data/test/"
                                     "telegram/GitHub-logo.png",
                                     "caption": "GitHub logo.",
                                     "replyto": {
@@ -50,7 +50,7 @@ TASK_CONFIGS = [
                         "send_document": {
                             "chat_id": "me",
                             "replyto_offset": 1,
-                            "file_path": "playground_data/evaluation"
+                            "file_path": "playground_data/test"
                             "/telegram/GitHub-logo.png",
                             "caption": "GitHub logo.",
                         }

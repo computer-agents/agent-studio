@@ -260,7 +260,7 @@ class TelegramEvaluator(Evaluator):
                 },
                 {
                     "type": "document",
-                    "file_path": "playground_data/evaluation/telegram/GitHub-logo.png",
+                    "file_path": "playground_data/test/telegram/GitHub-logo.png",
                     "caption": "GitHub logo.",
                     "replyto": {
                         "type": "text",
