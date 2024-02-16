@@ -15,8 +15,8 @@ def create_parser():
     parser.add_argument(
         "--env", type=str, choices=["desktop", "android"], default="desktop"
     )
-    parser.add_argument("--agent", type=str, default="dummy")
-    parser.add_argument("--model", type=str, default="default")
+    parser.add_argument("--agent", type=str, default=config.agent)
+    parser.add_argument("--provider", type=str, default=config.provider)
     parser.add_argument("--mode", type=str, choices=["record", "eval"], default="eval")
     parser.add_argument("--start_idx", type=int, default=0)
     parser.add_argument("--end_idx", type=int, default=None)
@@ -25,7 +25,7 @@ def create_parser():
 
 
 def setup_agent(args):
-    model = setup_model(args.model)
+    model = setup_model(args.provider)
     match args.agent:
         case "dummy":
             from playground.agent.base_agent import Agent

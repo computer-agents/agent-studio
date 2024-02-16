@@ -87,6 +87,7 @@ def evaluator_router(
     for eval in task_configs["evals"]:
         eval_type: str = eval["eval_type"]
         if eval_type in registered_evaluators:
+            # TODO: Can we merge model evaluator and other evaluators?
             if eval_type == "model":
                 from playground.llm import setup_model
 

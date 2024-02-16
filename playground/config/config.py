@@ -34,6 +34,7 @@ class Config(metaclass=Singleton):
 
     # LM config
     provider: str = "gemini"
+    agent: str = "direct"
     max_retries: int = 3
     # model: str = "gpt-4-1106-vision-preview"
     model: str = "gemini-pro-vision"

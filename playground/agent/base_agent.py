@@ -38,7 +38,6 @@ class Agent:
         task_id: str,
         instruction: str,
         record_screen: bool = False,
-        **kwargs,
     ) -> None:
         self.instruction = instruction
         self.trajectory = []

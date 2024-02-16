@@ -27,9 +27,9 @@ logger = logging.getLogger(__name__)
 
 
 class GeminiProvider(BaseModel):
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
         genai.configure(api_key=config.GEMINI_API_KEY)
-        model = config.model
+        model = kwargs.get("model", config.model)
         self.proxy = getattr(config, "model_proxy", None)
         self.model = genai.GenerativeModel(model)
 
