@@ -16,7 +16,6 @@ class DirectAgent(Agent):
         task_id: str,
         instruction: str,
         record_screen: bool = False,
-        **kwargs,
     ) -> None:
         super().reset(
             task_id=task_id, instruction=instruction, record_screen=record_screen
@@ -40,11 +39,13 @@ class DirectAgent(Agent):
         for _ in range(config.max_step):
             # Get the observation from the environment.
             obs = self.get_obs()
-            messages_to_model = self.model._compose_messages(
+            # Compose model-specific messages from the observation and the trajectory.
+            messages_to_model = self.model.compose_messages(
                 obs=obs,
                 trajectory=self.trajectory,
                 system_prompt=self.system_prompt,
             )
+            # Generate a response from the model.
             response, info = self.model.generate_response(
                 messages=messages_to_model, model=config.model
             )

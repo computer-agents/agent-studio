@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Agent:
     """Base class for agents."""
 
-    def __init__(self, env: str, model: BaseModel, record_path: str, **kwargs) -> None:
+    def __init__(self, env: str, model: BaseModel, record_path: str) -> None:
         self.env = env
         self.model = model
         self.runtime: PythonRuntime | None = None

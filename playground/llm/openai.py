@@ -17,7 +17,7 @@ class OpenAIProvider(BaseModel):
     def __init__(self, **kwargs: Any) -> None:
         self.client = OpenAI(api_key=config.OPENAI_API_KEY)
 
-    def _compose_messages(
+    def compose_messages(
         self,
         obs: NDArray | None,
         trajectory: list[dict[str, Any]],

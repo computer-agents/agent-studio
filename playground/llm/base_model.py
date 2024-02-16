@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 class BaseModel:
     """Base class for models."""
 
-    def _compose_messages(
+    def compose_messages(
         self,
         obs: NDArray | None,
         trajectory: list[dict[str, Any]],

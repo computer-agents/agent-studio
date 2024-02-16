@@ -33,7 +33,7 @@ class GeminiProvider(BaseModel):
         self.proxy = getattr(config, "model_proxy", None)
         self.model = genai.GenerativeModel(model)
 
-    def _compose_messages(
+    def compose_messages(
         self,
         obs: NDArray | None,
         trajectory: list[dict[str, Any]],
