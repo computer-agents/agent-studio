@@ -84,7 +84,9 @@ class Agent:
         if self.record_screen:
             # TODO: Ugly hack to get the screenshot.
             self.recorder.screen_recorder.window_manager.send_to_background()
-            time.sleep(0.1)
+            # Wait for the window to be minimized.
+            # TODO: Any better way to do this?
+            time.sleep(0.5)
             obs = self.recorder.get_screenshot()
         else:
             obs = None

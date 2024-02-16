@@ -104,7 +104,7 @@ def eval(args) -> None:
             logger.error(traceback.format_exc())
 
     agent.close()
-    logger.info(f"Average score: {sum(scores.values()) / len(scores)}")
+    logger.info(f"Average score: {sum(scores.values()) / max(len(scores), 1)}")
 
 
 def record(args) -> None:
