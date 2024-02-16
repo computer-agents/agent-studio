@@ -90,12 +90,12 @@ def eval(args) -> None:
             )
             trajectory = agent.run()
 
-            score = comb(trajectory=trajectory)
+            score, feedback = comb(trajectory=trajectory)
             scores[task_id] = score
             if score == 1.0:
-                logger.info("[Result] (PASS)")
+                logger.info(f"[Result] (PASS): {feedback}")
             else:
-                logger.info("[Result] (FAIL)")
+                logger.info(f"[Result] (FAIL): {feedback}")
 
         except Exception as e:
             import traceback

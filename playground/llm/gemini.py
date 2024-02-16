@@ -110,17 +110,24 @@ class GeminiProvider(BaseModel):
                         ).decode('utf-8')
                     ]
                 }
-                response = requests.post(
+                response_raw = requests.post(
                     self.proxy,
                     json=body
                 )
+                response: genai.types.GenerateContentResponse = pickle.loads(
+                    base64.b64decode(response_raw.text.encode('utf-8'))
+                )
                 try:
-                    message = pickle.loads(base64.b64decode(response.text.encode('utf-8'))).text
+                    message = response.text
                 except Exception as e:
+                    # TODO: Remove this after debugging
                     print(e)
-                    print(response.text)
-                    print(pickle.loads(base64.b64decode(response.text.encode('utf-8'))))
-                    print(pickle.loads(base64.b64decode(response.text.encode('utf-8'))).parts)
+                    print(response_raw.text)
+                    print(response)
+                    for candidate in response.candidates:
+                        message = [part.text for part in candidate.content.parts]
+                    print(message)
+                    print(pickle.loads(base64.b64decode(response_raw.text.encode('utf-8'))).candidates)
                     raise e
             else:
                 response = self.model.generate_content(

@@ -46,6 +46,11 @@ class FrameBuffer:
 class WindowManager:
     def __init__(self):
         self.window = None
+        match platform.system():
+            case "Windows":
+                self.window = gw.getActiveWindow()
+                assert self.window is not None, "No active window found"
+                logger.info(f"Active window: {self.window.title}")
 
     def send_to_background(self):
         """Sends the current window to the background."""
@@ -96,13 +101,8 @@ class WindowManager:
                         "AppleScript failed to send window to background."
                     )
             case "Windows":
-                try:
-                    # TODO: find a way to get unique ID
-                    fg_window = gw.getActiveWindow()
-                    self.window = fg_window.title
-                    fg_window.minimize()
-                except Exception as e:
-                    raise RuntimeError(f"Failed to send window to background: {e}")
+                self.window.minimize()
+                logger.info(f"Minimized window: {self.window.title}")
             case _:
                 raise RuntimeError(f"Unsupported OS {platform.system()}")
 
@@ -126,12 +126,8 @@ class WindowManager:
                 except subprocess.CalledProcessError:
                     raise RuntimeError("AppleScript failed to bring window to front.")
             case "Windows":
-                try:
-                    # TODO: find a way to restore the window with unique ID
-                    window = gw.getWindowsWithTitle(self.window)[0]
-                    window.restore()
-                except Exception as e:
-                    raise RuntimeError(f"Failed to bring window to front: {e}")
+                self.window.restore()
+                logger.info(f"Restored window: {self.window.title}")
             case _:
                 raise RuntimeError(f"Unsupported OS {platform.system()}")
 

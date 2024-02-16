@@ -1,3 +1,4 @@
+import time
 import logging
 from typing import Any
 
@@ -81,6 +82,9 @@ class Agent:
         """Gets the observation from the environment."""
         assert not config.use_video, "Video-as-observation is not supported yet."
         if self.record_screen:
+            # TODO: Ugly hack to get the screenshot.
+            self.recorder.screen_recorder.window_manager.send_to_background()
+            time.sleep(0.1)
             obs = self.recorder.get_screenshot()
         else:
             obs = None
