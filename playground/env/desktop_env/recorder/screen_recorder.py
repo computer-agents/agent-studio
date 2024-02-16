@@ -45,62 +45,69 @@ class FrameBuffer:
 
 class WindowManager:
     def __init__(self):
-        self.window = None
+        self.window: None | str | gw.Win32Window = None
         match platform.system():
             case "Windows":
                 self.window = gw.getActiveWindow()
                 assert self.window is not None, "No active window found"
                 logger.info(f"Active window: {self.window.title}")
+            case "Linux":
+                self.window = (
+                    subprocess.check_output(["xdotool", "getactivewindow"])
+                    .strip()
+                    .decode()
+                )
+            case "Darwin":
+                # Get name of the frontmost application
+                get_name_script = (
+                    'tell application "System Events" to get name of first '
+                    "application process whose frontmost is true"
+                )
+                window_name = (
+                    subprocess.check_output(["osascript", "-e", get_name_script])
+                    .strip()
+                    .decode()
+                )
+                if window_name == "Electron":
+                    self.window = "Code"
+                elif window_name == "Terminal":
+                    self.window = window_name
+                else:
+                    # TODO: handle other window names
+                    self.window = window_name
+                    logger.warn(
+                        f"Unsupported window name {window_name}. "
+                        "There may be issues with the window."
+                    )
 
     def send_to_background(self):
         """Sends the current window to the background."""
         match platform.system():
             case "Linux":
                 try:
-                    self.window = (
-                        subprocess.check_output(["xdotool", "getactivewindow"])
-                        .strip()
-                        .decode()
-                    )
+                    assert isinstance(self.window, str)
                     subprocess.run(["xdotool", "windowminimize", self.window])
                 except subprocess.CalledProcessError:
                     raise RuntimeError(
                         "xdotool is required. Install it with `apt install xdotool`."
                     )
+                logger.info(f"Minimized window: {self.window}")
             case "Darwin":
                 try:
-                    # Get name of the frontmost application
-                    get_name_script = (
-                        'tell application "System Events" to get name of first '
-                        "application process whose frontmost is true"
-                    )
-                    window_name = (
-                        subprocess.check_output(["osascript", "-e", get_name_script])
-                        .strip()
-                        .decode()
-                    )
-                    if window_name == "Electron":
-                        self.window = "Code"
-                    elif window_name == "Terminal":
-                        self.window = window_name
-                    else:
-                        # TODO: handle other window names
-                        self.window = window_name
-                        logger.warn(
-                            f"Unsupported window name {window_name}. "
-                            "There may be issues with the window."
-                        )
                     # Minimize window
+                    assert isinstance(self.window, str)
                     minimize_script = (
-                        'tell application "System Events" to set visible of '
-                        "first application process whose frontmost is true to false"
+                        "tell application 'System Events' to set visible of "
+                        f"process '{self.window}' to false"
                     )
                     subprocess.run(["osascript", "-e", minimize_script])
                 except subprocess.CalledProcessError:
                     raise RuntimeError(
                         "AppleScript failed to send window to background."
                     )
+                logger.info(f"Minimized window: {self.window}")
             case "Windows":
+                assert isinstance(self.window, gw.Win32Window), "Invalid window type"
                 self.window.minimize()
                 logger.info(f"Minimized window: {self.window.title}")
             case _:
@@ -108,24 +115,26 @@ class WindowManager:
 
     def bring_to_front(self):
         """Brings the minimized window to the front."""
-        if not self.window:
-            logger.info("No minimized windows to restore.")
-            return
         match platform.system():
             case "Linux":
                 try:
+                    assert isinstance(self.window, str)
                     subprocess.run(["xdotool", "windowactivate", self.window])
                 except subprocess.CalledProcessError:
                     raise RuntimeError(
                         "xdotool is required. Install it with `apt install xdotool`."
                     )
+                logger.info(f"Restored window: {self.window}")
             case "Darwin":
                 try:
+                    assert isinstance(self.window, str)
                     restore_script = f'tell application "{self.window}" to activate'
                     subprocess.run(["osascript", "-e", restore_script])
                 except subprocess.CalledProcessError:
                     raise RuntimeError("AppleScript failed to bring window to front.")
+                logger.info(f"Restored window: {self.window}")
             case "Windows":
+                assert isinstance(self.window, gw.Win32Window), "Invalid window type"
                 self.window.restore()
                 logger.info(f"Restored window: {self.window.title}")
             case _:

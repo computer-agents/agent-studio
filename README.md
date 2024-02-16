@@ -15,10 +15,10 @@ We welcome and value contributions from everyone, no matter the scale. Please ch
 ## Setup environment
 
 ```bash
-apt-get install gnome-screenshot xclip  # If use Ubuntu 22.04
+apt-get install gnome-screenshot xclip xdotool # If use Ubuntu 22.04
 conda create --name playground python=3.11 -y
 conda activate playground
-pip install -r requirements.txt
+pip install -r requirements_{YOUR_SYSTEM_TYPE}.txt
 pip install -e .
 ```
 

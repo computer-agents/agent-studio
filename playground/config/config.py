@@ -11,7 +11,7 @@ class Config(metaclass=Singleton):
     seed: int = 42
     python_timeout: int = 10
 
-    task_config_paths: dict  = {
+    task_config_paths: dict = {
         "desktop": "playground_data/tasks/desktop.jsonl",
     }
 

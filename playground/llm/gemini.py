@@ -1,17 +1,17 @@
-import logging
-from typing import Any
-import pickle
 import base64
+import logging
+import pickle
+from typing import Any
 
 import backoff
 import google.generativeai as genai
 import numpy as np
-import requests
+
 # Magic import, add following import to fix bug
 # https://github.com/google/generative-ai-python/issues/178
 import PIL.PngImagePlugin
+import requests
 from google.generativeai.types import GenerationConfig
-
 from numpy.typing import NDArray
 from PIL import Image
 
@@ -30,7 +30,7 @@ class GeminiProvider(BaseModel):
     def __init__(self) -> None:
         genai.configure(api_key=config.GEMINI_API_KEY)
         model = config.model
-        self.proxy = config.model_proxy
+        self.proxy = getattr(config, "model_proxy", None)
         self.model = genai.GenerativeModel(model)
 
     def _compose_messages(
@@ -44,15 +44,11 @@ class GeminiProvider(BaseModel):
             messages.append({"role": "user", "parts": [system_prompt]})
         for step in trajectory:
             img = Image.fromarray(np.uint8(step["obs"])).convert("RGB")
-            user_content: list[Image.Image|str] = [img]
+            user_content: list[Image.Image | str] = [img]
             if "act" in step:
-                user_content.append(
-                    f"[Action]: \n{step['act']}"
-                )
+                user_content.append(f"[Action]: \n{step['act']}")
             if "res" in step:
-                user_content.append(
-                    f"[Result]: \n{step['res']}"
-                )
+                user_content.append(f"[Result]: \n{step['res']}")
             if messages[-1]["role"] == "user":
                 messages[-1]["parts"].extend(user_content)
             else:
@@ -102,20 +98,15 @@ class GeminiProvider(BaseModel):
             if self.proxy:
                 body = {
                     "messages": [
-                        base64.b64encode(
-                            pickle.dumps(messages)
-                        ).decode('utf-8'),
-                        base64.b64encode(
-                            pickle.dumps(generation_config)
-                        ).decode('utf-8')
+                        base64.b64encode(pickle.dumps(messages)).decode("utf-8"),
+                        base64.b64encode(pickle.dumps(generation_config)).decode(
+                            "utf-8"
+                        ),
                     ]
                 }
-                response_raw = requests.post(
-                    self.proxy,
-                    json=body
-                )
+                response_raw = requests.post(self.proxy, json=body)
                 response: genai.types.GenerateContentResponse = pickle.loads(
-                    base64.b64decode(response_raw.text.encode('utf-8'))
+                    base64.b64decode(response_raw.text.encode("utf-8"))
                 )
                 try:
                     message = response.text
@@ -127,7 +118,11 @@ class GeminiProvider(BaseModel):
                     for candidate in response.candidates:
                         message = [part.text for part in candidate.content.parts]
                     print(message)
-                    print(pickle.loads(base64.b64decode(response_raw.text.encode('utf-8'))).candidates)
+                    print(
+                        pickle.loads(
+                            base64.b64decode(response_raw.text.encode("utf-8"))
+                        ).candidates
+                    )
                     raise e
             else:
                 response = self.model.generate_content(
