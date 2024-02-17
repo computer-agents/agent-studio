@@ -29,32 +29,57 @@ class OpenAIProvider(BaseModel):
         messages: list[dict[str, Any]] = []
         messages.append({"role": "system", "content": system_prompt})
         for step in trajectory:
-            user_content = [
+            if not all(key in step for key in ["obs", "act", "res"]):
+                raise ValueError(
+                    "Each step in the trajectory must contain 'obs', 'act' and 'res'"
+                    f" keys. Got {step} instead."
+                )
+            messages.append(
                 {
-                    "type": "image_url",
-                    "image_url": {"url": encode_image(step["obs"])},
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "[Observation]: \n"
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": encode_image(step["obs"])},
+                        }
+                    ],
                 }
-            ]
-            if "res" in step:
-                user_content.append({"type": "text", "text": step["res"]})
+            )
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": f"[Action]: \n{step['act']}"
+                }
+            )
+            messages.append(
+                {
+                    "role": "user",
+                    "content": f"[Result]: \n{step['res']}",
+                }
+            )
+        user_content = [
+            {
+                "type": "text",
+                "text": "[Observation]: \n"
+            },
+            {
+                "type": "image_url",
+                "image_url": {"url": encode_image(obs)},
+            }
+        ]
+        if messages[-1]["role"] == "user":
+            messages[-1]["content"].extend(user_content)
+        else:
             messages.append(
                 {
                     "role": "user",
                     "content": user_content,
                 }
             )
-            messages.append({"role": "assistant", "content": step["act"]})
-        messages.append(
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": encode_image(obs)},
-                    }
-                ],
-            }
-        )
         return messages
 
     def generate_response(

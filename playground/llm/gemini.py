@@ -43,12 +43,15 @@ class GeminiProvider(BaseModel):
         if system_prompt is not None:
             messages.append({"role": "user", "parts": [system_prompt]})
         for step in trajectory:
+            if not all(key in step for key in ["obs", "act", "res"]):
+                raise ValueError(
+                    "Each step in the trajectory must contain 'obs', 'act' and 'res'"
+                    f" keys. Got {step} instead."
+                )
             img = Image.fromarray(np.uint8(step["obs"])).convert("RGB")
-            user_content: list[Image.Image | str] = [img]
-            if "act" in step:
-                user_content.append(f"[Action]: \n{step['act']}")
-            if "res" in step:
-                user_content.append(f"[Result]: \n{step['res']}")
+            user_content: list[Image.Image | str] = ["[Observation]", img]
+            user_content.append(f"[Action]: \n{step['act']}")
+            user_content.append(f"[Result]: \n{step['res']}")
             if messages[-1]["role"] == "user":
                 messages[-1]["parts"].extend(user_content)
             else:
