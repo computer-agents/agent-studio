@@ -59,6 +59,7 @@ class Agent:
         def _step_helper(code: str) -> dict:
             if self.record_screen:
                 self.recorder.resume()
+                time.sleep(0.5)
             assert self.runtime is not None, "The agent is not reset."
             return self.runtime.exec(code)
 
@@ -81,11 +82,6 @@ class Agent:
         """Gets the observation from the environment."""
         assert not config.use_video, "Video-as-observation is not supported yet."
         if self.record_screen:
-            # TODO: Ugly hack to get the screenshot.
-            self.recorder.screen_recorder.window_manager.send_to_background()
-            # Wait for the window to be minimized.
-            # TODO: Any better way to do this?
-            time.sleep(0.5)
             obs = self.recorder.get_screenshot()
         else:
             obs = None
