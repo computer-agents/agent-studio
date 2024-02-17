@@ -119,6 +119,8 @@ class WindowManager:
             case "Windows":
                 assert isinstance(self.window, gw.Win32Window), "Invalid window type"
                 self.window.minimize()
+                while self.window.isActive:
+                    time.sleep(0.1)
                 logger.debug(f"Minimized window: {self.window.title}")
             case _:
                 raise RuntimeError(f"Unsupported OS {platform.system()}")

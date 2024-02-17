@@ -59,7 +59,6 @@ class Agent:
         def _step_helper(code: str) -> dict:
             if self.record_screen:
                 self.recorder.resume()
-                time.sleep(0.5)
             assert self.runtime is not None, "The agent is not reset."
             return self.runtime.exec(code)
 
