@@ -108,31 +108,23 @@ class GeminiProvider(BaseModel):
                 response: genai.types.GenerateContentResponse = pickle.loads(
                     base64.b64decode(response_raw.text.encode("utf-8"))
                 )
-                try:
-                    message = response.text
-                except Exception as e:
-                    # TODO: Remove this after debugging
-                    print(e)
-                    print(response_raw.text)
-                    print(response)
-                    for candidate in response.candidates:
-                        message = [part.text for part in candidate.content.parts]
-                    print(message)
-                    print(
-                        pickle.loads(
-                            base64.b64decode(response_raw.text.encode("utf-8"))
-                        ).candidates
-                    )
-                    raise e
             else:
                 response = self.model.generate_content(
                     contents=messages, generation_config=generation_config
                 )
+            try:
                 message = response.text
+            except ValueError:
+                print(response.__dict__)
+                # TODO: Remove this after debugging
+                for candidate in response.candidates:
+                    print("Finish Reason: ", candidate.finish_reason)
+                    message = [part.text for part in candidate.content.parts]
+                    print("Message: ", message)
+                raise genai.types.IncompleteIterationError
+
             info: dict[str, int] = {}
-
             logger.info(f"Response received from {model}")
-
             return message, info
 
         return _generate_response_with_retry()

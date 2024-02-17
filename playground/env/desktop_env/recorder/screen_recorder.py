@@ -170,7 +170,7 @@ class ScreenRecorder(Recorder):
         self.current_frame_id = -1
         self.current_frame = None
         self.frame_buffer = FrameBuffer()
-        self.is_recording = True
+        self.is_recording = False
         self.window_manager = WindowManager()
 
         self.thread = threading.Thread(
@@ -178,13 +178,16 @@ class ScreenRecorder(Recorder):
         )
         self.thread.daemon = True
 
-    def reset(self, **kwargs) -> None:
+    def reset(self) -> None:
         self.frame_buffer.clear()
         self.current_frame_id = -1
         self.current_frame = None
 
-    def start(self):
+    def start(self) -> None:
         self.thread.start()
+        # wait until the recording starts
+        while not self.is_recording:
+            time.sleep(0.1)
 
     def stop(self):
         if not self.thread.is_alive():
@@ -228,6 +231,7 @@ class ScreenRecorder(Recorder):
         self.start_time = time.time()
         logger.info("Screen recorder started")
         with mss.mss(with_cursor=False) as sct:
+            self.is_recording = True
             while self.is_recording:
                 capture_time = time.time()
                 frame = sct.grab(self.screen_region)
