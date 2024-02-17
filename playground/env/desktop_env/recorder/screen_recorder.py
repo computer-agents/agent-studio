@@ -156,8 +156,6 @@ class WindowManager:
                 logger.debug(f"Restored window: {self.window.title}")
             case _:
                 raise RuntimeError(f"Unsupported OS {platform.system()}")
-        # TODO: More elegant way?
-        time.sleep(1.0)
 
 
 class ScreenRecorder(Recorder):
