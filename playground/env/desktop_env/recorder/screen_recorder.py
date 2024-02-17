@@ -85,7 +85,7 @@ class WindowManager:
                 else:
                     # TODO: handle other window names
                     self.window = window_name
-                    logger.warn(
+                    logger.warning(
                         f"Unsupported window name {window_name}. "
                         "There may be issues with the window."
                     )
@@ -176,6 +176,9 @@ class ScreenRecorder(Recorder):
         self.thread = threading.Thread(
             target=self._capture_screen, name="Screen Capture"
         )
+        # release the lock when the thread starts
+        self.recording_lock = threading.Lock()
+        self.recording_lock.acquire()
         self.thread.daemon = True
 
     def reset(self) -> None:
@@ -184,14 +187,15 @@ class ScreenRecorder(Recorder):
         self.current_frame = None
 
     def start(self) -> None:
+        self.is_recording = True
         self.thread.start()
         # wait until the recording starts
-        while not self.is_recording:
-            time.sleep(0.1)
+        with self.recording_lock:
+            pass
 
     def stop(self):
         if not self.thread.is_alive():
-            logger.info("Screen capture thread is not executing")
+            logger.warning("Screen capture thread is not executing")
         else:
             self.is_recording = False
 
@@ -226,12 +230,17 @@ class ScreenRecorder(Recorder):
             writer.write(frame[1])
         writer.release()
 
+    def get_current_frame(self) -> np.ndarray:
+        if self.current_frame is None:
+            raise RuntimeError("No frame is captured")
+        return self.current_frame
+
     def _capture_screen(self):
         self.window_manager.send_to_background()
         self.start_time = time.time()
         logger.info("Screen recorder started")
         with mss.mss(with_cursor=False) as sct:
-            self.is_recording = True
+            self.recording_lock.release()
             while self.is_recording:
                 capture_time = time.time()
                 frame = sct.grab(self.screen_region)
@@ -246,7 +255,7 @@ class ScreenRecorder(Recorder):
                 if wait_time > 0:
                     time.sleep(wait_time)
                 elif wait_time < 0:
-                    logger.warn("Frame rate is too high")
+                    logger.warning("Frame rate is too high")
         self.stop_time = time.time()
         self.window_manager.bring_to_front()
         logger.info("Screen recorder stopped")

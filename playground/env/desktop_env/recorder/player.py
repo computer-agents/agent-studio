@@ -71,13 +71,13 @@ class MousePlayer(Player):
                             self.controller.press(button)
                             self.pressed_buttons.add(button)
                         else:
-                            logger.warn(f"{button} is already pressed")
+                            logger.warning(f"{button} is already pressed")
                     else:
                         if button in self.pressed_buttons:
                             self.controller.release(button)
                             self.pressed_buttons.remove(button)
                         else:
-                            logger.warn(f"{button} is already released")
+                            logger.warning(f"{button} is already released")
             case "mouse_scroll":
                 logger.debug(
                     f"Mouse scroll: {data['dx']}, {data['dy']}"
@@ -90,7 +90,7 @@ class MousePlayer(Player):
     def stop(self):
         for button in self.pressed_buttons:
             self.controller.release(button)
-            logger.warn(f"{button} is still pressed\n" f"check the record file")
+            logger.warning(f"{button} is still pressed\n" f"check the record file")
 
 
 class KeyboardPlayer(Player):
@@ -116,19 +116,19 @@ class KeyboardPlayer(Player):
                     self.pressed_keys.add(key)
                     self.controller.press(key)
                 else:
-                    logger.warn(f"{data['key']} is already pressed")
+                    logger.warning(f"{data['key']} is already pressed")
             case "up":
                 if key in self.pressed_keys:
                     logger.debug(f"{data['key']} up")
                     self.pressed_keys.remove(key)
                     self.controller.release(key)
                 else:
-                    logger.warn(f"{data['key']} is already released")
+                    logger.warning(f"{data['key']} is already released")
 
     def stop(self):
         for key in self.pressed_keys:
             self.controller.release(key)
-            logger.warn(f"{key} is still pressed\n" f"check the record file")
+            logger.warning(f"{key} is still pressed\n" f"check the record file")
 
 
 class CodePlayer(Player):

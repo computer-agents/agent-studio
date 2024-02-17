@@ -149,7 +149,7 @@ class TelegramService:
                     self.__service.delete_messages(chat_id, message_ids)
                     return True
                 except FloodWait:
-                    logger.warn("Rate limit exceeded. Sleeping for 1 seconds.")
+                    logger.warning("Rate limit exceeded. Sleeping for 1 seconds.")
                     time.sleep(1)
                     return False
                 except Exception as e:

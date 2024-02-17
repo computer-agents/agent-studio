@@ -112,4 +112,4 @@ class AgentRecorder(Recorder):
         )
 
     def get_screenshot(self) -> NDArray:
-        return self.screen_recorder.current_frame
+        return self.screen_recorder.get_current_frame()
