@@ -119,11 +119,11 @@ class WindowManager:
             case "Windows":
                 assert isinstance(self.window, gw.Win32Window), "Invalid window type"
                 self.window.minimize()
-                while self.window.isActive:
-                    time.sleep(0.1)
                 logger.debug(f"Minimized window: {self.window.title}")
             case _:
                 raise RuntimeError(f"Unsupported OS {platform.system()}")
+        # TODO: More elegant way?
+        time.sleep(1.0)
 
     def bring_to_front(self):
         """Brings the minimized window to the front."""
@@ -156,6 +156,8 @@ class WindowManager:
                 logger.debug(f"Restored window: {self.window.title}")
             case _:
                 raise RuntimeError(f"Unsupported OS {platform.system()}")
+        # TODO: More elegant way?
+        time.sleep(1.0)
 
 
 class ScreenRecorder(Recorder):
