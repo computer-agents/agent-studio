@@ -46,11 +46,21 @@ class FrameBuffer:
 class WindowManager:
     def __init__(self):
         self.window: None | str | gw.Win32Window = None
+        self.window_position: None | tuple[int, int] = None
+        self.window_size: None | tuple[int, int] = None
+        self.window_is_maximized: None | bool = None
         match platform.system():
             case "Windows":
                 self.window = gw.getActiveWindow()
                 assert self.window is not None, "No active window found"
-                logger.info(f"Active window: {self.window.title}")
+                self.window_position = self.window.topleft
+                self.window_size = self.window.size
+                self.window_is_maximized = self.window.isMaximized
+                logger.debug(
+                    f"Active window: {self.window.title} "
+                    f"at position {self.window_position} "
+                    f"with size {self.window_size}"
+                )
             case "Linux":
                 self.window = (
                     subprocess.check_output(["xdotool", "getactivewindow"])
@@ -91,7 +101,7 @@ class WindowManager:
                     raise RuntimeError(
                         "xdotool is required. Install it with `apt install xdotool`."
                     )
-                logger.info(f"Minimized window: {self.window}")
+                logger.debug(f"Minimized window: {self.window}")
             case "Darwin":
                 try:
                     # Minimize window
@@ -105,11 +115,11 @@ class WindowManager:
                     raise RuntimeError(
                         "AppleScript failed to send window to background."
                     )
-                logger.info(f"Minimized window: {self.window}")
+                logger.debug(f"Minimized window: {self.window}")
             case "Windows":
                 assert isinstance(self.window, gw.Win32Window), "Invalid window type"
                 self.window.minimize()
-                logger.info(f"Minimized window: {self.window.title}")
+                logger.debug(f"Minimized window: {self.window.title}")
             case _:
                 raise RuntimeError(f"Unsupported OS {platform.system()}")
 
@@ -124,7 +134,7 @@ class WindowManager:
                     raise RuntimeError(
                         "xdotool is required. Install it with `apt install xdotool`."
                     )
-                logger.info(f"Restored window: {self.window}")
+                logger.debug(f"Restored window: {self.window}")
             case "Darwin":
                 try:
                     assert isinstance(self.window, str)
@@ -132,11 +142,16 @@ class WindowManager:
                     subprocess.run(["osascript", "-e", restore_script])
                 except subprocess.CalledProcessError:
                     raise RuntimeError("AppleScript failed to bring window to front.")
-                logger.info(f"Restored window: {self.window}")
+                logger.debug(f"Restored window: {self.window}")
             case "Windows":
                 assert isinstance(self.window, gw.Win32Window), "Invalid window type"
-                self.window.restore()
-                logger.info(f"Restored window: {self.window.title}")
+                if self.window_is_maximized:
+                    self.window.maximize()
+                else:
+                    self.window.moveTo(*self.window_position)
+                    self.window.resize(*self.window_size)
+                    self.window.restore()
+                logger.debug(f"Restored window: {self.window.title}")
             case _:
                 raise RuntimeError(f"Unsupported OS {platform.system()}")
 
