@@ -160,7 +160,7 @@ class GmailService(GoogleService):
             .execute()
         )
 
-        logger.info(f'Draft message: {draft["message"]}')
+        logger.debug(msg=f'Draft message: {draft["message"]}')
 
         return draft
 
@@ -176,7 +176,7 @@ class GmailService(GoogleService):
         encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
         create_message = {"raw": encoded_message}
 
-        @confirm_action
+        @confirm_action(f"Sending the message {message_info}.")
         def _send():
             send_message = (
                 self.service.users()
@@ -184,11 +184,12 @@ class GmailService(GoogleService):
                 .send(userId="me", body=create_message)
                 .execute()
             )
-            logger.info("Message sent successfully.")
+            logger.debug("Message sent successfully.")
             return send_message
 
-        logger.info(f"Sending the message {message_info}.")
-        return _send()
+        logger.debug(f"Sending the message {message_info}.")
+        _, ret =  _send()
+        return ret
 
     def search_messages(
         self, message_info: dict[str, Any], message_type: str
@@ -238,24 +239,23 @@ class GmailService(GoogleService):
 
         return matching_messages
 
-    @confirm_action
     def delete_draft_by_id(self, draft_id: str) -> None:
         """Deletes the draft with the given ID."""
         self.service.users().drafts().delete(userId="me", id=draft_id).execute()
-        logger.info("Draft deleted successfully.")
+        logger.debug("Draft deleted successfully.")
 
     def delete_draft(self, draft_info: dict[str, Any]) -> None:
         """Deletes the draft that matches the given criteria."""
         drafts = self.search_messages(message_info=draft_info, message_type="drafts")
         for draft in drafts:
-            logger.info(f"Deleting draft with subject {draft['subject']}")
-            self.delete_draft_by_id(draft["id"])
+            logger.debug(f"Deleting draft with subject {draft['subject']}")
+            confirm_action(f"Deleting draft with subject {draft['subject']}")\
+                (self.delete_draft_by_id)(draft["id"])
 
-    @confirm_action
     def delete_sent_message_by_id(self, message_id: str) -> None:
         """Deletes the sent message with the given ID."""
         self.service.users().messages().delete(userId="me", id=message_id).execute()
-        logger.info(f"Sent message with id {message_id} deleted successfully.")
+        logger.debug(f"Sent message with id {message_id} deleted successfully.")
 
     def delete_sent_message(self, message_info: dict[str, Any]) -> None:
         """Deletes the sent message with the given criteria."""
@@ -263,8 +263,9 @@ class GmailService(GoogleService):
             message_info=message_info, message_type="messages"
         )
         for sent_message in sent_messages:
-            logger.info(f"Deleting sent message with subject {sent_message['subject']}")
-            self.delete_sent_message_by_id(sent_message["id"])
+            logger.debug(f"Deleting sent message with subject {sent_message['subject']}")
+            confirm_action(f"Deleting sent message with subject {sent_message['subject']}")\
+                (self.delete_sent_message_by_id)(sent_message["id"])
 
     def check_draft_exists(self, draft_info: dict[str, Any], exists: bool) -> None:
         """Checks if the given draft exists."""

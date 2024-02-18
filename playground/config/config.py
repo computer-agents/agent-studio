@@ -10,6 +10,8 @@ class Config(metaclass=Singleton):
 
     seed: int = 42
     python_timeout: int = 10
+    standalone: bool = False
+    remote_server: str = "localhost:50051"
 
     task_config_paths: dict = {
         "desktop": "playground_data/tasks/desktop.jsonl",

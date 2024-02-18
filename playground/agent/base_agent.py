@@ -55,16 +55,13 @@ class Agent:
     def step(self, code: str) -> dict:
         """Executes and records the given code in the environment."""
 
-        confirmed = False
-        @confirm_action
-        def _step_helper():
-            nonlocal confirmed
-            confirmed = True
-
         if self.record_screen:
             self.recorder.pause()
-        logger.info(f"Executing code:\n{code}\n")
-        _step_helper()
+
+        logger.debug(f"Executing code:\n{code}\n")
+        confirmed, _ = confirm_action(f"Executing code:\n{code}")\
+            (lambda: True)()
+
         if self.record_screen:
             self.recorder.resume()
         result = {}

@@ -118,7 +118,6 @@ class GoogleCalendarService(GoogleService):
                 results.append(event)
         return results
 
-    @confirm_action
     def delete_event_by_id(self, event_id: str) -> None:
         """Deletes an event on the calendar."""
         self.service.events().delete(
@@ -137,22 +136,23 @@ class GoogleCalendarService(GoogleService):
         )
         for event in events:
             if event_match(event_info, event):
-                logger.info(f"Deleting event: {event['summary']}")
-                self.delete_event_by_id(event["id"])
+                logger.debug(f"Deleting event: {event['summary']}")
+                confirm_action(f"Deleting event: {event['summary']}")\
+                    (self.delete_event_by_id)(event["id"])
 
     def clear_calendar(self) -> None:
         """Deletes all events on the calendar."""
 
-        @confirm_action
+        @confirm_action("Clearing all events on the calendar")
         def _clear_calendar() -> None:
             events = self.list_events()
             for event in events:
                 self.service.events().delete(
                     calendarId=config.google_calendar_id, eventId=event["id"]
                 ).execute()
-            logger.info("All events have been deleted.")
+            logger.debug("All events have been deleted.")
 
-        logger.info("Clearing all events on the calendar")
+        logger.debug("Clearing all events on the calendar")
         _clear_calendar()
 
 
