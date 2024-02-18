@@ -24,5 +24,9 @@ def confirm_action(prompt: str) -> Callable:
             else:
                 assert hasattr(config, "remote_server")
             if user_input == "y":
+                return True, func(*args, **kwargs)
+            else:
+                return False, None
 
-    return wrapper
+        return wrapper
+    return decorator
