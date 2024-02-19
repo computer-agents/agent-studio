@@ -10,8 +10,8 @@ class Config(metaclass=Singleton):
 
     seed: int = 42
     python_timeout: int = 10
-    standalone: bool = False
-    remote_server: str = "localhost:50051"
+    need_human_confirmation: bool = True
+    on_ssh = False
 
     task_config_paths: dict = {
         "desktop": "playground_data/tasks/desktop.jsonl",
@@ -40,6 +40,7 @@ class Config(metaclass=Singleton):
     max_retries: int = 3
     # model: str = "gpt-4-1106-vision-preview"
     model: str = "gemini-pro-vision"
+    model_server: str | None = None
     # eval_model: str = "gpt-4-1106-vision-preview"
     eval_model: str = "gemini-pro-vision"
     temperature: float = 0.0

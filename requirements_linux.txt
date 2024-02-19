@@ -20,6 +20,7 @@ decorator==5.1.1
 distlib==0.3.8
 distro==1.9.0
 executing==2.0.1
+fastapi==0.109.2
 filelock==3.13.1
 fonttools==4.47.0
 frozenlist==1.4.1
@@ -32,8 +33,6 @@ google-cloud-aiplatform==1.42.0
 google-generativeai==0.3.2
 googleapis-common-protos==1.62.0
 greenlet==3.0.3
-grpcio==1.60.1
-grpcio-tools==1.60.1
 h11==0.14.0
 httpcore==1.0.2
 httplib2==0.22.0
@@ -114,6 +113,7 @@ typing-inspect==0.9.0
 typing_extensions==4.9.0
 uritemplate==4.1.1
 urllib3==2.1.0
+uvicorn==0.27.1
 virtualenv==20.25.0
 wcwidth==0.2.13
 yarl==1.9.4

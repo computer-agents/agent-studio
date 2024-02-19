@@ -9,14 +9,20 @@ import mss
 import numpy as np
 
 from playground.env.desktop_env.recorder.base_recorder import Recorder
+from playground.config import Config
 
 if platform.system() == "Windows":
     import pygetwindow as gw
+    from ctypes import windll  # type: ignore
+
+    PROCESS_PER_MONITOR_DPI_AWARE = 2
+    windll.shcore.SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE)
 else:
     import subprocess
 
 
 logger = logging.getLogger(__name__)
+config = Config()
 
 
 class FrameBuffer:
@@ -150,9 +156,9 @@ class WindowManager:
                 if self.window_is_maximized:
                     self.window.maximize()
                 else:
-                    self.window.moveTo(*self.window_position)
-                    self.window.resize(*self.window_size)
                     self.window.restore()
+                    self.window.moveTo(*self.window_position)
+                    self.window.resizeTo(*self.window_size)
                 logger.debug(f"Restored window: {self.window.title}")
             case _:
                 raise RuntimeError(f"Unsupported OS {platform.system()}")
@@ -200,10 +206,12 @@ class ScreenRecorder(Recorder):
             self.is_recording = False
 
     def pause(self):
-        self.window_manager.bring_to_front()
+        if not config.on_ssh:
+            self.window_manager.bring_to_front()
 
     def resume(self):
-        self.window_manager.send_to_background()
+        if not config.on_ssh:
+            self.window_manager.send_to_background()
 
     def wait_exit(self) -> None:
         self.thread.join()  # Now we wait for the thread to finish
@@ -236,7 +244,8 @@ class ScreenRecorder(Recorder):
         return self.current_frame
 
     def _capture_screen(self):
-        self.window_manager.send_to_background()
+        if not config.on_ssh:
+            self.window_manager.send_to_background()
         self.start_time = time.time()
         logger.info("Screen recorder started")
         with mss.mss(with_cursor=False) as sct:
@@ -257,5 +266,6 @@ class ScreenRecorder(Recorder):
                 elif wait_time < 0:
                     logger.warning("Frame rate is too high")
         self.stop_time = time.time()
-        self.window_manager.bring_to_front()
+        if not config.on_ssh:
+            self.window_manager.bring_to_front()
         logger.info("Screen recorder stopped")

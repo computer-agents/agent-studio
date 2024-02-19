@@ -30,7 +30,7 @@ class GeminiProvider(BaseModel):
     def __init__(self, **kwargs) -> None:
         genai.configure(api_key=config.GEMINI_API_KEY)
         model = kwargs.get("model", config.model)
-        self.proxy = getattr(config, "model_proxy", None)
+        self.mosel_server: str | None = getattr(config, "model_server", None)
         self.model = genai.GenerativeModel(model)
 
     def compose_messages(
@@ -98,16 +98,14 @@ class GeminiProvider(BaseModel):
             interval=10,
         )
         def _generate_response_with_retry() -> tuple[str, dict[str, int]]:
-            if self.proxy:
+            if self.mosel_server:
                 body = {
-                    "messages": [
-                        base64.b64encode(pickle.dumps(messages)).decode("utf-8"),
-                        base64.b64encode(pickle.dumps(generation_config)).decode(
-                            "utf-8"
-                        ),
-                    ]
+                    "messages": base64.b64encode(pickle.dumps(messages))\
+                        .decode("utf-8"),
+                    "config": base64.b64encode(pickle.dumps(generation_config))\
+                        .decode("utf-8"),
                 }
-                response_raw = requests.post(self.proxy, json=body)
+                response_raw = requests.post(self.mosel_server, json=body)
                 response: genai.types.GenerateContentResponse = pickle.loads(
                     base64.b64decode(response_raw.text.encode("utf-8"))
                 )
