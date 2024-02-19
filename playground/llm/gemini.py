@@ -30,8 +30,9 @@ class GeminiProvider(BaseModel):
     def __init__(self, **kwargs) -> None:
         genai.configure(api_key=config.GEMINI_API_KEY)
         model = kwargs.get("model", config.model)
-        self.mosel_server: str | None = getattr(config, "model_server", None)
-        self.model = genai.GenerativeModel(model)
+        self.model_server: str | None = getattr(config, "model_server", None)
+        if not self.model_server:
+            self.model = genai.GenerativeModel(model)
 
     def compose_messages(
         self,
@@ -79,9 +80,12 @@ class GeminiProvider(BaseModel):
     ) -> tuple[str, dict[str, int]]:
         """Creates a chat completion using the Gemini API."""
 
-        model = kwargs.get("model", None)
-        if model is not None:
-            self.model = genai.GenerativeModel(model)
+        if not self.model_server:
+            model = kwargs.get("model", None)
+            if model is not None:
+                self.model = genai.GenerativeModel(model)
+            logger.info(f"Creating chat completion with model {model}...")
+
         generation_config = GenerationConfig(
             temperature=kwargs.get("temperature", config.temperature),
             # top_p=kwargs.get("top_p", config.max_tokens),
@@ -89,7 +93,6 @@ class GeminiProvider(BaseModel):
             candidate_count=1,
             # max_output_tokens=kwargs.get("max_tokens", config.max_tokens),
         )
-        logger.info(f"Creating chat completion with model {model}...")
 
         @backoff.on_exception(
             backoff.constant,
@@ -98,14 +101,14 @@ class GeminiProvider(BaseModel):
             interval=10,
         )
         def _generate_response_with_retry() -> tuple[str, dict[str, int]]:
-            if self.mosel_server:
+            if self.model_server:
                 body = {
                     "messages": base64.b64encode(pickle.dumps(messages))\
                         .decode("utf-8"),
                     "config": base64.b64encode(pickle.dumps(generation_config))\
                         .decode("utf-8"),
                 }
-                response_raw = requests.post(self.mosel_server, json=body)
+                response_raw = requests.post(self.model_server, json=body)
                 response: genai.types.GenerateContentResponse = pickle.loads(
                     base64.b64decode(response_raw.text.encode("utf-8"))
                 )
@@ -125,7 +128,7 @@ class GeminiProvider(BaseModel):
                 raise genai.types.IncompleteIterationError
 
             info: dict[str, int] = {}
-            logger.info(f"Response received from {model}")
+            logger.info(f"Received response: {message}")
             return message, info
 
         return _generate_response_with_retry()
