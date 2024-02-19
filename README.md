@@ -34,12 +34,27 @@ The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtai
 
 ## Get Started
 
+### Run on local machine
+
 ```bash
 python run.py --mode eval
 ```
 
+### Record agent's trajectory
+
 ```bash
 python run.py --mode record --env desktop
+```
+
+### Run via ssh
+
+If you want to run the agent in a virtual machine or remote machine, setup the `DISPLAY` environment variable via ssh.
+
+Setup `playground/config/config.py`, change `on_ssh` to `True`.
+
+```bash
+ssh user@remote # ssh to the remote machine
+DISPLAY=YOUR_DISPLAY python run.py --mode eval
 ```
 
 ## Data
