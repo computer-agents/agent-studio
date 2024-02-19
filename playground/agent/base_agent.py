@@ -1,5 +1,4 @@
 import logging
-import time
 from typing import Any
 
 from numpy.typing import NDArray
@@ -59,8 +58,7 @@ class Agent:
             self.recorder.pause()
 
         logger.debug(f"Executing code:\n{code}\n")
-        confirmed, _ = confirm_action(f"Executing code:\n{code}")\
-            (lambda: True)()
+        confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
 
         if self.record_screen:
             self.recorder.resume()

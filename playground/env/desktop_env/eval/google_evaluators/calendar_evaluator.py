@@ -137,8 +137,9 @@ class GoogleCalendarService(GoogleService):
         for event in events:
             if event_match(event_info, event):
                 logger.debug(f"Deleting event: {event['summary']}")
-                confirm_action(f"Deleting event: {event['summary']}")\
-                    (self.delete_event_by_id)(event["id"])
+                confirm_action(f"Deleting event: {event['summary']}")(
+                    self.delete_event_by_id
+                )(event["id"])
 
     def clear_calendar(self) -> None:
         """Deletes all events on the calendar."""

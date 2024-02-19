@@ -43,15 +43,15 @@ class AgentRecorder(Recorder):
             fps=video_fps,
         )
 
-    def reset(
-            self,
-            task_id: str,
-            instruction: str,
-            record_screen: bool = False,
-        ) -> None:
-        self.record_screen: bool = record_screen
-        self.video_path: str = os.path.join(self.record_path, f"{task_id}.mp4")
-        self.record_dict: dict = {"task_id": task_id, "instruction": instruction}
+    def reset(self, **kwargs) -> None:
+        self.record_screen: bool = kwargs["record_screen"]
+        self.video_path: str = os.path.join(
+            self.record_path, f"{kwargs['task_id']}.mp4"
+        )
+        self.record_dict: dict = {
+            "task_id": kwargs["task_id"],
+            "instruction": kwargs["instruction"],
+        }
         self.events: list[Event] = []
         if self.record_screen:
             self.screen_recorder.reset()

@@ -103,10 +103,12 @@ class GeminiProvider(BaseModel):
         def _generate_response_with_retry() -> tuple[str, dict[str, int]]:
             if self.model_server:
                 body = {
-                    "messages": base64.b64encode(pickle.dumps(messages))\
-                        .decode("utf-8"),
-                    "config": base64.b64encode(pickle.dumps(generation_config))\
-                        .decode("utf-8"),
+                    "messages": base64.b64encode(pickle.dumps(messages)).decode(
+                        "utf-8"
+                    ),
+                    "config": base64.b64encode(pickle.dumps(generation_config)).decode(
+                        "utf-8"
+                    ),
                 }
                 response_raw = requests.post(self.model_server, json=body)
                 response: genai.types.GenerateContentResponse = pickle.loads(

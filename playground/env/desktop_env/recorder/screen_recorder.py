@@ -8,12 +8,13 @@ import cv2
 import mss
 import numpy as np
 
-from playground.env.desktop_env.recorder.base_recorder import Recorder
 from playground.config import Config
+from playground.env.desktop_env.recorder.base_recorder import Recorder
 
 if platform.system() == "Windows":
-    import pygetwindow as gw
     from ctypes import windll  # type: ignore
+
+    import pygetwindow as gw
 
     PROCESS_PER_MONITOR_DPI_AWARE = 2
     windll.shcore.SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE)
@@ -125,9 +126,7 @@ class DarwinWindowManager(WindowManagerDummy):
             subprocess.run(["osascript", "-e", minimize_script])
             time.sleep(1.0)
         except subprocess.CalledProcessError:
-            raise RuntimeError(
-                "AppleScript failed to send window to background."
-            )
+            raise RuntimeError("AppleScript failed to send window to background.")
         logger.debug(f"Minimized window: {self.window}")
 
     def bring_to_front(self):
@@ -203,7 +202,7 @@ class ScreenRecorder(Recorder):
         self.recording_lock.acquire()
         self.thread.daemon = True
 
-    def reset(self) -> None:
+    def reset(self, **kwargs) -> None:
         self.frame_buffer.clear()
         self.current_frame_id = -1
         self.current_frame = None

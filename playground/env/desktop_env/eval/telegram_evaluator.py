@@ -138,8 +138,10 @@ class TelegramService:
 
                 _match_one_message(message, ref_message, message_type)
 
-    def delete_recent_messages(self, chat_id: str | int, n: int)-> None:
-        @confirm_action(f"Are you sure you want to delete {n} recent messages from {chat_id}")
+    def delete_recent_messages(self, chat_id: str | int, n: int) -> None:
+        @confirm_action(
+            f"Are you sure you want to delete {n} recent messages from {chat_id}"
+        )
         def _delete_recent_messages(chat_id: str | int, n: int) -> bool:
             with self.__service:
                 messages = self.__service.get_chat_history(chat_id, limit=n)

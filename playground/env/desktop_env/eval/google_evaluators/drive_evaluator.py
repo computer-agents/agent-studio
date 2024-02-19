@@ -140,8 +140,9 @@ class GoogleDriveService(GoogleService):
         for file_id in file_ids:
             file_name = self.get_filename(file_id)
             logger.debug(f"Deleting file with name {file_name}")
-            confirm_action(f"Deleting file with name {file_name}")\
-                (self.delete_file_by_id)(file_id)
+            confirm_action(f"Deleting file with name {file_name}")(
+                self.delete_file_by_id
+            )(file_id)
 
     def delete_folder(self, folder_name: str) -> None:
         """Deletes a folder from Google Drive with name."""
@@ -149,8 +150,9 @@ class GoogleDriveService(GoogleService):
         for folder_id in folder_ids:
             folder_name = self.get_filename(folder_id)
             logger.debug(f"Deleting folder with name {folder_name}")
-            confirm_action(f"Deleting folder with name {folder_name}")\
-                (self.delete_folder_by_id)(folder_id)
+            confirm_action(f"Deleting folder with name {folder_name}")(
+                self.delete_folder_by_id
+            )(folder_id)
 
     def check_file_exists(
         self, file_name: str, exists: bool, content: str | None = None

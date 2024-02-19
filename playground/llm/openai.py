@@ -38,22 +38,16 @@ class OpenAIProvider(BaseModel):
                 {
                     "role": "user",
                     "content": [
-                        {
-                            "type": "text",
-                            "text": "[Observation]: \n"
-                        },
+                        {"type": "text", "text": "[Observation]: \n"},
                         {
                             "type": "image_url",
                             "image_url": {"url": encode_image(step["obs"])},
-                        }
+                        },
                     ],
                 }
             )
             messages.append(
-                {
-                    "role": "assistant",
-                    "content": f"[Action]: \n{step['act']}"
-                }
+                {"role": "assistant", "content": f"[Action]: \n{step['act']}"}
             )
             messages.append(
                 {
@@ -62,14 +56,11 @@ class OpenAIProvider(BaseModel):
                 }
             )
         user_content = [
-            {
-                "type": "text",
-                "text": "[Observation]: \n"
-            },
+            {"type": "text", "text": "[Observation]: \n"},
             {
                 "type": "image_url",
                 "image_url": {"url": encode_image(obs)},
-            }
+            },
         ]
         if messages[-1]["role"] == "user":
             messages[-1]["content"].extend(user_content)

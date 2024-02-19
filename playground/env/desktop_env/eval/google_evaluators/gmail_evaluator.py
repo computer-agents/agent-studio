@@ -188,7 +188,7 @@ class GmailService(GoogleService):
             return send_message
 
         logger.debug(f"Sending the message {message_info}.")
-        _, ret =  _send()
+        _, ret = _send()
         return ret
 
     def search_messages(
@@ -249,8 +249,9 @@ class GmailService(GoogleService):
         drafts = self.search_messages(message_info=draft_info, message_type="drafts")
         for draft in drafts:
             logger.debug(f"Deleting draft with subject {draft['subject']}")
-            confirm_action(f"Deleting draft with subject {draft['subject']}")\
-                (self.delete_draft_by_id)(draft["id"])
+            confirm_action(f"Deleting draft with subject {draft['subject']}")(
+                self.delete_draft_by_id
+            )(draft["id"])
 
     def delete_sent_message_by_id(self, message_id: str) -> None:
         """Deletes the sent message with the given ID."""
@@ -263,9 +264,12 @@ class GmailService(GoogleService):
             message_info=message_info, message_type="messages"
         )
         for sent_message in sent_messages:
-            logger.debug(f"Deleting sent message with subject {sent_message['subject']}")
-            confirm_action(f"Deleting sent message with subject {sent_message['subject']}")\
-                (self.delete_sent_message_by_id)(sent_message["id"])
+            logger.debug(
+                f"Deleting sent message with subject {sent_message['subject']}"
+            )
+            confirm_action(
+                f"Deleting sent message with subject {sent_message['subject']}"
+            )(self.delete_sent_message_by_id)(sent_message["id"])
 
     def check_draft_exists(self, draft_info: dict[str, Any], exists: bool) -> None:
         """Checks if the given draft exists."""
