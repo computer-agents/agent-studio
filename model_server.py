@@ -36,7 +36,7 @@ def parse_args():
         "--model",
         type=str,
         default="gemini-pro-vision",
-        help="name or path of the huggingface model to use",
+        help="name or path of the model to use",
     )
     parser.add_argument(
         "--root-path",
