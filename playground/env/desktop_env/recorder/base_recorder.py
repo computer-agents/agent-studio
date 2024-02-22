@@ -1,8 +1,6 @@
 from enum import Enum, Flag, auto
 from typing import Callable
 
-from playground.utils.singleton import Singleton
-
 
 class MouseOptions(Flag):
     """
@@ -45,9 +43,7 @@ class Event:
         return str(self)
 
 
-class Recorder(metaclass=Singleton):
-    """Singleton for recorder."""
-
+class Recorder:
     def __init__(self) -> None:
         self.start_time: float = 0
         self.stop_time: float = float("inf")

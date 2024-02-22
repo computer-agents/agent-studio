@@ -20,13 +20,15 @@ class Config(metaclass=Singleton):
     stop_code: str = "\nexit()"
     use_video = False
 
+    # VNC config
+
     # Recorder config
     record_path = "playground_data/trajectories"
     video_fps: int = 5
     mouse_fps: int = 5
 
     # Human annotator hotkeys
-    stop_hotkeys: str = "<ctrl>+<shift>+s"
+    stop_hotkeys: str = "<ctrl>+<shift>+h"
 
     # sleep_after_execution: float = 2.0
     max_step: int = 30

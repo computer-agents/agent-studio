@@ -1,6 +1,8 @@
 import argparse
 import logging
-import uuid
+import sys
+
+from PyQt6.QtWidgets import QApplication
 
 from playground.config import Config
 from playground.llm import setup_model
@@ -108,6 +110,8 @@ def eval(args) -> None:
 
 
 def record(args) -> None:
+    app = QApplication(sys.argv)
+
     match args.env:
         case "desktop":
             from playground.env.desktop_env.recorder.human_recorder import HumanRecorder
@@ -120,22 +124,8 @@ def record(args) -> None:
         case _:
             raise ValueError(f"Invalid env: {args.env}.")
 
-    while True:
-        instruction = input("Enter task instruction (or type 'q' to exit): ")
-        if instruction == "q":
-            break
-        else:
-            record_screen = input("Is this task visual? (y/n): ").lower() == "y"
-            input(
-                "Press Enter to start recording. During recording, "
-                f"you can press {config.stop_hotkeys} to stop."
-            )
-            task_id = str(uuid.uuid4())
-            recorder.reset(
-                task_id=task_id, instruction=instruction, record_screen=record_screen
-            )
-            recorder.start()
-            recorder.wait_exit()
+    recorder.show()
+    sys.exit(app.exec())
 
 
 def main():

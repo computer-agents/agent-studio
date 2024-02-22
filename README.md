@@ -66,3 +66,4 @@ The agent trajectories can be found [here](https://huggingface.co/datasets/agent
 - [Open Interpreter](https://github.com/KillianLucas/open-interpreter)
 - [UAC]()
 - [WebArena](https://github.com/web-arena-x/webarena)
+- [ScreenAgent](https://github.com/niuzaisheng/ScreenAgent)
