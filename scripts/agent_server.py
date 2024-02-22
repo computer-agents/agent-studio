@@ -17,6 +17,11 @@ runtimes: dict[str, PythonRuntime] = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     runtimes["python"] = PythonRuntime()
+    init_code = (
+        "from playground.env.desktop_env import Shell, Keyboard, Mouse\n\n"
+        "shell = Shell()\nkeyboard = Keyboard()\nmouse = Mouse()\n"
+    )
+    runtimes["python"].exec(init_code)
     yield
     runtimes["python"].close()
 

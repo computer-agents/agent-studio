@@ -5,23 +5,19 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-ke
 RUN apt update \
     && add-apt-repository ppa:deadsnakes/ppa \
     && apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated python3.11 \
+    && apt install -y --no-install-recommends --allow-unauthenticated python3.11 build-essential python3.11-dev libevdev-dev\
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Update alternatives to make Python 3.11 the default
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
-    update-alternatives --set python3 /usr/bin/python3.11
-
 # Download get-pip.py and install pip for Python 3.11
 RUN wget https://bootstrap.pypa.io/get-pip.py \
-    && python get-pip.py \
-    && python -m pip install --upgrade pip
+    && python3.11 get-pip.py \
+    && python3.11 -m pip install --upgrade pip
 
 COPY . /root/playground
 WORKDIR /root/playground
-RUN python -m pip install pydantic==2.5.3 uvicorn==0.27.1 fastapi==0.109.2 jupyter_client==8.6.0 ipykernel==6.28.0
-RUN python -m pip install -e .
+RUN python3.11 -m pip install -e .
+RUN python3.11 -m pip install -r requirements_linux.txt
 RUN chmod +x /root/playground/scripts/docker_startup.sh
 ENTRYPOINT ["/root/playground/scripts/docker_startup.sh"]
