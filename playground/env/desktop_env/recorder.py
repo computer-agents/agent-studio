@@ -185,10 +185,10 @@ class Recorder(QMainWindow):
             runtime_output = response_raw.text
             if "output" in runtime_output:
                 output_processed = eval(runtime_output)["output"]
-                self.output_display.setText("".join(output_processed))
+                self.output_display.setText(str(output_processed))
             else:
                 output_processed = eval(runtime_output)["error"]
-                self.output_display.setText("Error: " + "".join(output_processed))
+                self.output_display.setText("Error: " + str(output_processed))
         except Exception as e:
             self.output_display.setText(f"Error: {str(e)}")
 
