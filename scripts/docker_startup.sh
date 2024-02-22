@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Run agent_server asynchronously to avoid blocking the startup process
-python /playground/scripts/agent_server.py &
+python /root/playground/scripts/agent_server.py &
 
 if [ -n "$VNC_PASSWORD" ]; then
     echo -n "$VNC_PASSWORD" > /.password1

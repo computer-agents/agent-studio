@@ -4,6 +4,7 @@ from asyncio import open_connection
 from datetime import datetime
 
 import numpy as np
+import requests
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QCursor, QImage, QPixmap
 from PyQt6.QtWidgets import (
@@ -97,7 +98,7 @@ class Recorder(QMainWindow):
         self.instruction_editor = QTextEdit(self)
         right_layout.addWidget(self.instruction_editor)
         self.instruction_editor.setFixedWidth(self.right_layout_width)
-        self.instruction_editor.setFixedHeight(80)
+        self.instruction_editor.setFixedHeight(60)
 
         right_layout.addWidget(QLabel("Trajectory"))
         self.trajectory_display = QTextEdit(self)
@@ -111,8 +112,14 @@ class Recorder(QMainWindow):
         self.next_action_editor.setFixedWidth(self.right_layout_width)
 
         confirm_button = QPushButton("Confirm and execute action")
-        confirm_button.clicked.connect(self.add_action_to_trajectory)
+        confirm_button.clicked.connect(self.step_action)
         right_layout.addWidget(confirm_button)
+
+        self.output_display = QTextEdit(self)
+        self.output_display.setFixedWidth(self.right_layout_width)
+        self.output_display.setFixedHeight(40)
+        right_layout.addWidget(QLabel("Runtime Response"))
+        right_layout.addWidget(self.output_display)
 
         clear_button = QPushButton("Save")
         right_layout.addWidget(clear_button)
@@ -167,9 +174,19 @@ class Recorder(QMainWindow):
 
         self.statusBar().showMessage(" ".join(all_status_text))
 
-    def add_action_to_trajectory(self):
-        """Adds the next action to the trajectory."""
+    def step_action(self):
+        """Steps the next action and adds it to the trajectory."""
         next_action_text = self.next_action_editor.toPlainText()
+        body = {"code": next_action_text}
+        # Send the request to the runtime
+        try:
+            response_raw = requests.post("http://localhost:8000/execute", json=body)
+            # Process and display the response
+            response_processed = eval(response_raw.text.encode("utf-8"))["output"]
+            self.output_display.setText("".join(response_processed))
+        except Exception as e:
+            self.output_display.setText(f"Error: {str(e)}")
+
         if next_action_text.strip():
             current_trajectory_text = self.trajectory_display.toPlainText()
             new_trajectory_text = (

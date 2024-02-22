@@ -30,7 +30,6 @@ decorator==5.1.1
 distlib==0.3.8
 distro==1.9.0
 docutils==0.19
-evdev==1.6.1
 executing==2.0.1
 fastapi==0.109.2
 filelock==3.13.1
