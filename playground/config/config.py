@@ -21,7 +21,8 @@ class Config(metaclass=Singleton):
     use_video = False
 
     # VNC config
-    host: str = "0.0.0.0"
+    host: str = "localhost"
+    runtime_host: str = "0.0.0.0"
     port: int = 5900
     password: str = "123456"
     jupyter_port: int = 8000

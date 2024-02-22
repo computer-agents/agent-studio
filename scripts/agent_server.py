@@ -48,6 +48,6 @@ async def execute_code(request: CodeExecutionRequest) -> JSONResponse:
 if __name__ == "__main__":
     uvicorn.run(
         app,
-        host=config.host,
+        host=config.runtime_host,
         port=config.jupyter_port,
     )
