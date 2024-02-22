@@ -1,0 +1,5 @@
+FROM dorowu/ubuntu-desktop-lxde-vnc:latest
+
+COPY scripts/docker_startup.sh /docker_startup.sh
+RUN chmod +x /docker_startup.sh
+ENTRYPOINT ["/docker_startup.sh"]

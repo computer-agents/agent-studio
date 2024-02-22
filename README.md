@@ -34,6 +34,23 @@ The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtai
 
 ## Get Started
 
+### Record Dataset
+
+#### Run Simulator with Docker
+
+```bash
+docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t playground:latest
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm playground:latest
+```
+
+### Run Recorder Client
+
+```bash
+python run.py --mode record
+```
+
+---
+
 ### Run on local machine
 
 ```bash

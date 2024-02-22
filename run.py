@@ -1,8 +1,11 @@
 import argparse
+import asyncio
+import functools
 import logging
 import sys
 
-from PyQt6.QtWidgets import QApplication
+import qasync
+from qasync import QApplication
 
 from playground.config import Config
 from playground.llm import setup_model
@@ -109,23 +112,33 @@ def eval(args) -> None:
     logger.info(f"Average score: {sum(scores.values()) / max(len(scores), 1)}")
 
 
-def record(args) -> None:
+async def record(args) -> None:
+    def close_future(future, loop):
+        loop.call_later(10, future.cancel)
+        future.cancel()
+
+    loop = asyncio.get_event_loop()
+    future: asyncio.Future = asyncio.Future()
+
     app = QApplication(sys.argv)
+    if hasattr(app, "aboutToQuit"):
+        getattr(app, "aboutToQuit").connect(
+            functools.partial(close_future, future, loop)
+        )
 
     match args.env:
         case "desktop":
-            from playground.env.desktop_env.recorder.human_recorder import HumanRecorder
+            from playground.env.desktop_env.recorder import Recorder
 
-            recorder = HumanRecorder(
+            recorder = Recorder(
                 record_path="playground_data/trajectories/human",
-                video_fps=config.video_fps,
-                mouse_fps=config.mouse_fps,
             )
         case _:
             raise ValueError(f"Invalid env: {args.env}.")
 
     recorder.show()
-    sys.exit(app.exec())
+
+    await future
 
 
 def main():
@@ -137,7 +150,10 @@ def main():
         case "eval":
             eval(args)
         case "record":
-            record(args)
+            try:
+                qasync.run(record(args))
+            except asyncio.exceptions.CancelledError:
+                sys.exit(0)
         case _:
             raise ValueError(f"Invalid mode {args.mode}")
 

@@ -21,6 +21,10 @@ class Config(metaclass=Singleton):
     use_video = False
 
     # VNC config
+    host: str = "localhost"
+    port: int = 5900
+    password: str = "123456"
+    jupyter_port: int = 8000
 
     # Recorder config
     record_path = "playground_data/trajectories"
