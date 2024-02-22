@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Run agent_server asynchronously to avoid blocking the startup process
-python3.11 /root/playground/scripts/agent_server.py &
-
 if [ -n "$VNC_PASSWORD" ]; then
     echo -n "$VNC_PASSWORD" > /.password1
     x11vnc -storepasswd "$(cat /.password1)" /.password2
@@ -74,5 +71,16 @@ fi
 # clearup
 PASSWORD=
 HTTP_PASSWORD=
+
+# Add agent_server to supervisord
+cat <<EOF > /etc/supervisor/conf.d/agent_server.conf
+[program:agent_server]
+command=python3.11 /root/playground/scripts/agent_server.py
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/agent_server.err.log
+stdout_logfile=/var/log/agent_server.out.log
+environment=DISPLAY=":1.0"
+EOF
 
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf
