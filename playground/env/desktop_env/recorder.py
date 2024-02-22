@@ -182,7 +182,7 @@ class Recorder(QMainWindow):
         try:
             response_raw = requests.post("http://localhost:8000/execute", json=body)
             # Process and display the output
-            runtime_output = response_raw.text.encode("utf-8")
+            runtime_output = response_raw.text
             if "output" in runtime_output:
                 output_processed = eval(runtime_output)["output"]
                 self.output_display.setText("".join(output_processed))
