@@ -181,9 +181,14 @@ class Recorder(QMainWindow):
         # Send the request to the runtime
         try:
             response_raw = requests.post("http://localhost:8000/execute", json=body)
-            # Process and display the response
-            response_processed = eval(response_raw.text.encode("utf-8"))["output"]
-            self.output_display.setText("".join(response_processed))
+            # Process and display the output
+            runtime_output = response_raw.text.encode("utf-8")
+            if "output" in runtime_output:
+                output_processed = eval(runtime_output)["output"]
+                self.output_display.setText("".join(output_processed))
+            else:
+                output_processed = eval(runtime_output)["error"]
+                self.output_display.setText("Error: " + "".join(output_processed))
         except Exception as e:
             self.output_display.setText(f"Error: {str(e)}")
 
