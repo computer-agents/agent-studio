@@ -1,8 +1,8 @@
 import os
 import re
-from typing import Any
 import psutil
 import logging
+import time
 
 from playground.env.desktop_env.eval.evaluator import (
     Evaluator,
@@ -53,17 +53,20 @@ class ProcessEvaluator(Evaluator):
             raise FeedbackException(f"Process with name {name} not found.")
 
     @reset_handler("create_process")
-    def create_process(self, cmd: list[str]) -> None:
+    def create_process(self, cmd: list[str], wait_for: str) -> None:
         """
         Create a process with the given command.
 
         Args:
             cmd (list[str]): Command to create the process.
+            wait_for (str): Name of the process. Ensure that the process is running.
 
         Raises:
             FeedbackException: If the process creation fails.
         """
-        psutil.Popen(cmd)
+        psutil.Popen(cmd, shell=True)
+        while len(find_procs_by_name(wait_for)) == 0:
+            time.sleep(0.5)
 
     @reset_handler("pkill_by_name")
     def pkill_by_name(self, name: str) -> None:

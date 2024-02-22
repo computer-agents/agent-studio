@@ -19,6 +19,10 @@ TASK_CONFIGS = [
                     {
                         "pkill_by_name": {
                             "name": "(?<!\\w)(?i:code)(?!\\w)"
+                        },
+                        "create_process": {
+                            "cmd": ["code"],
+                            "wait_for": "(?<!\\w)(?i:code)(?!\\w)"
                         }
                     }
                 ]
