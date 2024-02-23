@@ -6,6 +6,9 @@ from os import urandom
 from struct import unpack
 from typing import Callable
 from zlib import decompressobj
+from PyQt6.QtGui import QCursor, QPixmap
+from PyQt6.QtWidgets import QLabel
+from playground.env.desktop_env.base import Position
 
 import numpy as np
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -617,3 +620,26 @@ class VNCClient:
 
         self.writer.close()
         await self.writer.wait_closed()
+
+
+class VNCFrame(QLabel):
+    """The VNC frame for rendering the VNC screen."""
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def get_cursor_pos(self):
+        cursor_pos = self.mapFromGlobal(QCursor.pos())
+        if (
+            cursor_pos.x() < 0
+            or cursor_pos.y() < 0
+            or cursor_pos.x() > self.width()
+            or cursor_pos.y() > self.height()
+        ):
+            return None
+        else:
+            cursor_pos = Position(cursor_pos.x(), cursor_pos.y())
+            return cursor_pos
+
+    def update(self, qimage):
+        self.setPixmap(QPixmap.fromImage(qimage))

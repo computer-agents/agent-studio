@@ -6,7 +6,7 @@ from datetime import datetime
 import numpy as np
 import requests
 from PyQt6.QtCore import QTimer
-from PyQt6.QtGui import QCursor, QImage, QPixmap
+from PyQt6.QtGui import QImage
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -19,37 +19,13 @@ from PyQt6.QtWidgets import (
 from qasync import asyncClose, asyncSlot
 
 from playground.config.config import Config
-from playground.env.desktop_env.base import Position
-from playground.env.desktop_env.vnc_client import VNCClient
+from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
 
 config = Config()
 logger = logging.getLogger(__name__)
 
 
-class VNCFrame(QLabel):
-    """The VNC frame for rendering the VNC screen."""
-
-    def __init__(self, parent):
-        super().__init__(parent)
-
-    def get_cursor_pos(self):
-        cursor_pos = self.mapFromGlobal(QCursor.pos())
-        if (
-            cursor_pos.x() < 0
-            or cursor_pos.y() < 0
-            or cursor_pos.x() > self.width()
-            or cursor_pos.y() > self.height()
-        ):
-            return None
-        else:
-            cursor_pos = Position(cursor_pos.x(), cursor_pos.y())
-            return cursor_pos
-
-    def update(self, qimage):
-        self.setPixmap(QPixmap.fromImage(qimage))
-
-
-class Recorder(QMainWindow):
+class HumanInterface(QMainWindow):
     right_layout_width = 300
 
     def __init__(
