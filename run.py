@@ -87,16 +87,21 @@ async def eval(args) -> None:
             functools.partial(close_future, future, loop)
         )
 
+    # agent = setup_agent(args)
+    task_configs, evaluator_router = setup_task_and_evaluator(args)
+
     match args.env:
         case "desktop":
             from playground.env.desktop_env.agent_interface import AgentInterface
 
             interface = AgentInterface(
+                task_config=task_configs,
                 record_path="playground_data/trajectories/human",
             )
         case _:
             raise ValueError(f"Invalid env: {args.env}.")
 
+    # TODO: Add agent to the interface
     # agent = setup_agent(args)
     # task_configs, evaluator_router = setup_task_and_evaluator(args)
 

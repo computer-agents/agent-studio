@@ -49,6 +49,12 @@ docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=1
 python run.py --mode record
 ```
 
+### Run Agent Client
+
+```bash
+python run.py --mode eval
+```
+
 ---
 
 ### Run on local machine

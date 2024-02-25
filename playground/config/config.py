@@ -21,7 +21,7 @@ class Config(metaclass=Singleton):
     use_video = False
 
     # VNC config
-    host: str = "localhost"
+    host: str = "127.0.0.1"
     runtime_host: str = "0.0.0.0"
     port: int = 5900
     password: str = "123456"
