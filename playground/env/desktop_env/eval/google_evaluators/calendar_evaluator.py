@@ -43,7 +43,27 @@ def event_match(
                 and time_match(value["dateTime"], pred_value["dateTime"])
             ):
                 return False
+        elif key == "recurrence" or key == "colorId":
+            if value != pred_value:
+                return False
+        elif key == "attendees":
+            emails1 = {attendee["email"] for attendee in value}
+            emails2 = {attendee["email"] for attendee in pred_value} if pred_value else set()
+            if emails1 != emails2:
+                return False
+        elif key == "reminders":
+            if not reminders_match(value, pred_value):
+                return False
     return True
+
+
+def reminders_match(reminder1: dict, reminder2: dict) -> bool:
+    """Compares two reminder structures for equality."""
+    if reminder1.get("useDefault") != reminder2.get("useDefault"):
+        return False
+    overrides1 = {f"{r['method']}-{r['minutes']}": r for r in reminder1.get("overrides", [])}
+    overrides2 = {f"{r['method']}-{r['minutes']}": r for r in reminder2.get("overrides", [])}
+    return overrides1 == overrides2
 
 
 class GoogleCalendarService(GoogleService):

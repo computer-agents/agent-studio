@@ -14,6 +14,7 @@ We welcome and value contributions from everyone, no matter the scale. Please ch
 
 ## Setup environment
 
+Install requirements:
 ```bash
 apt-get install gnome-screenshot xclip xdotool # If use Ubuntu 22.04
 conda create --name playground python=3.11 -y
@@ -22,7 +23,16 @@ pip install -r requirements_{YOUR_SYSTEM_TYPE}.txt
 pip install -e .
 ```
 
-(optional, for reproducibility) [Install VirtualBox](https://ubuntu.com/tutorials/how-to-run-ubuntu-desktop-on-a-virtual-machine-using-virtualbox#1-overview) (we use VirtualBox 7 and Ubuntu 22.04 image)
+Download dataset (you may need to [configure huggingface and git lfs](https://huggingface.co/docs/hub/en/repositories-getting-started#cloning-repositories)):
+
+```bash
+git submodule update --init --remote --recursive
+```
+
+Build Docker image:
+```bash
+docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t playground:latest
+```
 
 ### Google Workspace
 
@@ -39,7 +49,6 @@ The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtai
 #### Run Simulator with Docker
 
 ```bash
-docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t playground:latest
 docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm playground:latest
 ```
 
@@ -47,12 +56,6 @@ docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=1
 
 ```bash
 python run.py --mode record
-```
-
-### Run Agent Client
-
-```bash
-python run.py --mode eval
 ```
 
 ---

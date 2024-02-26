@@ -51,6 +51,13 @@ TASK_CONFIGS = [
                                 "description": "Discuss project status",
                                 "start": {"dateTime": "2024-01-05T10:00:00Z"},
                                 "end": {"dateTime": "2024-01-05T11:00:00Z"},
+                                "colorId": "11",
+                                "reminders": {
+                                    "useDefault": False,
+                                    "overrides": [
+                                        {"method": "email", "minutes": 60}
+                                    ]
+                                }
                             },
                             "exists": True,
                         }
@@ -71,7 +78,13 @@ TASK_CONFIGS = [
                                     "dateTime": "2024-01-05T11:00:00Z",
                                     "timezone": "UTC",
                                 },
-                                "attendees": [],
+                                "colorId": "11",
+                                "reminders": {
+                                    "useDefault": False,
+                                    "overrides": [
+                                        {"method": "email", "minutes": 60}
+                                    ]
+                                }
                             }
                         }
                     },
@@ -92,6 +105,13 @@ TASK_CONFIGS = [
                                 "description": "Discuss project status",
                                 "start": {"dateTime": "2024-01-05T10:00:00Z"},
                                 "end": {"dateTime": "2024-01-05T11:00:00Z"},
+                                "colorId": "11",
+                                "reminders": {
+                                    "useDefault": False,
+                                    "overrides": [
+                                        {"method": "email", "minutes": 60}
+                                    ]
+                                }
                             },
                             "exists": False,
                         }
@@ -106,6 +126,13 @@ TASK_CONFIGS = [
                                 "description": "Discuss project status",
                                 "start": {"dateTime": "2024-01-05T10:00:00Z"},
                                 "end": {"dateTime": "2024-01-05T11:00:00Z"},
+                                "colorId": "11",
+                                "reminders": {
+                                    "useDefault": False,
+                                    "overrides": [
+                                        {"method": "email", "minutes": 60}
+                                    ]
+                                }
                             }
                         }
                     },
