@@ -11,21 +11,21 @@ class Config(metaclass=Singleton):
     seed: int = 42
     python_timeout: int = 10
     need_human_confirmation: bool = True
-    on_ssh = False
+    on_ssh = True
 
     task_config_paths: dict = {
-        "desktop": "playground_data/tasks/desktop.jsonl",
+        "desktop": "playground_data/tasks/windows_easy.jsonl",
     }
 
     stop_code: str = "\nexit()"
     use_video = False
 
-    # VNC config
-    host: str = "127.0.0.1"
-    runtime_host: str = "0.0.0.0"
-    port: int = 5900
-    password: str = "123456"
-    jupyter_port: int = 8000
+    # Env server config
+    env_server_addr: str = "127.0.0.1"
+    env_server_host: str = "0.0.0.0"
+    vnc_port: int = 5900
+    env_server_port: int = 8000
+    vnc_password: str = "123456"
 
     # Recorder config
     record_path = "playground_data/trajectories"

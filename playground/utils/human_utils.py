@@ -1,8 +1,10 @@
 from typing import Callable
 
 from playground.config.config import Config
+from playground.utils.task_status import TaskStatus, StateEnum, StateInfo
 
 config = Config()
+task_status = TaskStatus()
 
 
 def confirm_action(prompt: str) -> Callable:
@@ -13,7 +15,12 @@ def confirm_action(prompt: str) -> Callable:
 
         def wrapper(*args, **kwargs):
             if config.need_human_confirmation:
-                user_input = input(f"{prompt}\nConfirm action (y/n): ").strip().lower()
+                task_status.set_task_state(StateInfo(
+                    StateEnum.WAIT_FOR_INPUT,
+                    f"{prompt}\nDo you want to continue? (y/n): "
+                ))
+                current_status = task_status.wait_for_state(StateEnum.IN_PROGRESS)
+                user_input = current_status.info.strip().lower()
                 if user_input == "y":
                     return True, func(*args, **kwargs)
                 else:

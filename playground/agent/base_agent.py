@@ -3,10 +3,10 @@ from typing import Any
 
 from numpy.typing import NDArray
 
-from playground.agent.runtime import PythonRuntime
+import requests
+
 from playground.config import Config
 from playground.llm.base_model import BaseModel
-from playground.utils.human_utils import confirm_action
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -18,7 +18,6 @@ class Agent:
     def __init__(self, env: str, model: BaseModel, record_path: str) -> None:
         self.env = env
         self.model = model
-        self.runtime: PythonRuntime | None = None
         match env:
             case "desktop":
                 from playground.env.desktop_env.recorder.agent_recorder import (
@@ -41,9 +40,6 @@ class Agent:
         self.instruction = instruction
         self.trajectory = []
         self.record_screen = record_screen
-        if self.runtime is not None:
-            self.runtime.close()
-        self.runtime = PythonRuntime()
 
         if self.record_screen:
             self.recorder.reset(
@@ -54,11 +50,18 @@ class Agent:
     def step(self, code: str) -> dict:
         """Executes and records the given code in the environment."""
         logger.debug(f"Executing code:\n{code}\n")
-        confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
+        user_input = input(
+            f"Executing code:\n{code}\nDo you want to continue? (y/n): "
+        ).strip().lower()
+        confirmed = user_input == "y"
         result = {}
         if confirmed:
-            assert self.runtime is not None, "The agent is not reset."
-            result = self.runtime.exec(code)
+            response = requests.post(
+                f"http://{config.env_server_addr}:{config.env_server_port}/execute",
+                json={"message": code}
+            )
+            print(response.json())
+            result = response.json()
         else:
             result["content"] = "Cancelled by user."
         logger.info(f"Output: {result}\n")
@@ -81,7 +84,3 @@ class Agent:
             obs = None
 
         return obs
-
-    def close(self) -> None:
-        if self.runtime is not None:
-            self.runtime.close()
