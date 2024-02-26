@@ -580,8 +580,8 @@ class VNCClient:
             type_id = await read_int(self.reader, 1)
             update_type = UpdateType(type_id)
         except ValueError:
-            print(f"read update type error: type_id: {type_id}")
-            # await skip_to_eof(self.reader)
+            print(f"No such type_id: type_id: {type_id}")
+            await skip_to_eof(self.reader)
             return None
 
         if update_type is UpdateType.CLIPBOARD:

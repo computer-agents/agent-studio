@@ -139,7 +139,7 @@ async def eval(args) -> None:
     # agent.close()
     # logger.info(f"Average score: {sum(scores.values()) / max(len(scores), 1)}")
 
-    interface.show()
+    interface.showMaximized()
 
     await future
 

@@ -62,6 +62,8 @@ python run.py --mode record
 
 ### Run on local machine
 
+If you enabled high DPI scaling, and the VNC window is beyond the screen, you may need to set the `QT_AUTO_SCREEN_SCALE_FACTOR` environment variable to `0` to disable high DPI scaling.
+
 ```bash
 python run.py --mode eval
 ```

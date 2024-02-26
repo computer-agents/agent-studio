@@ -161,9 +161,9 @@ class AgentInterface(QMainWindow):
             (self.video_height, self.video_width, 4), dtype="uint8"
         )
 
-        self.setGeometry(0, 0, self.video_width, self.video_height)
         self.vnc_frame.setFixedSize(self.video_width, self.video_height)
         self.vnc_frame.setMouseTracking(True)
+        self.showMaximized()
 
         self.refresh_timer.start()
         self.statusBar().showMessage("Connected")
