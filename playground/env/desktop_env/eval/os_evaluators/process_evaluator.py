@@ -1,8 +1,9 @@
+import logging
 import os
 import re
-import psutil
-import logging
 import time
+
+import psutil
 
 from playground.env.desktop_env.eval.evaluator import (
     Evaluator,
@@ -23,15 +24,12 @@ def find_procs_by_name(name: str) -> list[psutil.Process]:
         try:
             name_ = p.name()
             exe = p.exe()
-        except (
-            psutil.AccessDenied,
-            psutil.ZombieProcess,
-            psutil.NoSuchProcess
-        ):
+        except (psutil.AccessDenied, psutil.ZombieProcess, psutil.NoSuchProcess):
             continue
         if template.match(name_) or template.match(os.path.basename(exe)):
             ls.append(p)
     return ls
+
 
 class ProcessEvaluator(Evaluator):
     name: str = "process"
@@ -80,6 +78,7 @@ class ProcessEvaluator(Evaluator):
         Raises:
             FeedbackException: If the process is not found.
         """
+
         @confirm_action
         def _kill_process(proc: psutil.Process) -> None:
             try:
