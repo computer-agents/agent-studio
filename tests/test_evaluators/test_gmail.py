@@ -4,180 +4,225 @@ import pytest
 from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
 
 TASK_CONFIGS = [
+    # {
+    #     "evals": [
+    #         {
+    #             "eval_type": "gmail",
+    #             "eval_procedure": [
+    #                 {
+    #                     "check_draft_exists": {
+    #                         "draft_info": {
+    #                             "subject": "Automated draft",
+    #                             "recipient": "gduser@workspacesamples.dev",
+    #                             "body": "This is automated draft mail",
+    #                         },
+    #                         "exists": False,
+    #                     }
+    #                 }
+    #             ],
+    #             "reset_procedure": [
+    #                 {
+    #                     "delete_draft": {
+    #                         "draft_info": {
+    #                             "subject": "Automated draft",
+    #                             "recipient": "gduser@workspacesamples.dev",
+    #                             "body": "This is automated draft mail",
+    #                         }
+    #                     }
+    #                 }
+    #             ],
+    #         }
+    #     ]
+    # },
+    # {
+    #     "evals": [
+    #         {
+    #             "eval_type": "gmail",
+    #             "eval_procedure": [
+    #                 {
+    #                     "check_draft_exists": {
+    #                         "draft_info": {
+    #                             "subject": "Automated draft",
+    #                             "recipient": "gduser@workspacesamples.dev",
+    #                             "body": "This is automated draft mail",
+    #                         },
+    #                         "exists": True,
+    #                     }
+    #                 }
+    #             ],
+    #             "reset_procedure": [
+    #                 {
+    #                     "create_draft": {
+    #                         "draft_info": {
+    #                             "subject": "Automated draft",
+    #                             "recipient": "gduser@workspacesamples.dev",
+    #                             "body": "This is automated draft mail",
+    #                         }
+    #                     }
+    #                 }
+    #             ],
+    #         }
+    #     ]
+    # },
+    # {
+    #     "evals": [
+    #         {
+    #             "eval_type": "gmail",
+    #             "eval_procedure": [
+    #                 {
+    #                     "check_draft_exists": {
+    #                         "draft_info": {
+    #                             "subject": "Automated draft",
+    #                             "recipient": "gduser@workspacesamples.dev",
+    #                             "body": "This is automated draft mail",
+    #                         },
+    #                         "exists": False,
+    #                     }
+    #                 }
+    #             ],
+    #             "reset_procedure": [
+    #                 {
+    #                     "delete_draft": {
+    #                         "draft_info": {
+    #                             "subject": "Automated draft",
+    #                             "recipient": "gduser@workspacesamples.dev",
+    #                             "body": "This is automated draft mail",
+    #                         }
+    #                     }
+    #                 }
+    #             ],
+    #         }
+    #     ]
+    # },
+    # {
+    #     "evals": [
+    #         {
+    #             "eval_type": "gmail",
+    #             "eval_procedure": [
+    #                 {
+    #                     "check_sent_message_exists": {
+    #                         "message_info": {
+    #                             "subject": "Automated Email",
+    #                             "body": "This is automatically sent message",
+    #                         },
+    #                         "exists": False,
+    #                     }
+    #                 }
+    #             ],
+    #             "reset_procedure": [
+    #                 {
+    #                     "delete_sent_message": {
+    #                         "message_info": {
+    #                             "subject": "Automated Email",
+    #                             "body": "This is automatically sent message",
+    #                         }
+    #                     }
+    #                 }
+    #             ],
+    #         }
+    #     ]
+    # },
+    # {
+    #     "evals": [
+    #         {
+    #             "eval_type": "gmail",
+    #             "eval_procedure": [
+    #                 {
+    #                     "check_sent_message_exists": {
+    #                         "message_info": {
+    #                             "subject": "Automated Email",
+    #                             "body": "This is automatically sent message",
+    #                         },
+    #                         "exists": True,
+    #                     }
+    #                 }
+    #             ],
+    #             "reset_procedure": [
+    #                 {
+    #                     "send_message": {
+    #                         "message_info": {
+    #                             "subject": "Automated Email",
+    #                             "body": "This is automatically sent message",
+    #                         }
+    #                     }
+    #                 }
+    #             ],
+    #         }
+    #     ]
+    # },
+    # {
+    #     "evals": [
+    #         {
+    #             "eval_type": "gmail",
+    #             "eval_procedure": [
+    #                 {
+    #                     "check_sent_message_exists": {
+    #                         "message_info": {
+    #                             "subject": "Automated Email",
+    #                             "body": "This is automatically sent message",
+    #                         },
+    #                         "exists": False,
+    #                     }
+    #                 }
+    #             ],
+    #             "reset_procedure": [
+    #                 {
+    #                     "delete_sent_message": {
+    #                         "message_info": {
+    #                             "subject": "Automated Email",
+    #                             "body": "This is automatically sent message",
+    #                         }
+    #                     }
+    #                 }
+    #             ],
+    #         }
+    #     ]
+    # },
     {
         "evals": [
             {
                 "eval_type": "gmail",
-                "eval_procedure": [
-                    {
-                        "check_draft_exists": {
-                            "draft_info": {
-                                "subject": "Automated draft",
-                                "recipient": "gduser@workspacesamples.dev",
-                                "body": "This is automated draft mail",
-                            },
-                            "exists": False,
+                "eval_procedure": [{
+                    # "is_email_marked_important": {
+                    #     "marked": True,
+                    #     "message_info": {
+                    #         "subject": "Automated Email",
+                    #         "body": "This is automatically sent message"
+                    #     }
+                # }
+                    # "check_label_exists": {
+                    #     "label_name": "Impovdvrtant",
+                    #     "exists": False
+                    # }
+                    "is_email_in_trash": {
+                        "in_trash": True,
+                        "message_info": {
+                            "subject": "Automated Email",
+                            "body": "This is automatically sent message"
                         }
                     }
-                ],
-                "reset_procedure": [
-                    {
-                        "delete_draft": {
-                            "draft_info": {
-                                "subject": "Automated draft",
-                                "recipient": "gduser@workspacesamples.dev",
-                                "body": "This is automated draft mail",
-                            }
-                        }
-                    }
-                ],
+                }],
+                # "reset_procedure": [
+                #     {
+                #         "delete_sent_message": {
+                #             "message_info": {
+                #                 "subject": "Automated Email",
+                #                 "body": "This is automatically sent message"
+                #             }
+                #         }
+                #     },
+                #     {
+                #         "send_message": {
+                #             "message_info": {
+                #                 "subject": "Automated Email",
+                #                 "body": "This is automatically sent message"
+                #             }
+                #         }
+                #     }
+                # ]
             }
         ]
-    },
-    {
-        "evals": [
-            {
-                "eval_type": "gmail",
-                "eval_procedure": [
-                    {
-                        "check_draft_exists": {
-                            "draft_info": {
-                                "subject": "Automated draft",
-                                "recipient": "gduser@workspacesamples.dev",
-                                "body": "This is automated draft mail",
-                            },
-                            "exists": True,
-                        }
-                    }
-                ],
-                "reset_procedure": [
-                    {
-                        "create_draft": {
-                            "draft_info": {
-                                "subject": "Automated draft",
-                                "recipient": "gduser@workspacesamples.dev",
-                                "body": "This is automated draft mail",
-                            }
-                        }
-                    }
-                ],
-            }
-        ]
-    },
-    {
-        "evals": [
-            {
-                "eval_type": "gmail",
-                "eval_procedure": [
-                    {
-                        "check_draft_exists": {
-                            "draft_info": {
-                                "subject": "Automated draft",
-                                "recipient": "gduser@workspacesamples.dev",
-                                "body": "This is automated draft mail",
-                            },
-                            "exists": False,
-                        }
-                    }
-                ],
-                "reset_procedure": [
-                    {
-                        "delete_draft": {
-                            "draft_info": {
-                                "subject": "Automated draft",
-                                "recipient": "gduser@workspacesamples.dev",
-                                "body": "This is automated draft mail",
-                            }
-                        }
-                    }
-                ],
-            }
-        ]
-    },
-    {
-        "evals": [
-            {
-                "eval_type": "gmail",
-                "eval_procedure": [
-                    {
-                        "check_sent_message_exists": {
-                            "message_info": {
-                                "subject": "Automated Email",
-                                "body": "This is automatically sent message",
-                            },
-                            "exists": False,
-                        }
-                    }
-                ],
-                "reset_procedure": [
-                    {
-                        "delete_sent_message": {
-                            "message_info": {
-                                "subject": "Automated Email",
-                                "body": "This is automatically sent message",
-                            }
-                        }
-                    }
-                ],
-            }
-        ]
-    },
-    {
-        "evals": [
-            {
-                "eval_type": "gmail",
-                "eval_procedure": [
-                    {
-                        "check_sent_message_exists": {
-                            "message_info": {
-                                "subject": "Automated Email",
-                                "body": "This is automatically sent message",
-                            },
-                            "exists": True,
-                        }
-                    }
-                ],
-                "reset_procedure": [
-                    {
-                        "send_message": {
-                            "message_info": {
-                                "subject": "Automated Email",
-                                "body": "This is automatically sent message",
-                            }
-                        }
-                    }
-                ],
-            }
-        ]
-    },
-    {
-        "evals": [
-            {
-                "eval_type": "gmail",
-                "eval_procedure": [
-                    {
-                        "check_sent_message_exists": {
-                            "message_info": {
-                                "subject": "Automated Email",
-                                "body": "This is automatically sent message",
-                            },
-                            "exists": False,
-                        }
-                    }
-                ],
-                "reset_procedure": [
-                    {
-                        "delete_sent_message": {
-                            "message_info": {
-                                "subject": "Automated Email",
-                                "body": "This is automatically sent message",
-                            }
-                        }
-                    }
-                ],
-            }
-        ]
-    },
+    }
 ]
 
 

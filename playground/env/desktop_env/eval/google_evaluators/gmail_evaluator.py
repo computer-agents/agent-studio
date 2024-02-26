@@ -244,56 +244,25 @@ class GmailService(GoogleService):
         self.service.users().drafts().delete(userId="me", id=draft_id).execute()
         logger.debug("Draft deleted successfully.")
 
-    def delete_draft(self, draft_info: dict[str, Any]) -> None:
-        """Deletes the draft that matches the given criteria."""
-        drafts = self.search_messages(message_info=draft_info, message_type="drafts")
-        for draft in drafts:
-            logger.debug(f"Deleting draft with subject {draft['subject']}")
-            confirm_action(f"Deleting draft with subject {draft['subject']}")(
-                self.delete_draft_by_id
-            )(draft["id"])
-
     def delete_sent_message_by_id(self, message_id: str) -> None:
         """Deletes the sent message with the given ID."""
         self.service.users().messages().delete(userId="me", id=message_id).execute()
         logger.debug(f"Sent message with id {message_id} deleted successfully.")
 
-    def delete_sent_message(self, message_info: dict[str, Any]) -> None:
-        """Deletes the sent message with the given criteria."""
-        sent_messages = self.search_messages(
-            message_info=message_info, message_type="messages"
-        )
-        for sent_message in sent_messages:
-            logger.debug(
-                f"Deleting sent message with subject {sent_message['subject']}"
-            )
-            confirm_action(
-                f"Deleting sent message with subject {sent_message['subject']}"
-            )(self.delete_sent_message_by_id)(sent_message["id"])
+    def is_email_marked_important(self, message_id: str) -> bool:
+        """Checks if the email with the given ID is marked as important."""
+        message = self.service.users().messages().get(userId='me', id=message_id, format='metadata', metadataHeaders=['LabelIds']).execute()
+        return 'IMPORTANT' in message.get('labelIds', [])
 
-    def check_draft_exists(self, draft_info: dict[str, Any], exists: bool) -> None:
-        """Checks if the given draft exists."""
-        drafts = self.search_messages(message_info=draft_info, message_type="drafts")
-        draft_exists = len(drafts) > 0
-        if draft_exists != exists:
-            raise FeedbackException(
-                f"The error occured when checking if the existence of "
-                f"the draft {draft_info}. It should be {exists}."
-            )
+    def check_label_exists(self, label_name: str) -> bool:
+        """Checks if a label exists by name."""
+        labels = self.service.users().labels().list(userId='me').execute().get('labels', [])
+        return any(label for label in labels if label['name'].lower() == label_name.lower())
 
-    def check_sent_message_exists(
-        self, message_info: dict[str, Any], exists: bool
-    ) -> None:
-        """Checks if the given sent message exists."""
-        sent_messages = self.search_messages(
-            message_info=message_info, message_type="messages"
-        )
-        sent_message_exists = len(sent_messages) > 0
-        if sent_message_exists != exists:
-            raise FeedbackException(
-                f"The error occured when checking if the existence of "
-                f"the sent message {message_info}. It should be {exists}."
-            )
+    def is_email_in_trash(self, message_id: str) -> bool:
+        """Checks if the email with the given ID exists in trash."""
+        message = self.service.users().messages().get(userId='me', id=message_id, format='metadata', metadataHeaders=['LabelIds']).execute()
+        return 'TRASH' in message.get('labelIds', [])
 
 
 class GmailEvaluator(Evaluator):
@@ -316,7 +285,14 @@ class GmailEvaluator(Evaluator):
         draft_info: dict[str, Any],
         exists: bool,
     ) -> None:
-        self.service.check_draft_exists(draft_info, exists)
+        """Checks if the given draft exists."""
+        drafts = self.service.search_messages(message_info=draft_info, message_type="drafts")
+        draft_exists = len(drafts) > 0
+        if draft_exists != exists:
+            raise FeedbackException(
+                f"The error occured when checking if the existence of "
+                f"the draft {draft_info}. It should be {exists}."
+            )
 
     @evaluation_handler("check_sent_message_exists")
     def check_sent_message_exists(
@@ -324,7 +300,64 @@ class GmailEvaluator(Evaluator):
         message_info: dict[str, Any],
         exists: bool,
     ) -> None:
-        self.service.check_sent_message_exists(message_info, exists)
+        """Checks if the given sent message exists."""
+        sent_messages = self.service.search_messages(
+            message_info=message_info, message_type="messages"
+        )
+        sent_message_exists = len(sent_messages) > 0
+        if sent_message_exists != exists:
+            raise FeedbackException(
+                f"The error occured when checking if the existence of "
+                f"the sent message {message_info}. It should be {exists}."
+            )
+
+    @evaluation_handler("is_email_marked_important")
+    def is_email_marked_important(
+        self,
+        message_info: dict[str, Any],
+        marked: bool,
+    ):
+        """Checks if the email with the given ID is marked as important."""
+        message_id = self.service.search_messages(
+            message_info=message_info, message_type="messages"
+        )[0]["id"]
+        is_important = self.service.is_email_marked_important(message_id)
+        if is_important != marked:
+            raise FeedbackException(
+                f"Email {message_id} is marked as important: {is_important}. "
+                f"It should be {marked}."
+            )
+    
+    @evaluation_handler("check_label_exists")
+    def check_label_exists(
+        self,
+        label_name: str,
+        exists: bool,
+    ):
+        """Checks if a label exists by name."""
+        label_exists = self.service.check_label_exists(label_name)
+        if label_exists != exists:
+            raise FeedbackException(
+                f"Label {label_name} exists: {label_exists}. "
+                f"It should be {exists}."
+            )
+    
+    @evaluation_handler("is_email_in_trash")
+    def is_email_in_trash(
+        self,
+        message_info: dict[str, Any],
+        in_trash: bool,
+    ):
+        """Checks if the email with the given ID exists in trash."""
+        message_id = self.service.search_messages(
+            message_info=message_info, message_type="messages"
+        )[0]["id"]
+        email_in_trash = self.service.is_email_in_trash(message_id)
+        if email_in_trash != in_trash:
+            raise FeedbackException(
+                f"Email {message_id} is in trash: {email_in_trash}. "
+                f"It should be {in_trash}."
+            )
 
     @reset_handler("create_draft")
     def create_draft(
@@ -338,14 +371,30 @@ class GmailEvaluator(Evaluator):
         self,
         draft_info: dict[str, Any],
     ) -> None:
-        self.service.delete_draft(draft_info)
+        """Deletes the draft that matches the given criteria."""
+        drafts = self.service.search_messages(message_info=draft_info, message_type="drafts")
+        for draft in drafts:
+            logger.debug(f"Deleting draft with subject {draft['subject']}")
+            confirm_action(f"Deleting draft with subject {draft['subject']}")(
+                self.service.delete_draft_by_id
+            )(draft["id"])
 
     @reset_handler("delete_sent_message")
     def delete_sent_message(
         self,
         message_info: dict[str, Any],
     ) -> None:
-        self.service.delete_sent_message(message_info)
+        """Deletes the sent message with the given criteria."""
+        sent_messages = self.service.search_messages(
+            message_info=message_info, message_type="messages"
+        )
+        for sent_message in sent_messages:
+            logger.debug(
+                f"Deleting sent message with subject {sent_message['subject']}"
+            )
+            confirm_action(
+                f"Deleting sent message with subject {sent_message['subject']}"
+            )(self.service.delete_sent_message_by_id)(sent_message["id"])
 
     @reset_handler("send_message")
     def send_message(
