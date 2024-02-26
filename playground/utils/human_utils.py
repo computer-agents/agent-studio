@@ -16,11 +16,11 @@ def confirm_action(prompt: str) -> Callable:
         def wrapper(*args, **kwargs):
             if config.need_human_confirmation:
                 task_status.set_task_state(StateInfo(
-                    StateEnum.WAIT_FOR_INPUT,
-                    f"{prompt}\nDo you want to continue? (y/n): "
+                    state=StateEnum.WAIT_FOR_INPUT,
+                    message=f"{prompt}\nDo you want to continue? (y/n): "
                 ))
                 current_status = task_status.wait_for_state(StateEnum.IN_PROGRESS)
-                user_input = current_status.info.strip().lower()
+                user_input = current_status.message.strip().lower()
                 if user_input == "y":
                     return True, func(*args, **kwargs)
                 else:

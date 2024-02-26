@@ -12,17 +12,17 @@ class HumanEvaluator(Evaluator):
 
     def __call__(self, **kwargs) -> tuple[float, str]:
         task_status.set_task_state(StateInfo(
-            StateEnum.WAIT_FOR_INPUT,
-            "Is the task successful? (y/n): ")
+            state=StateEnum.WAIT_FOR_INPUT,
+            message="Is the task successful? (y/n): ")
         )
         state = task_status.wait_not_state(StateEnum.WAIT_FOR_INPUT)
-        score = float(state.info == "y")
+        score = float(state.message == "y")
         task_status.set_task_state(StateInfo(
-            StateEnum.WAIT_FOR_INPUT,
-            "Type any feedback and press Enter (or press Enter to skip): ")
+            state=StateEnum.WAIT_FOR_INPUT,
+            message="Type any feedback and press Enter (or press Enter to skip): ")
         )
         state = task_status.wait_not_state(StateEnum.WAIT_FOR_INPUT)
-        feedback = state.info
+        feedback = state.message
         # score = float(input("Is the task successful? (y/n): ") == "y")
         # feedback = input("Type any feedback and press Enter (or press Enter to skip): ")
         return score, feedback

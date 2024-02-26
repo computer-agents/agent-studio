@@ -9,7 +9,9 @@ import requests
 from playground.config import Config
 from playground.utils.json_utils import read_jsonl
 from playground.llm import setup_model
-from pydantic import BaseModel
+from playground.utils.communication import \
+    PlaygroundResponse, PlaygroundResetRequest, \
+    PlaygroundStatusResponse, PlaygroundResultResponse
 
 from rich import traceback
 traceback.install(show_locals=True)
@@ -25,7 +27,6 @@ def create_parser():
     )
     parser.add_argument("--agent", type=str, default=config.agent)
     parser.add_argument("--provider", type=str, default=config.provider)
-    parser.add_argument("--mode", type=str, choices=["record", "eval"], default="eval")
     parser.add_argument("--start_idx", type=int, default=0)
     parser.add_argument("--end_idx", type=int, default=None)
 
@@ -69,22 +70,17 @@ def setup_task(args):
     return task_configs
 
 
-class PlaygroundRequest(BaseModel):
-    request_type: str
-    message: str
-
-
 def wait_finish():
     while True:
-        response = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/status")
-        print(response.json())
-        if response.json()["status"] == "finished":
+        response_raw = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/status")
+        response = PlaygroundStatusResponse(**response_raw.json())
+        if response.status == "finished":
             break
-        elif response.json()["status"] == "wait_for_input":
-            confirmation = input(f"{response.json()['message']}\n")
+        elif response.status == "wait_for_input":
+            confirmation = input(f"{response.content}\n")
             requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm", json={"message":confirmation})
         else:
-            assert response.json()["status"] in ["pending", "in_progress"]
+            assert response.status in ["pending", "in_progress"]
         time.sleep(1)
 
 def main():
@@ -101,11 +97,13 @@ def main():
     task_id = task_config["task_id"]
     instruction = task_config["instruction"]
     record_screen = task_config.get("visual", False)
-    r = requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/reset", json={"message":str(task_config)})
-    print(r.json())
+    response_raw = requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/reset", json=PlaygroundResetRequest(task_config=task_config))
+    response = PlaygroundResponse(**response_raw.json())
+    print(response)
     wait_finish()
-    response = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/result")
-    print(pickle.loads(base64.b64decode(response.json()["result"].encode("utf-8"))))
+    response_raw = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/result")
+    response = PlaygroundResultResponse(**response_raw.json())
+    assert response.result == "success" and response.status == "finished"
 
     agent.reset(
         task_id=task_id,
@@ -114,11 +112,14 @@ def main():
     )
     trajectory = agent.run()
     print(trajectory)
-    response = requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/eval", json={"task_config":task_config, "trajectory": base64.b64encode(pickle.dumps(obj=trajectory)).decode("utf-8")})
-    print(response.json())
+    response_raw = requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/eval", json={"task_config":task_config, "trajectory": base64.b64encode(pickle.dumps(obj=trajectory)).decode("utf-8")})
+    response = PlaygroundResponse(**response_raw.json())
+    print(response)
     wait_finish()
-    response = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/result")
-    print(pickle.loads(base64.b64decode(response.json()["result"].encode("utf-8"))))
+    response_raw = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/result")
+    response = PlaygroundResultResponse(**response_raw.json())
+    assert response.status == "finished" and isinstance(response.message, dict)
+    print(response.result, response.message["score"], response.message["feedback"])
     print("Done!")
 
 class TestReq():

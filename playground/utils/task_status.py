@@ -1,21 +1,21 @@
-from typing import Any
 import threading
 import time
-from enum import Enum, auto
+from enum import Enum
 
 from playground.utils.singleton import ThreadSafeSingleton
 
 class StateEnum(Enum):
-    PENDING = auto()
-    IN_PROGRESS = auto()
-    WAIT_FOR_INPUT = auto()
-    FINISHED = auto()
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    WAIT_FOR_INPUT = "wait_for_input"
+    FINISHED = "finished"
 
 
 class StateInfo:
-    def __init__(self, state: StateEnum, info: Any=None):
-        self.state = state
-        self.info = info
+    def __init__(self, state: StateEnum, message: str | dict="", result: str=""):
+        self.state: StateEnum = state
+        self.message = message
+        self.result = result
 
 
 class TaskStatus(metaclass=ThreadSafeSingleton):

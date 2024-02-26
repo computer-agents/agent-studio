@@ -17,6 +17,7 @@ from PIL import Image
 
 from playground.config.config import Config
 from playground.llm.base_model import BaseModel
+from playground.utils.communication import bytes2str, str2bytes
 
 # Run this to pass mypy checker
 PIL.PngImagePlugin
@@ -103,17 +104,11 @@ class GeminiProvider(BaseModel):
         def _generate_response_with_retry() -> tuple[str, dict[str, int]]:
             if self.model_server:
                 body = {
-                    "messages": base64.b64encode(pickle.dumps(messages)).decode(
-                        "utf-8"
-                    ),
-                    "config": base64.b64encode(pickle.dumps(generation_config)).decode(
-                        "utf-8"
-                    ),
+                    "messages": bytes2str(messages),
+                    "config": bytes2str(generation_config),
                 }
                 response_raw = requests.post(self.model_server, json=body)
-                response: genai.types.GenerateContentResponse = pickle.loads(
-                    base64.b64decode(response_raw.text.encode("utf-8"))
-                )
+                response: genai.types.GenerateContentResponse = str2bytes(response_raw.text)
             else:
                 response = self.model.generate_content(
                     contents=messages, generation_config=generation_config
