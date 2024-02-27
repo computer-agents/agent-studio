@@ -14,7 +14,7 @@ def _setup_logger():
     formatter = logging.Formatter(format)
 
     handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
+    handler.setLevel(logging.INFO)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 

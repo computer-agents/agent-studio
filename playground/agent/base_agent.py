@@ -2,10 +2,11 @@ import logging
 from typing import Any
 
 import requests
-from numpy.typing import NDArray
 
+from playground.agent.runtime import PythonRuntime
 from playground.config import Config
 from playground.llm.base_model import BaseModel
+from playground.utils.human_utils import confirm_action
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -14,38 +15,43 @@ logger = logging.getLogger(__name__)
 class Agent:
     """Base class for agents."""
 
-    def __init__(self, env: str, model: BaseModel, record_path: str) -> None:
-        self.env = env
+    def __init__(self, model: BaseModel) -> None:
         self.model = model
         self.instruction: str = ""
         self.trajectory: list[dict[str, Any]] = []
 
+        if not config.remote:
+            self.runtime: PythonRuntime | None = None
+
     def reset(
         self,
-        task_id: str,
         instruction: str,
-        record_screen: bool = False,
     ) -> None:
         self.instruction = instruction
         self.trajectory = []
 
+        if not config.remote:
+            if self.runtime is not None:
+                self.runtime.close()
+            self.runtime = PythonRuntime()
+
     def step(self, code: str) -> dict:
         """Executes and records the given code in the environment."""
         logger.debug(f"Executing code:\n{code}\n")
-        user_input = (
-            input(f"Executing code:\n{code}\nDo you want to continue? (y/n): ")
-            .strip()
-            .lower()
-        )
-        confirmed = user_input == "y"
+
+        confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
         result = {}
         if confirmed:
-            response = requests.post(
-                f"http://{config.env_server_addr}:{config.env_server_port}/execute",
-                json={"message": code},
-            )
-            print(response.json())
-            result = response.json()
+            if config.remote:
+                response = requests.post(
+                    f"http://{config.env_server_addr}:{config.env_server_port}/execute",
+                    json={"message": code},
+                )
+                print(response.json())
+                result = response.json()
+            else:
+                assert self.runtime is not None, "The agent needs to reset first."
+                result = self.runtime.exec(code)
         else:
             result["content"] = "Cancelled by user."
         logger.info(f"Output: {result}\n")
@@ -59,12 +65,6 @@ class Agent:
         """
         raise NotImplementedError
 
-    def get_obs(self) -> NDArray | None:
-        """Gets the observation from the environment."""
-        assert not config.use_video, "Video-as-observation is not supported yet."
-        if self.record_screen:
-            obs = self.recorder.get_screenshot()
-        else:
-            obs = None
-
-        return obs
+    def close(self) -> None:
+        if self.runtime is not None:
+            self.runtime.close()

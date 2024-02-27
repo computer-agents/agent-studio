@@ -34,19 +34,13 @@ def setup_agent(args):
         case "dummy":
             from playground.agent.base_agent import Agent
 
-            agent = Agent(
-                env=args.env,
-                model=model,
-                record_path="playground_data/trajectories/dummy",
-            )
+            agent = Agent(model=model)
+            # record_path="playground_data/trajectories/dummy"
         case "direct":
             from playground.agent.direct_agent import DirectAgent
 
-            agent = DirectAgent(
-                env=args.env,
-                model=model,
-                record_path="playground_data/trajectories/direct",
-            )
+            agent = DirectAgent(model=model)
+            # record_path = "playground_data/trajectories/direct"
         case _:
             raise ValueError(f"Invalid agent: {args.agent}.")
 
@@ -97,11 +91,11 @@ def eval(args) -> None:
                         logger.info(f"Task instruction: {instruction}")
 
                         agent.reset(
-                            task_id=task_id,
                             instruction=instruction,
-                            record_screen=False,
                         )
                         trajectory = agent.run()
+
+                        # TODO: add agent self-eval
 
                         score, feedback = comb(trajectory=trajectory)
                         scores[task_id] = score
@@ -109,6 +103,8 @@ def eval(args) -> None:
                             logger.info(f"[Result] (PASS): {feedback}")
                         else:
                             logger.info(f"[Result] (FAIL): {feedback}")
+
+                        # TODO: dump trajectory and score
 
                     except Exception as e:
                         import traceback

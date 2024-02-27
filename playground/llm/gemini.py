@@ -1,4 +1,5 @@
 import base64
+import json
 import logging
 import pickle
 from typing import Any
@@ -29,11 +30,10 @@ logger = logging.getLogger(__name__)
 
 class GeminiProvider(BaseModel):
     def __init__(self, **kwargs) -> None:
-        genai.configure(api_key=config.GEMINI_API_KEY)
-        model = kwargs.get("model", config.model)
+        with open(config.api_key_path, "r") as f:
+            api_keys = json.load(f)
+        genai.configure(api_key=api_keys["gemini"])
         self.model_server: str | None = getattr(config, "model_server", None)
-        if not self.model_server:
-            self.model = genai.GenerativeModel(model)
 
     def compose_messages(
         self,
@@ -80,6 +80,7 @@ class GeminiProvider(BaseModel):
         self, messages: list[dict[str, Any]], **kwargs
     ) -> tuple[str, dict[str, int]]:
         """Creates a chat completion using the Gemini API."""
+        messages: str = "\n".join([m["content"] for m in messages])
 
         if not self.model_server:
             model = kwargs.get("model", None)

@@ -40,22 +40,23 @@ class Config(metaclass=Singleton):
     # sleep_after_execution: float = 2.0
     max_step: int = 30
     system_prompt_path: str = "playground/agent/prompts/system_prompt.txt"
+    init_code_path: str = "playground/agent/prompts/init_code.txt"
     # parsing_failure_th: int = 3
     # repeating_action_failure_th = 3
 
     # LM config
     provider: str = "gemini"
-    agent: str = "dummy"
+    agent: str = "direct"
     max_retries: int = 3
     # model: str = "gpt-4-1106-vision-preview"
-    model: str = "gemini-pro-vision"
+    # model: str = "gemini-pro-vision"
+    model: str = "gemini-pro"
     model_server: str | None = None
     # eval_model: str = "gpt-4-1106-vision-preview"
     eval_model: str = "gemini-pro-vision"
     temperature: float = 0.0
     max_tokens: int = 4096
-    OPENAI_API_KEY: str = "your_openai_api_key"
-    GEMINI_API_KEY: str = "your_gemini_api_key"
+    api_key_path: str = "playground/config/api_key.json"
 
     google_credential_path: str = "playground/config/credentials.json"
     google_calendar_id: str = "primary"

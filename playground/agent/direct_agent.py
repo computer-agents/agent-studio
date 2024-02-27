@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from playground.agent.base_agent import Agent
 from playground.config import Config
@@ -11,48 +12,26 @@ logger = logging.getLogger(__name__)
 class DirectAgent(Agent):
     """Zero-shot LLM agents."""
 
-    def reset(
-        self,
-        task_id: str,
-        instruction: str,
-        record_screen: bool = False,
-    ) -> None:
-        super().reset(
-            task_id=task_id, instruction=instruction, record_screen=record_screen
-        )
+    def reset(self, instruction: str) -> None:
+        super().reset(instruction=instruction)
         with open(config.system_prompt_path, "r") as f:
             self.system_prompt = f.read()
+        with open(config.init_code_path, "r") as f:
+            init_code = f.read()
+            self.step(init_code)
 
     def run(self) -> list:
-        # Initialize the interface the agent needs.
-        match self.env:
-            case "desktop":
-                init_code = (
-                    "from playground.env.desktop_env import Shell, Keyboard, Mouse\n\n"
-                    "shell = Shell()\nkeyboard = Keyboard()\nmouse = Mouse()\n"
-                )
-                self.step(init_code)
-            case _:
-                raise ValueError(f"Invalid env: {self.env}.")
-
+        """The main logic of the agent."""
         # Loop until the task is done or the max step is reached.
+        obs = None
         for _ in range(config.max_step):
-            # Get the observation from the environment.
-            obs = self.get_obs()
-            # Compose model-specific messages from the observation and the trajectory.
-            messages_to_model = self.model.compose_messages(
-                obs=obs,
-                trajectory=self.trajectory,
-                system_prompt=self.system_prompt,
-            )
-            # Generate a response from the model.
+            prompt = self.construct_prompt()
             response, info = self.model.generate_response(
-                messages=messages_to_model, model=config.model
+                messages=prompt, model=config.model
             )
             raw_code = extract_from_response(response)
 
             # Execute the code and record the result.
-            self.recorder.add_event(raw_code)
             done = raw_code.endswith(config.stop_code)
             if done:
                 code = raw_code[: -len(config.stop_code)]
@@ -65,8 +44,16 @@ class DirectAgent(Agent):
             if done:
                 break
 
-        if self.record_screen:
-            self.recorder.stop()
-        self.recorder.save()
-
         return self.trajectory
+
+    def construct_prompt(self):
+        messages: list[dict[str, Any]] = []
+        if self.system_prompt is not None:
+            messages.append({"role": "system", "content": self.system_prompt})
+        for step in self.trajectory:
+            if step["obs"] is not None:
+                messages.append(
+                    {"role": "user", "content": f"Observation: {step['obs']}"}
+                )
+            messages.append({"role": "assistant", "content": f"Action: {step['act']}"})
+            messages.append({"role": "user", "content": f"Result: {step['res']}"})
