@@ -6,6 +6,7 @@ import requests
 from playground.agent.runtime import PythonRuntime
 from playground.config import Config
 from playground.llm.base_model import BaseModel
+from playground.llm.utils import extract_from_response
 from playground.utils.human_utils import confirm_action
 
 config = Config()
@@ -35,8 +36,22 @@ class Agent:
                 self.runtime.close()
             self.runtime = PythonRuntime()
 
-    def step(self, code: str) -> dict:
-        """Executes and records the given code in the environment."""
+    def step(self) -> tuple[dict, bool]:
+        """Executes and records the given code by LLM in the environment."""
+        obs = None
+        prompt = self.construct_prompt()
+        response, info = self.model.generate_response(
+            messages=prompt, model=config.model
+        )
+        raw_code = extract_from_response(response)
+
+        # Execute the code and record the result.
+        done = raw_code.endswith(config.stop_code)
+        if done:
+            code = raw_code[: -len(config.stop_code)]
+        else:
+            code = raw_code
+
         logger.debug(f"Executing code:\n{code}\n")
 
         confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
@@ -54,9 +69,13 @@ class Agent:
                 result = self.runtime.exec(code)
         else:
             result["content"] = "Cancelled by user."
-        logger.info(f"Output: {result}\n")
+        logger.info(f"Output: {result}\nDone: {done}\n")
 
-        return result
+        self.trajectory.append(
+            {"obs": obs, "act": raw_code, "res": result, "done": done}
+        )
+
+        return result, done
 
     def run(self) -> list:
         """The main logic of the agent.
@@ -68,3 +87,6 @@ class Agent:
     def close(self) -> None:
         if self.runtime is not None:
             self.runtime.close()
+
+    def construct_prompt(self):
+        raise NotImplementedError

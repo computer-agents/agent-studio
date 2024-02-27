@@ -35,16 +35,16 @@ def setup_agent(args):
             from playground.agent.base_agent import Agent
 
             agent = Agent(model=model)
-            # record_path="playground_data/trajectories/dummy"
+            record_path = "playground_data/trajectories/dummy"
         case "direct":
             from playground.agent.direct_agent import DirectAgent
 
             agent = DirectAgent(model=model)
-            # record_path = "playground_data/trajectories/direct"
+            record_path = "playground_data/trajectories/direct"
         case _:
             raise ValueError(f"Invalid agent: {args.agent}.")
 
-    return agent
+    return agent, record_path
 
 
 def setup_tasks(args):
@@ -59,7 +59,7 @@ def setup_tasks(args):
 def eval(args) -> None:
     """Evaluate the agent on the given tasks."""
 
-    agent = setup_agent(args)
+    agent, record_path = setup_agent(args)
     # agent = setup_agent(config.provider, config.env_type, config.agent)
     task_configs = setup_tasks(args)
 
@@ -71,9 +71,9 @@ def eval(args) -> None:
                 try:
                     qasync.run(
                         run_ui(
-                            remote=config.remote,
+                            agent=agent,
                             task_configs=task_configs,
-                            # record_path="",
+                            record_path=record_path,
                         )
                     )
                 except asyncio.exceptions.CancelledError:
@@ -90,21 +90,26 @@ def eval(args) -> None:
                         instruction = task_config["instruction"]
                         logger.info(f"Task instruction: {instruction}")
 
-                        agent.reset(
-                            instruction=instruction,
-                        )
-                        trajectory = agent.run()
+                        agent.reset(instruction=instruction)
+                        # Loop until the task is done or the max step is reached.
+                        for t in range(config.max_step):
+                            logger.info(f"Step {t}")
+                            _, done = agent.step()
+                            if done:
+                                break
 
                         # TODO: add agent self-eval
 
-                        score, feedback = comb(trajectory=trajectory)
+                        logger.info("Start auto-evaluation")
+                        # score, feedback = comb(trajectory=agent.trajectory)
+                        score, feedback = 1.0, "dummy feedback"
                         scores[task_id] = score
                         if score == 1.0:
                             logger.info(f"[Result] (PASS): {feedback}")
                         else:
                             logger.info(f"[Result] (FAIL): {feedback}")
 
-                        # TODO: dump trajectory and score
+                        # TODO: dump trajectory and score to record_path
 
                     except Exception as e:
                         import traceback

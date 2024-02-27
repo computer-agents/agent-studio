@@ -46,13 +46,12 @@ logger = logging.getLogger(__name__)
 class AgentInterface(QMainWindow):
     def __init__(
         self,
-        # agent: Agent,
-        evaluator_router,
+        agent: Agent,
         task_configs: list,
         record_path: str = config.record_path,
     ):
         super().__init__()
-        # self.agent = agent
+        self.agent = agent
         self.task_idx = -1
         self.task_configs = task_configs
         self.action_queue: queue.Queue = queue.Queue()
@@ -160,12 +159,8 @@ class AgentInterface(QMainWindow):
         comb.reset()
 
         self.statusBar().showMessage("Initializing agent...")
-        self.agent.reset(
-            task_id=current_task["task_id"],
-            instruction=current_task["instruction"],
-            record_screen=False,
-        )
-        self.statusBar().showMessage("Initialization finished. Running...")
+        self.agent.reset(instruction=current_task["instruction"])
+        self.statusBar().showMessage("Running...")
 
     def eval_task(self):
         response_raw = requests.post(
@@ -412,7 +407,7 @@ class RemoteAgentInterface(QMainWindow):
                     "y" if (dlg.exec() == QMessageBox.StandardButton.Yes) else "n"
                 )
                 response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",  # noqa: E501
                     json=PlaygroundTextRequest(message=str(confirmation)).model_dump(),
                 )
                 response = PlaygroundResponse(**response_raw.json())
@@ -563,7 +558,7 @@ class RemoteAgentInterface(QMainWindow):
         exit(0)
 
 
-async def run_ui(remote: bool, task_configs: dict, record_path: str):
+async def run_ui(agent: Agent, task_configs: dict, record_path: str):
     def close_future(future, loop):
         loop.call_later(10, future.cancel)
         future.cancel()
@@ -579,13 +574,13 @@ async def run_ui(remote: bool, task_configs: dict, record_path: str):
 
     if config.remote:
         interface = RemoteAgentInterface(
-            # agent=agent,
+            agent=agent,
             task_configs=task_configs,
             record_path=record_path,
         )
     else:
         interface = AgentInterface(
-            # agent=agent,
+            agent=agent,
             task_configs=task_configs,
             record_path=record_path,
         )

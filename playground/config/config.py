@@ -12,14 +12,13 @@ class Config(metaclass=Singleton):
     headless: bool = True
     python_timeout: int = 10
     need_human_confirmation: bool = True
-    on_ssh = True
 
     task_config_paths: dict = {
-        "desktop": "playground_data/tasks/windows_easy.jsonl",
+        # "desktop": "playground_data/tasks/windows_easy.jsonl",
+        "desktop": "playground_data/tasks/test.jsonl",
     }
 
     stop_code: str = "\nexit()"
-    use_video = False
 
     # Env server config
     remote: bool = False
