@@ -1,13 +1,12 @@
 import argparse
 import asyncio
-import functools
 import logging
 import sys
 
 import qasync
-from qasync import QApplication
 
 from playground.config import Config
+from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
 from playground.llm import setup_model
 from playground.utils.json_utils import read_jsonl
 
@@ -54,119 +53,89 @@ def setup_agent(args):
     return agent
 
 
-def setup_task_and_evaluator(args):
+def setup_tasks(args):
     assert args.env in config.task_config_paths, f"Invalid env {args.env}."
     task_configs = read_jsonl(
         config.task_config_paths[args.env], args.start_idx, args.end_idx
     )
 
-    match args.env:
-        case "desktop":
-            from playground.env.desktop_env.eval.evaluator_helper import (
-                evaluator_router,
-            )
-        case _:
-            raise ValueError(f"Invalid env: {args.env}.")
-
-    return task_configs, evaluator_router
+    return task_configs
 
 
-def close_future(future, loop):
-    loop.call_later(10, future.cancel)
-    future.cancel()
-
-
-async def eval(args) -> None:
+def eval(args) -> None:
     """Evaluate the agent on the given tasks."""
-    loop = asyncio.get_event_loop()
-    future: asyncio.Future = asyncio.Future()
 
-    app = QApplication(sys.argv)
-    if hasattr(app, "aboutToQuit"):
-        getattr(app, "aboutToQuit").connect(
-            functools.partial(close_future, future, loop)
-        )
-
-    # agent = setup_agent(args)
-    task_configs, evaluator_router = setup_task_and_evaluator(args)
+    agent = setup_agent(args)
+    # agent = setup_agent(config.provider, config.env_type, config.agent)
+    task_configs = setup_tasks(args)
 
     match args.env:
         case "desktop":
-            from playground.env.desktop_env.agent_interface import AgentInterface
+            if not config.headless:
+                from playground.env.desktop_env.agent_interface import run_ui
 
-            interface = AgentInterface(
-                task_configs=task_configs,
-                record_path="playground_data/trajectories/human",
-            )
+                try:
+                    qasync.run(
+                        run_ui(
+                            remote=config.remote,
+                            task_configs=task_configs,
+                            # record_path="",
+                        )
+                    )
+                except asyncio.exceptions.CancelledError:
+                    sys.exit(0)
+
+            else:
+                scores = {}
+                for task_config in task_configs:
+                    try:
+                        task_id = task_config["task_id"]
+                        comb = evaluator_router(task_config)
+                        comb.reset()
+
+                        instruction = task_config["instruction"]
+                        logger.info(f"Task instruction: {instruction}")
+
+                        agent.reset(
+                            task_id=task_id,
+                            instruction=instruction,
+                            record_screen=False,
+                        )
+                        trajectory = agent.run()
+
+                        score, feedback = comb(trajectory=trajectory)
+                        scores[task_id] = score
+                        if score == 1.0:
+                            logger.info(f"[Result] (PASS): {feedback}")
+                        else:
+                            logger.info(f"[Result] (FAIL): {feedback}")
+
+                    except Exception as e:
+                        import traceback
+
+                        logger.error(f"[Unhandled Error] {repr(e)}]")
+                        logger.error(traceback.format_exc())
+
+                agent.close()
+                logger.info(
+                    f"Average score: {sum(scores.values()) / max(len(scores), 1)}"
+                )
+
         case _:
             raise ValueError(f"Invalid env: {args.env}.")
 
-    # TODO: Add agent to the interface
-    # agent = setup_agent(args)
-    # task_configs, evaluator_router = setup_task_and_evaluator(args)
 
-    # scores = {}
-    # for task_config in task_configs:
-    #     try:
-    #         task_id = task_config["task_id"]
-    #         record_screen = task_config.get("visual", False)
-    #         comb = evaluator_router(task_config)
-    #         comb.reset()
-
-    #         instruction = task_config["instruction"]
-    #         logger.info(f"Task instruction: {instruction}")
-
-    #         agent.reset(
-    #             task_id=task_id,
-    #             instruction=instruction,
-    #             record_screen=record_screen,
-    #         )
-    #         trajectory = agent.run()
-
-    #         score, feedback = comb(trajectory=trajectory)
-    #         scores[task_id] = score
-    #         if score == 1.0:
-    #             logger.info(f"[Result] (PASS): {feedback}")
-    #         else:
-    #             logger.info(f"[Result] (FAIL): {feedback}")
-
-    #     except Exception as e:
-    #         import traceback
-
-    #         logger.error(f"[Unhandled Error] {repr(e)}]")
-    #         logger.error(traceback.format_exc())
-
-    # agent.close()
-    # logger.info(f"Average score: {sum(scores.values()) / max(len(scores), 1)}")
-
-    interface.showMaximized()
-
-    await future
-
-
-async def record(args) -> None:
-    loop = asyncio.get_event_loop()
-    future: asyncio.Future = asyncio.Future()
-
-    app = QApplication(sys.argv)
-    if hasattr(app, "aboutToQuit"):
-        getattr(app, "aboutToQuit").connect(
-            functools.partial(close_future, future, loop)
-        )
-
+def record(args) -> None:
     match args.env:
         case "desktop":
-            from playground.env.desktop_env.human_interface import HumanInterface
+            from playground.env.desktop_env.human_interface import run_ui
 
-            interface = HumanInterface(
-                record_path="playground_data/trajectories/human",
-            )
+            try:
+                qasync.run(run_ui(record_path="playground_data/trajectories/human"))
+            except asyncio.exceptions.CancelledError:
+                sys.exit(0)
         case _:
             raise ValueError(f"Invalid env: {args.env}.")
-
-    interface.show()
-
-    await future
 
 
 def main():
@@ -176,15 +145,9 @@ def main():
 
     match args.mode:
         case "eval":
-            try:
-                qasync.run(eval(args))
-            except asyncio.exceptions.CancelledError:
-                sys.exit(0)
+            eval(args)
         case "record":
-            try:
-                qasync.run(record(args))
-            except asyncio.exceptions.CancelledError:
-                sys.exit(0)
+            record(args)
         case _:
             raise ValueError(f"Invalid mode {args.mode}")
 

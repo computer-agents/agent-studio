@@ -238,7 +238,11 @@ class GmailEvaluator(Evaluator):
             )
             label_ids = message.get("labelIds", [])
             all_labels = (
-                self.service.users().labels().list(userId="me").execute().get("labels", [])
+                self.service.users()
+                .labels()
+                .list(userId="me")
+                .execute()
+                .get("labels", [])
             )
             label_id = next(
                 (

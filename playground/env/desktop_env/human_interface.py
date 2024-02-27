@@ -1,5 +1,8 @@
+import asyncio
+import functools
 import logging
 import queue
+import sys
 from asyncio import open_connection
 from datetime import datetime
 
@@ -16,7 +19,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from qasync import asyncClose, asyncSlot
+from qasync import QApplication, asyncClose, asyncSlot
 
 from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
@@ -232,3 +235,24 @@ class HumanInterface(QMainWindow):
             await self.vnc.disconnect()
         logger.info("VNC disconnected")
         exit(0)
+
+
+async def run_ui(record_path: str):
+    def close_future(future, loop):
+        loop.call_later(10, future.cancel)
+        future.cancel()
+
+    loop = asyncio.get_event_loop()
+    future: asyncio.Future = asyncio.Future()
+
+    app = QApplication(sys.argv)
+    if hasattr(app, "aboutToQuit"):
+        getattr(app, "aboutToQuit").connect(
+            functools.partial(close_future, future, loop)
+        )
+
+    interface = HumanInterface(record_path=record_path)
+
+    interface.show()
+
+    await future

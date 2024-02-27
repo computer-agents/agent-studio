@@ -17,18 +17,8 @@ class Agent:
     def __init__(self, env: str, model: BaseModel, record_path: str) -> None:
         self.env = env
         self.model = model
-        match env:
-            case "desktop":
-                from playground.env.desktop_env.recorder.agent_recorder import (
-                    AgentRecorder,
-                )
-
-                self.recorder = AgentRecorder(record_path=record_path)
-            case _:
-                raise ValueError(f"Invalid env: {env}.")
         self.instruction: str = ""
         self.trajectory: list[dict[str, Any]] = []
-        self.record_screen: bool = False
 
     def reset(
         self,
@@ -38,13 +28,6 @@ class Agent:
     ) -> None:
         self.instruction = instruction
         self.trajectory = []
-        self.record_screen = record_screen
-
-        if self.record_screen:
-            self.recorder.reset(
-                task_id=task_id, instruction=instruction, record_screen=record_screen
-            )
-            self.recorder.start()
 
     def step(self, code: str) -> dict:
         """Executes and records the given code in the environment."""

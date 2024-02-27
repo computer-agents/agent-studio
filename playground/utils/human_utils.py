@@ -16,7 +16,9 @@ def confirm_action(prompt: str) -> Callable:
         def wrapper(*args, **kwargs):
             if config.need_human_confirmation:
                 if config.headless:
-                    user_input = input(f"{prompt}\nConfirm action (y/n): ").strip().lower()
+                    user_input = (
+                        input(f"{prompt}\nConfirm action (y/n): ").strip().lower()
+                    )
                 else:
                     task_status.set_task_state(
                         StateInfo(

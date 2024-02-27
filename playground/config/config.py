@@ -22,6 +22,7 @@ class Config(metaclass=Singleton):
     use_video = False
 
     # Env server config
+    remote: bool = False
     env_server_addr: str = "127.0.0.1"
     env_server_host: str = "0.0.0.0"
     vnc_port: int = 5900
@@ -44,7 +45,7 @@ class Config(metaclass=Singleton):
 
     # LM config
     provider: str = "gemini"
-    agent: str = "direct"
+    agent: str = "dummy"
     max_retries: int = 3
     # model: str = "gpt-4-1106-vision-preview"
     model: str = "gemini-pro-vision"
