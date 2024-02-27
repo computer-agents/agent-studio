@@ -38,3 +38,12 @@ def add_jsonl(data: list, file_path: str, mode="a"):
         for item in data:
             json_str = json.dumps(item)
             file.write(json_str + "\n")
+
+
+def format_json(data: dict):
+    """Prints a dictionary in a formatted way.
+
+    Args:
+        data (dict): The dictionary to print
+    """
+    return json.dumps(data, indent=4, sort_keys=True)

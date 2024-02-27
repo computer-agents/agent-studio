@@ -1,15 +1,13 @@
 import argparse
 import logging
 import time
-import base64
-import pickle
 
 import requests
 
 from playground.config import Config
 from playground.utils.json_utils import read_jsonl
 from playground.llm import setup_model
-from playground.utils.communication import \
+from playground.utils.communication import bytes2str, \
     PlaygroundResponse, PlaygroundResetRequest, \
     PlaygroundStatusResponse, PlaygroundResultResponse
 
@@ -97,7 +95,7 @@ def main():
     task_id = task_config["task_id"]
     instruction = task_config["instruction"]
     record_screen = task_config.get("visual", False)
-    response_raw = requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/reset", json=PlaygroundResetRequest(task_config=task_config))
+    response_raw = requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/reset", json=PlaygroundResetRequest(task_config=task_config).model_dump())
     response = PlaygroundResponse(**response_raw.json())
     print(response)
     wait_finish()
@@ -112,7 +110,7 @@ def main():
     )
     trajectory = agent.run()
     print(trajectory)
-    response_raw = requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/eval", json={"task_config":task_config, "trajectory": base64.b64encode(pickle.dumps(obj=trajectory)).decode("utf-8")})
+    response_raw = requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/eval", json={"task_config":task_config, "trajectory": bytes2str(trajectory)})
     response = PlaygroundResponse(**response_raw.json())
     print(response)
     wait_finish()

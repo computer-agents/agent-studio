@@ -1,5 +1,6 @@
 import logging
 import queue
+import time
 from asyncio import open_connection
 from datetime import datetime
 
@@ -17,11 +18,19 @@ from PyQt6.QtWidgets import (
     QWidget,
     QCheckBox,
     QListWidget,
+    QStatusBar,
+    QMessageBox,
 )
 from qasync import asyncClose, asyncSlot
 
 from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
+from playground.utils.json_utils import format_json
+from playground.agent import setup_agent
+from playground.utils.communication import bytes2str, \
+    PlaygroundResponse, PlaygroundResetRequest, \
+    PlaygroundStatusResponse, PlaygroundResultResponse, \
+    PlaygroundEvalRequest, PlaygroundTextRequest
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -32,11 +41,12 @@ class AgentInterface(QMainWindow):
 
     def __init__(
         self,
-        task_config: list,
+        task_configs: list,
         record_path: str = config.record_path,
     ):
         super().__init__()
-        self.task_list = [task["instruction"] for task in task_config]
+        self.task_list = [task["instruction"] for task in task_configs]
+        self.task_configs = task_configs
         self.action_queue: queue.Queue = queue.Queue()
         self.refresh_timer = QTimer(self)
         self.refresh_timer.setInterval(1)
@@ -44,6 +54,8 @@ class AgentInterface(QMainWindow):
         self.refresh_timer.stop()
         self.refreshing_screen = False  # need for refresh flag
         self.last_message = ""
+        self.agent = setup_agent(config.provider, config.env_type, config.agent)
+        self.selected_task: dict | None = None
 
         self.setup_ui()
 
@@ -109,11 +121,11 @@ class AgentInterface(QMainWindow):
         clear_button.clicked.connect(self.reset)
         right_layout.addWidget(clear_button)
 
-        right_layout.addWidget(QLabel("Task Instruction"))
-        self.instruction_display = QTextEdit(self)
-        right_layout.addWidget(self.instruction_display)
-        self.instruction_display.setReadOnly(True)
-        # self.instruction_display.setFixedHeight(60)
+        right_layout.addWidget(QLabel("Task Configuration"))
+        self.task_config_display = QTextEdit(self)
+        right_layout.addWidget(self.task_config_display)
+        self.task_config_display.setReadOnly(True)
+        # self.task_config_display.setFixedHeight(60)
 
         right_layout.addWidget(QLabel("Task Selection (double click to select)"))
         self.instruction_selection = QListWidget(self)
@@ -132,8 +144,17 @@ class AgentInterface(QMainWindow):
         self.success_checkbox.setChecked(False)
         right_layout.addWidget(self.success_checkbox)
 
-        clear_button = QPushButton("Save")
-        right_layout.addWidget(clear_button)
+        start_button = QPushButton("Start")
+        start_button.clicked.connect(self.eval_task)
+        right_layout.addWidget(start_button)
+
+        reset_button = QPushButton("Reset")
+        reset_button.clicked.connect(self.reset_task)
+        right_layout.addWidget(reset_button)
+
+        self.task_status_bar = QStatusBar()
+        right_layout.addWidget(self.task_status_bar)
+        self.task_status_bar.showMessage("Ready")
 
         main_layout.addLayout(right_layout)
 
@@ -143,8 +164,9 @@ class AgentInterface(QMainWindow):
     async def reconnect(self):
         """Reconnects to VNC server."""
         self.action_queue.queue.clear()
-        await self.vnc.disconnect()
-        self.connect_vnc()
+        if self.vnc is not None:
+            await self.vnc.disconnect()
+        await self.connect_vnc()
 
     @asyncSlot()
     async def connect_vnc(self):
@@ -170,7 +192,7 @@ class AgentInterface(QMainWindow):
 
     def reset(self):
         """Clears all the text fields."""
-        self.instruction_display.clear()
+        self.task_config_display.clear()
         self.trajectory_display.clear()
         self.parsed_action_display.clear()
 
@@ -187,7 +209,79 @@ class AgentInterface(QMainWindow):
 
     def select_task_instruction(self, item):
         self.task_instruction = item.text()
-        self.instruction_display.setText(self.task_instruction)
+        selected_task_idx = self.instruction_selection.currentRow()
+        self.selected_task = self.task_configs[selected_task_idx]
+        self.task_config_display.setText(format_json(self.selected_task))
+
+    def _wait_finish(self):
+        while True:
+            response_raw = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/status")
+            response = PlaygroundStatusResponse(**response_raw.json())
+            if response.status == "finished":
+                break
+            elif response.status == "wait_for_input":
+                self.task_status_bar.showMessage("Waiting for input")
+                dlg = QMessageBox(self)
+                dlg.setWindowTitle("Need response")
+                dlg.setText(response.content)
+                dlg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+
+                confirmation: str = "y" \
+                    if (dlg.exec() == QMessageBox.StandardButton.Yes) else "n"
+                response_raw = requests.post(
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    json=PlaygroundTextRequest(message=str(confirmation)).model_dump()
+                )
+                response = PlaygroundResponse(**response_raw.json())
+                assert response.status == "success"
+            elif response.status == "pending":
+                self.task_status_bar.showMessage("Pending")
+            elif response.status == "in_progress":
+                self.task_status_bar.showMessage("In Progress")
+            else:
+                raise ValueError(f"Unknown status: {response.status}")
+            time.sleep(1)
+
+    def reset_task(self):
+        """Resets the task and waits for the environment to be ready."""
+        if self.selected_task is None:
+            self.task_status_bar.showMessage("No task selected")
+            return
+        response_raw = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
+            json=PlaygroundResetRequest(task_config=self.selected_task).model_dump()
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert response.status == "submitted"
+        self._wait_finish()
+        self.agent.reset(
+            task_id=self.selected_task["task_id"],
+            instruction=self.selected_task["instruction"],
+            record_screen=self.selected_task.get("visual", False)
+        )
+        self.task_status_bar.showMessage("Finished")
+
+    def eval_task(self):
+        if self.selected_task is None:
+            self.task_status_bar.showMessage("No task selected")
+            return
+        response_raw = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
+            json=PlaygroundEvalRequest(
+                task_config=self.selected_task,
+                trajectory=bytes2str(self.trajectory_display)
+            ).model_dump()
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert response.status == "submitted"
+        self._wait_finish()
+        response_raw = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/result")
+        response = PlaygroundResultResponse(**response_raw.json())
+        assert response.status == "finished" and isinstance(response.message, dict)
+        print(response.result, response.message["score"], response.message["feedback"])
+
+    def run_agent(self):
+        trajectory = self.agent.run()
 
     def step_action(self):
         """Steps the next action and adds it to the trajectory."""
@@ -219,7 +313,8 @@ class AgentInterface(QMainWindow):
 
     async def update_screen(self):
         try:
-            self.now_screenshot = await self.vnc.screenshot()
+            if self.vnc is not None:
+                self.now_screenshot = await self.vnc.screenshot()
         except Exception as e:
             logger.error("Fail to get screenshot.", e)
 

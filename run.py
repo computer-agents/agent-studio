@@ -95,7 +95,7 @@ async def eval(args) -> None:
             from playground.env.desktop_env.agent_interface import AgentInterface
 
             interface = AgentInterface(
-                task_config=task_configs,
+                task_configs=task_configs,
                 record_path="playground_data/trajectories/human",
             )
         case _:
