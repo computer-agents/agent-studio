@@ -9,6 +9,7 @@ class Config(metaclass=Singleton):
     """
 
     seed: int = 42
+    headless: bool = True
     python_timeout: int = 10
     need_human_confirmation: bool = True
     on_ssh = True

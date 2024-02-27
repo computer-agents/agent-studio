@@ -115,7 +115,6 @@ def get_message_from_raw(raw_message: dict[str, Any]) -> dict[str, Any]:
         body=body,
         cc=cc,
         attachment=attachment,
-        id=raw_message["id"],
     )
 
 
@@ -443,6 +442,7 @@ class GmailEvaluator(Evaluator):
                 messages = []
                 for m in search_result.get("messages", []):
                     msg = self.get_message(m["id"])
+                    msg["id"] = m["id"]
                     messages.append(msg)
             case "drafts":
                 search_result = (
@@ -454,6 +454,7 @@ class GmailEvaluator(Evaluator):
                 messages = []
                 for m in search_result.get("drafts", []):
                     msg = self.get_message(m["message"]["id"])
+                    msg["id"] = m["id"]
                     messages.append(msg)
             case _:
                 raise ValueError("message_type must be 'messages' or 'drafts'")
