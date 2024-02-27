@@ -4,6 +4,7 @@ from enum import Enum
 
 from playground.utils.singleton import ThreadSafeSingleton
 
+
 class StateEnum(Enum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
@@ -12,7 +13,7 @@ class StateEnum(Enum):
 
 
 class StateInfo:
-    def __init__(self, state: StateEnum, message: str | dict="", result: str=""):
+    def __init__(self, state: StateEnum, message: str | dict = "", result: str = ""):
         self.state: StateEnum = state
         self.message = message
         self.result = result

@@ -48,7 +48,9 @@ def event_match(
                 return False
         elif key == "attendees":
             emails1 = {attendee["email"] for attendee in value}
-            emails2 = {attendee["email"] for attendee in pred_value} if pred_value else set()
+            emails2 = (
+                {attendee["email"] for attendee in pred_value} if pred_value else set()
+            )
             if emails1 != emails2:
                 return False
         elif key == "reminders":
@@ -61,8 +63,12 @@ def reminders_match(reminder1: dict, reminder2: dict) -> bool:
     """Compares two reminder structures for equality."""
     if reminder1.get("useDefault") != reminder2.get("useDefault"):
         return False
-    overrides1 = {f"{r['method']}-{r['minutes']}": r for r in reminder1.get("overrides", [])}
-    overrides2 = {f"{r['method']}-{r['minutes']}": r for r in reminder2.get("overrides", [])}
+    overrides1 = {
+        f"{r['method']}-{r['minutes']}": r for r in reminder1.get("overrides", [])
+    }
+    overrides2 = {
+        f"{r['method']}-{r['minutes']}": r for r in reminder2.get("overrides", [])
+    }
     return overrides1 == overrides2
 
 

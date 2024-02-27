@@ -3,15 +3,19 @@ import logging
 import time
 
 import requests
+from rich import traceback
 
 from playground.config import Config
-from playground.utils.json_utils import read_jsonl
 from playground.llm import setup_model
-from playground.utils.communication import bytes2str, \
-    PlaygroundResponse, PlaygroundResetRequest, \
-    PlaygroundStatusResponse, PlaygroundResultResponse
+from playground.utils.communication import (
+    PlaygroundResetRequest,
+    PlaygroundResponse,
+    PlaygroundResultResponse,
+    PlaygroundStatusResponse,
+    bytes2str,
+)
+from playground.utils.json_utils import read_jsonl
 
-from rich import traceback
 traceback.install(show_locals=True)
 
 config = Config()
@@ -70,16 +74,22 @@ def setup_task(args):
 
 def wait_finish():
     while True:
-        response_raw = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/status")
+        response_raw = requests.get(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
+        )
         response = PlaygroundStatusResponse(**response_raw.json())
         if response.status == "finished":
             break
         elif response.status == "wait_for_input":
             confirmation = input(f"{response.content}\n")
-            requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm", json={"message":confirmation})
+            requests.post(
+                f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                json={"message": confirmation},
+            )
         else:
             assert response.status in ["pending", "in_progress"]
         time.sleep(1)
+
 
 def main():
     parser = create_parser()
@@ -95,11 +105,16 @@ def main():
     task_id = task_config["task_id"]
     instruction = task_config["instruction"]
     record_screen = task_config.get("visual", False)
-    response_raw = requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/reset", json=PlaygroundResetRequest(task_config=task_config).model_dump())
+    response_raw = requests.post(
+        f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
+        json=PlaygroundResetRequest(task_config=task_config).model_dump(),
+    )
     response = PlaygroundResponse(**response_raw.json())
     print(response)
     wait_finish()
-    response_raw = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/result")
+    response_raw = requests.get(
+        f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
+    )
     response = PlaygroundResultResponse(**response_raw.json())
     assert response.result == "success" and response.status == "finished"
 
@@ -110,18 +125,25 @@ def main():
     )
     trajectory = agent.run()
     print(trajectory)
-    response_raw = requests.post(f"http://{config.env_server_addr}:{config.env_server_port}/task/eval", json={"task_config":task_config, "trajectory": bytes2str(trajectory)})
+    response_raw = requests.post(
+        f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
+        json={"task_config": task_config, "trajectory": bytes2str(trajectory)},
+    )
     response = PlaygroundResponse(**response_raw.json())
     print(response)
     wait_finish()
-    response_raw = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/result")
+    response_raw = requests.get(
+        f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
+    )
     response = PlaygroundResultResponse(**response_raw.json())
     assert response.status == "finished" and isinstance(response.message, dict)
     print(response.result, response.message["score"], response.message["feedback"])
     print("Done!")
 
-class TestReq():
+
+class TestReq:
     text: str
+
     def __init__(self, text: str):
         self.text = text
 

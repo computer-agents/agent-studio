@@ -1,9 +1,8 @@
 import logging
 from typing import Any
 
-from numpy.typing import NDArray
-
 import requests
+from numpy.typing import NDArray
 
 from playground.config import Config
 from playground.llm.base_model import BaseModel
@@ -50,15 +49,17 @@ class Agent:
     def step(self, code: str) -> dict:
         """Executes and records the given code in the environment."""
         logger.debug(f"Executing code:\n{code}\n")
-        user_input = input(
-            f"Executing code:\n{code}\nDo you want to continue? (y/n): "
-        ).strip().lower()
+        user_input = (
+            input(f"Executing code:\n{code}\nDo you want to continue? (y/n): ")
+            .strip()
+            .lower()
+        )
         confirmed = user_input == "y"
         result = {}
         if confirmed:
             response = requests.post(
                 f"http://{config.env_server_addr}:{config.env_server_port}/execute",
-                json={"message": code}
+                json={"message": code},
             )
             print(response.json())
             result = response.json()

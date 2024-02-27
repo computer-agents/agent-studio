@@ -116,7 +116,9 @@ class HumanInterface(QMainWindow):
         """Connects to VNC server."""
         self.statusBar().showMessage("Connecting")
 
-        self._reader, self._writer = await open_connection(config.env_server_addr, config.vnc_port)
+        self._reader, self._writer = await open_connection(
+            config.env_server_addr, config.vnc_port
+        )
         self.vnc = await VNCClient.create(
             reader=self._reader, writer=self._writer, password=config.vnc_password
         )

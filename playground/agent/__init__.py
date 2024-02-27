@@ -5,7 +5,6 @@
 # from playground.llm.lm_config import construct_llm_config
 from playground.llm import setup_model
 
-
 # def construct_agent(args: argparse.Namespace) -> Agent:
 #     llm_config = construct_llm_config(args)
 
@@ -17,6 +16,7 @@ from playground.llm import setup_model
 #     else:
 #         raise NotImplementedError(f"agent type {args.agent_type} not implemented")
 #     return agent
+
 
 def setup_agent(
     provider: str,

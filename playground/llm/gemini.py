@@ -108,7 +108,9 @@ class GeminiProvider(BaseModel):
                     "config": bytes2str(generation_config),
                 }
                 response_raw = requests.post(self.model_server, json=body)
-                response: genai.types.GenerateContentResponse = str2bytes(response_raw.text)
+                response: genai.types.GenerateContentResponse = str2bytes(
+                    response_raw.text
+                )
             else:
                 response = self.model.generate_content(
                     contents=messages, generation_config=generation_config

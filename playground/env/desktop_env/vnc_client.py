@@ -6,14 +6,15 @@ from os import urandom
 from struct import unpack
 from typing import Callable
 from zlib import decompressobj
-from PyQt6.QtGui import QCursor, QPixmap
-from PyQt6.QtWidgets import QLabel
-from playground.env.desktop_env.base import Position
 
 import numpy as np
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.serialization import load_der_public_key
+from PyQt6.QtGui import QCursor, QPixmap
+from PyQt6.QtWidgets import QLabel
+
+from playground.env.desktop_env.base import Position
 
 # Common screen aspect ratios
 screen_ratios: set[Fraction] = {

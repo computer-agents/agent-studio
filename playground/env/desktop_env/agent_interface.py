@@ -9,28 +9,33 @@ import requests
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QImage
 from PyQt6.QtWidgets import (
+    QCheckBox,
     QHBoxLayout,
     QLabel,
+    QListWidget,
     QMainWindow,
+    QMessageBox,
     QPushButton,
+    QStatusBar,
     QTextEdit,
     QVBoxLayout,
     QWidget,
-    QCheckBox,
-    QListWidget,
-    QStatusBar,
-    QMessageBox,
 )
 from qasync import asyncClose, asyncSlot
 
+from playground.agent import setup_agent
 from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
+from playground.utils.communication import (
+    PlaygroundEvalRequest,
+    PlaygroundResetRequest,
+    PlaygroundResponse,
+    PlaygroundResultResponse,
+    PlaygroundStatusResponse,
+    PlaygroundTextRequest,
+    bytes2str,
+)
 from playground.utils.json_utils import format_json
-from playground.agent import setup_agent
-from playground.utils.communication import bytes2str, \
-    PlaygroundResponse, PlaygroundResetRequest, \
-    PlaygroundStatusResponse, PlaygroundResultResponse, \
-    PlaygroundEvalRequest, PlaygroundTextRequest
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -129,7 +134,9 @@ class AgentInterface(QMainWindow):
 
         right_layout.addWidget(QLabel("Task Selection (double click to select)"))
         self.instruction_selection = QListWidget(self)
-        self.instruction_selection.itemDoubleClicked.connect(self.select_task_instruction)
+        self.instruction_selection.itemDoubleClicked.connect(
+            self.select_task_instruction
+        )
         right_layout.addWidget(self.instruction_selection)
         self.instruction_selection.clear()
         self.instruction_selection.addItems(self.task_list)
@@ -173,7 +180,9 @@ class AgentInterface(QMainWindow):
         """Connects to VNC server."""
         self.statusBar().showMessage("Connecting")
 
-        self._reader, self._writer = await open_connection(config.env_server_addr, config.vnc_port)
+        self._reader, self._writer = await open_connection(
+            config.env_server_addr, config.vnc_port
+        )
         self.vnc = await VNCClient.create(
             reader=self._reader, writer=self._writer, password=config.vnc_password
         )
@@ -215,7 +224,9 @@ class AgentInterface(QMainWindow):
 
     def _wait_finish(self):
         while True:
-            response_raw = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/status")
+            response_raw = requests.get(
+                f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
+            )
             response = PlaygroundStatusResponse(**response_raw.json())
             if response.status == "finished":
                 break
@@ -224,13 +235,16 @@ class AgentInterface(QMainWindow):
                 dlg = QMessageBox(self)
                 dlg.setWindowTitle("Need response")
                 dlg.setText(response.content)
-                dlg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                dlg.setStandardButtons(
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                )
 
-                confirmation: str = "y" \
-                    if (dlg.exec() == QMessageBox.StandardButton.Yes) else "n"
+                confirmation: str = (
+                    "y" if (dlg.exec() == QMessageBox.StandardButton.Yes) else "n"
+                )
                 response_raw = requests.post(
                     url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
-                    json=PlaygroundTextRequest(message=str(confirmation)).model_dump()
+                    json=PlaygroundTextRequest(message=str(confirmation)).model_dump(),
                 )
                 response = PlaygroundResponse(**response_raw.json())
                 assert response.status == "success"
@@ -249,7 +263,7 @@ class AgentInterface(QMainWindow):
             return
         response_raw = requests.post(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
-            json=PlaygroundResetRequest(task_config=self.selected_task).model_dump()
+            json=PlaygroundResetRequest(task_config=self.selected_task).model_dump(),
         )
         response = PlaygroundResponse(**response_raw.json())
         assert response.status == "submitted"
@@ -257,7 +271,7 @@ class AgentInterface(QMainWindow):
         self.agent.reset(
             task_id=self.selected_task["task_id"],
             instruction=self.selected_task["instruction"],
-            record_screen=self.selected_task.get("visual", False)
+            record_screen=self.selected_task.get("visual", False),
         )
         self.task_status_bar.showMessage("Finished")
 
@@ -269,13 +283,15 @@ class AgentInterface(QMainWindow):
             f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
             json=PlaygroundEvalRequest(
                 task_config=self.selected_task,
-                trajectory=bytes2str(self.trajectory_display)
-            ).model_dump()
+                trajectory=bytes2str(self.trajectory_display),
+            ).model_dump(),
         )
         response = PlaygroundResponse(**response_raw.json())
         assert response.status == "submitted"
         self._wait_finish()
-        response_raw = requests.get(f"http://{config.env_server_addr}:{config.env_server_port}/task/result")
+        response_raw = requests.get(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
+        )
         response = PlaygroundResultResponse(**response_raw.json())
         assert response.status == "finished" and isinstance(response.message, dict)
         print(response.result, response.message["score"], response.message["feedback"])

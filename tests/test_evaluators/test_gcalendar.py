@@ -54,10 +54,8 @@ TASK_CONFIGS = [
                                 "colorId": "11",
                                 "reminders": {
                                     "useDefault": False,
-                                    "overrides": [
-                                        {"method": "email", "minutes": 60}
-                                    ]
-                                }
+                                    "overrides": [{"method": "email", "minutes": 60}],
+                                },
                             },
                             "exists": True,
                         }
@@ -81,10 +79,8 @@ TASK_CONFIGS = [
                                 "colorId": "11",
                                 "reminders": {
                                     "useDefault": False,
-                                    "overrides": [
-                                        {"method": "email", "minutes": 60}
-                                    ]
-                                }
+                                    "overrides": [{"method": "email", "minutes": 60}],
+                                },
                             }
                         }
                     },
@@ -108,10 +104,8 @@ TASK_CONFIGS = [
                                 "colorId": "11",
                                 "reminders": {
                                     "useDefault": False,
-                                    "overrides": [
-                                        {"method": "email", "minutes": 60}
-                                    ]
-                                }
+                                    "overrides": [{"method": "email", "minutes": 60}],
+                                },
                             },
                             "exists": False,
                         }
@@ -129,10 +123,8 @@ TASK_CONFIGS = [
                                 "colorId": "11",
                                 "reminders": {
                                     "useDefault": False,
-                                    "overrides": [
-                                        {"method": "email", "minutes": 60}
-                                    ]
-                                }
+                                    "overrides": [{"method": "email", "minutes": 60}],
+                                },
                             }
                         }
                     },
