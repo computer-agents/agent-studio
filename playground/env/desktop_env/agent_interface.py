@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QListWidget,
+    QStatusBar
 )
 from qasync import QApplication, asyncClose, asyncSlot
 
@@ -65,6 +66,7 @@ class AgentInterface(QMainWindow):
         self.refreshing_screen = False  # need for refresh flag
         self.last_message = ""
         self.selected_task: dict | None = None
+        self.status_bar: QStatusBar
 
         self.setup_ui()
 
@@ -78,6 +80,9 @@ class AgentInterface(QMainWindow):
         self.setCentralWidget(central_widget)
         central_widget.setMouseTracking(True)
         main_layout = QHBoxLayout(central_widget)
+
+        self.status_bar = self.statusBar()
+        assert self.status_bar is not None
 
         if config.remote:
             self.connect_vnc()
@@ -181,7 +186,7 @@ class AgentInterface(QMainWindow):
         next_button.clicked.connect(self.reset)
         task_layout.addWidget(next_button)
 
-        self.statusBar().showMessage("Ready")
+        self.status_bar.showMessage("Ready")
 
         main_layout.addLayout(task_layout)
 
@@ -204,7 +209,7 @@ class AgentInterface(QMainWindow):
     @asyncSlot()
     async def connect_vnc(self):
         """Connects to VNC server."""
-        self.statusBar().showMessage("Connecting")
+        self.status_bar.showMessage("Connecting")
 
         self._reader, self._writer = await open_connection(
             config.env_server_addr, config.vnc_port
@@ -223,7 +228,7 @@ class AgentInterface(QMainWindow):
         self.showMaximized()
 
         self.refresh_timer.start()
-        self.statusBar().showMessage("Connected")
+        self.status_bar.showMessage("Connected")
 
     def set_status_text(self):
         all_status_text = []
@@ -234,7 +239,7 @@ class AgentInterface(QMainWindow):
             if local_cursor_pos := self.vnc_frame.get_cursor_pos():
                 all_status_text.append(f"Cursor Position: {str(local_cursor_pos)}")
 
-        self.statusBar().showMessage(" ".join(all_status_text))
+        self.status_bar.showMessage(" ".join(all_status_text))
 
     def _wait_finish(self):
         while True:
@@ -245,7 +250,7 @@ class AgentInterface(QMainWindow):
             if response.status == "finished":
                 break
             elif response.status == "wait_for_input":
-                self.statusBar().showMessage("Waiting for input")
+                self.status_bar.showMessage("Waiting for input")
                 dlg = QMessageBox(self)
                 dlg.setWindowTitle("Need response")
                 dlg.setText(response.content)
@@ -263,9 +268,9 @@ class AgentInterface(QMainWindow):
                 response = PlaygroundResponse(**response_raw.json())
                 assert response.status == "success"
             elif response.status == "pending":
-                self.statusBar().showMessage("Pending")
+                self.status_bar.showMessage("Pending")
             elif response.status == "in_progress":
-                self.statusBar().showMessage("In Progress")
+                self.status_bar.showMessage("In Progress")
             else:
                 raise ValueError(f"Unknown status: {response.status}")
             time.sleep(1)
@@ -280,14 +285,14 @@ class AgentInterface(QMainWindow):
         self.output_display.clear()
         self.success_checkbox.setChecked(False)
         self.selected_task = None
-        self.statusBar().showMessage("Select a task from the list")
+        self.status_bar.showMessage("Select a task from the list")
 
     def reset_task(self):
         if self.selected_task is None:
-            self.statusBar().showMessage("No task selected")
+            self.status_bar.showMessage("No task selected")
             return
         else:
-            self.statusBar().showMessage("Initializing...")
+            self.status_bar.showMessage("Initializing...")
 
         response_raw = requests.post(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
@@ -305,7 +310,7 @@ class AgentInterface(QMainWindow):
         self.agent.reset(
             instruction=self.selected_task["instruction"],
         )
-        self.statusBar().showMessage("Initialization finished. Running...")
+        self.status_bar.showMessage("Initialization finished. Running...")
 
     def run_task(self):
         self.reset_task()
@@ -316,7 +321,7 @@ class AgentInterface(QMainWindow):
 
     def eval_task(self):
         if self.selected_task is None:
-            self.statusBar().showMessage("No task selected")
+            self.status_bar.showMessage("No task selected")
             return
         response_raw = requests.post(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
@@ -411,7 +416,7 @@ class AgentInterface(QMainWindow):
 
     @asyncClose
     async def closeEvent(self, event):
-        self.statusBar().showMessage("Closing")
+        self.status_bar.showMessage("Closing")
         self.refresh_timer.stop()
         if self.vnc is not None:
             await self.vnc.disconnect()
