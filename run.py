@@ -4,6 +4,7 @@ import logging
 import sys
 
 import qasync
+import psutil
 
 from playground.config import Config
 from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
@@ -69,6 +70,22 @@ def eval(args) -> None:
                 from playground.env.desktop_env.agent_interface import run_ui
 
                 try:
+                    if not config.remote:
+                        import atexit
+                        local_agent_server = psutil.Popen(
+                            [
+                                "python",
+                                "scripts/agent_server.py",
+                                "--env",
+                                "desktop",
+                            ]
+                        )
+                        def cleanup(local_agent_server: psutil.Process):
+                            local_agent_server.terminate()
+                            local_agent_server.wait()
+
+                        atexit.register(cleanup, local_agent_server)
+
                     qasync.run(
                         run_ui(
                             agent=agent,

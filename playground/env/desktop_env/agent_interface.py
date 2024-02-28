@@ -21,6 +21,7 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
+    QListWidget,
 )
 from qasync import QApplication, asyncClose, asyncSlot
 
@@ -44,6 +45,8 @@ logger = logging.getLogger(__name__)
 
 
 class AgentInterface(QMainWindow):
+    layout_width = 300
+
     def __init__(
         self,
         agent: Agent,
@@ -52,183 +55,6 @@ class AgentInterface(QMainWindow):
     ):
         super().__init__()
         self.agent = agent
-        self.task_idx = -1
-        self.task_configs = task_configs
-        self.action_queue: queue.Queue = queue.Queue()
-
-        assert not config.remote, "This interface is for local agent only."
-        self.setup_ui()
-
-    def setup_ui(self):
-        self.setWindowTitle("Agent Interface")
-        central_widget = QWidget(self)
-        self.setCentralWidget(central_widget)
-        central_widget.setMouseTracking(True)
-        main_layout = QHBoxLayout(central_widget)
-
-        left_layout = QVBoxLayout()
-
-        left_layout.addWidget(QLabel("Model response"))
-        self.response_display = QTextEdit(self)
-        left_layout.addWidget(self.response_display)
-        self.response_display.setReadOnly(True)
-        self.response_display.setFixedHeight(200)
-
-        left_layout.addWidget(QLabel("Parsed Actions"))
-        self.parsed_action_display = QTextEdit(self)
-        left_layout.addWidget(self.parsed_action_display)
-        self.parsed_action_display.setReadOnly(True)
-        self.parsed_action_display.setFixedHeight(200)
-
-        confirm_button = QPushButton("Confirm and execute action")
-        confirm_button.clicked.connect(self.step_action)
-        left_layout.addWidget(confirm_button)
-
-        left_layout.addWidget(QLabel("Runtime output"))
-        self.output_display = QTextEdit(self)
-        left_layout.addWidget(self.output_display)
-        self.output_display.setReadOnly(True)
-        self.output_display.setFixedHeight(115)
-
-        interrupt_button = QPushButton("Interrupt action")
-        interrupt_button.clicked.connect(self.interrupt_action)
-        left_layout.addWidget(interrupt_button)
-
-        main_layout.addLayout(left_layout)
-
-        right_layout = QVBoxLayout()
-
-        right_layout.addWidget(QLabel("Task configuration"))
-        self.task_config_display = QTextEdit(self)
-        right_layout.addWidget(self.task_config_display)
-        self.task_config_display.setReadOnly(True)
-        self.task_config_display.setFixedHeight(200)
-
-        right_layout.addWidget(QLabel("Trajectory"))
-        self.trajectory_display = QTextEdit(self)
-        right_layout.addWidget(self.trajectory_display)
-        self.trajectory_display.setReadOnly(True)
-        self.trajectory_display.setFixedHeight(200)
-
-        eval_button = QPushButton("Auto-eval")
-        eval_button.clicked.connect(self.eval_task)
-        right_layout.addWidget(eval_button)
-
-        right_layout.addWidget(QLabel("Auto-eval result"))
-        self.auto_eval_display = QTextEdit(self)
-        right_layout.addWidget(self.auto_eval_display)
-        self.auto_eval_display.setReadOnly(True)
-        self.auto_eval_display.setFixedHeight(30)
-
-        right_layout.addWidget(QLabel("Agent self-eval result"))
-        self.agent_eval_display = QTextEdit(self)
-        right_layout.addWidget(self.agent_eval_display)
-        self.agent_eval_display.setReadOnly(True)
-        self.agent_eval_display.setFixedHeight(30)
-
-        self.success_checkbox = QCheckBox("Is this task successful?")
-        self.success_checkbox.setChecked(False)
-        right_layout.addWidget(self.success_checkbox)
-
-        next_button = QPushButton("Run the next task")
-        next_button.clicked.connect(self.run_agent)
-        right_layout.addWidget(next_button)
-
-        self.statusBar().showMessage("Ready")
-
-        main_layout.addLayout(right_layout)
-
-        self.statusBar().showMessage("Click button 'Run the next task' to start")
-
-    def reset(self):
-        """Clears all the text fields."""
-        self.task_config_display.clear()
-        self.trajectory_display.clear()
-        self.parsed_action_display.clear()
-        self.response_display.clear()
-        self.output_display.clear()
-        self.success_checkbox.setChecked(False)
-
-    def run_agent(self):
-        self.reset()
-        self.statusBar().showMessage("Initializing new task...")
-        self.task_idx += 1
-        current_task = self.task_configs[self.task_idx]
-        self.task_config_display.setText(format_json(current_task))
-        comb = evaluator_router(current_task)
-        comb.reset()
-
-        self.statusBar().showMessage("Initializing agent...")
-        self.agent.reset(instruction=current_task["instruction"])
-        self.statusBar().showMessage("Running...")
-
-    def eval_task(self):
-        response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
-            json=PlaygroundEvalRequest(
-                task_config=self.selected_task,
-                trajectory=bytes2str(self.trajectory_display),
-            ).model_dump(),
-        )
-        response = PlaygroundResponse(**response_raw.json())
-        assert response.status == "submitted"
-        self._wait_finish()
-        response_raw = requests.get(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
-        )
-        response = PlaygroundResultResponse(**response_raw.json())
-        assert response.status == "finished" and isinstance(response.message, dict)
-        print(response.result, response.message["score"], response.message["feedback"])
-
-    def step_action(self):
-        """Steps the next action and adds it to the trajectory."""
-        next_action_text = self.parsed_action_display.toPlainText()
-        body = {"code": next_action_text}
-        # Send the request to the runtime
-        try:
-            response_raw = requests.post("http://localhost:8000/execute", json=body)
-            # Process and display the output
-            runtime_output = response_raw.text
-            if "output" in runtime_output:
-                output_processed = eval(runtime_output)["output"]
-                self.output_display.setText(str(output_processed))
-            else:
-                output_processed = eval(runtime_output)["error"]
-                self.output_display.setText("Error: " + str(output_processed))
-        except Exception as e:
-            self.output_display.setText(f"Error: {str(e)}")
-
-        if next_action_text.strip():
-            current_trajectory_text = self.trajectory_display.toPlainText()
-            new_trajectory_text = (
-                current_trajectory_text + "\n" + next_action_text
-                if current_trajectory_text
-                else next_action_text
-            )
-            self.trajectory_display.setPlainText(new_trajectory_text)
-            self.parsed_action_display.clear()
-
-    def interrupt_action(self):
-        # TODO: send interrupt signal to the runtime
-        pass
-
-    @asyncClose
-    async def closeEvent(self, event):
-        self.statusBar().showMessage("Closing")
-        exit(0)
-
-
-class RemoteAgentInterface(QMainWindow):
-    layout_width = 300
-
-    def __init__(
-        self,
-        # agent: Agent,
-        task_configs: list,
-        record_path: str = config.record_path,
-    ):
-        super().__init__()
-        # self.agent = agent
         self.task_list = [task["instruction"] for task in task_configs]
         self.task_configs = task_configs
         self.action_queue: queue.Queue = queue.Queue()
@@ -243,7 +69,8 @@ class RemoteAgentInterface(QMainWindow):
         self.setup_ui()
 
         self.vnc = None
-        self.connect_vnc()
+        if config.remote:
+            self.connect_vnc()
         self.reset()
 
     def setup_ui(self):
@@ -254,94 +81,118 @@ class RemoteAgentInterface(QMainWindow):
         central_widget.setMouseTracking(True)
         main_layout = QHBoxLayout(central_widget)
 
-        left_layout = QVBoxLayout()
-        self.vnc_frame = VNCFrame(self)
-        left_layout.addWidget(self.vnc_frame)
-        main_layout.addLayout(left_layout)
+        if config.remote:
+            vnc_layout = QVBoxLayout()
+            self.vnc_frame = VNCFrame(self)
+            vnc_layout.addWidget(self.vnc_frame)
+            reconnect_button = QPushButton("Re-connect")
+            reconnect_button.clicked.connect(self.reconnect)
+            vnc_layout.addWidget(reconnect_button)
+            main_layout.addLayout(vnc_layout)
 
-        middle_layout = QVBoxLayout()
+        agent_layout = QVBoxLayout()
 
-        middle_layout.addWidget(QLabel("Model response"))
+        agent_layout.addWidget(QLabel("Model response"))
         self.response_display = QTextEdit(self)
-        middle_layout.addWidget(self.response_display)
+        agent_layout.addWidget(self.response_display)
         self.response_display.setReadOnly(True)
         # self.response_display.setFixedHeight(300)
 
-        middle_layout.addWidget(QLabel("Parsed Actions"))
+        agent_layout.addWidget(QLabel("Parsed Actions"))
         self.parsed_action_display = QTextEdit(self)
-        middle_layout.addWidget(self.parsed_action_display)
+        agent_layout.addWidget(self.parsed_action_display)
         self.parsed_action_display.setReadOnly(True)
 
-        confirm_button = QPushButton("Confirm and execute action")
+        confirm_button = QPushButton("Accept")
+        decline_button = QPushButton("Reject")
         confirm_button.clicked.connect(self.step_action)
-        middle_layout.addWidget(confirm_button)
+        # decline_button.clicked.connect(self.reset)
+        consent_button_layout = QHBoxLayout()
+        consent_button_layout.addWidget(confirm_button)
+        consent_button_layout.addWidget(decline_button)
 
-        middle_layout.addWidget(QLabel("Runtime output"))
+        agent_layout.addLayout(consent_button_layout)
+
+        agent_layout.addWidget(QLabel("Runtime output"))
         self.output_display = QTextEdit(self)
         # self.output_display.setFixedHeight(40)
-        middle_layout.addWidget(self.output_display)
+        agent_layout.addWidget(self.output_display)
         self.output_display.setReadOnly(True)
 
         interrupt_button = QPushButton("Interrupt action")
         interrupt_button.clicked.connect(self.interrupt_action)
-        middle_layout.addWidget(interrupt_button)
+        agent_layout.addWidget(interrupt_button)
 
-        main_layout.addLayout(middle_layout)
+        agent_layout.addWidget(QLabel("Trajectory"))
+        self.trajectory_display = QTextEdit(self)
+        agent_layout.addWidget(self.trajectory_display)
+        self.trajectory_display.setReadOnly(True)
+        # self.trajectory_display.setFixedWidth(self.layout_width)
 
-        right_layout = QVBoxLayout()
+        main_layout.addLayout(agent_layout)
 
-        reconnect_button = QPushButton("Re-connect")
-        reconnect_button.clicked.connect(self.reconnect)
-        right_layout.addWidget(reconnect_button)
+        task_layout = QVBoxLayout()
+
+
+        task_layout.addWidget(QLabel("Task configuration"))
+        self.task_config_display = QTextEdit(self)
+        task_layout.addWidget(self.task_config_display)
+        self.task_config_display.setReadOnly(True)
+        # self.task_config_display.setFixedHeight(200)
+        # self.task_config_display.setFixedWidth(self.layout_width)
+
+        task_layout.addWidget(QLabel("Task Selection (double click to select)"))
+        self.instruction_selection = QListWidget(self)
+        self.instruction_selection.itemDoubleClicked.connect(self.select_task_instruction)
+        task_layout.addWidget(self.instruction_selection)
+        self.instruction_selection.clear()
+        self.instruction_selection.addItems(self.task_list)
+
+        execution_button_layout = QHBoxLayout()
 
         start_button = QPushButton("Start")
-        start_button.clicked.connect(self.run_agent)
-        right_layout.addWidget(start_button)
+        start_button.clicked.connect(self.run_task)
+        execution_button_layout.addWidget(start_button)
 
-        right_layout.addWidget(QLabel("Task configuration"))
-        self.task_config_display = QTextEdit(self)
-        right_layout.addWidget(self.task_config_display)
-        self.task_config_display.setReadOnly(True)
-        self.task_config_display.setFixedHeight(200)
-        self.task_config_display.setFixedWidth(self.layout_width)
-
-        right_layout.addWidget(QLabel("Trajectory"))
-        self.trajectory_display = QTextEdit(self)
-        right_layout.addWidget(self.trajectory_display)
-        self.trajectory_display.setReadOnly(True)
-        self.trajectory_display.setFixedWidth(self.layout_width)
-
-        eval_button = QPushButton("Auto-eval")
+        eval_button = QPushButton("Evaluate")
         eval_button.clicked.connect(self.eval_task)
-        right_layout.addWidget(eval_button)
+        execution_button_layout.addWidget(eval_button)
 
-        right_layout.addWidget(QLabel("Auto-eval result"))
+        task_layout.addLayout(execution_button_layout)
+
+        task_layout.addWidget(QLabel("Evaluation result"))
         self.auto_eval_display = QTextEdit(self)
-        right_layout.addWidget(self.auto_eval_display)
+        task_layout.addWidget(self.auto_eval_display)
         self.auto_eval_display.setReadOnly(True)
-        self.auto_eval_display.setFixedHeight(60)
-        self.auto_eval_display.setFixedWidth(self.layout_width)
+        # self.auto_eval_display.setFixedHeight(60)
+        # self.auto_eval_display.setFixedWidth(self.layout_width)
 
-        right_layout.addWidget(QLabel("Agent self-eval result"))
+        task_layout.addWidget(QLabel("Agent self-eval result"))
         self.agent_eval_display = QTextEdit(self)
-        right_layout.addWidget(self.agent_eval_display)
+        task_layout.addWidget(self.agent_eval_display)
         self.agent_eval_display.setReadOnly(True)
-        self.agent_eval_display.setFixedHeight(60)
-        self.agent_eval_display.setFixedWidth(self.layout_width)
+        # self.agent_eval_display.setFixedHeight(60)
+        # self.agent_eval_display.setFixedWidth(self.layout_width)
 
         self.success_checkbox = QCheckBox("Is this task successful?")
         self.success_checkbox.setChecked(False)
-        right_layout.addWidget(self.success_checkbox)
+        task_layout.addWidget(self.success_checkbox)
 
         next_button = QPushButton("Next task")
         next_button.clicked.connect(self.reset)
-        right_layout.addWidget(next_button)
+        task_layout.addWidget(next_button)
 
         self.statusBar().showMessage("Ready")
 
-        main_layout.addLayout(right_layout)
+        main_layout.addLayout(task_layout)
 
         self.setMouseTracking(True)
+
+    def select_task_instruction(self, item):
+        self.task_instruction = item.text()
+        selected_task_idx = self.instruction_selection.currentRow()
+        self.selected_task = self.task_configs[selected_task_idx]
+        self.task_config_display.setText(format_json(self.selected_task))
 
     @asyncSlot()
     async def reconnect(self):
@@ -432,7 +283,7 @@ class RemoteAgentInterface(QMainWindow):
         self.selected_task = None
         self.statusBar().showMessage("Select a task from the list")
 
-    def run_agent(self):
+    def reset_task(self):
         if self.selected_task is None:
             self.statusBar().showMessage("No task selected")
             return
@@ -446,14 +297,28 @@ class RemoteAgentInterface(QMainWindow):
         response = PlaygroundResponse(**response_raw.json())
         assert response.status == "submitted"
         self._wait_finish()
-        # self.agent.reset(
-        #     task_id=self.selected_task["task_id"],
-        #     instruction=self.selected_task["instruction"],
-        #     record_screen=self.selected_task.get("visual", False),
-        # )
+        response_raw = requests.get(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/result",
+        )
+        response = PlaygroundResultResponse(**response_raw.json())
+        # TODO: handle failed reset
+        assert response.status == "finished" and response.result == "success"
+        self.agent.reset(
+            instruction=self.selected_task["instruction"],
+        )
         self.statusBar().showMessage("Initialization finished. Running...")
 
+    def run_task(self):
+        self.reset_task()
+        # self.agent.step()
+        raw_code, code, done = self.agent.get_action()
+        self.parsed_action_display.setPlainText(code)
+        self.response_display.setPlainText(raw_code)
+
     def eval_task(self):
+        if self.selected_task is None:
+            self.statusBar().showMessage("No task selected")
+            return
         response_raw = requests.post(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
             json=PlaygroundEvalRequest(
@@ -474,17 +339,14 @@ class RemoteAgentInterface(QMainWindow):
     def step_action(self):
         """Steps the next action and adds it to the trajectory."""
         next_action_text = self.parsed_action_display.toPlainText()
-        body = {"code": next_action_text}
         # Send the request to the runtime
         try:
-            response_raw = requests.post("http://localhost:8000/execute", json=body)
-            # Process and display the output
-            runtime_output = response_raw.text
+            runtime_output = self.agent.runtime.exec(next_action_text)
             if "output" in runtime_output:
-                output_processed = eval(runtime_output)["output"]
+                output_processed = runtime_output["output"]
                 self.output_display.setText(str(output_processed))
             else:
-                output_processed = eval(runtime_output)["error"]
+                output_processed = runtime_output["error"]
                 self.output_display.setText("Error: " + str(output_processed))
         except Exception as e:
             self.output_display.setText(f"Error: {str(e)}")
@@ -558,7 +420,7 @@ class RemoteAgentInterface(QMainWindow):
         exit(0)
 
 
-async def run_ui(agent: Agent, task_configs: dict, record_path: str):
+async def run_ui(agent: Agent, task_configs: list[dict], record_path: str):
     def close_future(future, loop):
         loop.call_later(10, future.cancel)
         future.cancel()
@@ -572,18 +434,11 @@ async def run_ui(agent: Agent, task_configs: dict, record_path: str):
             functools.partial(close_future, future, loop)
         )
 
-    if config.remote:
-        interface = RemoteAgentInterface(
-            agent=agent,
-            task_configs=task_configs,
-            record_path=record_path,
-        )
-    else:
-        interface = AgentInterface(
-            agent=agent,
-            task_configs=task_configs,
-            record_path=record_path,
-        )
+    interface = AgentInterface(
+        agent=agent,
+        task_configs=task_configs,
+        record_path=record_path,
+    )
 
     interface.show()
 

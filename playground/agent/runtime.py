@@ -1,6 +1,7 @@
 import os
 
 from jupyter_client import KernelManager
+import requests
 
 from playground.config.config import Config
 
@@ -51,3 +52,19 @@ class PythonRuntime:
         self.km.shutdown_kernel()
         del self.km
         del self.kc
+
+class RemotePythonRuntime:
+    def __init__(self):
+        pass
+
+    def exec(self, code: str) -> dict:
+
+        response = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/execute",
+            json={"message": code},
+        )
+        return response.json()
+
+    def close(self) -> None:
+        # TODO: Implement close method
+        pass

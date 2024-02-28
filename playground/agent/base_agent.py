@@ -3,7 +3,7 @@ from typing import Any
 
 import requests
 
-from playground.agent.runtime import PythonRuntime
+from playground.agent.runtime import PythonRuntime, RemotePythonRuntime
 from playground.config import Config
 from playground.llm.base_model import BaseModel
 from playground.llm.utils import extract_from_response
@@ -22,7 +22,9 @@ class Agent:
         self.trajectory: list[dict[str, Any]] = []
 
         if not config.remote:
-            self.runtime: PythonRuntime | None = None
+            self.runtime = PythonRuntime()
+        else:
+            self.runtime = RemotePythonRuntime()
 
     def reset(
         self,
@@ -35,10 +37,12 @@ class Agent:
             if self.runtime is not None:
                 self.runtime.close()
             self.runtime = PythonRuntime()
+        else:
+            if self.runtime is not None:
+                self.runtime.close()
+            self.runtime = RemotePythonRuntime()
 
-    def step(self) -> tuple[dict, bool]:
-        """Executes and records the given code by LLM in the environment."""
-        obs = None
+    def get_action(self) -> tuple[str, str, bool]:
         prompt = self.construct_prompt()
         response, info = self.model.generate_response(
             messages=prompt, model=config.model
@@ -53,7 +57,12 @@ class Agent:
             code = raw_code
 
         logger.debug(f"Executing code:\n{code}\n")
+        return raw_code, code, done
 
+    def step(self) -> tuple[dict, bool]:
+        """Executes and records the given code by LLM in the environment."""
+        obs = None
+        raw_code, code, done = self.get_action()
         confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
         result = {}
         if confirmed:
@@ -62,7 +71,6 @@ class Agent:
                     f"http://{config.env_server_addr}:{config.env_server_port}/execute",
                     json={"message": code},
                 )
-                print(response.json())
                 result = response.json()
             else:
                 assert self.runtime is not None, "The agent needs to reset first."
