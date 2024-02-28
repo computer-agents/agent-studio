@@ -12,17 +12,16 @@ import requests
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QImage
 from PyQt6.QtWidgets import (
-    QCheckBox,
     QHBoxLayout,
     QLabel,
     QMainWindow,
-    QMessageBox,
     QPushButton,
     QTextEdit,
     QVBoxLayout,
     QWidget,
     QListWidget,
-    QStatusBar
+    QStatusBar,
+    QInputDialog,
 )
 from qasync import QApplication, asyncClose, asyncSlot
 
@@ -107,13 +106,15 @@ class AgentInterface(QMainWindow):
         agent_layout.addWidget(self.parsed_action_display)
         self.parsed_action_display.setReadOnly(True)
 
-        confirm_button = QPushButton("Accept")
-        decline_button = QPushButton("Reject")
-        confirm_button.clicked.connect(self.step_action)
-        # decline_button.clicked.connect(self.reset)
+        self.confirm_button = QPushButton("Accept")
+        self.decline_button = QPushButton("Reject")
+        self.confirm_button.setEnabled(False)
+        self.decline_button.setEnabled(False)
+        self.confirm_button.clicked.connect(self.step_action)
+        # self.decline_button.clicked.connect(self.reset)
         consent_button_layout = QHBoxLayout()
-        consent_button_layout.addWidget(confirm_button)
-        consent_button_layout.addWidget(decline_button)
+        consent_button_layout.addWidget(self.confirm_button)
+        consent_button_layout.addWidget(self.decline_button)
 
         agent_layout.addLayout(consent_button_layout)
 
@@ -154,33 +155,24 @@ class AgentInterface(QMainWindow):
 
         execution_button_layout = QHBoxLayout()
 
-        start_button = QPushButton("Start")
-        start_button.clicked.connect(self.run_task)
-        execution_button_layout.addWidget(start_button)
+        self.start_button = QPushButton("Start")
+        self.start_button.setEnabled(False)
+        self.start_button.clicked.connect(self.run_task)
+        execution_button_layout.addWidget(self.start_button)
 
-        eval_button = QPushButton("Evaluate")
-        eval_button.clicked.connect(self.eval_task)
-        execution_button_layout.addWidget(eval_button)
+        self.eval_button = QPushButton("Evaluate")
+        self.eval_button.setEnabled(False)
+        self.eval_button.clicked.connect(self.eval_task)
+        execution_button_layout.addWidget(self.eval_button)
 
         task_layout.addLayout(execution_button_layout)
 
         task_layout.addWidget(QLabel("Evaluation result"))
-        self.auto_eval_display = QTextEdit(self)
-        task_layout.addWidget(self.auto_eval_display)
-        self.auto_eval_display.setReadOnly(True)
-        # self.auto_eval_display.setFixedHeight(60)
-        # self.auto_eval_display.setFixedWidth(self.layout_width)
-
-        task_layout.addWidget(QLabel("Agent self-eval result"))
-        self.agent_eval_display = QTextEdit(self)
-        task_layout.addWidget(self.agent_eval_display)
-        self.agent_eval_display.setReadOnly(True)
-        # self.agent_eval_display.setFixedHeight(60)
-        # self.agent_eval_display.setFixedWidth(self.layout_width)
-
-        self.success_checkbox = QCheckBox("Is this task successful?")
-        self.success_checkbox.setChecked(False)
-        task_layout.addWidget(self.success_checkbox)
+        self.evaluation_display = QTextEdit(self)
+        task_layout.addWidget(self.evaluation_display)
+        self.evaluation_display.setReadOnly(True)
+        # self.evaluation_display.setFixedHeight(60)
+        # self.evaluation_display.setFixedWidth(self.layout_width)
 
         next_button = QPushButton("Next task")
         next_button.clicked.connect(self.reset)
@@ -197,6 +189,7 @@ class AgentInterface(QMainWindow):
         selected_task_idx = self.instruction_selection.currentRow()
         self.selected_task = self.task_configs[selected_task_idx]
         self.task_config_display.setText(format_json(self.selected_task))
+        self.start_button.setEnabled(True)
 
     @asyncSlot()
     async def reconnect(self):
@@ -251,19 +244,16 @@ class AgentInterface(QMainWindow):
                 break
             elif response.status == "wait_for_input":
                 self.status_bar.showMessage("Waiting for input")
-                dlg = QMessageBox(self)
-                dlg.setWindowTitle("Need response")
-                dlg.setText(response.content)
-                dlg.setStandardButtons(
-                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-                )
-
-                confirmation: str = (
-                    "y" if (dlg.exec() == QMessageBox.StandardButton.Yes) else "n"
-                )
+                dlg = QInputDialog(self)
+                dlg.setLabelText(response.content)
+                dlg.show()
+                dlg.findChildren(QPushButton)[1].hide()
+                result = dlg.exec()
+                assert result == QInputDialog.DialogCode.Accepted
+                user_input = dlg.textValue()
                 response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",  # noqa: E501
-                    json=PlaygroundTextRequest(message=str(confirmation)).model_dump(),
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
                 response = PlaygroundResponse(**response_raw.json())
                 assert response.status == "success"
@@ -283,7 +273,7 @@ class AgentInterface(QMainWindow):
         self.parsed_action_display.clear()
         self.response_display.clear()
         self.output_display.clear()
-        self.success_checkbox.setChecked(False)
+        self.evaluation_display.clear()
         self.selected_task = None
         self.status_bar.showMessage("Select a task from the list")
 
@@ -313,13 +303,22 @@ class AgentInterface(QMainWindow):
         self.status_bar.showMessage("Initialization finished. Running...")
 
     def run_task(self):
+        self.start_button.setEnabled(False)
+        self.eval_button.setEnabled(False)
+        self.confirm_button.setEnabled(False)
+        self.decline_button.setEnabled(False)
         self.reset_task()
-        # self.agent.step()
-        raw_code, code, done = self.agent.get_action()
+        raw_code, code, _ = self.agent.generate_action()
         self.parsed_action_display.setPlainText(code)
         self.response_display.setPlainText(raw_code)
+        self.confirm_button.setEnabled(True)
+        self.decline_button.setEnabled(True)
 
     def eval_task(self):
+        self.start_button.setEnabled(False)
+        self.eval_button.setEnabled(False)
+        self.confirm_button.setEnabled(False)
+        self.decline_button.setEnabled(False)
         if self.selected_task is None:
             self.status_bar.showMessage("No task selected")
             return
@@ -327,7 +326,7 @@ class AgentInterface(QMainWindow):
             f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
             json=PlaygroundEvalRequest(
                 task_config=self.selected_task,
-                trajectory=bytes2str(self.trajectory_display),
+                trajectory=bytes2str(self.trajectory_display.toPlainText()),
             ).model_dump(),
         )
         response = PlaygroundResponse(**response_raw.json())
@@ -338,22 +337,18 @@ class AgentInterface(QMainWindow):
         )
         response = PlaygroundResultResponse(**response_raw.json())
         assert response.status == "finished" and isinstance(response.message, dict)
-        print(response.result, response.message["score"], response.message["feedback"])
+        self.evaluation_display.setPlainText(
+            f"Score: {response.message['score']}\nFeedback: {response.message['feedback']}"
+        )
+        self.start_button.setEnabled(True)
 
     def step_action(self):
         """Steps the next action and adds it to the trajectory."""
+        self.confirm_button.setEnabled(False)
+        self.decline_button.setEnabled(False)
         next_action_text = self.parsed_action_display.toPlainText()
-        # Send the request to the runtime
-        try:
-            runtime_output = self.agent.runtime.exec(next_action_text)
-            if "output" in runtime_output:
-                output_processed = runtime_output["output"]
-                self.output_display.setText(str(output_processed))
-            else:
-                output_processed = runtime_output["error"]
-                self.output_display.setText("Error: " + str(output_processed))
-        except Exception as e:
-            self.output_display.setText(f"Error: {str(e)}")
+        result, done = self.agent.step_action(confirmed=True)
+        self.output_display.setPlainText(str(result))
 
         if next_action_text.strip():
             current_trajectory_text = self.trajectory_display.toPlainText()
@@ -364,6 +359,18 @@ class AgentInterface(QMainWindow):
             )
             self.trajectory_display.setPlainText(new_trajectory_text)
             self.parsed_action_display.clear()
+
+        if not done:
+            raw_code, code, _ = self.agent.generate_action()
+            self.parsed_action_display.setPlainText(code)
+            self.response_display.setPlainText(raw_code)
+            self.confirm_button.setEnabled(True)
+            self.decline_button.setEnabled(True)
+        else:
+            self.confirm_button.setEnabled(False)
+            self.decline_button.setEnabled(False)
+            self.start_button.setEnabled(False)
+            self.eval_button.setEnabled(True)
 
     def interrupt_action(self):
         # TODO: send interrupt signal to the runtime

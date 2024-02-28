@@ -1,6 +1,6 @@
 import os
 
-from jupyter_client import KernelManager
+from jupyter_client.manager import KernelManager
 import requests
 
 from playground.config.config import Config

@@ -2,6 +2,7 @@ import logging
 from typing import Any
 
 import requests
+import PIL.Image
 
 from playground.agent.runtime import PythonRuntime, RemotePythonRuntime
 from playground.config import Config
@@ -13,6 +14,22 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
+class Action:
+    """A class for the action of the agent."""
+
+    def __init__(
+            self,
+            raw_code: str,
+            code: str,
+            done: bool,
+            obs: PIL.Image.Image | None = None
+        ) -> None:
+        self.obs = obs
+        self.raw_code = raw_code
+        self.code = code
+        self.done = done
+
+
 class Agent:
     """Base class for agents."""
 
@@ -20,6 +37,7 @@ class Agent:
         self.model = model
         self.instruction: str = ""
         self.trajectory: list[dict[str, Any]] = []
+        self.current_action: Action | None = None
 
         if config.remote:
             self.runtime = RemotePythonRuntime()
@@ -32,6 +50,7 @@ class Agent:
     ) -> None:
         self.instruction = instruction
         self.trajectory = []
+        self.current_action = None
 
         if config.remote:
             if self.runtime is not None:
@@ -42,7 +61,7 @@ class Agent:
                 self.runtime.close()
             self.runtime = PythonRuntime()
 
-    def get_action(self) -> tuple[str, str, bool]:
+    def generate_action(self) -> tuple[str, str, bool]:
         prompt = self.construct_prompt()
         response, info = self.model.generate_response(
             messages=prompt, model=config.model
@@ -57,13 +76,16 @@ class Agent:
             code = raw_code
 
         logger.debug(f"Executing code:\n{code}\n")
+        self.current_action = Action(raw_code=raw_code, code=code, done=done)
         return raw_code, code, done
 
-    def step(self) -> tuple[dict, bool]:
-        """Executes and records the given code by LLM in the environment."""
-        obs = None
-        raw_code, code, done = self.get_action()
-        confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
+    def step_action(self, confirmed: bool) -> tuple[dict, bool]:
+        """"""
+        assert self.current_action is not None, "No action to execute."
+        code = self.current_action.code
+        done = self.current_action.done
+        raw_code = self.current_action.raw_code
+        obs = self.current_action.obs
         result = {}
         if confirmed:
             if config.remote:
@@ -82,6 +104,14 @@ class Agent:
         self.trajectory.append(
             {"obs": obs, "act": raw_code, "res": result, "done": done}
         )
+
+        return result, done
+
+    def step(self) -> tuple[dict, bool]:
+        """Executes and records the given code by LLM in the environment."""
+        _, code, _ = self.generate_action()
+        confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
+        result, done = self.step_action(confirmed)
 
         return result, done
 
