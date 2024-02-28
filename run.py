@@ -88,22 +88,23 @@ def eval(args) -> None:
 
                         atexit.register(cleanup, local_agent_server)
 
-                    # TODO: can we use qasync.run here?
-                    # qasync.run(
-                    #     run_ui(
-                    #         agent=agent,
-                    #         task_configs=task_configs,
-                    #         record_path=record_path,
-                    #     )
-                    # )
-                    app = QApplication(sys.argv)
-                    interface = AgentInterface(
-                        agent=agent,
-                        task_configs=task_configs,
-                        record_path=record_path,
-                    )
-                    interface.show()
-                    sys.exit(app.exec())
+                        app = QApplication(sys.argv)
+                        interface = AgentInterface(
+                            agent=agent,
+                            task_configs=task_configs,
+                            record_path=record_path,
+                        )
+                        interface.show()
+                        sys.exit(app.exec())
+                    else:
+                        qasync.run(
+                            run_ui(
+                                agent=agent,
+                                task_configs=task_configs,
+                                record_path=record_path,
+                            )
+                        )
+                    # TODO: can we use qasync.run when remote = False?
                 except asyncio.exceptions.CancelledError:
                     sys.exit(0)
 
