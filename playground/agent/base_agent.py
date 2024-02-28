@@ -21,10 +21,10 @@ class Agent:
         self.instruction: str = ""
         self.trajectory: list[dict[str, Any]] = []
 
-        if not config.remote:
-            self.runtime = PythonRuntime()
-        else:
+        if config.remote:
             self.runtime = RemotePythonRuntime()
+        else:
+            self.runtime = PythonRuntime()
 
     def reset(
         self,
@@ -33,14 +33,14 @@ class Agent:
         self.instruction = instruction
         self.trajectory = []
 
-        if not config.remote:
-            if self.runtime is not None:
-                self.runtime.close()
-            self.runtime = PythonRuntime()
-        else:
+        if config.remote:
             if self.runtime is not None:
                 self.runtime.close()
             self.runtime = RemotePythonRuntime()
+        else:
+            if self.runtime is not None:
+                self.runtime.close()
+            self.runtime = PythonRuntime()
 
     def get_action(self) -> tuple[str, str, bool]:
         prompt = self.construct_prompt()
