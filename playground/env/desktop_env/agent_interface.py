@@ -268,6 +268,10 @@ class AgentInterface(QMainWindow):
     def reset(self):
         """Resets the task and waits for the environment to be ready."""
         # Clears all the text fields.
+        self.eval_button.setEnabled(False)
+        self.start_button.setEnabled(True)
+        self.confirm_button.setEnabled(False)
+        self.decline_button.setEnabled(False)
         self.task_config_display.clear()
         self.trajectory_display.clear()
         self.parsed_action_display.clear()
@@ -340,7 +344,6 @@ class AgentInterface(QMainWindow):
         self.evaluation_display.setPlainText(
             f"Score: {response.message['score']}\nFeedback: {response.message['feedback']}"
         )
-        self.start_button.setEnabled(True)
 
     def step_action(self):
         """Steps the next action and adds it to the trajectory."""
