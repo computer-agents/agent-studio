@@ -69,8 +69,6 @@ class AgentInterface(QMainWindow):
         self.setup_ui()
 
         self.vnc = None
-        if config.remote:
-            self.connect_vnc()
         self.reset()
 
     def setup_ui(self):
@@ -82,6 +80,7 @@ class AgentInterface(QMainWindow):
         main_layout = QHBoxLayout(central_widget)
 
         if config.remote:
+            self.connect_vnc()
             vnc_layout = QVBoxLayout()
             self.vnc_frame = VNCFrame(self)
             vnc_layout.addWidget(self.vnc_frame)
@@ -369,18 +368,18 @@ class AgentInterface(QMainWindow):
         try:
             if self.vnc is not None:
                 self.now_screenshot = await self.vnc.screenshot()
+
+                rgba_array = self.now_screenshot
+                if rgba_array is not None:
+                    qimage = QImage(
+                        rgba_array.tobytes(),
+                        self.video_width,
+                        self.video_height,
+                        QImage.Format.Format_RGBA8888,
+                    )
+                    self.vnc_frame.update(qimage)
         except Exception as e:
             logger.error("Fail to get screenshot.", e)
-
-        rgba_array = self.now_screenshot
-        if rgba_array is not None:
-            qimage = QImage(
-                rgba_array.tobytes(),
-                self.video_width,
-                self.video_height,
-                QImage.Format.Format_RGBA8888,
-            )
-            self.vnc_frame.update(qimage)
 
     @asyncSlot()
     async def render(self):
@@ -416,7 +415,7 @@ class AgentInterface(QMainWindow):
         self.refresh_timer.stop()
         if self.vnc is not None:
             await self.vnc.disconnect()
-        logger.info("VNC disconnected")
+            logger.info("VNC disconnected")
         exit(0)
 
 

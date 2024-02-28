@@ -4,10 +4,12 @@ import logging
 import sys
 
 import qasync
+from qasync import QApplication
 import psutil
 
 from playground.config import Config
 from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
+from playground.env.desktop_env.agent_interface import AgentInterface
 from playground.llm import setup_model
 from playground.utils.json_utils import read_jsonl
 
@@ -86,13 +88,22 @@ def eval(args) -> None:
 
                         atexit.register(cleanup, local_agent_server)
 
-                    qasync.run(
-                        run_ui(
-                            agent=agent,
-                            task_configs=task_configs,
-                            record_path=record_path,
-                        )
+                    # TODO: can we use qasync.run here?
+                    # qasync.run(
+                    #     run_ui(
+                    #         agent=agent,
+                    #         task_configs=task_configs,
+                    #         record_path=record_path,
+                    #     )
+                    # )
+                    app = QApplication(sys.argv)
+                    interface = AgentInterface(
+                        agent=agent,
+                        task_configs=task_configs,
+                        record_path=record_path,
                     )
+                    interface.show()
+                    sys.exit(app.exec())
                 except asyncio.exceptions.CancelledError:
                     sys.exit(0)
 
