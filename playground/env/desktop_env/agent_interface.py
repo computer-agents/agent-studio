@@ -109,12 +109,15 @@ class RunTaskThread(QThread):
             if response.status == "finished":
                 break
             elif response.status == "wait_for_input":
-                self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
-                self.mutex.lock()
-                self.signals.show_input_dialog_signal.emit(response.content)
-                self.wait_condition.wait(self.mutex)
-                self.mutex.unlock()
-                user_input = self.user_input
+                if config.need_human_confirmation:
+                    self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
+                    self.mutex.lock()
+                    self.signals.show_input_dialog_signal.emit(response.content)
+                    self.wait_condition.wait(self.mutex)
+                    self.mutex.unlock()
+                    user_input = self.user_input
+                else:
+                    user_input = "y"
                 response_raw = requests.post(
                     url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
@@ -338,9 +341,9 @@ class AgentInterface(QMainWindow):
         agent_layout.addWidget(self.output_display)
         self.output_display.setReadOnly(True)
 
-        interrupt_button = QPushButton("Interrupt action")
-        interrupt_button.clicked.connect(self.interrupt_action)
-        agent_layout.addWidget(interrupt_button)
+        # interrupt_button = QPushButton("Interrupt action")
+        # interrupt_button.clicked.connect(self.interrupt_action)
+        # agent_layout.addWidget(interrupt_button)
 
         agent_layout.addWidget(QLabel("Trajectory"))
         self.trajectory_display = QTextEdit(self)
@@ -380,6 +383,10 @@ class AgentInterface(QMainWindow):
         self.eval_button.clicked.connect(self.eval_task)
         execution_button_layout.addWidget(self.eval_button)
 
+        # auto_eval_button = QPushButton("Auto-evaluate")
+        # auto_eval_button.clicked.connect(self.auto_eval)
+        # agent_layout.addWidget(auto_eval_button)
+
         task_layout.addLayout(execution_button_layout)
 
         task_layout.addWidget(QLabel("Evaluation result"))
@@ -399,21 +406,24 @@ class AgentInterface(QMainWindow):
 
         self.setMouseTracking(True)
 
-    def populate_instruction_selection_widget(self):
-        self.instruction_selection.clear()
+    def load_task_results(self):
         jsonl_path = self.record_path / "tasks.jsonl"
         if jsonl_path.exists():
             evaluated_tasks = read_jsonl(jsonl_path.as_posix())
-            task_results = {
-                task_result["task_config"]["task_id"]: task_result["score"] \
+            self.task_results = {
+                task_result["task_config"]["task_id"]: task_result \
                     for task_result in evaluated_tasks
             }
         else:
-            task_results = {}
+            self.task_results = {}
+
+    def populate_instruction_selection_widget(self):
+        self.load_task_results()
+        self.instruction_selection.clear()
         for task in self.task_configs:
             item = QListWidgetItem(task["instruction"])
-            if task["task_id"] in task_results:
-                if task_results[task["task_id"]] == "1.0":
+            if task["task_id"] in self.task_results:
+                if self.task_results[task["task_id"]]["score"] == "1.0":
                     item.setForeground(QColor('green'))
                 else:
                     item.setForeground(QColor('red'))
@@ -424,6 +434,13 @@ class AgentInterface(QMainWindow):
         selected_task_idx = self.instruction_selection.currentRow()
         self.selected_task = self.task_configs[selected_task_idx]
         self.task_config_display.setText(format_json(self.selected_task))
+        self.evaluation_display.clear()
+        if self.selected_task["task_id"] in self.task_results:
+            self.evaluation_display.setPlainText(
+                f"Score: {self.task_results[self.selected_task['task_id']]['score']}\n"
+                    f"Feedback: {self.task_results[self.selected_task['task_id']]['feedback']}"
+                )
+
         self.start_button.setEnabled(True)
 
     def capture_screen(self) -> None:
@@ -614,6 +631,7 @@ class AgentInterface(QMainWindow):
 
     def run_task(self):
         self.instruction_selection.setEnabled(False)
+        self.evaluation_display.clear()
 
         if self.selected_task is None:
             self.set_task_status_bar_text("color: red;", "Task: No task selected")

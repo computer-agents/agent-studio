@@ -116,9 +116,13 @@ class Agent:
         return result, self.current_action.done
 
     def step(self, obs: np.ndarray | None = None) -> tuple[dict, bool]:
-        """Executes and records the given code by LLM in the environment."""
+        """Executes and records the given code by LLM in the environment.
+        (This function should only be called in headless mode.)"""
         _, code, _ = self.generate_action(obs)
-        confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
+        if config.need_human_confirmation:
+            confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
+        else:
+            confirmed = True
         result, done = self.step_action(confirmed)
 
         return result, done
