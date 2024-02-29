@@ -1,5 +1,6 @@
 import logging
 from typing import Any
+import time
 
 import requests
 import PIL.Image
@@ -61,6 +62,9 @@ class Agent:
                 self.runtime.close()
             self.runtime = PythonRuntime()
 
+    def get_trajectory(self) -> list[dict[str, Any]]:
+        return self.trajectory
+
     def generate_action(self) -> tuple[str, str, bool]:
         prompt = self.construct_prompt()
         response, info = self.model.generate_response(
@@ -102,7 +106,7 @@ class Agent:
         logger.info(f"Output: {result}\nDone: {done}\n")
 
         self.trajectory.append(
-            {"obs": obs, "act": raw_code, "res": result, "done": done}
+            {"obs": obs, "act": raw_code, "res": result, "done": done, "timestamp": time.time()}
         )
 
         return result, done

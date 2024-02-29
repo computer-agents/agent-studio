@@ -36,7 +36,6 @@ class HumanInterface(QMainWindow):
         record_path: str = config.record_path,
     ):
         super().__init__()
-        self.action_queue: queue.Queue = queue.Queue()
         self.refresh_timer = QTimer(self)
         self.refresh_timer.setInterval(1)
         self.refresh_timer.timeout.connect(self.render)
@@ -110,7 +109,6 @@ class HumanInterface(QMainWindow):
     @asyncSlot()
     async def reconnect(self):
         """Reconnects to VNC server."""
-        self.action_queue.queue.clear()
         await self.vnc.disconnect()
         self.connect_vnc()
 
@@ -143,17 +141,6 @@ class HumanInterface(QMainWindow):
         self.instruction_editor.clear()
         self.trajectory_display.clear()
         self.next_action_editor.clear()
-
-    def set_status_text(self):
-        all_status_text = []
-        all_status_text.append(self.last_message)
-        if action_queue_size := self.action_queue.qsize():
-            all_status_text.append(f"{action_queue_size} Actions Waiting to Execute.")
-        if self.vnc is not None:
-            if local_cursor_pos := self.vnc_frame.get_cursor_pos():
-                all_status_text.append(f"Cursor Position: {str(local_cursor_pos)}")
-
-        self.statusBar().showMessage(" ".join(all_status_text))
 
     def step_action(self):
         """Steps the next action and adds it to the trajectory."""
@@ -209,21 +196,9 @@ class HumanInterface(QMainWindow):
 
         self.refreshing_screen = True
         await self.update_screen()
-        self.set_status_text()
-
-        try:
-            while not self.action_queue.empty():
-                action = self.action_queue.get()
-                action.action_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
-                action.before_action_obs = self.now_screenshot
-                await action.step(self.vnc)
-
-                del action
-
-        except Exception as e:
-            logger.error(e)
-
-        self.set_status_text()
+        if self.vnc is not None:
+            if local_cursor_pos := self.vnc_frame.get_cursor_pos():
+                self.statusBar().showMessage(f"Cursor Position: {str(local_cursor_pos)}")
         self.refreshing_screen = False
         self.refresh_timer.start()
 

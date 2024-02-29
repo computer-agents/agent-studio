@@ -2,10 +2,12 @@ import argparse
 import asyncio
 import logging
 import sys
+import time
 
 import qasync
 from qasync import QApplication
 import psutil
+import requests
 
 from playground.config import Config
 from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
@@ -88,6 +90,18 @@ def eval(args) -> None:
 
                         atexit.register(cleanup, local_agent_server)
 
+                    while True:
+                        try:
+                            response = requests.get(
+                                f"http://{config.env_server_addr}:{config.env_server_port}/health"
+                            )
+                            if response.status_code == 200:
+                                break
+                        except Exception:
+                            logger.info("Waiting for the agent server to start...")
+                            time.sleep(1)
+
+                    if not config.remote:
                         app = QApplication(sys.argv)
                         interface = AgentInterface(
                             agent=agent,
