@@ -3,7 +3,7 @@ from typing import Any
 import time
 
 import requests
-import PIL.Image
+import numpy as np
 
 from playground.agent.runtime import PythonRuntime, RemotePythonRuntime
 from playground.config import Config
@@ -23,12 +23,14 @@ class Action:
             raw_code: str,
             code: str,
             done: bool,
-            obs: PIL.Image.Image | None = None
+            timestamp: float = time.time(),
+            obs: np.ndarray | None = None
         ) -> None:
         self.obs = obs
         self.raw_code = raw_code
         self.code = code
         self.done = done
+        self.timestamp = timestamp
 
 
 class Agent:
@@ -65,7 +67,7 @@ class Agent:
     def get_trajectory(self) -> list[dict[str, Any]]:
         return self.trajectory
 
-    def generate_action(self) -> tuple[str, str, bool]:
+    def generate_action(self, obs) -> tuple[str, str, bool]:
         prompt = self.construct_prompt()
         response, info = self.model.generate_response(
             messages=prompt, model=config.model
@@ -80,16 +82,13 @@ class Agent:
             code = raw_code
 
         logger.debug(f"Executing code:\n{code}\n")
-        self.current_action = Action(raw_code=raw_code, code=code, done=done)
+        self.current_action = Action(raw_code=raw_code, code=code, done=done, obs=obs)
         return raw_code, code, done
 
     def step_action(self, confirmed: bool) -> tuple[dict, bool]:
         """"""
         assert self.current_action is not None, "No action to execute."
         code = self.current_action.code
-        done = self.current_action.done
-        raw_code = self.current_action.raw_code
-        obs = self.current_action.obs
         result = {}
         if confirmed:
             if config.remote:
@@ -103,17 +102,22 @@ class Agent:
                 result = self.runtime.exec(code)
         else:
             result["content"] = "Cancelled by user."
-        logger.info(f"Output: {result}\nDone: {done}\n")
 
         self.trajectory.append(
-            {"obs": obs, "act": raw_code, "res": result, "done": done, "timestamp": time.time()}
+            {
+                "obs": self.current_action.obs,
+                "act": self.current_action.raw_code,
+                "res": result,
+                "done": self.current_action.done,
+                "timestamp": self.current_action.timestamp,
+            }
         )
+        logger.info(f"Output: {result}\nDone: {self.current_action.done}\n")
+        return result, self.current_action.done
 
-        return result, done
-
-    def step(self) -> tuple[dict, bool]:
+    def step(self, obs: np.ndarray | None = None) -> tuple[dict, bool]:
         """Executes and records the given code by LLM in the environment."""
-        _, code, _ = self.generate_action()
+        _, code, _ = self.generate_action(obs)
         confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
         result, done = self.step_action(confirmed)
 

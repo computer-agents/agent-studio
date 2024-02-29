@@ -8,6 +8,7 @@ from asyncio import open_connection
 import threading
 
 import cv2
+from PIL import Image
 import numpy as np
 import mss
 import pyautogui
@@ -86,6 +87,7 @@ class RunTaskThread(QThread):
             self,
             signals: WorkerSignals,
             selected_task: dict,
+            obs: np.ndarray,
             agent: Agent
         ):
         super().__init__()
@@ -94,6 +96,7 @@ class RunTaskThread(QThread):
         self.signals = signals
         self.agent = agent
         self.selected_task = selected_task
+        self.obs = obs
 
     def _wait_finish(self):
         while True:
@@ -147,7 +150,7 @@ class RunTaskThread(QThread):
         self.reset_task()
         self.signals.status_bar_signal.emit("color: green;", "Task: Generating action...")
 
-        raw_code, code, _ = self.agent.generate_action()
+        raw_code, code, _ = self.agent.generate_action(self.obs)
 
         self.signals.status_bar_signal.emit("color: blue;", "Task: Waiting for confirmation...")
         self.signals.parsed_action_display_signal.emit(code)
@@ -406,8 +409,7 @@ class AgentInterface(QMainWindow):
                 if self.on_close:
                     break
                 if self.is_recording:
-                    with self.recording_lock:
-                        frame = self.now_screenshot.copy()
+                    frame = self.now_screenshot.copy()
                     capture_time = time.time()
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
                     # add frame to buffer
@@ -522,9 +524,10 @@ class AgentInterface(QMainWindow):
         assert self.selected_task is not None
         self.is_recording = False
 
-        video_path: Path = self.record_path / (self.selected_task["task_id"] + ".mp4")
-        if self.record_path != "" and not self.record_path.exists():
-            self.record_path.mkdir(parents=True, exist_ok=True)
+        task_record_path: Path = self.record_path / self.selected_task["task_id"]
+        video_path: Path = task_record_path / ("video.mp4")
+        if task_record_path != Path("") and not task_record_path.exists():
+            task_record_path.mkdir(parents=True, exist_ok=True)
         writer = cv2.VideoWriter(
             video_path.as_posix(),
             cv2.VideoWriter.fourcc(*"mp4v"),
@@ -559,10 +562,14 @@ class AgentInterface(QMainWindow):
 
         trajectory = self.agent.get_trajectory()
         record_dict["actions"] = []
-        for action in trajectory:
+        for idx, action in enumerate(trajectory):
+            im = Image.fromarray(action["obs"])
+            img_path = (task_record_path / (f"{idx}.png")).as_posix()
+            im.save(img_path)
             record_dict["actions"].append(
                 {
                     "timestamp": action["timestamp"],
+                    "obs": img_path,
                     "action": action["act"],
                     "result": action["res"],
                 }
@@ -602,10 +609,12 @@ class AgentInterface(QMainWindow):
         signals.parsed_action_display_signal.connect(self.parsed_action_display.setPlainText)
         signals.response_display_signal.connect(self.response_display.setPlainText)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        obs=self.now_screenshot.copy()
         self.current_thread = RunTaskThread(
             signals=signals,
             selected_task=self.selected_task,
-            agent=self.agent
+            agent=self.agent,
+            obs=obs,
         )
         self.current_thread.start()
 
@@ -655,7 +664,8 @@ class AgentInterface(QMainWindow):
             self.parsed_action_display.clear()
 
         if not done:
-            raw_code, code, _ = self.agent.generate_action()
+            obs=self.now_screenshot.copy()
+            raw_code, code, _ = self.agent.generate_action(obs)
             self.parsed_action_display.setPlainText(code)
             self.response_display.setPlainText(raw_code)
             self.confirm_button.setEnabled(True)
