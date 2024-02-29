@@ -6,6 +6,7 @@ from pathlib import Path
 import time
 from asyncio import open_connection
 import threading
+from typing import Any
 
 import cv2
 from PIL import Image
@@ -14,7 +15,7 @@ import mss
 import pyautogui
 import requests
 from PyQt6.QtCore import QThread, pyqtSignal, QTimer, QObject, QMutex, QWaitCondition
-from PyQt6.QtGui import QImage
+from PyQt6.QtGui import QImage, QColor
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -26,6 +27,7 @@ from PyQt6.QtWidgets import (
     QListWidget,
     QStatusBar,
     QInputDialog,
+    QListWidgetItem,
 )
 from qasync import QApplication, asyncClose, asyncSlot
 
@@ -41,7 +43,7 @@ from playground.utils.communication import (
     PlaygroundTextRequest,
     bytes2str,
 )
-from playground.utils.json_utils import format_json, add_jsonl
+from playground.utils.json_utils import format_json, add_jsonl, read_jsonl
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -363,7 +365,8 @@ class AgentInterface(QMainWindow):
         self.instruction_selection.itemDoubleClicked.connect(self.select_task_instruction)
         task_layout.addWidget(self.instruction_selection)
         self.instruction_selection.clear()
-        self.instruction_selection.addItems(self.task_list)
+        self.populate_instruction_selection_widget()
+        # self.instruction_selection.addItems(self.task_list)
 
         execution_button_layout = QHBoxLayout()
 
@@ -395,6 +398,26 @@ class AgentInterface(QMainWindow):
         main_layout.addLayout(task_layout)
 
         self.setMouseTracking(True)
+
+    def populate_instruction_selection_widget(self):
+        self.instruction_selection.clear()
+        jsonl_path = self.record_path / "tasks.jsonl"
+        if jsonl_path.exists():
+            evaluated_tasks = read_jsonl(jsonl_path.as_posix())
+            task_results = {
+                task_result["task_config"]["task_id"]: task_result["score"] \
+                    for task_result in evaluated_tasks
+            }
+        else:
+            task_results = {}
+        for task in self.task_configs:
+            item = QListWidgetItem(task["instruction"])
+            if task["task_id"] in task_results:
+                if task_results[task["task_id"]] == "1.0":
+                    item.setForeground(QColor('green'))
+                else:
+                    item.setForeground(QColor('red'))
+            self.instruction_selection.addItem(item)
 
     def select_task_instruction(self, item):
         self.task_instruction = item.text()
@@ -518,6 +541,7 @@ class AgentInterface(QMainWindow):
         self.output_display.clear()
         self.evaluation_display.clear()
         self.selected_task = None
+        self.populate_instruction_selection_widget()
         self.set_task_status_bar_text("color: green;", "Task: Init")
 
     def save_trajectory(self):
@@ -545,7 +569,9 @@ class AgentInterface(QMainWindow):
             writer.write(frame[1])
         writer.release()
 
-        record_dict = {}
+        record_dict: dict[str, Any] = {
+            "task_config": self.selected_task
+        }
         record_dict["video"] = {
             "metadata": {
                 "region":{
