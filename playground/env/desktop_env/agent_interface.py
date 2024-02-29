@@ -9,7 +9,7 @@ from datetime import datetime
 
 import numpy as np
 import requests
-from PyQt6.QtCore import QTimer
+from PyQt6.QtCore import QThread, pyqtSignal, QTimer, QObject, QMutex, QWaitCondition
 from PyQt6.QtGui import QImage
 from PyQt6.QtWidgets import (
     QHBoxLayout,
@@ -27,7 +27,6 @@ from qasync import QApplication, asyncClose, asyncSlot
 
 from playground.agent.base_agent import Agent
 from playground.config.config import Config
-from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
 from playground.utils.communication import (
     PlaygroundEvalRequest,
@@ -43,6 +42,172 @@ from playground.utils.json_utils import format_json
 config = Config()
 logger = logging.getLogger(__name__)
 
+class WorkerSignals(QObject):
+    confirm_signal = pyqtSignal(bool)
+    decline_signal = pyqtSignal(bool)
+    start_signal = pyqtSignal(bool)
+    eval_signal = pyqtSignal(bool)
+    next_task_signal = pyqtSignal(bool)
+    status_bar_signal = pyqtSignal(str, str)
+    parsed_action_display_signal = pyqtSignal(str)
+    response_display_signal = pyqtSignal(str)
+    evaluation_display_signal = pyqtSignal(str)
+    show_input_dialog_signal = pyqtSignal(str)
+
+class RunTaskThread(QThread):
+    def __init__(
+            self,
+            signals: WorkerSignals,
+            selected_task: dict,
+            agent: Agent
+        ):
+        super().__init__()
+        self.mutex = QMutex()
+        self.wait_condition = QWaitCondition()
+        self.signals = signals
+        self.agent = agent
+        self.selected_task = selected_task
+
+    def _wait_finish(self):
+        while True:
+            response_raw = requests.get(
+                f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
+            )
+            response = PlaygroundStatusResponse(**response_raw.json())
+            if response.status == "finished":
+                break
+            elif response.status == "wait_for_input":
+                self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
+                self.mutex.lock()
+                self.signals.show_input_dialog_signal.emit(response.content)
+                self.wait_condition.wait(self.mutex)
+                self.mutex.unlock()
+                user_input = self.user_input
+                response_raw = requests.post(
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    json=PlaygroundTextRequest(message=user_input).model_dump(),
+                )
+                response = PlaygroundResponse(**response_raw.json())
+                assert response.status == "success"
+            elif response.status == "pending":
+                self.signals.status_bar_signal.emit("color: green;", "Pending")
+            elif response.status == "in_progress":
+                self.signals.status_bar_signal.emit("color: green;", "In Progress")
+            else:
+                raise ValueError(f"Unknown status: {response.status}")
+            time.sleep(1)
+
+    def reset_task(self):
+        assert self.selected_task is not None
+        response_raw = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
+            json=PlaygroundResetRequest(task_config=self.selected_task).model_dump(),
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert response.status == "submitted"
+        self._wait_finish()
+        response_raw = requests.get(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/result",
+        )
+        response = PlaygroundResultResponse(**response_raw.json())
+        # TODO: handle failed reset
+        assert response.status == "finished" and response.result == "success"
+        self.agent.reset(
+            instruction=self.selected_task["instruction"],
+        )
+
+    def run(self):
+        self.reset_task()
+        self.signals.status_bar_signal.emit("color: green;", "Task: Generating action...")
+
+        raw_code, code, _ = self.agent.generate_action()
+
+        self.signals.status_bar_signal.emit("color: blue;", "Task: Waiting for confirmation...")
+        self.signals.parsed_action_display_signal.emit(code)
+        self.signals.response_display_signal.emit(raw_code)
+        self.signals.confirm_signal.emit(True)
+        self.signals.decline_signal.emit(True)
+
+    def receive_user_input(self, text: str):
+        self.mutex.lock()
+        self.user_input = text  # Store the user input
+        self.wait_condition.wakeAll()  # Resume the thread
+        self.mutex.unlock()
+
+
+class EvalTaskThread(QThread):
+    def __init__(
+            self,
+            signals: WorkerSignals,
+            trajectory_display: QTextEdit,
+            selected_task: dict,
+            agent: Agent
+        ):
+        super().__init__()
+        self.mutex = QMutex()
+        self.wait_condition = QWaitCondition()
+        self.signals = signals
+        self.agent = agent
+        self.selected_task = selected_task
+        self.trajectory_display = trajectory_display
+
+    def _wait_finish(self):
+        while True:
+            response_raw = requests.get(
+                f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
+            )
+            response = PlaygroundStatusResponse(**response_raw.json())
+            if response.status == "finished":
+                break
+            elif response.status == "wait_for_input":
+                self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
+                self.mutex.lock()
+                self.signals.show_input_dialog_signal.emit(response.content)
+                self.wait_condition.wait(self.mutex)
+                self.mutex.unlock()
+                user_input = self.user_input
+                response_raw = requests.post(
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    json=PlaygroundTextRequest(message=user_input).model_dump(),
+                )
+                response = PlaygroundResponse(**response_raw.json())
+                assert response.status == "success"
+            elif response.status == "pending":
+                self.signals.status_bar_signal.emit("color: green;", "Pending")
+            elif response.status == "in_progress":
+                self.signals.status_bar_signal.emit("color: green;", "In Progress")
+            else:
+                raise ValueError(f"Unknown status: {response.status}")
+            time.sleep(1)
+
+    def run(self):
+        response_raw = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
+            json=PlaygroundEvalRequest(
+                task_config=self.selected_task,
+                trajectory=bytes2str(self.trajectory_display.toPlainText()),
+            ).model_dump(),
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert response.status == "submitted"
+        self.signals.status_bar_signal.emit("color: green;", "Task: Evaluating...")
+        self._wait_finish()
+        self.signals.status_bar_signal.emit("color: green;", "Task: Finished")
+        response_raw = requests.get(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
+        )
+        response = PlaygroundResultResponse(**response_raw.json())
+        assert response.status == "finished" and isinstance(response.message, dict)
+        self.signals.evaluation_display_signal.emit(
+            f"Score: {response.message['score']}\nFeedback: {response.message['feedback']}"
+        )
+        self.signals.next_task_signal.emit(True)
+
+    def receive_user_input(self, text: str):
+        self.mutex.lock()
+        self.user_input = text  # Store the user input
+        self.wait_condition.wakeAll()  # Resume the thread
+        self.mutex.unlock()
 
 class AgentInterface(QMainWindow):
     layout_width = 300
@@ -66,6 +231,7 @@ class AgentInterface(QMainWindow):
         self.last_message = ""
         self.selected_task: dict | None = None
         self.status_bar: QStatusBar
+        self.task_status_bar: QLabel
 
         self.setup_ui()
 
@@ -82,6 +248,10 @@ class AgentInterface(QMainWindow):
 
         self.status_bar = self.statusBar()
         assert self.status_bar is not None
+
+        self.task_status_bar = QLabel()
+        self.set_task_status_bar_text("color: green;", "Task: Init")
+        self.status_bar.addPermanentWidget(self.task_status_bar)
 
         if config.remote:
             self.connect_vnc()
@@ -174,9 +344,9 @@ class AgentInterface(QMainWindow):
         # self.evaluation_display.setFixedHeight(60)
         # self.evaluation_display.setFixedWidth(self.layout_width)
 
-        next_button = QPushButton("Next task")
-        next_button.clicked.connect(self.reset)
-        task_layout.addWidget(next_button)
+        self.next_button = QPushButton("Next task")
+        self.next_button.clicked.connect(self.reset)
+        task_layout.addWidget(self.next_button)
 
         self.status_bar.showMessage("Ready")
 
@@ -204,12 +374,17 @@ class AgentInterface(QMainWindow):
         """Connects to VNC server."""
         self.status_bar.showMessage("Connecting")
 
-        self._reader, self._writer = await open_connection(
-            config.env_server_addr, config.vnc_port
-        )
-        self.vnc = await VNCClient.create(
-            reader=self._reader, writer=self._writer, password=config.vnc_password
-        )
+        try:
+            self._reader, self._writer = await open_connection(
+                config.env_server_addr, config.vnc_port
+            )
+            self.vnc = await VNCClient.create(
+                reader=self._reader, writer=self._writer, password=config.vnc_password
+            )
+        except (ConnectionRefusedError, ValueError) as e:
+            logger.warning(f"Fail to connect to VNC server: {e}")
+            self.status_bar.showMessage(f"VNC not available.")
+            return
         self.video_height = self.vnc.video.height
         self.video_width = self.vnc.video.width
         self.now_screenshot = np.zeros(
@@ -234,36 +409,19 @@ class AgentInterface(QMainWindow):
 
         self.status_bar.showMessage(" ".join(all_status_text))
 
-    def _wait_finish(self):
-        while True:
-            response_raw = requests.get(
-                f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
-            )
-            response = PlaygroundStatusResponse(**response_raw.json())
-            if response.status == "finished":
-                break
-            elif response.status == "wait_for_input":
-                self.status_bar.showMessage("Waiting for input")
-                dlg = QInputDialog(self)
-                dlg.setLabelText(response.content)
-                dlg.show()
-                dlg.findChildren(QPushButton)[1].hide()
-                result = dlg.exec()
-                assert result == QInputDialog.DialogCode.Accepted
-                user_input = dlg.textValue()
-                response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
-                    json=PlaygroundTextRequest(message=user_input).model_dump(),
-                )
-                response = PlaygroundResponse(**response_raw.json())
-                assert response.status == "success"
-            elif response.status == "pending":
-                self.status_bar.showMessage("Pending")
-            elif response.status == "in_progress":
-                self.status_bar.showMessage("In Progress")
-            else:
-                raise ValueError(f"Unknown status: {response.status}")
-            time.sleep(1)
+    def set_task_status_bar_text(self, color: str, text: str) -> None:
+        self.task_status_bar.setStyleSheet(color)
+        self.task_status_bar.setText(text)
+
+    def show_input_dialog(self, message: str):
+        dlg = QInputDialog()
+        dlg.setLabelText(message)
+        dlg.show()
+        dlg.findChildren(QPushButton)[1].hide()
+        result = dlg.exec()
+        assert result == QInputDialog.DialogCode.Accepted
+        user_input = dlg.textValue()
+        self.current_thread.receive_user_input(user_input)
 
     def reset(self):
         """Resets the task and waits for the environment to be ready."""
@@ -279,76 +437,64 @@ class AgentInterface(QMainWindow):
         self.output_display.clear()
         self.evaluation_display.clear()
         self.selected_task = None
-        self.status_bar.showMessage("Select a task from the list")
-
-    def reset_task(self):
-        if self.selected_task is None:
-            self.status_bar.showMessage("No task selected")
-            return
-        else:
-            self.status_bar.showMessage("Initializing...")
-
-        response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
-            json=PlaygroundResetRequest(task_config=self.selected_task).model_dump(),
-        )
-        response = PlaygroundResponse(**response_raw.json())
-        assert response.status == "submitted"
-        self._wait_finish()
-        response_raw = requests.get(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/result",
-        )
-        response = PlaygroundResultResponse(**response_raw.json())
-        # TODO: handle failed reset
-        assert response.status == "finished" and response.result == "success"
-        self.agent.reset(
-            instruction=self.selected_task["instruction"],
-        )
-        self.status_bar.showMessage("Initialization finished. Running...")
+        self.set_task_status_bar_text("color: green;", "Task: Init")
 
     def run_task(self):
+        if self.selected_task is None:
+            self.set_task_status_bar_text("color: red;", "Task: No task selected")
+            return
+        else:
+            self.set_task_status_bar_text("color: green;", "Task: Initializing...")
         self.start_button.setEnabled(False)
         self.eval_button.setEnabled(False)
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
-        self.reset_task()
-        raw_code, code, _ = self.agent.generate_action()
-        self.parsed_action_display.setPlainText(code)
-        self.response_display.setPlainText(raw_code)
-        self.confirm_button.setEnabled(True)
-        self.decline_button.setEnabled(True)
+        self.next_button.setEnabled(False)
+
+        signals = WorkerSignals()
+        signals.confirm_signal.connect(self.confirm_button.setEnabled)
+        signals.decline_signal.connect(self.decline_button.setEnabled)
+        signals.status_bar_signal.connect(self.set_task_status_bar_text)
+        signals.parsed_action_display_signal.connect(self.parsed_action_display.setPlainText)
+        signals.response_display_signal.connect(self.response_display.setPlainText)
+        signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        self.current_thread = RunTaskThread(
+            signals=signals,
+            selected_task=self.selected_task,
+            agent=self.agent
+        )
+        self.current_thread.start()
 
     def eval_task(self):
         self.start_button.setEnabled(False)
         self.eval_button.setEnabled(False)
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
+        self.next_button.setEnabled(False)
         if self.selected_task is None:
-            self.status_bar.showMessage("No task selected")
+            self.set_task_status_bar_text("color: red;", "Task: No task selected")
             return
-        response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
-            json=PlaygroundEvalRequest(
-                task_config=self.selected_task,
-                trajectory=bytes2str(self.trajectory_display.toPlainText()),
-            ).model_dump(),
+        else:
+            self.set_task_status_bar_text("color: green;", "Task: Evaluating...")
+
+        signals = WorkerSignals()
+        signals.status_bar_signal.connect(self.set_task_status_bar_text)
+        signals.evaluation_display_signal.connect(self.evaluation_display.setPlainText)
+        signals.next_task_signal.connect(self.next_button.setEnabled)
+        signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        self.current_thread = EvalTaskThread(
+            signals=signals,
+            selected_task=self.selected_task,
+            agent=self.agent,
+            trajectory_display=self.trajectory_display
         )
-        response = PlaygroundResponse(**response_raw.json())
-        assert response.status == "submitted"
-        self._wait_finish()
-        response_raw = requests.get(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
-        )
-        response = PlaygroundResultResponse(**response_raw.json())
-        assert response.status == "finished" and isinstance(response.message, dict)
-        self.evaluation_display.setPlainText(
-            f"Score: {response.message['score']}\nFeedback: {response.message['feedback']}"
-        )
+        self.current_thread.start()
 
     def step_action(self):
         """Steps the next action and adds it to the trajectory."""
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
+        self.set_task_status_bar_text("color: green;", "Task: Executing...")
         next_action_text = self.parsed_action_display.toPlainText()
         result, done = self.agent.step_action(confirmed=True)
         self.output_display.setPlainText(str(result))
@@ -374,6 +520,7 @@ class AgentInterface(QMainWindow):
             self.decline_button.setEnabled(False)
             self.start_button.setEnabled(False)
             self.eval_button.setEnabled(True)
+        self.set_task_status_bar_text("color: green;", "Task: Executed")
 
     def interrupt_action(self):
         # TODO: send interrupt signal to the runtime
