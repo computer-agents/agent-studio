@@ -11,6 +11,7 @@ from asyncio import open_connection
 import cv2
 import logging
 import threading
+import time
 
 import numpy as np
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -672,6 +673,8 @@ class VNCStreamer:
         self.streaming_thread.start()
         with self.streaming_lock:
             pass
+        while self.video_height == 0 or self.video_width == 0:
+            time.sleep(0.2)
 
     def stop(self):
         if not self.streaming_thread.is_alive():

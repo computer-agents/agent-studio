@@ -49,5 +49,5 @@ class ModelEvaluator(Evaluator):
         response, info = self.model.generate_response(
             messages=messages, model=config.model
         )
-        score = "True" in response
+        score = 1.0 if ("True" in response) else 0.0
         return score, response

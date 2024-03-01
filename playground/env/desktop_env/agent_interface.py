@@ -4,12 +4,9 @@ import logging
 import sys
 import threading
 import time
-from asyncio import open_connection
 from pathlib import Path
 from typing import Any
 
-import cv2
-import mss
 import numpy as np
 import pyautogui
 import requests
@@ -90,7 +87,7 @@ class WorkerSignals(QObject):
 
 class RunTaskThread(QThread):
     def __init__(
-        self, signals: WorkerSignals, selected_task: dict, obs: np.ndarray, agent: Agent
+        self, signals: WorkerSignals, selected_task: dict, obs: np.ndarray | None, agent: Agent
     ):
         super().__init__()
         self.mutex = QMutex()
@@ -267,7 +264,7 @@ class AgentInterface(QMainWindow):
         self.task_list = [task["instruction"] for task in task_configs]
         self.task_configs = task_configs
         self.refresh_timer = QTimer(self)
-        self.refresh_timer.setInterval(100)
+        self.refresh_timer.setInterval(10)
         self.refresh_timer.timeout.connect(self.render)
         self.refresh_timer.start()
         self.refreshing_screen = False  # need for refresh flag
@@ -435,7 +432,7 @@ class AgentInterface(QMainWindow):
         for task in self.task_configs:
             item = QListWidgetItem(task["instruction"])
             if task["task_id"] in self.task_results:
-                if self.task_results[task["task_id"]]["score"] == "1.0":
+                if self.task_results[task["task_id"]]["score"] == 1.0:
                     item.setForeground(QColor("green"))
                 else:
                     item.setForeground(QColor("red"))
@@ -490,6 +487,7 @@ class AgentInterface(QMainWindow):
     def save_trajectory(self):
         assert self.selected_task is not None
         task_trajectory_path = self.record_path / self.selected_task["task_id"]
+        task_trajectory_path.mkdir(parents=True, exist_ok=True)
         if self.selected_task["visual"]:
             assert self.screen_recorder is not None
             video_path = (task_trajectory_path / "video.mp4").as_posix()
@@ -502,9 +500,7 @@ class AgentInterface(QMainWindow):
             video_path = None
 
         record_dict: dict[str, Any] = {"task_config": self.selected_task}
-        record_dict["video"] = {
-            "path": video_path,
-        }
+        record_dict["video"] = video_path,
 
         record_dict = {
             "task_id": self.selected_task["task_id"],
@@ -529,6 +525,9 @@ class AgentInterface(QMainWindow):
                         "timestamp": traj["timestamp"],
                     }
                 )
+        else:
+            record_dict["trajectory"] = self.agent.trajectory
+
         add_jsonl(
             data=[record_dict],
             file_path=(self.record_path / "tasks.jsonl").as_posix(),
@@ -569,11 +568,9 @@ class AgentInterface(QMainWindow):
         signals.response_display_signal.connect(self.response_display.setPlainText)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
         if self.selected_task["visual"]:
-            while True:
-                obs = self.screen_recorder.get_current_frame()
-                if obs is not None:
-                    break
-                time.sleep(0.5)
+            obs = self.screen_recorder.get_current_frame()
+        else:
+            obs = None
         self.current_thread = RunTaskThread(
             signals=signals,
             selected_task=self.selected_task,

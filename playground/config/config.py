@@ -14,8 +14,8 @@ class Config(metaclass=Singleton):
     need_human_confirmation: bool = True
 
     task_config_paths: dict = {
-        # "desktop": "playground_data/tasks/windows_easy.jsonl",
-        "desktop": "playground_data/tasks/test.jsonl",
+        "desktop": "playground_data/tasks/windows_easy.jsonl",
+        # "desktop": "playground_data/tasks/test.jsonl",
     }
 
     stop_code: str = "\nexit()"

@@ -220,6 +220,10 @@ class ScreenRecorder(Recorder):
         # wait until the recording starts
         with self.recording_lock:
             pass
+        while True:
+            if self.current_frame is not None:
+                break
+            time.sleep(0.2)
 
     def stop(self):
         if not self.thread.is_alive():
@@ -260,7 +264,8 @@ class ScreenRecorder(Recorder):
             writer.write(frame[1])
         writer.release()
 
-    def get_current_frame(self) -> np.ndarray | None:
+    def get_current_frame(self) -> np.ndarray:
+        assert self.current_frame is not None, "No frame is captured"
         with self.recording_lock:
             return self.current_frame
 

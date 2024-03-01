@@ -9,9 +9,12 @@ import psutil
 import qasync
 import requests
 from qasync import QApplication
+from PIL import Image
 
 from playground.config import Config
 from playground.env.desktop_env.agent_interface import AgentInterface
+from playground.env.desktop_env.vnc_client import VNCStreamer
+from playground.env.desktop_env.recorder.screen_recorder import ScreenRecorder, VNCRecorder
 from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
 from playground.llm import setup_model
 from playground.utils.human_utils import confirm_action
@@ -137,10 +140,29 @@ def eval(args) -> None:
 
             else:
                 # Run evaluation locally, only for text-only tasks.
-                assert not config.remote, "Headless mode does not support remote agent."
+                if config.remote:
+                    vnc_streamer = VNCStreamer(
+                        env_server_addr=config.env_server_addr,
+                        vnc_port=config.vnc_port,
+                        vnc_password=config.vnc_password,
+                    )
+                    vnc_streamer.start()
                 scores = {}
                 for task_config in task_configs:
                     try:
+                        if task_config["visual"]:
+                            if config.remote:
+                                screen_recorder = VNCRecorder(
+                                    fps=config.video_fps,
+                                    vnc_streamer=vnc_streamer,
+                                )
+                            else:
+                                screen_recorder = ScreenRecorder(
+                                    fps=config.video_fps,
+                                )
+                            screen_recorder.start()
+                        else:
+                            screen_recorder = None
                         task_id = task_config["task_id"]
                         comb = evaluator_router(task_config)
                         comb.reset()
@@ -152,7 +174,10 @@ def eval(args) -> None:
                         # Loop until the task is done or the max step is reached.
                         for t in range(config.max_step):
                             logger.info(f"Step {t}")
-                            obs = None
+                            if task_config["visual"]:
+                                obs = screen_recorder.get_current_frame()
+                            else:
+                                obs = None
                             agent.generate_action(obs)
                             if config.need_human_confirmation:
                                 confirmed, _ = confirm_action()(lambda: True)()
@@ -170,20 +195,56 @@ def eval(args) -> None:
                         else:
                             logger.info(f"[Result] (FAIL): {feedback}")
 
+                        task_trajectory_path = Path(record_path) / task_config["task_id"]
+                        task_trajectory_path.mkdir(parents=True, exist_ok=True)
+                        if task_config["visual"]:
+                            assert screen_recorder is not None
+                            screen_recorder.stop()
+                            screen_recorder.wait_exit()
+                            video_path = (task_trajectory_path / f"{task_id}.mp4").as_posix()
+                            screen_recorder.save(video_path, 0)
+                            screen_recorder = None
+                        else:
+                            video_path = None
+
                         results = {
+                            "video": video_path,
                             "task_id": task_id,
                             "instruction": instruction,
-                            "trajectory": agent.trajectory,
+                            "trajectory": [],
                             "self_eval": agent.eval(),
                             "score": score,
                             "feedback": feedback,
                         }
+                        if task_config["visual"]:
+                            for traj in agent.trajectory:
+                                image_path = (task_trajectory_path / f"{traj['timestamp']}.png").as_posix()
+                                Image.fromarray(traj["obs"]).save(image_path)
+                                results["trajectory"].append(
+                                    {
+                                        "obs": image_path,
+                                        "prompt": traj["prompt"],
+                                        "response": traj["response"],
+                                        "info": traj["info"],
+                                        "act": traj["act"],
+                                        "res": traj["res"],
+                                        "timestamp": traj["timestamp"],
+                                    }
+                                )
+                        else:
+                            results["trajectory"] = agent.trajectory
                         add_jsonl(
                             data=[results],
                             file_path=(Path(record_path) / "results.jsonl").as_posix(),
                         )
                     except KeyboardInterrupt:
                         agent.close()
+                        if config.remote:
+                            vnc_streamer.stop()
+                        if screen_recorder is not None:
+                            screen_recorder.stop()
+                            screen_recorder.wait_exit()
+                        sys.exit(0)
                     except Exception as e:
                         import traceback
 
