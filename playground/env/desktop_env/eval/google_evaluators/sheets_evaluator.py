@@ -10,7 +10,6 @@ from playground.env.desktop_env.eval.evaluator import (
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
-from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +55,6 @@ class GoogleSheetsService(GoogleService):
         )
         return result.get("values", [])
 
-    @confirm_action
     def write_range(self, spreadsheet_id: str, range_name: str, values: list) -> None:
         """Writes values to the Google Sheets spreadsheet."""
         body = {"values": values}
@@ -77,7 +75,6 @@ class GoogleSheetsService(GoogleService):
             body=body,
         ).execute()
 
-    @confirm_action
     def clear_range(self, spreadsheet_id: str, range_name: str) -> None:
         """Clears the range in the Google Sheets spreadsheet."""
         self.service.spreadsheets().values().clear(

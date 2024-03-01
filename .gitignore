@@ -166,3 +166,4 @@ cython_debug/
 *token.json
 credentials.json
 *.session
+api_key.json

@@ -14,15 +14,25 @@ We welcome and value contributions from everyone, no matter the scale. Please ch
 
 ## Setup environment
 
+Install requirements:
 ```bash
-apt-get install gnome-screenshot xclip  # If use Ubuntu 22.04
+apt-get install gnome-screenshot xclip xdotool # If use Ubuntu 22.04
 conda create --name playground python=3.11 -y
 conda activate playground
-pip install -r requirements.txt
+pip install -r requirements_{YOUR_SYSTEM_TYPE}.txt
 pip install -e .
 ```
 
-(optional, for reproducibility) [Install VirtualBox](https://ubuntu.com/tutorials/how-to-run-ubuntu-desktop-on-a-virtual-machine-using-virtualbox#1-overview) (we use VirtualBox 7 and Ubuntu 22.04 image)
+Download dataset (you may need to [configure huggingface and git lfs](https://huggingface.co/docs/hub/en/repositories-getting-started#cloning-repositories)):
+
+```bash
+git submodule update --init --remote --recursive
+```
+
+Build Docker image:
+```bash
+docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t playground:latest
+```
 
 ### Google Workspace
 
@@ -34,12 +44,45 @@ The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtai
 
 ## Get Started
 
+### Record Dataset
+
+#### Run Simulator with Docker
+
+```bash
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm playground:latest
+```
+
+### Run Recorder Client
+
+```bash
+python run.py --mode record
+```
+
+---
+
+### Run on local machine
+
+If you enabled high DPI scaling, and the VNC window is beyond the screen, you may need to set the `QT_AUTO_SCREEN_SCALE_FACTOR` environment variable to `0` to disable high DPI scaling.
+
 ```bash
 python run.py --mode eval
 ```
 
+### Record agent's trajectory
+
 ```bash
 python run.py --mode record --env desktop
+```
+
+### Run via ssh
+
+If you want to run the agent in a virtual machine or remote machine, setup the `DISPLAY` environment variable via ssh.
+
+Setup `playground/config/config.py`, change `on_ssh` to `True`.
+
+```bash
+ssh user@remote # ssh to the remote machine
+DISPLAY=YOUR_DISPLAY python run.py --mode eval
 ```
 
 ## Data
@@ -51,3 +94,4 @@ The agent trajectories can be found [here](https://huggingface.co/datasets/agent
 - [Open Interpreter](https://github.com/KillianLucas/open-interpreter)
 - [UAC]()
 - [WebArena](https://github.com/web-arena-x/webarena)
+- [ScreenAgent](https://github.com/niuzaisheng/ScreenAgent)

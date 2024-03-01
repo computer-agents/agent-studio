@@ -124,33 +124,35 @@ class GoogleDriveService(GoogleService):
         folder_ids = [f["id"] for f in results.get("files", [])]
         return folder_ids
 
-    @confirm_action
     def delete_file_by_id(self, file_id: str) -> None:
         """Deletes a file from Google Drive."""
         self.service.files().delete(fileId=file_id).execute()
-        logger.info(f"File with ID {file_id} has been deleted.")
+        logger.debug(f"File with ID {file_id} has been deleted.")
 
-    @confirm_action
     def delete_folder_by_id(self, folder_id: str) -> None:
         """Deletes a folder from Google Drive."""
         self.service.files().delete(fileId=folder_id).execute()
-        logger.info(f"Folder with ID {folder_id} has been deleted.")
+        logger.debug(f"Folder with ID {folder_id} has been deleted.")
 
     def delete_file(self, file_name: str) -> None:
         """Deletes a file from Google Drive with name."""
         file_ids = self.search_file(file_name)
         for file_id in file_ids:
             file_name = self.get_filename(file_id)
-            logger.info(f"Deleting file with name {file_name}")
-            self.delete_file_by_id(file_id)
+            logger.debug(f"Deleting file with name {file_name}")
+            confirm_action(f"Deleting file with name {file_name}")(
+                self.delete_file_by_id
+            )(file_id)
 
     def delete_folder(self, folder_name: str) -> None:
         """Deletes a folder from Google Drive with name."""
         folder_ids = self.search_folder(folder_name)
         for folder_id in folder_ids:
             folder_name = self.get_filename(folder_id)
-            logger.info(f"Deleting folder with name {folder_name}")
-            self.delete_folder_by_id(folder_id)
+            logger.debug(f"Deleting folder with name {folder_name}")
+            confirm_action(f"Deleting folder with name {folder_name}")(
+                self.delete_folder_by_id
+            )(folder_id)
 
     def check_file_exists(
         self, file_name: str, exists: bool, content: str | None = None

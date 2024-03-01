@@ -108,7 +108,5 @@ class Evaluator:
                     raise ValueError(
                         f"Action {action} is not supported for {self.name} evaluation."
                     )
-        if score == 0.0:
-            logger.info(f"Evaluation failed due to {feedback}")
 
         return score, feedback

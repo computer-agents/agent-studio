@@ -138,9 +138,11 @@ class TelegramService:
 
                 _match_one_message(message, ref_message, message_type)
 
-    def delete_recent_messages(self, chat_id: str | int, n: int):
-        @confirm_action
-        def _delete_recent_messages(chat_id: str | int, n: int):
+    def delete_recent_messages(self, chat_id: str | int, n: int) -> None:
+        @confirm_action(
+            f"Are you sure you want to delete {n} recent messages from {chat_id}"
+        )
+        def _delete_recent_messages(chat_id: str | int, n: int) -> bool:
             with self.__service:
                 messages = self.__service.get_chat_history(chat_id, limit=n)
                 message_ids = [message.id for message in messages]
@@ -149,7 +151,7 @@ class TelegramService:
                     self.__service.delete_messages(chat_id, message_ids)
                     return True
                 except FloodWait:
-                    logger.warn("Rate limit exceeded. Sleeping for 1 seconds.")
+                    logger.warning("Rate limit exceeded. Sleeping for 1 seconds.")
                     time.sleep(1)
                     return False
                 except Exception as e:
@@ -157,7 +159,6 @@ class TelegramService:
                     print(f"An error occurred: {e}")
                     return False
 
-        print(f"Are you sure you want to delete {n} recent messages from {chat_id}")
         _delete_recent_messages(chat_id, n)
 
     def _get_last_message_id(self, chat_id: str | int) -> int:

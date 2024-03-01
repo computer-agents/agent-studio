@@ -10,7 +10,6 @@ from playground.env.desktop_env.eval.evaluator import (
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
-from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +103,6 @@ class GoogleSlidesService(GoogleService):
             presentationId=presentation_id, body={"requests": requests}
         ).execute()
 
-    @confirm_action
     def replace_text_in_slide(
         self,
         presentation_id: str,
@@ -147,7 +145,6 @@ class GoogleSlidesService(GoogleService):
                                 titles.append(textElement["textRun"]["content"])
         return titles
 
-    @confirm_action
     def delete_slide(self, presentation_id: str, page_id: str) -> None:
         """Deletes a slide from the Google Slides presentation."""
         requests = [{"deleteObject": {"objectId": page_id}}]

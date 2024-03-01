@@ -79,7 +79,7 @@ class ProcessEvaluator(Evaluator):
             FeedbackException: If the process is not found.
         """
 
-        @confirm_action
+        @confirm_action()
         def _kill_process(proc: psutil.Process) -> None:
             try:
                 proc.kill()

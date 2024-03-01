@@ -1,12 +1,14 @@
 import logging
+import time
 from typing import Any
 
-from numpy.typing import NDArray
+import numpy as np
+import requests
 
-from playground.agent.runtime import PythonRuntime
+from playground.agent.runtime import PythonRuntime, RemotePythonRuntime
 from playground.config import Config
 from playground.llm.base_model import BaseModel
-from playground.utils.human_utils import confirm_action
+from playground.llm.utils import extract_from_response
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -15,78 +17,89 @@ logger = logging.getLogger(__name__)
 class Agent:
     """Base class for agents."""
 
-    def __init__(self, env: str, model: BaseModel, record_path: str, **kwargs) -> None:
-        self.env = env
+    def __init__(self, model: BaseModel) -> None:
         self.model = model
-        self.runtime: PythonRuntime | None = None
-        match env:
-            case "desktop":
-                from playground.env.desktop_env.recorder.agent_recorder import (
-                    AgentRecorder,
-                )
-
-                self.recorder = AgentRecorder(record_path=record_path)
-            case _:
-                raise ValueError(f"Invalid env: {env}.")
         self.instruction: str = ""
         self.trajectory: list[dict[str, Any]] = []
-        self.record_screen: bool = False
+        self.runtime: PythonRuntime | RemotePythonRuntime | None = None
+
+        self.cur_prompt: list[dict[str, Any]] | None = None
+        self.cur_response: str | None = None
+        self.cur_info: dict[str, Any] = {}
+        self.cur_raw_code: str = ""
 
     def reset(
         self,
-        task_id: str,
         instruction: str,
-        record_screen: bool = False,
-        **kwargs,
     ) -> None:
         self.instruction = instruction
         self.trajectory = []
-        self.record_screen = record_screen
+        self.cur_prompt = None
+        self.cur_response = None
+        self.cur_info = {}
+        self.cur_raw_code = ""
+
         if self.runtime is not None:
             self.runtime.close()
-        self.runtime = PythonRuntime()
+        if config.remote:
+            self.runtime = RemotePythonRuntime()
+        else:
+            self.runtime = PythonRuntime()
 
-        if self.record_screen:
-            self.recorder.reset(
-                task_id=task_id, instruction=instruction, record_screen=record_screen
-            )
-            self.recorder.start()
+    def generate_action(self, obs: np.ndarray | None) -> tuple[str, str]:
+        self.cur_obs = obs
+        self.cur_prompt = self.construct_prompt()
+        self.cur_response, self.cur_info = self.model.generate_response(
+            messages=self.cur_prompt, model=config.model
+        )
+        self.cur_raw_code = extract_from_response(self.cur_response)
 
-    def step(self, code: str) -> dict:
-        """Executes and records the given code in the environment."""
+        return self.cur_response, self.cur_raw_code
 
-        @confirm_action
-        def _step_helper() -> dict:
-            if self.record_screen:
-                self.recorder.resume()
-            assert self.runtime is not None, "The agent is not reset."
-            return self.runtime.exec(code)
+    def step_action(self, confirmed: bool) -> tuple[dict, bool]:
+        """Executes the code and record the result."""
+        result = {}
+        if confirmed:
+            done = self.cur_raw_code.endswith(config.stop_code)
+            if done:
+                code = self.cur_raw_code[: -len(config.stop_code)]
+            else:
+                code = self.cur_raw_code
 
-        if self.record_screen:
-            self.recorder.pause()
-        logger.info(f"Executing code:\n{code}")
-        result = _step_helper(code)
+            logger.debug(f"Code to execute:\n{code}\n")
+            if config.remote:
+                response = requests.post(
+                    f"http://{config.env_server_addr}:{config.env_server_port}/execute",
+                    json={"message": code},
+                )
+                result = response.json()
+            else:
+                assert self.runtime is not None, "The agent needs to reset first."
+                result = self.runtime(code)
+        else:
+            result["content"] = "Cancelled by user."
+
+        self.trajectory.append(
+            {
+                "obs": self.cur_obs,
+                "prompt": self.cur_prompt,
+                "response": self.cur_response,
+                "info": self.cur_info,
+                "act": self.cur_raw_code,
+                "res": result,
+                "timestamp": time.time(),
+            }
+        )
         logger.info(f"Output: {result}")
 
-        return result
+        return result, done
 
-    def run(self) -> list:
-        """The main logic of the agent.
-
-        Returns: The trajectory of the agent.
-        """
+    def eval(self) -> dict[str, Any]:
         raise NotImplementedError
-
-    def get_obs(self) -> NDArray | None:
-        """Gets the observation from the environment."""
-        assert not config.use_video, "Video-as-observation is not supported yet."
-        if self.record_screen:
-            obs = self.recorder.get_screenshot()
-        else:
-            obs = None
-
-        return obs
 
     def close(self) -> None:
         if self.runtime is not None:
             self.runtime.close()
+
+    def construct_prompt(self) -> list[dict[str, Any]]:
+        raise NotImplementedError

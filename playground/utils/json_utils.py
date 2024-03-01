@@ -27,14 +27,23 @@ def read_jsonl(file_path: str, start_idx: int = 0, end_idx: int | None = None) -
     return data
 
 
-def add_jsonl(data: list, file_path: str):
+def add_jsonl(data: list, file_path: str, mode="a"):
     """Adds a list of dictionaries to a .jsonl file.
 
     Args:
         data (list[dict]): A list of json objects to add to the file
         file_path (str): Path to the .jsonl file
     """
-    with open(file_path, "a") as file:
+    with open(file_path, mode) as file:
         for item in data:
             json_str = json.dumps(item)
             file.write(json_str + "\n")
+
+
+def format_json(data: dict):
+    """Prints a dictionary in a formatted way.
+
+    Args:
+        data (dict): The dictionary to print
+    """
+    return json.dumps(data, indent=4, sort_keys=True)

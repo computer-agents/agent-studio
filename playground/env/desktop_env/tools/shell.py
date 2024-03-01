@@ -2,7 +2,7 @@ import subprocess
 
 
 class Shell:
-    def exec(self, code: str) -> dict:
+    def __call__(self, code: str) -> dict:
         try:
             result = subprocess.run(
                 code.split(" "),

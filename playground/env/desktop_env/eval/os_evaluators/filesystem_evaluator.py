@@ -222,25 +222,25 @@ class FilesystemEvaluator(Evaluator):
     @staticmethod
     @reset_handler("rm")
     def rm(path: str) -> None:
-        @confirm_action
+        @confirm_action(f"Removing {path}")
         def _rm(path: str) -> None:
             if os.path.exists(path) and os.path.isfile(path):
                 os.remove(path)
-            logger.info(f"{path} removed")
+            logger.debug(f"{path} removed")
 
-        logger.info(f"Removing {path}")
+        logger.debug(f"Removing {path}")
         _rm(path)
 
     @staticmethod
     @reset_handler("rmdir")
     def rmdir(path: str) -> None:
-        @confirm_action
+        @confirm_action(f"Removing {path}")
         def _rmdir(path: str) -> None:
             if os.path.exists(path) and os.path.isdir(path):
                 shutil.rmtree(path)
-            logger.info(f"{path} removed")
+            logger.debug(f"{path} removed")
 
-        logger.info(f"Removing {path}")
+        logger.debug(f"Removing {path}")
         _rmdir(path)
 
     @staticmethod

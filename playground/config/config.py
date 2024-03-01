@@ -1,26 +1,33 @@
-from dataclasses import dataclass, field
 from pathlib import Path
 
 from playground.utils.singleton import Singleton
 
 
-@dataclass(frozen=True)
 class Config(metaclass=Singleton):
     """
     Singleton for config.
     """
 
     seed: int = 42
+    headless: bool = True
     python_timeout: int = 10
+    need_human_confirmation: bool = True
 
-    task_config_paths: dict = field(
-        default_factory=lambda: {
-            "desktop": "playground/tasks/desktop.jsonl",
-        }
-    )
+    task_config_paths: dict = {
+        # "desktop": "playground_data/tasks/windows_easy.jsonl",
+        "desktop": "playground_data/tasks/test.jsonl",
+    }
 
     stop_code: str = "\nexit()"
-    use_video = False
+
+    # Env server config
+    remote: bool = False
+    env_type: str = "desktop"
+    env_server_addr: str = "127.0.0.1"
+    env_server_host: str = "0.0.0.0"
+    vnc_port: int = 5900
+    env_server_port: int = 8000
+    vnc_password: str = "123456"
 
     # Recorder config
     record_path = "playground_data/trajectories"
@@ -28,22 +35,28 @@ class Config(metaclass=Singleton):
     mouse_fps: int = 5
 
     # Human annotator hotkeys
-    stop_hotkeys: str = "<ctrl>+<shift>+s"
+    stop_hotkeys: str = "<ctrl>+<shift>+h"
 
     # sleep_after_execution: float = 2.0
     max_step: int = 30
     system_prompt_path: str = "playground/agent/prompts/system_prompt.txt"
+    init_code_path: str = "playground/agent/prompts/init_code.txt"
     # parsing_failure_th: int = 3
     # repeating_action_failure_th = 3
 
     # LM config
-    provider: str = "openai"
+    provider: str = "gemini"
+    agent: str = "direct"
     max_retries: int = 3
-    model: str = "gpt-4-1106-vision-preview"
-    eval_model: str = "gpt-4-1106-vision-preview"
+    # model: str = "gpt-4-1106-vision-preview"
+    # model: str = "gemini-pro-vision"
+    model: str = "gemini-pro"
+    model_server: str | None = None
+    # eval_model: str = "gpt-4-1106-vision-preview"
+    eval_model: str = "gemini-pro-vision"
     temperature: float = 0.0
     max_tokens: int = 4096
-    OPENAI_API_KEY: str = "your_openai_api_key"
+    api_key_path: str = "playground/config/api_key.json"
 
     google_credential_path: str = "playground/config/credentials.json"
     google_calendar_id: str = "primary"

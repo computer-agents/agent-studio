@@ -1,13 +1,31 @@
 import argparse
+import asyncio
 import logging
-import uuid
+import sys
+import time
+from pathlib import Path
+
+import psutil
+import qasync
+import requests
+from qasync import QApplication
 
 from playground.config import Config
+from playground.env.desktop_env.agent_interface import AgentInterface
+from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
 from playground.llm import setup_model
-from playground.utils.json_utils import read_jsonl
+from playground.utils.human_utils import confirm_action
+from playground.utils.json_utils import add_jsonl, read_jsonl
 
 config = Config()
 logger = logging.getLogger(__name__)
+
+
+class TestReq:
+    text: str
+
+    def __init__(self, text: str):
+        self.text = text
 
 
 def create_parser():
@@ -15,8 +33,8 @@ def create_parser():
     parser.add_argument(
         "--env", type=str, choices=["desktop", "android"], default="desktop"
     )
-    parser.add_argument("--agent", type=str, default="dummy")
-    parser.add_argument("--model", type=str, default="default")
+    parser.add_argument("--agent", type=str, default=config.agent)
+    parser.add_argument("--provider", type=str, default=config.provider)
     parser.add_argument("--mode", type=str, choices=["record", "eval"], default="eval")
     parser.add_argument("--start_idx", type=int, default=0)
     parser.add_argument("--end_idx", type=int, default=None)
@@ -25,114 +43,180 @@ def create_parser():
 
 
 def setup_agent(args):
-    model = setup_model(args.model)
+    model = setup_model(args.provider)
     match args.agent:
         case "dummy":
             from playground.agent.base_agent import Agent
 
-            agent = Agent(
-                env=args.env,
-                model=model,
-                record_path="playground_data/trajectories/dummy",
-            )
+            agent = Agent(model=model)
+            record_path = f"playground_data/trajectories/{args.provider}/dummy"
+        case "direct":
+            from playground.agent.direct_agent import DirectAgent
+
+            agent = DirectAgent(model=model)
+            record_path = f"playground_data/trajectories/{args.provider}/direct"
         case _:
             raise ValueError(f"Invalid agent: {args.agent}.")
 
-    return agent
+    Path(record_path).mkdir(parents=True, exist_ok=True)
+
+    return agent, record_path
 
 
-def setup_task_and_evaluator(args):
+def setup_tasks(args):
     assert args.env in config.task_config_paths, f"Invalid env {args.env}."
     task_configs = read_jsonl(
         config.task_config_paths[args.env], args.start_idx, args.end_idx
     )
 
-    match args.env:
-        case "desktop":
-            from playground.env.desktop_env.eval.evaluator_helper import (
-                evaluator_router,
-            )
-        case _:
-            raise ValueError(f"Invalid env: {args.env}.")
-
-    return task_configs, evaluator_router
+    return task_configs
 
 
 def eval(args) -> None:
     """Evaluate the agent on the given tasks."""
 
-    agent = setup_agent(args)
-    task_configs, evaluator_router = setup_task_and_evaluator(args)
+    agent, record_path = setup_agent(args)
+    task_configs = setup_tasks(args)
 
-    scores = {}
-    for task_config in task_configs:
-        try:
-            task_id = task_config["id"]
-            record_screen = task_config.get("visual", False)
-            comb = evaluator_router(task_config)
-            comb.reset()
+    match args.env:
+        case "desktop":
+            if not config.headless:
+                # Run evaluation with GUI.
+                from playground.env.desktop_env.agent_interface import run_ui
 
-            instruction = task_config["instruction"]
-            logger.info(f"Task instruction: {instruction}")
+                try:
+                    if not config.remote:
+                        import atexit
 
-            agent.reset(
-                task_id=task_id,
-                instruction=instruction,
-                record_screen=record_screen,
-            )
-            trajectory = agent.run()
+                        local_agent_server = psutil.Popen(
+                            [
+                                "python",
+                                "scripts/agent_server.py",
+                                "--env",
+                                "desktop",
+                            ]
+                        )
 
-            score = comb(trajectory=trajectory)
-            scores[task_id] = score
-            if score == 1.0:
-                logger.info("[Result] (PASS)")
+                        def cleanup(local_agent_server: psutil.Process):
+                            local_agent_server.terminate()
+                            local_agent_server.wait()
+
+                        atexit.register(cleanup, local_agent_server)
+
+                    while True:
+                        try:
+                            response = requests.get(
+                                f"http://{config.env_server_addr}:"
+                                f"{config.env_server_port}/health"
+                            )
+                            if response.status_code == 200:
+                                break
+                        except Exception:
+                            logger.info("Waiting for the agent server to start...")
+                            time.sleep(1)
+
+                    if not config.remote:
+                        app = QApplication(sys.argv)
+                        interface = AgentInterface(
+                            agent=agent,
+                            task_configs=task_configs,
+                            record_path=record_path,
+                        )
+                        interface.show()
+                        sys.exit(app.exec())
+                    else:
+                        qasync.run(
+                            run_ui(
+                                agent=agent,
+                                task_configs=task_configs,
+                                record_path=record_path,
+                            )
+                        )
+                    # TODO: can we use qasync.run when remote = False?
+                except asyncio.exceptions.CancelledError:
+                    sys.exit(0)
+
             else:
-                logger.info("[Result] (FAIL)")
+                # Run evaluation locally, only for text-only tasks.
+                assert not config.remote, "Headless mode does not support remote agent."
+                scores = {}
+                for task_config in task_configs:
+                    try:
+                        task_id = task_config["task_id"]
+                        comb = evaluator_router(task_config)
+                        comb.reset()
 
-        except Exception as e:
-            import traceback
+                        instruction = task_config["instruction"]
+                        logger.info(f"Task instruction: {instruction}")
 
-            logger.error(f"[Unhandled Error] {repr(e)}]")
-            logger.error(traceback.format_exc())
+                        agent.reset(instruction=instruction)
+                        # Loop until the task is done or the max step is reached.
+                        for t in range(config.max_step):
+                            logger.info(f"Step {t}")
+                            obs = None
+                            agent.generate_action(obs)
+                            if config.need_human_confirmation:
+                                confirmed, _ = confirm_action()(lambda: True)()
+                            else:
+                                confirmed = True
+                            _, done = agent.step_action(confirmed)
+                            if done:
+                                break
 
-    agent.close()
-    logger.info(f"Average score: {sum(scores.values()) / len(scores)}")
+                        logger.info("Start evaluation")
+                        score, feedback = comb()
+                        scores[task_id] = score
+                        if score == 1.0:
+                            logger.info(f"[Result] (PASS): {feedback}")
+                        else:
+                            logger.info(f"[Result] (FAIL): {feedback}")
+
+                        results = {
+                            "task_id": task_id,
+                            "instruction": instruction,
+                            "trajectory": agent.trajectory,
+                            "self_eval": agent.eval(),
+                            "score": score,
+                            "feedback": feedback,
+                        }
+                        add_jsonl(
+                            data=[results],
+                            file_path=(Path(record_path) / "results.jsonl").as_posix(),
+                        )
+                    except KeyboardInterrupt:
+                        agent.close()
+                    except Exception as e:
+                        import traceback
+
+                        logger.error(f"[Unhandled Error] {repr(e)}]")
+                        logger.error(traceback.format_exc())
+
+                agent.close()
+                logger.info(
+                    f"Average score: {sum(scores.values()) / max(len(scores), 1)}"
+                )
+
+        case _:
+            raise ValueError(f"Invalid env: {args.env}.")
 
 
 def record(args) -> None:
     match args.env:
         case "desktop":
-            from playground.env.desktop_env.recorder.human_recorder import HumanRecorder
+            from playground.env.desktop_env.human_interface import run_ui
 
-            recorder = HumanRecorder(
-                record_path="playground_data/trajectories/human",
-                video_fps=config.video_fps,
-                mouse_fps=config.mouse_fps,
-            )
+            try:
+                qasync.run(run_ui(record_path="playground_data/trajectories/human"))
+            except asyncio.exceptions.CancelledError:
+                sys.exit(0)
         case _:
             raise ValueError(f"Invalid env: {args.env}.")
-
-    while True:
-        instruction = input("Enter task instruction (or type 'q' to exit): ")
-        if instruction == "q":
-            break
-        else:
-            record_screen = input("Is this task visual? (y/n): ").lower() == "y"
-            input(
-                "Press Enter to start recording. During recording, "
-                f"you can press {config.stop_hotkeys} to stop."
-            )
-            task_id = str(uuid.uuid4())
-            recorder.reset(
-                task_id=task_id, instruction=instruction, record_screen=record_screen
-            )
-            recorder.start()
-            recorder.wait_exit()
 
 
 def main():
     parser = create_parser()
     args = parser.parse_args()
+    logger.info(f"Running with args: {args}")
 
     match args.mode:
         case "eval":

@@ -10,7 +10,6 @@ from playground.env.desktop_env.eval.evaluator import (
 from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
     GoogleDriveService,
 )
-from playground.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +85,6 @@ class GoogleDocsService(GoogleService):
             return document.get("title", "")
         return ""
 
-    @confirm_action
     def delete_text(self, document_id: str, start_index: int, end_index: int) -> None:
         """Deletes text in the document."""
         requests = [
