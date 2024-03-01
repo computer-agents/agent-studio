@@ -181,7 +181,9 @@ def eval(args) -> None:
                             "task_config": task_config,
                         }
                         if task_config['visual']:
+                            assert recorder is not None
                             recorder.stop()
+                            recorder.wait_exit()
                             video_path = (task_trajectory_path / "video.mp4").as_posix()
                             recorder.save(video_path, start_frame_id=0)
                             logger.info(f"Video saved to {video_path}")
@@ -190,6 +192,7 @@ def eval(args) -> None:
                                 "path": video_path,
                             }
                             del recorder
+                            recorder = None
                         else:
                             record_dict["video"] = None
 
@@ -214,7 +217,11 @@ def eval(args) -> None:
                             data=[record_dict],
                             file_path=(Path(record_path) / "tasks.jsonl").as_posix(),
                         )
-
+                    except KeyboardInterrupt:
+                        if recorder is not None:
+                            recorder.stop()
+                            recorder.wait_exit()
+                        agent.close()
                     except Exception as e:
                         import traceback
 
