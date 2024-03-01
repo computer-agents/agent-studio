@@ -314,7 +314,7 @@ class AgentInterface(QMainWindow):
             self.vnc_frame = VNCFrame(self)
             vnc_layout.addWidget(self.vnc_frame)
             reconnect_button = QPushButton("Re-connect")
-            # reconnect_button.clicked.connect(self.reconnect)
+            reconnect_button.clicked.connect(self.vnc_thread.reconnect)
             vnc_layout.addWidget(reconnect_button)
             main_layout.addLayout(vnc_layout)
 
