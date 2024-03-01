@@ -17,7 +17,7 @@ class DirectAgent(Agent):
             self.system_prompt = f.read()
         with open(config.init_code_path, "r") as f:
             init_code = f.read()
-            self.runtime.exec(init_code)
+            self.runtime(init_code)
 
     def construct_prompt(self) -> list[dict[str, Any]]:
         messages: list[dict[str, Any]] = []

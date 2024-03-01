@@ -1,15 +1,14 @@
 import logging
-from typing import Any
 import time
+from typing import Any
 
-import requests
 import numpy as np
+import requests
 
 from playground.agent.runtime import PythonRuntime, RemotePythonRuntime
 from playground.config import Config
 from playground.llm.base_model import BaseModel
 from playground.llm.utils import extract_from_response
-from playground.utils.human_utils import confirm_action
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -19,13 +18,13 @@ class Action:
     """A class for the action of the agent."""
 
     def __init__(
-            self,
-            raw_code: str,
-            code: str,
-            done: bool,
-            timestamp: float = time.time(),
-            obs: np.ndarray | None = None
-        ) -> None:
+        self,
+        raw_code: str,
+        code: str,
+        done: bool,
+        timestamp: float = time.time(),
+        obs: np.ndarray | None = None,
+    ) -> None:
         self.obs = obs
         self.raw_code = raw_code
         self.code = code
@@ -64,9 +63,6 @@ class Agent:
                 self.runtime.close()
             self.runtime = PythonRuntime()
 
-    def get_trajectory(self) -> list[dict[str, Any]]:
-        return self.trajectory
-
     def generate_action(self, obs) -> tuple[str, str, bool]:
         prompt = self.construct_prompt()
         response, info = self.model.generate_response(
@@ -99,7 +95,7 @@ class Agent:
                 result = response.json()
             else:
                 assert self.runtime is not None, "The agent needs to reset first."
-                result = self.runtime.exec(code)
+                result = self.runtime(code)
         else:
             result["content"] = "Cancelled by user."
 
@@ -115,23 +111,7 @@ class Agent:
         logger.info(f"Output: {result}\nDone: {self.current_action.done}\n")
         return result, self.current_action.done
 
-    def step(self, obs: np.ndarray | None = None) -> tuple[dict, bool]:
-        """Executes and records the given code by LLM in the environment.
-        (This function should only be called in headless mode.)"""
-        _, code, _ = self.generate_action(obs)
-        if config.need_human_confirmation:
-            confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
-        else:
-            confirmed = True
-        result, done = self.step_action(confirmed)
-
-        return result, done
-
-    def run(self) -> list:
-        """The main logic of the agent.
-
-        Returns: The trajectory of the agent.
-        """
+    def eval(self) -> float:
         raise NotImplementedError
 
     def close(self) -> None:

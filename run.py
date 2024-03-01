@@ -4,27 +4,29 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Any
 
-import qasync
-from qasync import QApplication
 import psutil
+import qasync
 import requests
-from PIL import Image
+from qasync import QApplication
 
 from playground.config import Config
-from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
 from playground.env.desktop_env.agent_interface import AgentInterface
+from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
+from playground.utils.human_utils import confirm_action
 from playground.llm import setup_model
-from playground.utils.json_utils import read_jsonl, add_jsonl
-from playground.env.desktop_env.recorder.screen_recorder import ScreenRecorder
+from playground.utils.json_utils import add_jsonl, read_jsonl
 
 config = Config()
 logger = logging.getLogger(__name__)
-class TestReq():
+
+
+class TestReq:
     text: str
+
     def __init__(self, text: str):
         self.text = text
+
 
 def create_parser():
     parser = argparse.ArgumentParser()
@@ -47,14 +49,16 @@ def setup_agent(args):
             from playground.agent.base_agent import Agent
 
             agent = Agent(model=model)
-            record_path = "playground_data/trajectories/dummy"
+            record_path = f"playground_data/trajectories/{args.provider}/dummy"
         case "direct":
             from playground.agent.direct_agent import DirectAgent
 
             agent = DirectAgent(model=model)
-            record_path = "playground_data/trajectories/direct"
+            record_path = f"playground_data/trajectories/{args.provider}/direct"
         case _:
             raise ValueError(f"Invalid agent: {args.agent}.")
+        
+    Path(record_path).mkdir(parents=True, exist_ok=True)
 
     return agent, record_path
 
@@ -83,6 +87,7 @@ def eval(args) -> None:
                 try:
                     if not config.remote:
                         import atexit
+
                         local_agent_server = psutil.Popen(
                             [
                                 "python",
@@ -91,6 +96,7 @@ def eval(args) -> None:
                                 "desktop",
                             ]
                         )
+
                         def cleanup(local_agent_server: psutil.Process):
                             local_agent_server.terminate()
                             local_agent_server.wait()
@@ -130,24 +136,12 @@ def eval(args) -> None:
                     sys.exit(0)
 
             else:
+                # Run evaluation locally, only for text-only tasks.
                 assert not config.remote, "Headless mode does not support remote agent."
-                import pyautogui
-                video_width, video_height = pyautogui.size()
                 scores = {}
                 for task_config in task_configs:
                     try:
                         task_id = task_config["task_id"]
-                        if task_config['visual']:
-                            recorder = ScreenRecorder(
-                                fps=config.video_fps,
-                                screen_region={
-                                    "top": 0,
-                                    "left": 0,
-                                    "width": video_width,
-                                    "height": video_height,
-                                },
-                            )
-                            recorder.start()
                         comb = evaluator_router(task_config)
                         comb.reset()
 
@@ -158,69 +152,39 @@ def eval(args) -> None:
                         # Loop until the task is done or the max step is reached.
                         for t in range(config.max_step):
                             logger.info(f"Step {t}")
-                            if task_config['visual']:
-                                obs = recorder.get_current_frame()
+                            obs = None
+                            _, code, _ = agent.generate_action(obs)
+                            if config.need_human_confirmation:
+                                confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
                             else:
-                                obs = None
-                            _, done = agent.step(obs=obs)
+                                confirmed = True
+                            _, done = agent.step_action(confirmed)
                             if done:
                                 break
 
-                        # TODO: add agent self-eval
+                        # self_eval_score = agent.eval()
 
-                        logger.info("Start auto-evaluation")
-                        score, feedback = comb(trajectory=agent.trajectory)
+                        logger.info("Start evaluation")
+                        score, feedback = comb()
                         scores[task_id] = score
                         if score == 1.0:
                             logger.info(f"[Result] (PASS): {feedback}")
                         else:
                             logger.info(f"[Result] (FAIL): {feedback}")
 
-                        task_trajectory_path = Path(record_path) / f"{task_id}"
-                        record_dict: dict[str, Any] = {
-                            "task_config": task_config,
+                        results = {
+                            "task_id": task_id,
+                            "instruction": instruction,
+                            "trajectory": agent.trajectory,
+                            # "self_eval_score": self_eval_score,
+                            "score": score,
+                            "feedback": feedback,
                         }
-                        if task_config['visual']:
-                            assert recorder is not None
-                            recorder.stop()
-                            recorder.wait_exit()
-                            video_path = (task_trajectory_path / "video.mp4").as_posix()
-                            recorder.save(video_path, start_frame_id=0)
-                            logger.info(f"Video saved to {video_path}")
-
-                            record_dict["video"] = {
-                                "path": video_path,
-                            }
-                            del recorder
-                            recorder = None
-                        else:
-                            record_dict["video"] = None
-
-                        trajectory = agent.get_trajectory()
-                        record_dict["actions"] = []
-                        for idx, action in enumerate(trajectory):
-                            im = Image.fromarray(action["obs"])
-                            img_path = (task_trajectory_path / (f"{idx}.png")).as_posix()
-                            im.save(img_path)
-                            record_dict["actions"].append(
-                                {
-                                    "timestamp": action["timestamp"],
-                                    "obs": img_path,
-                                    "action": action["act"],
-                                    "result": action["res"],
-                                }
-                            )
-
-                        record_dict["score"] = str(score)
-                        record_dict["feedback"] = feedback
                         add_jsonl(
-                            data=[record_dict],
-                            file_path=(Path(record_path) / "tasks.jsonl").as_posix(),
+                            data=[results],
+                            file_path=(Path(record_path) / "results.jsonl").as_posix(),
                         )
                     except KeyboardInterrupt:
-                        if recorder is not None:
-                            recorder.stop()
-                            recorder.wait_exit()
                         agent.close()
                     except Exception as e:
                         import traceback

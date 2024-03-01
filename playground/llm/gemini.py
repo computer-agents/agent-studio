@@ -1,7 +1,5 @@
-import base64
 import json
 import logging
-import pickle
 from typing import Any
 
 import backoff
@@ -86,7 +84,7 @@ class GeminiProvider(BaseModel):
             model = kwargs.get("model", None)
             if model is not None:
                 self.model = genai.GenerativeModel(model)
-            logger.info(f"Creating chat completion with model {model}...")
+            logger.info(f"Creating chat completion with model {model}")
 
         generation_config = GenerationConfig(
             temperature=kwargs.get("temperature", config.temperature),
@@ -128,7 +126,7 @@ class GeminiProvider(BaseModel):
                 raise genai.types.IncompleteIterationError
 
             info: dict[str, int] = {}
-            logger.info(f"Received response: {message}")
+            logger.debug(f"\nReceived response:\n{message}")
             return message, info
 
         return _generate_response_with_retry()

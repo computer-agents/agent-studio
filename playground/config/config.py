@@ -9,19 +9,19 @@ class Config(metaclass=Singleton):
     """
 
     seed: int = 42
-    headless: bool = False
+    headless: bool = True
     python_timeout: int = 10
     need_human_confirmation: bool = True
 
     task_config_paths: dict = {
-        "desktop": "playground_data/tasks/windows_easy.jsonl",
-        # "desktop": "playground_data/tasks/test.jsonl",
+        # "desktop": "playground_data/tasks/windows_easy.jsonl",
+        "desktop": "playground_data/tasks/test.jsonl",
     }
 
     stop_code: str = "\nexit()"
 
     # Env server config
-    remote: bool = True
+    remote: bool = False
     env_type: str = "desktop"
     env_server_addr: str = "127.0.0.1"
     env_server_host: str = "0.0.0.0"

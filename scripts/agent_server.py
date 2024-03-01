@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
         "from playground.env.desktop_env import Shell, Keyboard, Mouse\n\n"
         "shell = Shell()\nkeyboard = Keyboard()\nmouse = Mouse()\n"
     )
-    runtimes["python"].exec(init_code)
+    runtimes["python"](init_code)
     yield
     runtimes["python"].close()
 
@@ -115,7 +115,7 @@ async def health() -> Response:
 
 @app.post("/execute")
 async def execute_code(request: PlaygroundTextRequest) -> dict:
-    result = runtimes["python"].exec(request.message)
+    result = runtimes["python"](request.message)
     return result
 
 

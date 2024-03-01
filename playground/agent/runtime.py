@@ -1,7 +1,7 @@
 import os
 
-from jupyter_client.manager import KernelManager
 import requests
+from jupyter_client.manager import KernelManager
 
 from playground.config.config import Config
 
@@ -21,7 +21,7 @@ class PythonRuntime:
         self.kc.start_channels()
         self.kc.wait_for_ready()
 
-    def exec(self, code: str) -> dict:
+    def __call__(self, code: str) -> dict:
         self.kc.execute(code)
         result: dict = {}
         # Continuously read messages from the IOPub channel
@@ -53,12 +53,9 @@ class PythonRuntime:
         del self.km
         del self.kc
 
+
 class RemotePythonRuntime:
-    def __init__(self):
-        pass
-
-    def exec(self, code: str) -> dict:
-
+    def __call__(self, code: str) -> dict:
         response = requests.post(
             f"http://{config.env_server_addr}:{config.env_server_port}/execute",
             json={"message": code},
@@ -66,5 +63,4 @@ class RemotePythonRuntime:
         return response.json()
 
     def close(self) -> None:
-        # TODO: Implement close method
         pass
