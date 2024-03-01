@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
-from PIL import Image
+
+import cv2
 
 from playground.agent.base_agent import Agent
 
@@ -81,7 +82,7 @@ def export_trajectories(
         assert media_path is not None
         for traj in trajectory:
             image_path = (media_path / f"{traj['timestamp']}.png").as_posix()
-            Image.fromarray(traj["obs"]).save(image_path)
+            cv2.imwrite(image_path, traj["obs"])
             results["trajectory"].append(
                 {
                     "obs": image_path,

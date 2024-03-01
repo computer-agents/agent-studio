@@ -635,7 +635,7 @@ class AgentInterface(QMainWindow):
                         frame.tobytes(),
                         self.video_width,
                         self.video_height,
-                        QImage.Format.Format_BGR888,
+                        QImage.Format.Format_RGB888,
                     )
                     self.vnc_frame.update(qimage)
         except Exception as e:

@@ -725,7 +725,7 @@ class VNCStreamer:
         while self.is_streaming:
             try:
                 frame = await self.vnc.screenshot()
-                frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
                 with self.streaming_lock:
                     self.current_frame = frame.copy()
             except Exception as e:
