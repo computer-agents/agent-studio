@@ -7,7 +7,7 @@ config = Config()
 task_status = TaskStatus()
 
 
-def confirm_action(prompt: str) -> Callable:
+def confirm_action(prompt: str = "") -> Callable:
     assert isinstance(prompt, str)
 
     def decorator(func) -> Callable:

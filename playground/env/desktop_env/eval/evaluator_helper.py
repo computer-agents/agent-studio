@@ -19,14 +19,14 @@ class EvaluatorComb:
         for evaluator in self.evaluators:
             evaluator.reset()
 
-    def __call__(self, **kwargs) -> tuple[float, str]:
+    def __call__(self, **kwargs) -> tuple[bool, str]:
         score = 1.0
         feedback = ""
         for evaluator in self.evaluators:
             cur_score, cur_feedback = evaluator(**kwargs)
             score *= cur_score
             feedback += cur_feedback
-        return score, feedback
+        return bool(score), feedback
 
 
 def register_evaluators(

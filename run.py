@@ -13,8 +13,8 @@ from qasync import QApplication
 from playground.config import Config
 from playground.env.desktop_env.agent_interface import AgentInterface
 from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
-from playground.utils.human_utils import confirm_action
 from playground.llm import setup_model
+from playground.utils.human_utils import confirm_action
 from playground.utils.json_utils import add_jsonl, read_jsonl
 
 config = Config()
@@ -57,7 +57,7 @@ def setup_agent(args):
             record_path = f"playground_data/trajectories/{args.provider}/direct"
         case _:
             raise ValueError(f"Invalid agent: {args.agent}.")
-        
+
     Path(record_path).mkdir(parents=True, exist_ok=True)
 
     return agent, record_path
@@ -76,12 +76,12 @@ def eval(args) -> None:
     """Evaluate the agent on the given tasks."""
 
     agent, record_path = setup_agent(args)
-    # agent = setup_agent(config.provider, config.env_type, config.agent)
     task_configs = setup_tasks(args)
 
     match args.env:
         case "desktop":
             if not config.headless:
+                # Run evaluation with GUI.
                 from playground.env.desktop_env.agent_interface import run_ui
 
                 try:
@@ -106,7 +106,8 @@ def eval(args) -> None:
                     while True:
                         try:
                             response = requests.get(
-                                f"http://{config.env_server_addr}:{config.env_server_port}/health"
+                                f"http://{config.env_server_addr}:"
+                                f"{config.env_server_port}/health"
                             )
                             if response.status_code == 200:
                                 break
@@ -153,16 +154,14 @@ def eval(args) -> None:
                         for t in range(config.max_step):
                             logger.info(f"Step {t}")
                             obs = None
-                            _, code, _ = agent.generate_action(obs)
+                            agent.generate_action(obs)
                             if config.need_human_confirmation:
-                                confirmed, _ = confirm_action(f"Executing code:\n{code}")(lambda: True)()
+                                confirmed, _ = confirm_action()(lambda: True)()
                             else:
                                 confirmed = True
                             _, done = agent.step_action(confirmed)
                             if done:
                                 break
-
-                        # self_eval_score = agent.eval()
 
                         logger.info("Start evaluation")
                         score, feedback = comb()
@@ -176,7 +175,7 @@ def eval(args) -> None:
                             "task_id": task_id,
                             "instruction": instruction,
                             "trajectory": agent.trajectory,
-                            # "self_eval_score": self_eval_score,
+                            "self_eval": agent.eval(),
                             "score": score,
                             "feedback": feedback,
                         }

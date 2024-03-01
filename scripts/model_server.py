@@ -1,5 +1,6 @@
 import argparse
 import base64
+import json
 import logging
 import pickle
 
@@ -79,7 +80,9 @@ if __name__ == "__main__":
     args = parse_args()
 
     if args.model == "gemini-pro-vision":
-        genai.configure(api_key=config.GEMINI_API_KEY)
+        with open(config.api_key_path, "r") as f:
+            api_keys = json.load(f)
+        genai.configure(api_key=api_keys["gemini"])
         model = genai.GenerativeModel(args.model)
 
     app.root_path = args.root_path

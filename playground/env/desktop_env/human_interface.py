@@ -1,10 +1,8 @@
 import asyncio
 import functools
 import logging
-import queue
 import sys
 from asyncio import open_connection
-from datetime import datetime
 
 import numpy as np
 import requests
@@ -198,7 +196,9 @@ class HumanInterface(QMainWindow):
         await self.update_screen()
         if self.vnc is not None:
             if local_cursor_pos := self.vnc_frame.get_cursor_pos():
-                self.statusBar().showMessage(f"Cursor Position: {str(local_cursor_pos)}")
+                self.statusBar().showMessage(
+                    f"Cursor Position: {str(local_cursor_pos)}"
+                )
         self.refreshing_screen = False
         self.refresh_timer.start()
 

@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Any
 
@@ -15,7 +16,9 @@ logger = logging.getLogger(__name__)
 
 class OpenAIProvider(BaseModel):
     def __init__(self, **kwargs: Any) -> None:
-        self.client = OpenAI(api_key=config.OPENAI_API_KEY)
+        with open(config.api_key_path, "r") as f:
+            api_keys = json.load(f)
+        self.client = OpenAI(api_key=api_keys["openai"])
 
     def compose_messages(
         self,

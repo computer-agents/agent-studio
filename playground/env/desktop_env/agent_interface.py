@@ -2,32 +2,32 @@ import asyncio
 import functools
 import logging
 import sys
-from pathlib import Path
+import threading
 import time
 from asyncio import open_connection
-import threading
+from pathlib import Path
 from typing import Any
 
 import cv2
-from PIL import Image
-import numpy as np
 import mss
+import numpy as np
 import pyautogui
 import requests
-from PyQt6.QtCore import QThread, pyqtSignal, QTimer, QObject, QMutex, QWaitCondition
-from PyQt6.QtGui import QImage, QColor
+from PIL import Image
+from PyQt6.QtCore import QMutex, QObject, QThread, QTimer, QWaitCondition, pyqtSignal
+from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QHBoxLayout,
+    QInputDialog,
     QLabel,
+    QListWidget,
+    QListWidgetItem,
     QMainWindow,
     QPushButton,
+    QStatusBar,
     QTextEdit,
     QVBoxLayout,
     QWidget,
-    QListWidget,
-    QStatusBar,
-    QInputDialog,
-    QListWidgetItem,
 )
 from qasync import QApplication, asyncClose, asyncSlot
 
@@ -43,10 +43,11 @@ from playground.utils.communication import (
     PlaygroundTextRequest,
     bytes2str,
 )
-from playground.utils.json_utils import format_json, add_jsonl, read_jsonl
+from playground.utils.json_utils import add_jsonl, format_json, read_jsonl
 
 config = Config()
 logger = logging.getLogger(__name__)
+
 
 class FrameBuffer:
     def __init__(self):
@@ -71,6 +72,7 @@ class FrameBuffer:
                     frames.append(frame)
         return frames
 
+
 class WorkerSignals(QObject):
     confirm_signal = pyqtSignal(bool)
     decline_signal = pyqtSignal(bool)
@@ -84,14 +86,11 @@ class WorkerSignals(QObject):
     show_input_dialog_signal = pyqtSignal(str)
     save_trajectory_signal = pyqtSignal()
 
+
 class RunTaskThread(QThread):
     def __init__(
-            self,
-            signals: WorkerSignals,
-            selected_task: dict,
-            obs: np.ndarray,
-            agent: Agent
-        ):
+        self, signals: WorkerSignals, selected_task: dict, obs: np.ndarray, agent: Agent
+    ):
         super().__init__()
         self.mutex = QMutex()
         self.wait_condition = QWaitCondition()
@@ -110,7 +109,9 @@ class RunTaskThread(QThread):
                 break
             elif response.status == "wait_for_input":
                 if config.need_human_confirmation:
-                    self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
+                    self.signals.status_bar_signal.emit(
+                        "color: blue;", "Waiting for input"
+                    )
                     self.mutex.lock()
                     self.signals.show_input_dialog_signal.emit(response.content)
                     self.wait_condition.wait(self.mutex)
@@ -119,7 +120,7 @@ class RunTaskThread(QThread):
                 else:
                     user_input = "y"
                 response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",  # noqa: E501
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
                 response = PlaygroundResponse(**response_raw.json())
@@ -147,19 +148,21 @@ class RunTaskThread(QThread):
         response = PlaygroundResultResponse(**response_raw.json())
         # TODO: handle failed reset
         assert response.status == "finished" and response.result == "success"
-        self.agent.reset(
-            instruction=self.selected_task["instruction"],
-        )
+        self.agent.reset(instruction=self.selected_task["instruction"])
 
     def run(self):
         self.reset_task()
-        self.signals.status_bar_signal.emit("color: green;", "Task: Generating action...")
+        self.signals.status_bar_signal.emit(
+            "color: green;", "Task: Generating action..."
+        )
 
-        raw_code, code, _ = self.agent.generate_action(self.obs)
+        response, raw_code = self.agent.generate_action(self.obs)
 
-        self.signals.status_bar_signal.emit("color: blue;", "Task: Waiting for confirmation...")
-        self.signals.parsed_action_display_signal.emit(code)
-        self.signals.response_display_signal.emit(raw_code)
+        self.signals.status_bar_signal.emit(
+            "color: blue;", "Task: Waiting for confirmation..."
+        )
+        self.signals.parsed_action_display_signal.emit(raw_code)
+        self.signals.response_display_signal.emit(response)
         self.signals.confirm_signal.emit(True)
         self.signals.decline_signal.emit(True)
 
@@ -172,12 +175,12 @@ class RunTaskThread(QThread):
 
 class EvalTaskThread(QThread):
     def __init__(
-            self,
-            signals: WorkerSignals,
-            trajectory_display: QTextEdit,
-            selected_task: dict,
-            agent: Agent
-        ):
+        self,
+        signals: WorkerSignals,
+        trajectory_display: QTextEdit,
+        selected_task: dict,
+        agent: Agent,
+    ):
         super().__init__()
         self.mutex = QMutex()
         self.wait_condition = QWaitCondition()
@@ -202,7 +205,7 @@ class EvalTaskThread(QThread):
                 self.mutex.unlock()
                 user_input = self.user_input
                 response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",  # noqa: E501
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
                 response = PlaygroundResponse(**response_raw.json())
@@ -233,10 +236,12 @@ class EvalTaskThread(QThread):
         response = PlaygroundResultResponse(**response_raw.json())
         assert response.status == "finished" and isinstance(response.message, dict)
         self.signals.evaluation_display_signal.emit(
-            f"Score: {response.message['score']}\nFeedback: {response.message['feedback']}"
+            f"Score: {response.message['score']}\nFeedback: {response.message['feedback']}"  # noqa: E501
         )
         self.signals.next_task_signal.emit(True)
-        self.signals.status_bar_signal.emit("color: green;", "Task: Saving trajectory...")
+        self.signals.status_bar_signal.emit(
+            "color: green;", "Task: Saving trajectory..."
+        )
         self.signals.save_trajectory_signal.emit()
         self.signals.status_bar_signal.emit("color: green;", "Task: Finished")
 
@@ -245,6 +250,7 @@ class EvalTaskThread(QThread):
         self.user_input = text  # Store the user input
         self.wait_condition.wakeAll()  # Resume the thread
         self.mutex.unlock()
+
 
 class AgentInterface(QMainWindow):
     layout_width = 300
@@ -355,7 +361,6 @@ class AgentInterface(QMainWindow):
 
         task_layout = QVBoxLayout()
 
-
         task_layout.addWidget(QLabel("Task configuration"))
         self.task_config_display = QTextEdit(self)
         task_layout.addWidget(self.task_config_display)
@@ -365,7 +370,9 @@ class AgentInterface(QMainWindow):
 
         task_layout.addWidget(QLabel("Task Selection (double click to select)"))
         self.instruction_selection = QListWidget(self)
-        self.instruction_selection.itemDoubleClicked.connect(self.select_task_instruction)
+        self.instruction_selection.itemDoubleClicked.connect(
+            self.select_task_instruction
+        )
         task_layout.addWidget(self.instruction_selection)
         self.instruction_selection.clear()
         self.populate_instruction_selection_widget()
@@ -411,8 +418,8 @@ class AgentInterface(QMainWindow):
         if jsonl_path.exists():
             evaluated_tasks = read_jsonl(jsonl_path.as_posix())
             self.task_results = {
-                task_result["task_config"]["task_id"]: task_result \
-                    for task_result in evaluated_tasks
+                task_result["task_config"]["task_id"]: task_result
+                for task_result in evaluated_tasks
             }
         else:
             self.task_results = {}
@@ -424,9 +431,9 @@ class AgentInterface(QMainWindow):
             item = QListWidgetItem(task["instruction"])
             if task["task_id"] in self.task_results:
                 if self.task_results[task["task_id"]]["score"] == "1.0":
-                    item.setForeground(QColor('green'))
+                    item.setForeground(QColor("green"))
                 else:
-                    item.setForeground(QColor('red'))
+                    item.setForeground(QColor("red"))
             self.instruction_selection.addItem(item)
 
     def select_task_instruction(self, item):
@@ -438,8 +445,8 @@ class AgentInterface(QMainWindow):
         if self.selected_task["task_id"] in self.task_results:
             self.evaluation_display.setPlainText(
                 f"Score: {self.task_results[self.selected_task['task_id']]['score']}\n"
-                    f"Feedback: {self.task_results[self.selected_task['task_id']]['feedback']}"
-                )
+                f"Feedback: {self.task_results[self.selected_task['task_id']]['feedback']}"  # noqa: E501
+            )
 
         self.start_button.setEnabled(True)
 
@@ -513,7 +520,7 @@ class AgentInterface(QMainWindow):
             )
         except (ConnectionRefusedError, ValueError) as e:
             logger.warning(f"Fail to connect to VNC server: {e}")
-            self.status_bar.showMessage(f"VNC not available.")
+            self.status_bar.showMessage("VNC not available.")
             return
         self.video_height = self.vnc.video.height
         self.video_width = self.vnc.video.width
@@ -585,14 +592,12 @@ class AgentInterface(QMainWindow):
             writer.write(frame[1])
         writer.release()
 
-        record_dict: dict[str, Any] = {
-            "task_config": self.selected_task
-        }
+        record_dict: dict[str, Any] = {"task_config": self.selected_task}
         record_dict["video"] = {
             "path": video_path.as_posix(),
         }
 
-        trajectory = self.agent.get_trajectory()
+        trajectory = self.agent.trajectory
         record_dict["actions"] = []
         for idx, action in enumerate(trajectory):
             im = Image.fromarray(action["obs"])
@@ -607,8 +612,12 @@ class AgentInterface(QMainWindow):
                 }
             )
 
-        record_dict["score"] = self.evaluation_display.toPlainText().split("\n")[0].split(":")[1].strip()
-        record_dict["feedback"] = self.evaluation_display.toPlainText().split("\n")[1].split(":")[1].strip()
+        record_dict["score"] = (
+            self.evaluation_display.toPlainText().split("\n")[0].split(":")[1].strip()
+        )
+        record_dict["feedback"] = (
+            self.evaluation_display.toPlainText().split("\n")[1].split(":")[1].strip()
+        )
 
         add_jsonl(
             data=[record_dict],
@@ -639,10 +648,12 @@ class AgentInterface(QMainWindow):
         signals.confirm_signal.connect(self.confirm_button.setEnabled)
         signals.decline_signal.connect(self.decline_button.setEnabled)
         signals.status_bar_signal.connect(self.set_task_status_bar_text)
-        signals.parsed_action_display_signal.connect(self.parsed_action_display.setPlainText)
+        signals.parsed_action_display_signal.connect(
+            self.parsed_action_display.setPlainText
+        )
         signals.response_display_signal.connect(self.response_display.setPlainText)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
-        obs=self.now_screenshot.copy()
+        obs = self.now_screenshot.copy()
         self.current_thread = RunTaskThread(
             signals=signals,
             selected_task=self.selected_task,
@@ -673,7 +684,7 @@ class AgentInterface(QMainWindow):
             signals=signals,
             selected_task=self.selected_task,
             agent=self.agent,
-            trajectory_display=self.trajectory_display
+            trajectory_display=self.trajectory_display,
         )
         self.current_thread.start()
 
@@ -697,10 +708,10 @@ class AgentInterface(QMainWindow):
             self.parsed_action_display.clear()
 
         if not done:
-            obs=self.now_screenshot.copy()
-            raw_code, code, _ = self.agent.generate_action(obs)
-            self.parsed_action_display.setPlainText(code)
-            self.response_display.setPlainText(raw_code)
+            obs = self.now_screenshot.copy()
+            response, raw_code = self.agent.generate_action(obs)
+            self.parsed_action_display.setPlainText(raw_code)
+            self.response_display.setPlainText(response)
             self.confirm_button.setEnabled(True)
             self.decline_button.setEnabled(True)
         else:
