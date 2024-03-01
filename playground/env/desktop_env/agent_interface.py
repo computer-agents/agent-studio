@@ -565,10 +565,10 @@ class AgentInterface(QMainWindow):
         assert self.selected_task is not None
         self.is_recording = False
 
-        task_record_path: Path = self.record_path / self.selected_task["task_id"]
-        video_path: Path = task_record_path / ("video.mp4")
-        if task_record_path != Path("") and not task_record_path.exists():
-            task_record_path.mkdir(parents=True, exist_ok=True)
+        task_trajectory_path: Path = self.record_path / self.selected_task["task_id"]
+        video_path: Path = task_trajectory_path / ("video.mp4")
+        if task_trajectory_path != Path("") and not task_trajectory_path.exists():
+            task_trajectory_path.mkdir(parents=True, exist_ok=True)
         writer = cv2.VideoWriter(
             video_path.as_posix(),
             cv2.VideoWriter.fourcc(*"mp4v"),
@@ -580,7 +580,6 @@ class AgentInterface(QMainWindow):
         )
 
         frames = self.frame_buffer.get_frames(0)
-        duration = len(frames) / config.video_fps
         logger.info(f"Captured {len(frames)} frames with FPS={config.video_fps}")
         for frame in frames:
             writer.write(frame[1])
@@ -590,16 +589,6 @@ class AgentInterface(QMainWindow):
             "task_config": self.selected_task
         }
         record_dict["video"] = {
-            "metadata": {
-                "region":{
-                        "left": 0,
-                        "top": 0,
-                        "width": self.video_width,
-                        "height": self.video_height,
-                    },
-                "fps": config.video_fps,
-                "duration": round(duration, 2),
-            },
             "path": video_path.as_posix(),
         }
 
@@ -607,7 +596,7 @@ class AgentInterface(QMainWindow):
         record_dict["actions"] = []
         for idx, action in enumerate(trajectory):
             im = Image.fromarray(action["obs"])
-            img_path = (task_record_path / (f"{idx}.png")).as_posix()
+            img_path = (task_trajectory_path / (f"{idx}.png")).as_posix()
             im.save(img_path)
             record_dict["actions"].append(
                 {

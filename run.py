@@ -3,21 +3,28 @@ import asyncio
 import logging
 import sys
 import time
+from pathlib import Path
+from typing import Any
 
 import qasync
 from qasync import QApplication
 import psutil
 import requests
+from PIL import Image
 
 from playground.config import Config
 from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
 from playground.env.desktop_env.agent_interface import AgentInterface
 from playground.llm import setup_model
-from playground.utils.json_utils import read_jsonl
+from playground.utils.json_utils import read_jsonl, add_jsonl
+from playground.env.desktop_env.recorder.screen_recorder import ScreenRecorder
 
 config = Config()
 logger = logging.getLogger(__name__)
-
+class TestReq():
+    text: str
+    def __init__(self, text: str):
+        self.text = text
 
 def create_parser():
     parser = argparse.ArgumentParser()
@@ -123,10 +130,24 @@ def eval(args) -> None:
                     sys.exit(0)
 
             else:
+                assert not config.remote, "Headless mode does not support remote agent."
+                import pyautogui
+                video_width, video_height = pyautogui.size()
                 scores = {}
                 for task_config in task_configs:
                     try:
                         task_id = task_config["task_id"]
+                        if task_config['visual']:
+                            recorder = ScreenRecorder(
+                                fps=config.video_fps,
+                                screen_region={
+                                    "top": 0,
+                                    "left": 0,
+                                    "width": video_width,
+                                    "height": video_height,
+                                },
+                            )
+                            recorder.start()
                         comb = evaluator_router(task_config)
                         comb.reset()
 
@@ -137,22 +158,62 @@ def eval(args) -> None:
                         # Loop until the task is done or the max step is reached.
                         for t in range(config.max_step):
                             logger.info(f"Step {t}")
-                            _, done = agent.step()
+                            if task_config['visual']:
+                                obs = recorder.get_current_frame()
+                            else:
+                                obs = None
+                            _, done = agent.step(obs=obs)
                             if done:
                                 break
 
                         # TODO: add agent self-eval
 
                         logger.info("Start auto-evaluation")
-                        # score, feedback = comb(trajectory=agent.trajectory)
-                        score, feedback = 1.0, "dummy feedback"
+                        score, feedback = comb(trajectory=agent.trajectory)
                         scores[task_id] = score
                         if score == 1.0:
                             logger.info(f"[Result] (PASS): {feedback}")
                         else:
                             logger.info(f"[Result] (FAIL): {feedback}")
 
-                        # TODO: dump trajectory and score to record_path
+                        task_trajectory_path = Path(record_path) / f"{task_id}"
+                        record_dict: dict[str, Any] = {
+                            "task_config": task_config,
+                        }
+                        if task_config['visual']:
+                            recorder.stop()
+                            video_path = (task_trajectory_path / "video.mp4").as_posix()
+                            recorder.save(video_path, start_frame_id=0)
+                            logger.info(f"Video saved to {video_path}")
+
+                            record_dict["video"] = {
+                                "path": video_path,
+                            }
+                            del recorder
+                        else:
+                            record_dict["video"] = None
+
+                        trajectory = agent.get_trajectory()
+                        record_dict["actions"] = []
+                        for idx, action in enumerate(trajectory):
+                            im = Image.fromarray(action["obs"])
+                            img_path = (task_trajectory_path / (f"{idx}.png")).as_posix()
+                            im.save(img_path)
+                            record_dict["actions"].append(
+                                {
+                                    "timestamp": action["timestamp"],
+                                    "obs": img_path,
+                                    "action": action["act"],
+                                    "result": action["res"],
+                                }
+                            )
+
+                        record_dict["score"] = str(score)
+                        record_dict["feedback"] = feedback
+                        add_jsonl(
+                            data=[record_dict],
+                            file_path=(Path(record_path) / "tasks.jsonl").as_posix(),
+                        )
 
                     except Exception as e:
                         import traceback
