@@ -78,6 +78,7 @@ class Agent:
                 result = self.runtime(code)
         else:
             result["content"] = "Cancelled by user."
+            done = True
 
         self.trajectory.append(
             {

@@ -342,7 +342,7 @@ class AgentInterface(QMainWindow):
         self.decline_button.setEnabled(False)
         self.confirm_button.clicked.connect(self.step_action)
         # goto evaluation step if user rejects the action
-        self.decline_button.clicked.connect(self.finish_run_task)
+        self.decline_button.clicked.connect(self.reject_action)
         consent_button_layout = QHBoxLayout()
         consent_button_layout.addWidget(self.confirm_button)
         consent_button_layout.addWidget(self.decline_button)
@@ -602,7 +602,16 @@ class AgentInterface(QMainWindow):
         self.start_button.setEnabled(False)
         self.eval_button.setEnabled(True)
 
-    def step_action(self):
+    def reject_action(self) -> None:
+        self.confirm_button.setEnabled(False)
+        self.decline_button.setEnabled(False)
+        self.set_task_status_bar_text("color: green;", "Task: Executing...")
+        result, done = self.agent.step_action(confirmed=False)
+        self.output_display.setPlainText(str(result))
+        self.set_task_status_bar_text("color: green;", "Task: Declined")
+        self.finish_run_task()
+
+    def step_action(self) -> None:
         """Steps the next action and adds it to the trajectory."""
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
