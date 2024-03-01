@@ -2,7 +2,6 @@ import logging
 
 from playground.config import Config
 from playground.env.desktop_env.eval.evaluator import Evaluator
-
 from playground.utils.task_status import StateEnum, StateInfo, TaskStatus
 
 logger = logging.getLogger(__name__)
@@ -37,5 +36,6 @@ class HumanEvaluator(Evaluator):
             )
             state = task_status.wait_for_state_change()
             assert state.state == StateEnum.IN_PROGRESS, state
+            assert isinstance(state.message, str), state
             feedback = state.message
         return score, feedback

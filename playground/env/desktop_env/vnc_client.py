@@ -1,4 +1,8 @@
-from asyncio import StreamReader, StreamWriter
+import asyncio
+import logging
+import threading
+import time
+from asyncio import StreamReader, StreamWriter, open_connection
 from dataclasses import dataclass, field
 from enum import Enum
 from fractions import Fraction
@@ -6,13 +10,8 @@ from os import urandom
 from struct import unpack
 from typing import Callable
 from zlib import decompressobj
-import asyncio
-from asyncio import open_connection
-import cv2
-import logging
-import threading
-import time
 
+import cv2
 import numpy as np
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -731,6 +730,4 @@ class VNCStreamer:
             except Exception as e:
                 logger.warning(f"Fail to capture frame: {e}")
         await self.vnc.disconnect()
-        logger.info(
-            f"VNC Streamer stopped, "
-        )
+        logger.info("VNC Streamer stopped")

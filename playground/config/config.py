@@ -12,6 +12,7 @@ class Config(metaclass=Singleton):
     headless: bool = True
     python_timeout: int = 10
     need_human_confirmation: bool = True
+    minimal_action_interval: float = 1.0
 
     task_config_paths: dict = {
         "desktop": "playground_data/tasks/windows_easy.jsonl",

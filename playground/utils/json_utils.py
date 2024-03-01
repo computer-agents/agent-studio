@@ -55,13 +55,13 @@ def format_json(data: dict):
 
 
 def export_trajectories(
-        agent: Agent,
-        task_config: dict,
-        trajectory: list,
-        record_path: str,
-        score: float,
-        feedback: str,
-    ) -> None:
+    agent: Agent,
+    task_config: dict,
+    trajectory: list,
+    record_path: str,
+    score: float,
+    feedback: str,
+) -> None:
     """Exports the trajectory data to a .jsonl file."""
     if task_config["visual"]:
         media_path = Path(record_path) / task_config["task_id"]

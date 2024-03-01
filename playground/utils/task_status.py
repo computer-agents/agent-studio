@@ -1,5 +1,4 @@
 import threading
-import time
 from enum import Enum
 
 from playground.utils.singleton import ThreadSafeSingleton

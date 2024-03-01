@@ -7,11 +7,11 @@ import time
 import cv2
 import mss
 import numpy as np
+import pyautogui
 
 from playground.config import Config
 from playground.env.desktop_env.recorder.base_recorder import Recorder
 from playground.env.desktop_env.vnc_client import VNCStreamer
-import pyautogui
 
 if platform.system() == "Windows":
     from ctypes import windll  # type: ignore
@@ -315,8 +315,8 @@ class VNCRecorder(ScreenRecorder):
         self.start_time = time.time()
         logger.info("Screen recorder started")
         self.recording_lock.release()
-        last_capture_time = 0    # last saved frame capture time
-        last_frame_time = time.time()   # last frame capture time
+        last_capture_time = 0  # last saved frame capture time
+        last_frame_time = time.time()  # last frame capture time
         while self.is_recording:
             frame = self.vnc_streamer.get_current_frame()
             assert frame is not None, "VNC client is not connected"
@@ -324,7 +324,7 @@ class VNCRecorder(ScreenRecorder):
             # add frame to buffer
             with self.recording_lock:
                 self.current_frame = frame.copy()
-            current_frame_time = time.time()   # current frame capture time
+            current_frame_time = time.time()  # current frame capture time
             # preserve the frame rate
             if current_frame_time - last_capture_time > 1 / self.fps:
                 self.current_frame_id += 1

@@ -1,16 +1,11 @@
-import asyncio
-import functools
 import logging
-import sys
 import threading
 import time
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import pyautogui
 import requests
-from PIL import Image
 from PyQt6.QtCore import QMutex, QObject, QThread, QTimer, QWaitCondition, pyqtSignal
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
@@ -26,12 +21,15 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from qasync import QApplication, asyncClose, asyncSlot
+from qasync import asyncClose
 
 from playground.agent.base_agent import Agent
 from playground.config.config import Config
+from playground.env.desktop_env.recorder.screen_recorder import (
+    ScreenRecorder,
+    VNCRecorder,
+)
 from playground.env.desktop_env.vnc_client import VNCFrame, VNCStreamer
-from playground.env.desktop_env.recorder.screen_recorder import ScreenRecorder, VNCRecorder
 from playground.utils.communication import (
     PlaygroundEvalRequest,
     PlaygroundResetRequest,
@@ -87,7 +85,11 @@ class WorkerSignals(QObject):
 
 class RunTaskThread(QThread):
     def __init__(
-        self, signals: WorkerSignals, selected_task: dict, obs: np.ndarray | None, agent: Agent
+        self,
+        signals: WorkerSignals,
+        selected_task: dict,
+        obs: np.ndarray | None,
+        agent: Agent,
     ):
         super().__init__()
         self.mutex = QMutex()
@@ -306,10 +308,13 @@ class AgentInterface(QMainWindow):
             self.vnc_thread = VNCStreamer(
                 env_server_addr=config.env_server_addr,
                 vnc_port=config.vnc_port,
-                vnc_password=config.vnc_password
+                vnc_password=config.vnc_password,
             )
             self.vnc_thread.start()
-            self.video_height, self.video_width = self.vnc_thread.video_height, self.vnc_thread.video_width
+            self.video_height, self.video_width = (
+                self.vnc_thread.video_height,
+                self.vnc_thread.video_width,
+            )
             vnc_layout = QVBoxLayout()
             self.vnc_frame = VNCFrame(self)
             vnc_layout.addWidget(self.vnc_frame)
@@ -421,8 +426,7 @@ class AgentInterface(QMainWindow):
         if jsonl_path.exists():
             evaluated_tasks = read_jsonl(jsonl_path.as_posix())
             self.task_results = {
-                task_result["task_id"]: task_result
-                for task_result in evaluated_tasks
+                task_result["task_id"]: task_result for task_result in evaluated_tasks
             }
         else:
             self.task_results = {}
@@ -493,8 +497,16 @@ class AgentInterface(QMainWindow):
             task_config=self.selected_task,
             trajectory=self.agent.trajectory,
             record_path=self.record_path.as_posix(),
-            score=float(self.evaluation_display.toPlainText().split("\n")[0].split(":")[1].strip()),
-            feedback=self.evaluation_display.toPlainText().split("\n")[1].split(":")[1].strip(),
+            score=float(
+                self.evaluation_display.toPlainText()
+                .split("\n")[0]
+                .split(":")[1]
+                .strip()
+            ),
+            feedback=self.evaluation_display.toPlainText()
+            .split("\n")[1]
+            .split(":")[1]
+            .strip(),
         )
 
     def run_task(self):
@@ -510,7 +522,9 @@ class AgentInterface(QMainWindow):
         # self.is_recording = True
         if self.selected_task["visual"]:
             if config.remote:
-                self.screen_recorder = VNCRecorder(fps=config.video_fps, vnc_streamer=self.vnc_thread)
+                self.screen_recorder = VNCRecorder(
+                    fps=config.video_fps, vnc_streamer=self.vnc_thread
+                )
                 self.screen_recorder.start()
             else:
                 # assert False, "Local recording is not supported"

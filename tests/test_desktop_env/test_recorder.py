@@ -1,7 +1,6 @@
 import platform
 import time
 
-import pyautogui
 import pytest
 
 from playground.env.desktop_env.recorder.screen_recorder import (
@@ -32,15 +31,8 @@ def test_window_manager() -> None:
 
 
 def test_screen_recorder(fps: int = 5, duration: int = 10) -> None:
-    width, height = pyautogui.size()
     rec = ScreenRecorder(
         fps=fps,
-        screen_region={
-            "left": 0,
-            "top": 0,
-            "width": width,
-            "height": height,
-        },
     )
     rec.start()
     time.sleep(duration)

@@ -9,13 +9,15 @@ import psutil
 import qasync
 import requests
 from qasync import QApplication
-from PIL import Image
 
 from playground.config import Config
 from playground.env.desktop_env.agent_interface import AgentInterface
-from playground.env.desktop_env.vnc_client import VNCStreamer
-from playground.env.desktop_env.recorder.screen_recorder import ScreenRecorder, VNCRecorder
 from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
+from playground.env.desktop_env.recorder.screen_recorder import (
+    ScreenRecorder,
+    VNCRecorder,
+)
+from playground.env.desktop_env.vnc_client import VNCStreamer
 from playground.llm import setup_model
 from playground.utils.human_utils import confirm_action
 from playground.utils.json_utils import export_trajectories, read_jsonl
@@ -148,6 +150,7 @@ def eval(args) -> None:
                     )
                     vnc_streamer.start()
                 scores = {}
+                screen_recorder: ScreenRecorder | None = None
                 for task_config in task_configs:
                     try:
                         if task_config["visual"]:
@@ -175,6 +178,7 @@ def eval(args) -> None:
                         for t in range(config.max_step):
                             logger.info(f"Step {t}")
                             if task_config["visual"]:
+                                assert screen_recorder is not None
                                 obs = screen_recorder.get_current_frame()
                             else:
                                 obs = None
@@ -188,7 +192,9 @@ def eval(args) -> None:
                             if done:
                                 break
 
-                        task_trajectory_path = Path(record_path) / task_config["task_id"]
+                        task_trajectory_path = (
+                            Path(record_path) / task_config["task_id"]
+                        )
                         task_trajectory_path.mkdir(parents=True, exist_ok=True)
                         if task_config["visual"]:
                             assert screen_recorder is not None
