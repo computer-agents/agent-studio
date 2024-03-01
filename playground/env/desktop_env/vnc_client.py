@@ -6,6 +6,11 @@ from os import urandom
 from struct import unpack
 from typing import Callable
 from zlib import decompressobj
+import asyncio
+from asyncio import open_connection
+import cv2
+import logging
+import threading
 
 import numpy as np
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -15,6 +20,8 @@ from PyQt6.QtGui import QCursor, QPixmap
 from PyQt6.QtWidgets import QLabel
 
 from playground.env.desktop_env.base import Position
+
+logger = logging.getLogger(__name__)
 
 # Common screen aspect ratios
 screen_ratios: set[Fraction] = {
@@ -644,3 +651,83 @@ class VNCFrame(QLabel):
 
     def update(self, qimage):
         self.setPixmap(QPixmap.fromImage(qimage))
+
+
+class VNCStreamer:
+    def __init__(self, env_server_addr: str, vnc_port: int, vnc_password: str):
+        self.env_server_addr = env_server_addr
+        self.vnc_port = vnc_port
+        self.vnc_password = vnc_password
+        self.is_streaming = False
+        self.streaming_thread = threading.Thread(
+            target=self.between_callback, name="Screen Stream"
+        )
+        self.streaming_lock = threading.Lock()
+        self.video_height = 0
+        self.video_width = 0
+
+    def start(self) -> None:
+        self.streaming_lock.acquire()
+        self.is_streaming = True
+        self.streaming_thread.start()
+        with self.streaming_lock:
+            pass
+
+    def stop(self):
+        if not self.streaming_thread.is_alive():
+            logger.warning("VNC thread is not executing")
+        else:
+            self.is_streaming = False
+            self.streaming_thread.join()
+
+    async def connect_vnc(self):
+        """Connects to VNC server."""
+        try:
+            self._reader, self._writer = await open_connection(
+                self.env_server_addr, self.vnc_port
+            )
+            self.vnc: VNCClient = await VNCClient.create(
+                reader=self._reader, writer=self._writer, password=self.vnc_password
+            )
+        except (ConnectionRefusedError, ValueError) as e:
+            logger.warning(f"Fail to connect to VNC server: {e}")
+            return
+        self.video_height = self.vnc.video.height
+        self.video_width = self.vnc.video.width
+        self.current_frame = np.zeros(
+            (self.video_height, self.video_width, 3), dtype="uint8"
+        )
+
+    def between_callback(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        loop.run_until_complete(self._capture_screen())
+        loop.close()
+
+    async def reconnect(self):
+        if self.vnc is not None:
+            await self.vnc.disconnect()
+        await self.connect_vnc()
+
+    def get_current_frame(self) -> np.ndarray | None:
+        with self.streaming_lock:
+            return self.current_frame
+
+    async def _capture_screen(self):
+        await self.connect_vnc()
+        assert self.vnc is not None, "VNC client is not connected"
+        logger.info("VNC Streamer started")
+        self.streaming_lock.release()
+        while self.is_streaming:
+            try:
+                frame = await self.vnc.screenshot()
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+                with self.streaming_lock:
+                    self.current_frame = frame.copy()
+            except Exception as e:
+                logger.warning(f"Fail to capture frame: {e}")
+        await self.vnc.disconnect()
+        logger.info(
+            f"VNC Streamer stopped, "
+        )

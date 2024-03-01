@@ -33,7 +33,8 @@ from qasync import QApplication, asyncClose, asyncSlot
 
 from playground.agent.base_agent import Agent
 from playground.config.config import Config
-from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
+from playground.env.desktop_env.vnc_client import VNCFrame, VNCStreamer
+from playground.env.desktop_env.recorder.screen_recorder import ScreenRecorder, VNCRecorder
 from playground.utils.communication import (
     PlaygroundEvalRequest,
     PlaygroundResetRequest,
@@ -266,9 +267,9 @@ class AgentInterface(QMainWindow):
         self.task_list = [task["instruction"] for task in task_configs]
         self.task_configs = task_configs
         self.refresh_timer = QTimer(self)
-        self.refresh_timer.setInterval(1)
+        self.refresh_timer.setInterval(100)
         self.refresh_timer.timeout.connect(self.render)
-        self.refresh_timer.stop()
+        self.refresh_timer.start()
         self.refreshing_screen = False  # need for refresh flag
         self.selected_task: dict | None = None
         self.status_bar: QStatusBar
@@ -278,15 +279,13 @@ class AgentInterface(QMainWindow):
         # screen recorder
         self.record_path: Path = Path(record_path)
         self.recording_lock = threading.Lock()
-        self.frame_buffer = FrameBuffer()
-        self.current_frame_id = -1
-        self.is_recording = False
+        self.screen_recorder: ScreenRecorder | None = None
         if not config.remote:
             self.video_width, self.video_height = pyautogui.size()
 
         self.setup_ui()
-        self.screenshot_thread = threading.Thread(target=self.capture_screen)
-        self.screenshot_thread.start()
+        # self.screenshot_thread = threading.Thread(target=self.capture_screen)
+        # self.screenshot_thread.start()
 
         self.vnc = None
         self.reset()
@@ -307,12 +306,18 @@ class AgentInterface(QMainWindow):
         self.status_bar.addPermanentWidget(self.task_status_bar)
 
         if config.remote:
-            self.connect_vnc()
+            self.vnc_thread = VNCStreamer(
+                env_server_addr=config.env_server_addr,
+                vnc_port=config.vnc_port,
+                vnc_password=config.vnc_password
+            )
+            self.vnc_thread.start()
+            self.video_height, self.video_width = self.vnc_thread.video_height, self.vnc_thread.video_width
             vnc_layout = QVBoxLayout()
             self.vnc_frame = VNCFrame(self)
             vnc_layout.addWidget(self.vnc_frame)
             reconnect_button = QPushButton("Re-connect")
-            reconnect_button.clicked.connect(self.reconnect)
+            # reconnect_button.clicked.connect(self.reconnect)
             vnc_layout.addWidget(reconnect_button)
             main_layout.addLayout(vnc_layout)
 
@@ -450,92 +455,6 @@ class AgentInterface(QMainWindow):
 
         self.start_button.setEnabled(True)
 
-    def capture_screen(self) -> None:
-        if config.remote:
-            while True:
-                if self.on_close:
-                    break
-                if self.is_recording:
-                    frame = self.now_screenshot.copy()
-                    capture_time = time.time()
-                    frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-                    # add frame to buffer
-                    self.current_frame_id += 1
-                    self.frame_buffer.add_frame(self.current_frame_id, frame)
-                    # preserve the frame rate
-                    wait_time = 1 / config.video_fps - (time.time() - capture_time)
-                    if wait_time > 0:
-                        time.sleep(wait_time)
-                    elif wait_time < 0:
-                        logger.warning("Frame rate is too high")
-                else:
-                    time.sleep(1 / config.video_fps)
-        else:
-            with mss.mss(with_cursor=False) as sct:
-                while True:
-                    if self.on_close:
-                        break
-                    if self.is_recording:
-                        frame = sct.grab(
-                            {
-                                "left": 0,
-                                "top": 0,
-                                "width": self.video_width,
-                                "height": self.video_height,
-                            }
-                        )
-                        capture_time = time.time()
-                        frame = np.array(frame)
-                        frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-                        # add frame to buffer
-                        self.current_frame_id += 1
-                        self.frame_buffer.add_frame(self.current_frame_id, frame)
-                        # preserve the frame rate
-                        wait_time = 1 / config.video_fps - (time.time() - capture_time)
-                        if wait_time > 0:
-                            time.sleep(wait_time)
-                        elif wait_time < 0:
-                            logger.warning("Frame rate is too high")
-                    else:
-                        time.sleep(1 / config.video_fps)
-
-    @asyncSlot()
-    async def reconnect(self):
-        """Reconnects to VNC server."""
-        if self.vnc is not None:
-            await self.vnc.disconnect()
-        await self.connect_vnc()
-
-    @asyncSlot()
-    async def connect_vnc(self):
-        """Connects to VNC server."""
-        self.status_bar.showMessage("Connecting")
-
-        try:
-            self._reader, self._writer = await open_connection(
-                config.env_server_addr, config.vnc_port
-            )
-            self.vnc = await VNCClient.create(
-                reader=self._reader, writer=self._writer, password=config.vnc_password
-            )
-        except (ConnectionRefusedError, ValueError) as e:
-            logger.warning(f"Fail to connect to VNC server: {e}")
-            self.status_bar.showMessage("VNC not available.")
-            return
-        self.video_height = self.vnc.video.height
-        self.video_width = self.vnc.video.width
-        with self.recording_lock:
-            self.now_screenshot = np.zeros(
-                (self.video_height, self.video_width, 4), dtype="uint8"
-            )
-
-        self.vnc_frame.setFixedSize(self.video_width, self.video_height)
-        self.vnc_frame.setMouseTracking(True)
-        self.showMaximized()
-
-        self.refresh_timer.start()
-        self.status_bar.showMessage("Connected")
-
     def set_task_status_bar_text(self, color: str, text: str) -> None:
         self.task_status_bar.setStyleSheet(color)
         self.task_status_bar.setText(text)
@@ -570,62 +489,34 @@ class AgentInterface(QMainWindow):
 
     def save_trajectory(self):
         assert self.selected_task is not None
-        self.is_recording = False
-
-        task_trajectory_path: Path = self.record_path / self.selected_task["task_id"]
-        video_path: Path = task_trajectory_path / ("video.mp4")
-        if task_trajectory_path != Path("") and not task_trajectory_path.exists():
-            task_trajectory_path.mkdir(parents=True, exist_ok=True)
-        writer = cv2.VideoWriter(
-            video_path.as_posix(),
-            cv2.VideoWriter.fourcc(*"mp4v"),
-            config.video_fps,
-            (
-                self.video_width,
-                self.video_height,
-            ),
-        )
-
-        frames = self.frame_buffer.get_frames(0)
-        logger.info(f"Captured {len(frames)} frames with FPS={config.video_fps}")
-        for frame in frames:
-            writer.write(frame[1])
-        writer.release()
+        task_trajectory_path = self.record_path / self.selected_task["task_id"]
+        if self.screen_recorder is not None:
+            video_path = (task_trajectory_path / "video.mp4").as_posix()
+            self.screen_recorder.stop()
+            self.screen_recorder.wait_exit()
+            self.screen_recorder.save(video_path, 0)
+            del self.screen_recorder
+            self.screen_recorder = None
+        else:
+            video_path = None
 
         record_dict: dict[str, Any] = {"task_config": self.selected_task}
         record_dict["video"] = {
-            "path": video_path.as_posix(),
+            "path": video_path,
         }
 
-        trajectory = self.agent.trajectory
-        record_dict["actions"] = []
-        for idx, action in enumerate(trajectory):
-            im = Image.fromarray(action["obs"])
-            img_path = (task_trajectory_path / (f"{idx}.png")).as_posix()
-            im.save(img_path)
-            record_dict["actions"].append(
-                {
-                    "timestamp": action["timestamp"],
-                    "obs": img_path,
-                    "action": action["act"],
-                    "result": action["res"],
-                }
-            )
-
-        record_dict["score"] = (
-            self.evaluation_display.toPlainText().split("\n")[0].split(":")[1].strip()
-        )
-        record_dict["feedback"] = (
-            self.evaluation_display.toPlainText().split("\n")[1].split(":")[1].strip()
-        )
-
+        record_dict = {
+            "task_id": self.selected_task["task_id"],
+            "instruction": self.selected_task["instruction"],
+            "trajectory": self.agent.trajectory,
+            "self_eval": self.agent.eval(),
+            "score": float(self.evaluation_display.toPlainText().split("\n")[0].split(":")[1].strip()),
+            "feedback": self.evaluation_display.toPlainText().split("\n")[1].split(":")[1].strip(),
+        }
         add_jsonl(
             data=[record_dict],
             file_path=(self.record_path / "tasks.jsonl").as_posix(),
         )
-
-        self.frame_buffer.clear()
-        self.current_frame_id = -1
 
     def run_task(self):
         self.instruction_selection.setEnabled(False)
@@ -637,7 +528,14 @@ class AgentInterface(QMainWindow):
             return
         else:
             self.set_task_status_bar_text("color: green;", "Task: Initializing...")
-        self.is_recording = True
+        # self.is_recording = True
+        if config.remote:
+            self.screen_recorder = VNCRecorder(fps=config.video_fps, vnc_streamer=self.vnc_thread)
+            self.screen_recorder.start()
+        else:
+            # assert False, "Local recording is not supported"
+            self.screen_recorder = ScreenRecorder(fps=config.video_fps)
+            self.screen_recorder.start()
         self.start_button.setEnabled(False)
         self.eval_button.setEnabled(False)
         self.confirm_button.setEnabled(False)
@@ -653,7 +551,11 @@ class AgentInterface(QMainWindow):
         )
         signals.response_display_signal.connect(self.response_display.setPlainText)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
-        obs = self.now_screenshot.copy()
+        while True:
+            obs = self.screen_recorder.get_current_frame()
+            if obs is not None:
+                break
+            time.sleep(0.1)
         self.current_thread = RunTaskThread(
             signals=signals,
             selected_task=self.selected_task,
@@ -708,7 +610,8 @@ class AgentInterface(QMainWindow):
             self.parsed_action_display.clear()
 
         if not done:
-            obs = self.now_screenshot.copy()
+            obs = self.vnc_thread.get_current_frame()
+            assert obs is not None
             response, raw_code = self.agent.generate_action(obs)
             self.parsed_action_display.setPlainText(raw_code)
             self.response_display.setPlainText(response)
@@ -725,26 +628,24 @@ class AgentInterface(QMainWindow):
         # TODO: send interrupt signal to the runtime
         pass
 
-    async def update_screen(self):
+    def update_screen(self):
         try:
-            if config.remote and self.vnc is not None:
+            if config.remote:
                 with self.recording_lock:
-                    self.now_screenshot = await self.vnc.screenshot()
-
-                    rgba_array = self.now_screenshot.copy()
-                if rgba_array is not None:
+                    # self.now_screenshot = await self.vnc.screenshot()
+                    frame = self.vnc_thread.get_current_frame()
+                if frame is not None:
                     qimage = QImage(
-                        rgba_array.tobytes(),
+                        frame.tobytes(),
                         self.video_width,
                         self.video_height,
-                        QImage.Format.Format_RGBA8888,
+                        QImage.Format.Format_BGR888,
                     )
                     self.vnc_frame.update(qimage)
         except Exception as e:
             logger.error("Fail to get screenshot.", e)
 
-    @asyncSlot()
-    async def render(self):
+    def render(self):
         self.refresh_timer.stop()
 
         if self.refreshing_screen:
@@ -752,7 +653,7 @@ class AgentInterface(QMainWindow):
             return
 
         self.refreshing_screen = True
-        await self.update_screen()
+        self.update_screen()
         if self.vnc is not None:
             if local_cursor_pos := self.vnc_frame.get_cursor_pos():
                 self.status_bar.showMessage(f"Cursor Position: {str(local_cursor_pos)}")
@@ -764,11 +665,11 @@ class AgentInterface(QMainWindow):
     async def closeEvent(self, event):
         self.status_bar.showMessage("Closing")
         self.on_close = True
-        self.screenshot_thread.join()
+        if self.screen_recorder is not None:
+            self.screen_recorder.stop()
+            self.screen_recorder.wait_exit()
+        self.vnc_thread.stop()
         self.refresh_timer.stop()
-        if self.vnc is not None:
-            await self.vnc.disconnect()
-            logger.info("VNC disconnected")
         logger.info("GUI closed")
         exit(0)
 

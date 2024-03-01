@@ -115,23 +115,22 @@ def eval(args) -> None:
                             logger.info("Waiting for the agent server to start...")
                             time.sleep(1)
 
-                    if not config.remote:
-                        app = QApplication(sys.argv)
-                        interface = AgentInterface(
-                            agent=agent,
-                            task_configs=task_configs,
-                            record_path=record_path,
-                        )
-                        interface.show()
-                        sys.exit(app.exec())
-                    else:
-                        qasync.run(
-                            run_ui(
-                                agent=agent,
-                                task_configs=task_configs,
-                                record_path=record_path,
-                            )
-                        )
+                    app = QApplication(sys.argv)
+                    interface = AgentInterface(
+                        agent=agent,
+                        task_configs=task_configs,
+                        record_path=record_path,
+                    )
+                    interface.showMaximized()
+                    sys.exit(app.exec())
+                    # else:
+                    #     qasync.run(
+                    #         run_ui(
+                    #             agent=agent,
+                    #             task_configs=task_configs,
+                    #             record_path=record_path,
+                    #         )
+                    #     )
                     # TODO: can we use qasync.run when remote = False?
                 except asyncio.exceptions.CancelledError:
                     sys.exit(0)
