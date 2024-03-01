@@ -336,7 +336,8 @@ class AgentInterface(QMainWindow):
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
         self.confirm_button.clicked.connect(self.step_action)
-        # self.decline_button.clicked.connect(self.reset)
+        # goto evaluation step if user rejects the action
+        self.decline_button.clicked.connect(self.finish_run_task)
         consent_button_layout = QHBoxLayout()
         consent_button_layout.addWidget(self.confirm_button)
         consent_button_layout.addWidget(self.decline_button)
@@ -486,18 +487,6 @@ class AgentInterface(QMainWindow):
 
     def save_trajectory(self):
         assert self.selected_task is not None
-        task_trajectory_path = self.record_path / self.selected_task["task_id"]
-        task_trajectory_path.mkdir(parents=True, exist_ok=True)
-        if self.selected_task["visual"]:
-            assert self.screen_recorder is not None
-            video_path = (task_trajectory_path / "video.mp4").as_posix()
-            self.screen_recorder.stop()
-            self.screen_recorder.wait_exit()
-            self.screen_recorder.save(video_path, 0)
-            del self.screen_recorder
-            self.screen_recorder = None
-        else:
-            video_path = None
 
         export_trajectories(
             agent=self.agent,
@@ -580,6 +569,25 @@ class AgentInterface(QMainWindow):
         )
         self.current_thread.start()
 
+    def finish_run_task(self) -> None:
+        assert self.selected_task is not None
+        task_trajectory_path = self.record_path / self.selected_task["task_id"]
+        task_trajectory_path.mkdir(parents=True, exist_ok=True)
+        if self.selected_task["visual"]:
+            assert self.screen_recorder is not None
+            video_path = (task_trajectory_path / "video.mp4").as_posix()
+            self.screen_recorder.stop()
+            self.screen_recorder.wait_exit()
+            self.screen_recorder.save(video_path, 0)
+            del self.screen_recorder
+            self.screen_recorder = None
+        else:
+            video_path = None
+        self.confirm_button.setEnabled(False)
+        self.decline_button.setEnabled(False)
+        self.start_button.setEnabled(False)
+        self.eval_button.setEnabled(True)
+
     def step_action(self):
         """Steps the next action and adds it to the trajectory."""
         self.confirm_button.setEnabled(False)
@@ -588,6 +596,7 @@ class AgentInterface(QMainWindow):
         next_action_text = self.parsed_action_display.toPlainText()
         result, done = self.agent.step_action(confirmed=True)
         self.output_display.setPlainText(str(result))
+        time.sleep(config.minimal_action_interval)
 
         if next_action_text.strip():
             current_trajectory_text = self.trajectory_display.toPlainText()
@@ -608,10 +617,7 @@ class AgentInterface(QMainWindow):
             self.confirm_button.setEnabled(True)
             self.decline_button.setEnabled(True)
         else:
-            self.confirm_button.setEnabled(False)
-            self.decline_button.setEnabled(False)
-            self.start_button.setEnabled(False)
-            self.eval_button.setEnabled(True)
+            self.finish_run_task()
         self.set_task_status_bar_text("color: green;", "Task: Executed")
 
     def interrupt_action(self):

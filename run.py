@@ -184,8 +184,22 @@ def eval(args) -> None:
                             else:
                                 confirmed = True
                             _, done = agent.step_action(confirmed)
+                            time.sleep(config.minimal_action_interval)
                             if done:
                                 break
+
+                        task_trajectory_path = Path(record_path) / task_config["task_id"]
+                        task_trajectory_path.mkdir(parents=True, exist_ok=True)
+                        if task_config["visual"]:
+                            assert screen_recorder is not None
+                            screen_recorder.stop()
+                            screen_recorder.wait_exit()
+                            video_path = (task_trajectory_path / "video.mp4").as_posix()
+                            screen_recorder.save(video_path, 0)
+                            screen_recorder = None
+                            logger.info(f"Video saved to {video_path}")
+                        else:
+                            video_path = None
 
                         logger.info("Start evaluation")
                         score, feedback = comb()
@@ -194,18 +208,6 @@ def eval(args) -> None:
                             logger.info(f"[Result] (PASS): {feedback}")
                         else:
                             logger.info(f"[Result] (FAIL): {feedback}")
-
-                        task_trajectory_path = Path(record_path) / task_config["task_id"]
-                        task_trajectory_path.mkdir(parents=True, exist_ok=True)
-                        if task_config["visual"]:
-                            assert screen_recorder is not None
-                            screen_recorder.stop()
-                            screen_recorder.wait_exit()
-                            video_path = (task_trajectory_path / f"{task_id}.mp4").as_posix()
-                            screen_recorder.save(video_path, 0)
-                            screen_recorder = None
-                        else:
-                            video_path = None
 
                         export_trajectories(
                             agent=agent,

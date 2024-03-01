@@ -97,5 +97,5 @@ def export_trajectories(
         results["trajectory"] = trajectory
     add_jsonl(
         data=[results],
-        file_path=(Path(record_path) / "tasks.jsonl").as_posix(),
+        file_path=(Path(record_path) / "results.jsonl").as_posix(),
     )
