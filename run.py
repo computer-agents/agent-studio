@@ -18,7 +18,7 @@ from playground.env.desktop_env.recorder.screen_recorder import ScreenRecorder, 
 from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
 from playground.llm import setup_model
 from playground.utils.human_utils import confirm_action
-from playground.utils.json_utils import add_jsonl, read_jsonl
+from playground.utils.json_utils import export_trajectories, read_jsonl
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -85,7 +85,7 @@ def eval(args) -> None:
         case "desktop":
             if not config.headless:
                 # Run evaluation with GUI.
-                from playground.env.desktop_env.agent_interface import run_ui
+                # from playground.env.desktop_env.agent_interface import run_ui
 
                 try:
                     if not config.remote:
@@ -207,35 +207,13 @@ def eval(args) -> None:
                         else:
                             video_path = None
 
-                        results = {
-                            "video": video_path,
-                            "task_id": task_id,
-                            "instruction": instruction,
-                            "trajectory": [],
-                            "self_eval": agent.eval(),
-                            "score": score,
-                            "feedback": feedback,
-                        }
-                        if task_config["visual"]:
-                            for traj in agent.trajectory:
-                                image_path = (task_trajectory_path / f"{traj['timestamp']}.png").as_posix()
-                                Image.fromarray(traj["obs"]).save(image_path)
-                                results["trajectory"].append(
-                                    {
-                                        "obs": image_path,
-                                        "prompt": traj["prompt"],
-                                        "response": traj["response"],
-                                        "info": traj["info"],
-                                        "act": traj["act"],
-                                        "res": traj["res"],
-                                        "timestamp": traj["timestamp"],
-                                    }
-                                )
-                        else:
-                            results["trajectory"] = agent.trajectory
-                        add_jsonl(
-                            data=[results],
-                            file_path=(Path(record_path) / "results.jsonl").as_posix(),
+                        export_trajectories(
+                            agent=agent,
+                            task_config=task_config,
+                            trajectory=agent.trajectory,
+                            record_path=record_path,
+                            score=score,
+                            feedback=feedback,
                         )
                     except KeyboardInterrupt:
                         agent.close()

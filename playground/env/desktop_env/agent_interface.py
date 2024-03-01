@@ -41,7 +41,7 @@ from playground.utils.communication import (
     PlaygroundTextRequest,
     bytes2str,
 )
-from playground.utils.json_utils import add_jsonl, format_json, read_jsonl
+from playground.utils.json_utils import export_trajectories, format_json, read_jsonl
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -416,7 +416,7 @@ class AgentInterface(QMainWindow):
         self.setMouseTracking(True)
 
     def load_task_results(self):
-        jsonl_path = self.record_path / "tasks.jsonl"
+        jsonl_path = self.record_path / "results.jsonl"
         if jsonl_path.exists():
             evaluated_tasks = read_jsonl(jsonl_path.as_posix())
             self.task_results = {
@@ -499,38 +499,13 @@ class AgentInterface(QMainWindow):
         else:
             video_path = None
 
-        record_dict: dict[str, Any] = {"task_config": self.selected_task}
-        record_dict["video"] = video_path,
-
-        record_dict = {
-            "task_id": self.selected_task["task_id"],
-            "instruction": self.selected_task["instruction"],
-            "trajectory": [],
-            "self_eval": self.agent.eval(),
-            "score": float(self.evaluation_display.toPlainText().split("\n")[0].split(":")[1].strip()),
-            "feedback": self.evaluation_display.toPlainText().split("\n")[1].split(":")[1].strip(),
-        }
-        if self.selected_task["visual"]:
-            for traj in self.agent.trajectory:
-                image_path = (task_trajectory_path / f"{traj['timestamp']}.png").as_posix()
-                Image.fromarray(traj["obs"]).save(image_path)
-                record_dict["trajectory"].append(
-                    {
-                        "obs": image_path,
-                        "prompt": traj["prompt"],
-                        "response": traj["response"],
-                        "info": traj["info"],
-                        "act": traj["act"],
-                        "res": traj["res"],
-                        "timestamp": traj["timestamp"],
-                    }
-                )
-        else:
-            record_dict["trajectory"] = self.agent.trajectory
-
-        add_jsonl(
-            data=[record_dict],
-            file_path=(self.record_path / "tasks.jsonl").as_posix(),
+        export_trajectories(
+            agent=self.agent,
+            task_config=self.selected_task,
+            trajectory=self.agent.trajectory,
+            record_path=self.record_path.as_posix(),
+            score=float(self.evaluation_display.toPlainText().split("\n")[0].split(":")[1].strip()),
+            feedback=self.evaluation_display.toPlainText().split("\n")[1].split(":")[1].strip(),
         )
 
     def run_task(self):
@@ -689,26 +664,26 @@ class AgentInterface(QMainWindow):
         exit(0)
 
 
-async def run_ui(agent: Agent, task_configs: list[dict], record_path: str):
-    def close_future(future, loop):
-        loop.call_later(10, future.cancel)
-        future.cancel()
+# async def run_ui(agent: Agent, task_configs: list[dict], record_path: str):
+#     def close_future(future, loop):
+#         loop.call_later(10, future.cancel)
+#         future.cancel()
 
-    loop = asyncio.get_event_loop()
-    future: asyncio.Future = asyncio.Future()
+#     loop = asyncio.get_event_loop()
+#     future: asyncio.Future = asyncio.Future()
 
-    app = QApplication(sys.argv)
-    if hasattr(app, "aboutToQuit"):
-        getattr(app, "aboutToQuit").connect(
-            functools.partial(close_future, future, loop)
-        )
+#     app = QApplication(sys.argv)
+#     if hasattr(app, "aboutToQuit"):
+#         getattr(app, "aboutToQuit").connect(
+#             functools.partial(close_future, future, loop)
+#         )
 
-    interface = AgentInterface(
-        agent=agent,
-        task_configs=task_configs,
-        record_path=record_path,
-    )
+#     interface = AgentInterface(
+#         agent=agent,
+#         task_configs=task_configs,
+#         record_path=record_path,
+#     )
 
-    interface.show()
+#     interface.show()
 
-    await future
+#     await future

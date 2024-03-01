@@ -1,4 +1,8 @@
 import json
+from pathlib import Path
+from PIL import Image
+
+from playground.agent.base_agent import Agent
 
 
 def read_jsonl(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> list:
@@ -47,3 +51,51 @@ def format_json(data: dict):
         data (dict): The dictionary to print
     """
     return json.dumps(data, indent=4, sort_keys=True)
+
+
+def export_trajectories(
+        agent: Agent,
+        task_config: dict,
+        trajectory: list,
+        record_path: str,
+        score: float,
+        feedback: str,
+    ) -> None:
+    """Exports the trajectory data to a .jsonl file."""
+    if task_config["visual"]:
+        media_path = Path(record_path) / task_config["task_id"]
+        video_path = (media_path / "video.mp4").as_posix()
+    else:
+        media_path = None
+        video_path = None
+    results = {
+        "video": video_path,
+        "task_id": task_config["task_id"],
+        "instruction": task_config["instruction"],
+        "trajectory": [],
+        "self_eval": agent.eval(),
+        "score": score,
+        "feedback": feedback,
+    }
+    if task_config["visual"]:
+        assert media_path is not None
+        for traj in trajectory:
+            image_path = (media_path / f"{traj['timestamp']}.png").as_posix()
+            Image.fromarray(traj["obs"]).save(image_path)
+            results["trajectory"].append(
+                {
+                    "obs": image_path,
+                    "prompt": traj["prompt"],
+                    "response": traj["response"],
+                    "info": traj["info"],
+                    "act": traj["act"],
+                    "res": traj["res"],
+                    "timestamp": traj["timestamp"],
+                }
+            )
+    else:
+        results["trajectory"] = trajectory
+    add_jsonl(
+        data=[results],
+        file_path=(Path(record_path) / "tasks.jsonl").as_posix(),
+    )
