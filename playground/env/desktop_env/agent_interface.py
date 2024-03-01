@@ -423,7 +423,7 @@ class AgentInterface(QMainWindow):
         if jsonl_path.exists():
             evaluated_tasks = read_jsonl(jsonl_path.as_posix())
             self.task_results = {
-                task_result["task_config"]["task_id"]: task_result
+                task_result["task_id"]: task_result
                 for task_result in evaluated_tasks
             }
         else:
@@ -490,7 +490,8 @@ class AgentInterface(QMainWindow):
     def save_trajectory(self):
         assert self.selected_task is not None
         task_trajectory_path = self.record_path / self.selected_task["task_id"]
-        if self.screen_recorder is not None:
+        if self.selected_task["visual"]:
+            assert self.screen_recorder is not None
             video_path = (task_trajectory_path / "video.mp4").as_posix()
             self.screen_recorder.stop()
             self.screen_recorder.wait_exit()
@@ -508,11 +509,26 @@ class AgentInterface(QMainWindow):
         record_dict = {
             "task_id": self.selected_task["task_id"],
             "instruction": self.selected_task["instruction"],
-            "trajectory": self.agent.trajectory,
+            "trajectory": [],
             "self_eval": self.agent.eval(),
             "score": float(self.evaluation_display.toPlainText().split("\n")[0].split(":")[1].strip()),
             "feedback": self.evaluation_display.toPlainText().split("\n")[1].split(":")[1].strip(),
         }
+        if self.selected_task["visual"]:
+            for traj in self.agent.trajectory:
+                image_path = (task_trajectory_path / f"{traj['timestamp']}.png").as_posix()
+                Image.fromarray(traj["obs"]).save(image_path)
+                record_dict["trajectory"].append(
+                    {
+                        "obs": image_path,
+                        "prompt": traj["prompt"],
+                        "response": traj["response"],
+                        "info": traj["info"],
+                        "act": traj["act"],
+                        "res": traj["res"],
+                        "timestamp": traj["timestamp"],
+                    }
+                )
         add_jsonl(
             data=[record_dict],
             file_path=(self.record_path / "tasks.jsonl").as_posix(),
@@ -529,13 +545,14 @@ class AgentInterface(QMainWindow):
         else:
             self.set_task_status_bar_text("color: green;", "Task: Initializing...")
         # self.is_recording = True
-        if config.remote:
-            self.screen_recorder = VNCRecorder(fps=config.video_fps, vnc_streamer=self.vnc_thread)
-            self.screen_recorder.start()
-        else:
-            # assert False, "Local recording is not supported"
-            self.screen_recorder = ScreenRecorder(fps=config.video_fps)
-            self.screen_recorder.start()
+        if self.selected_task["visual"]:
+            if config.remote:
+                self.screen_recorder = VNCRecorder(fps=config.video_fps, vnc_streamer=self.vnc_thread)
+                self.screen_recorder.start()
+            else:
+                # assert False, "Local recording is not supported"
+                self.screen_recorder = ScreenRecorder(fps=config.video_fps)
+                self.screen_recorder.start()
         self.start_button.setEnabled(False)
         self.eval_button.setEnabled(False)
         self.confirm_button.setEnabled(False)
@@ -551,11 +568,12 @@ class AgentInterface(QMainWindow):
         )
         signals.response_display_signal.connect(self.response_display.setPlainText)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
-        while True:
-            obs = self.screen_recorder.get_current_frame()
-            if obs is not None:
-                break
-            time.sleep(0.1)
+        if self.selected_task["visual"]:
+            while True:
+                obs = self.screen_recorder.get_current_frame()
+                if obs is not None:
+                    break
+                time.sleep(0.5)
         self.current_thread = RunTaskThread(
             signals=signals,
             selected_task=self.selected_task,

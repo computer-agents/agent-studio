@@ -62,7 +62,7 @@ class DirectAgent(Agent):
                 "role": "user",
                 "content": (
                     "Answer 'True' if the trajectory successfully complete "
-                    "the task instruction, otherwise answer 'False'.",
+                    "the task instruction, otherwise answer 'False'."
                 ),
             }
         )
