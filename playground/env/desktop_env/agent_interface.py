@@ -37,7 +37,6 @@ from playground.utils.communication import (
     PlaygroundResultResponse,
     PlaygroundStatusResponse,
     PlaygroundTextRequest,
-    bytes2str,
 )
 from playground.utils.json_utils import export_trajectories, format_json, read_jsonl
 

@@ -16,7 +16,6 @@ from playground.utils.communication import (
     PlaygroundResultResponse,
     PlaygroundStatusResponse,
     PlaygroundTextRequest,
-    str2bytes,
 )
 from playground.utils.task_status import StateEnum, StateInfo, TaskStatus
 
@@ -179,9 +178,7 @@ async def submit_eval(request: PlaygroundEvalRequest) -> PlaygroundResponse:
     ], f"Invalid status: {cur_status}"
     threading.Thread(
         target=eval_task,
-        args=(
-            request.task_config,
-        ),
+        args=(request.task_config,),
     ).start()
     return PlaygroundResponse(status="submitted")
 
