@@ -149,7 +149,10 @@ async def new_task(request: PlaygroundResetRequest) -> PlaygroundResponse:
             task_config: The task configuration.
     """
     cur_status = task_status.get_task_state()
-    assert cur_status.state in [StateEnum.PENDING, StateEnum.FINISHED], f"Invalid status: {cur_status}"
+    assert cur_status.state in [
+        StateEnum.PENDING,
+        StateEnum.FINISHED,
+    ], f"Invalid status: {cur_status}"
     threading.Thread(target=reset_task, args=(request.task_config,)).start()
     return PlaygroundResponse(status="submitted")
 
@@ -170,7 +173,10 @@ async def submit_eval(request: PlaygroundEvalRequest) -> PlaygroundResponse:
             If failed, the result contains the error message.
     """
     cur_status = task_status.get_task_state()
-    assert cur_status.state in [StateEnum.PENDING, StateEnum.FINISHED], f"Invalid status: {cur_status}"
+    assert cur_status.state in [
+        StateEnum.PENDING,
+        StateEnum.FINISHED,
+    ], f"Invalid status: {cur_status}"
     threading.Thread(
         target=eval_task,
         args=(
