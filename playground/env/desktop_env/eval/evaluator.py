@@ -45,7 +45,6 @@ class Evaluator:
         self,
         eval_procedure: list[dict[str, dict[str, Any]]],
         reset_procedure: list[dict[str, dict[str, Any]]],
-        **kwargs,
     ) -> None:
         self.eval_procedure = eval_procedure
         self.reset_procedure = reset_procedure
@@ -83,15 +82,15 @@ class Evaluator:
                 else:
                     raise ValueError(f"Action {action} is not supported for reset.")
 
-    def __call__(self, **kwargs) -> tuple[float, str]:
+    def __call__(self) -> tuple[float, str]:
         """Evaluate the outcome of the task."""
         score = 1.0
         feedback = ""
         for step in self.eval_procedure:
             for action, params in step.items():
                 if action in self.evaluation_handlers:
-                    for k, v in kwargs.items():
-                        params[k] = v
+                    # for k, v in kwargs.items():
+                    #     params[k] = v
                     try:
                         self.evaluation_handlers[action](**params)
                     except FeedbackException as e:

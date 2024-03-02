@@ -85,14 +85,14 @@ def reset_task(task_config: dict):
         )
 
 
-def eval_task(task_config: dict, trajectory: list):
+def eval_task(task_config: dict):
     try:
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
         evaluator_router = setup_evaluator(
             env=args.env,
         )
         comb = evaluator_router(task_config)
-        score, feedback = comb(trajectory=trajectory)
+        score, feedback = comb()
         task_status.set_task_state(
             StateInfo(
                 state=StateEnum.FINISHED,
@@ -181,7 +181,6 @@ async def submit_eval(request: PlaygroundEvalRequest) -> PlaygroundResponse:
         target=eval_task,
         args=(
             request.task_config,
-            str2bytes(request.trajectory),
         ),
     ).start()
     return PlaygroundResponse(status="submitted")

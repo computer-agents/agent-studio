@@ -226,7 +226,6 @@ class EvalTaskThread(QThread):
             f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
             json=PlaygroundEvalRequest(
                 task_config=self.selected_task,
-                trajectory=bytes2str(self.trajectory_display.toPlainText()),
             ).model_dump(),
         )
         response = PlaygroundResponse(**response_raw.json())
