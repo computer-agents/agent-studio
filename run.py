@@ -10,6 +10,7 @@ import qasync
 import requests
 from qasync import QApplication
 
+from playground.agent.base_agent import Agent
 from playground.config import Config
 from playground.env.desktop_env.agent_interface import AgentInterface
 from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
@@ -17,17 +18,16 @@ from playground.env.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
     VNCRecorder,
 )
+from playground.env.desktop_env.vnc_client import VNCStreamer
+from playground.llm import setup_model
 from playground.utils.communication import (
+    PlaygroundEvalRequest,
     PlaygroundResetRequest,
     PlaygroundResponse,
     PlaygroundResultResponse,
     PlaygroundStatusResponse,
     PlaygroundTextRequest,
-    PlaygroundEvalRequest,
 )
-from playground.agent.base_agent import Agent
-from playground.env.desktop_env.vnc_client import VNCStreamer
-from playground.llm import setup_model
 from playground.utils.human_utils import confirm_action
 from playground.utils.json_utils import export_trajectories, read_jsonl
 
@@ -87,10 +87,9 @@ def setup_tasks(args):
 
 
 def wait_finish():
+    remote_server_addr = f"http://{config.env_server_addr}:{config.env_server_port}"
     while True:
-        response_raw = requests.get(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
-        )
+        response_raw = requests.get(f"{remote_server_addr}/task/status")
         response = PlaygroundStatusResponse(**response_raw.json())
         if response.status == "finished":
             break
@@ -100,7 +99,7 @@ def wait_finish():
             else:
                 user_input = "y"
             response_raw = requests.post(
-                url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",  # noqa: E501
+                url=f"{remote_server_addr}/task/confirm",  # noqa: E501
                 json=PlaygroundTextRequest(message=user_input).model_dump(),
             )
             response = PlaygroundResponse(**response_raw.json())
@@ -161,7 +160,6 @@ def eval_gui(
         sys.exit(0)
 
 
-
 def eval_headless(
     agent: Agent,
     task_configs: list[dict],
@@ -171,6 +169,7 @@ def eval_headless(
     scores = {}
     screen_recorder: ScreenRecorder | None = None
     vnc_streamer: VNCStreamer | None = None
+    remote_server_addr = f"http://{config.env_server_addr}:{config.env_server_port}"
     for task_config in task_configs:
         try:
             task_id = task_config["task_id"]
@@ -191,14 +190,14 @@ def eval_headless(
                     screen_recorder = None
 
                 response_raw = requests.post(
-                    f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
+                    f"{remote_server_addr}/task/reset",
                     json=PlaygroundResetRequest(task_config=task_config).model_dump(),
                 )
                 response = PlaygroundResponse(**response_raw.json())
                 assert response.status == "submitted"
                 wait_finish()
                 response_raw = requests.get(
-                    f"http://{config.env_server_addr}:{config.env_server_port}/task/result",
+                    f"{remote_server_addr}/task/result",
                 )
                 response = PlaygroundResultResponse(**response_raw.json())
                 # TODO: handle failed reset
@@ -239,9 +238,7 @@ def eval_headless(
                 if done:
                     break
 
-            task_trajectory_path = (
-                Path(record_path) / task_config["task_id"]
-            )
+            task_trajectory_path = Path(record_path) / task_config["task_id"]
             task_trajectory_path.mkdir(parents=True, exist_ok=True)
             if task_config["visual"]:
                 assert screen_recorder is not None
@@ -256,7 +253,7 @@ def eval_headless(
 
             if config.remote:
                 response_raw = requests.post(
-                    f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
+                    f"{remote_server_addr}/task/eval",
                     json=PlaygroundEvalRequest(
                         task_config=task_config,
                     ).model_dump(),
@@ -264,12 +261,15 @@ def eval_headless(
                 response = PlaygroundResponse(**response_raw.json())
                 assert response.status == "submitted"
                 wait_finish()
-                response_raw = requests.get(
-                    f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
-                )
+                response_raw = requests.get(f"{remote_server_addr}/task/result")
                 response = PlaygroundResultResponse(**response_raw.json())
-                assert response.status == "finished" and isinstance(response.message, dict)
-                score, feedback = response.message["score"], response.message["feedback"]
+                assert response.status == "finished" and isinstance(
+                    response.message, dict
+                )
+                score, feedback = (
+                    response.message["score"],
+                    response.message["feedback"],
+                )
             else:
                 logger.info("Start evaluation")
                 score, feedback = comb()
@@ -303,9 +303,7 @@ def eval_headless(
                 vnc_streamer.stop()
                 vnc_streamer = None
     agent.close()
-    logger.info(
-        f"Average score: {sum(scores.values()) / max(len(scores), 1)}"
-    )
+    logger.info(f"Average score: {sum(scores.values()) / max(len(scores), 1)}")
 
 
 def eval(args) -> None:

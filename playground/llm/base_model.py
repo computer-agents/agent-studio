@@ -1,7 +1,5 @@
 from typing import Any
 
-from numpy.typing import NDArray
-
 
 class BaseModel:
     """Base class for models."""

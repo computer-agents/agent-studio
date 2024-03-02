@@ -41,7 +41,9 @@ class DirectAgent(Agent):
             if step["obs"] is not None:
                 messages.append({"role": "user", "content": "[Observation]: \n"})
                 messages.append({"role": "user", "content": step["obs"]})
-            messages.append({"role": "assistant", "content": f"[Action]: \n{step['act']}"})
+            messages.append(
+                {"role": "assistant", "content": f"[Action]: \n{step['act']}"}
+            )
             messages.append({"role": "user", "content": f"[Result]: \n{step['res']}"})
 
         if self.cur_obs is not None:

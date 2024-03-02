@@ -3,12 +3,14 @@ import logging
 from typing import Any
 
 import backoff
-from numpy.typing import NDArray
+
+# from numpy.typing import NDArray
 from openai import APIError, APITimeoutError, OpenAI, RateLimitError
 
 from playground.config.config import Config
 from playground.llm.base_model import BaseModel
-from playground.llm.utils import encode_image
+
+# from playground.llm.utils import encode_image
 
 config = Config()
 logger = logging.getLogger(__name__)

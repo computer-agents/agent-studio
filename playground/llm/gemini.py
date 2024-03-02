@@ -2,21 +2,20 @@ import json
 import logging
 from typing import Any
 
-import numpy as np
-from PIL import Image
 import backoff
 import google.generativeai as genai
+import numpy as np
 
 # Magic import, add following import to fix bug
 # https://github.com/google/generative-ai-python/issues/178
 import PIL.PngImagePlugin
 import requests
 from google.generativeai.types import GenerationConfig
+from PIL import Image
 
 from playground.config.config import Config
 from playground.llm.base_model import BaseModel
 from playground.utils.communication import bytes2str, str2bytes
-
 
 # Run this to pass mypy checker
 PIL.PngImagePlugin
@@ -70,7 +69,8 @@ class GeminiProvider(BaseModel):
             if model_name is not None:
                 model = genai.GenerativeModel(model_name)
             logger.info(
-                f"Creating chat completion with model {model_name}. Message:\n{model_message}"
+                f"Creating chat completion with model {model_name}. "
+                f"Message:\n{model_message}"
             )
 
         generation_config = GenerationConfig(
