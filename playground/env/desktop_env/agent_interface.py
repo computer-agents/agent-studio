@@ -80,7 +80,10 @@ class WorkerSignals(QObject):
     response_display_signal = pyqtSignal(str)
     evaluation_display_signal = pyqtSignal(str)
     show_input_dialog_signal = pyqtSignal(str)
+    output_display_signal = pyqtSignal(str)
     save_trajectory_signal = pyqtSignal()
+    finish_run_task_signal = pyqtSignal()
+    trajectory_display_signal = pyqtSignal(str)
 
 
 class RunTaskThread(QThread):
@@ -250,6 +253,56 @@ class EvalTaskThread(QThread):
         self.user_input = text  # Store the user input
         self.wait_condition.wakeAll()  # Resume the thread
         self.mutex.unlock()
+
+
+class StepActionThread(QThread):
+    def __init__(
+        self,
+        signals: WorkerSignals,
+        trajectory_display: QTextEdit,
+        parsed_action_display: QTextEdit,
+        screen_recorder: ScreenRecorder | None,
+        agent: Agent,
+    ):
+        super().__init__()
+        self.signals = signals
+        self.agent = agent
+        self.trajectory_display = trajectory_display
+        self.parsed_action_display = parsed_action_display
+        self.screen_recorder = screen_recorder
+
+    def run(self):
+        """Steps the next action and adds it to the trajectory."""
+        next_action_text = self.parsed_action_display.toPlainText()
+        result, done = self.agent.step_action(confirmed=True)
+        self.signals.output_display_signal.emit(str(result))
+        time.sleep(config.minimal_action_interval)
+
+        if next_action_text.strip():
+            current_trajectory_text = self.trajectory_display.toPlainText()
+            new_trajectory_text = (
+                current_trajectory_text + "\n" + next_action_text
+                if current_trajectory_text
+                else next_action_text
+            )
+            self.signals.trajectory_display_signal.emit(new_trajectory_text)
+
+        if not done:
+            if self.screen_recorder is not None:
+                obs = self.screen_recorder.get_current_frame()
+                assert obs is not None
+            else:
+                obs = None
+            response, raw_code = self.agent.generate_action(obs)
+            self.parsed_action_display.setPlainText(raw_code)
+            self.signals.response_display_signal.emit(response)
+            self.signals.confirm_signal.emit(True)
+            self.signals.decline_signal.emit(True)
+        else:
+            self.signals.finish_run_task_signal.emit()
+
+    def receive_user_input(self, text: str):
+        raise NotImplementedError
 
 
 class AgentInterface(QMainWindow):
@@ -546,6 +599,7 @@ class AgentInterface(QMainWindow):
         signals.response_display_signal.connect(self.response_display.setPlainText)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
         if self.selected_task["visual"]:
+            assert self.screen_recorder is not None
             obs = self.screen_recorder.get_current_frame()
         else:
             obs = None
@@ -601,6 +655,7 @@ class AgentInterface(QMainWindow):
         self.decline_button.setEnabled(False)
         self.start_button.setEnabled(False)
         self.eval_button.setEnabled(True)
+        self.set_task_status_bar_text("color: green;", "Task: Executed")
 
     def reject_action(self) -> None:
         self.confirm_button.setEnabled(False)
@@ -608,7 +663,6 @@ class AgentInterface(QMainWindow):
         self.set_task_status_bar_text("color: green;", "Task: Executing...")
         result, done = self.agent.step_action(confirmed=False)
         self.output_display.setPlainText(str(result))
-        self.set_task_status_bar_text("color: green;", "Task: Declined")
         self.finish_run_task()
 
     def step_action(self) -> None:
@@ -616,32 +670,23 @@ class AgentInterface(QMainWindow):
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
         self.set_task_status_bar_text("color: green;", "Task: Executing...")
-        next_action_text = self.parsed_action_display.toPlainText()
-        result, done = self.agent.step_action(confirmed=True)
-        self.output_display.setPlainText(str(result))
-        time.sleep(config.minimal_action_interval)
 
-        if next_action_text.strip():
-            current_trajectory_text = self.trajectory_display.toPlainText()
-            new_trajectory_text = (
-                current_trajectory_text + "\n" + next_action_text
-                if current_trajectory_text
-                else next_action_text
-            )
-            self.trajectory_display.setPlainText(new_trajectory_text)
-            self.parsed_action_display.clear()
-
-        if not done:
-            obs = self.vnc_thread.get_current_frame()
-            assert obs is not None
-            response, raw_code = self.agent.generate_action(obs)
-            self.parsed_action_display.setPlainText(raw_code)
-            self.response_display.setPlainText(response)
-            self.confirm_button.setEnabled(True)
-            self.decline_button.setEnabled(True)
-        else:
-            self.finish_run_task()
-        self.set_task_status_bar_text("color: green;", "Task: Executed")
+        signals = WorkerSignals()
+        signals.status_bar_signal.connect(self.set_task_status_bar_text)
+        signals.response_display_signal.connect(self.response_display.setPlainText)
+        signals.output_display_signal.connect(self.output_display.setPlainText)
+        signals.trajectory_display_signal.connect(self.trajectory_display.setPlainText)
+        signals.confirm_signal.connect(self.confirm_button.setEnabled)
+        signals.decline_signal.connect(self.decline_button.setEnabled)
+        signals.finish_run_task_signal.connect(self.finish_run_task)
+        self.current_thread = StepActionThread(
+            signals=signals,
+            trajectory_display=self.trajectory_display,
+            parsed_action_display=self.parsed_action_display,
+            screen_recorder=self.screen_recorder,
+            agent=self.agent,
+        )
+        self.current_thread.start()
 
     def interrupt_action(self):
         # TODO: send interrupt signal to the runtime

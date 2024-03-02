@@ -26,7 +26,9 @@ def confirm_action(prompt: str = "") -> Callable:
                             message=f"{prompt}\nConfirm action (y/n): ",
                         )
                     )
-                    current_status = task_status.wait_for_state_change()
+                    current_status = task_status.wait_for_state_change(
+                        StateEnum.WAIT_FOR_INPUT
+                    )
                     assert current_status.state == StateEnum.IN_PROGRESS, current_status
                     user_input = current_status.message.strip().lower()
                 if user_input == "y":

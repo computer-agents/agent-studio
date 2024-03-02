@@ -37,7 +37,8 @@ class TaskStatus(metaclass=ThreadSafeSingleton):
         with self.condition:
             self.state_info = StateInfo(StateEnum.PENDING)
 
-    def wait_for_state_change(self) -> StateInfo:
+    def wait_for_state_change(self, cur_state: StateEnum) -> StateInfo:
         with self.condition:
-            self.condition.wait()
+            while cur_state == self.state_info.state:
+                self.condition.wait()
         return self.state_info

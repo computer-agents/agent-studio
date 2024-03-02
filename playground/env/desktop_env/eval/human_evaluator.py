@@ -25,7 +25,7 @@ class HumanEvaluator(Evaluator):
                     message="Is the task successful? (y/n): ",
                 )
             )
-            state = task_status.wait_for_state_change()
+            state = task_status.wait_for_state_change(StateEnum.WAIT_FOR_INPUT)
             assert state.state == StateEnum.IN_PROGRESS, state
             score = float(state.message == "y")
             task_status.set_task_state(
@@ -34,7 +34,7 @@ class HumanEvaluator(Evaluator):
                     message="Type any feedback and press Enter (or press Enter to skip): ",  # noqa: E501
                 )
             )
-            state = task_status.wait_for_state_change()
+            state = task_status.wait_for_state_change(StateEnum.WAIT_FOR_INPUT)
             assert state.state == StateEnum.IN_PROGRESS, state
             assert isinstance(state.message, str), state
             feedback = state.message
