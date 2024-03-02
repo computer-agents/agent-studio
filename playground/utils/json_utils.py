@@ -69,12 +69,16 @@ def export_trajectories(
     else:
         media_path = None
         video_path = None
+    self_eval_results = agent.eval()
     results = {
         "video": video_path,
         "task_id": task_config["task_id"],
         "instruction": task_config["instruction"],
         "trajectory": [],
-        "self_eval": agent.eval(),
+        "self_eval": {
+            "score": self_eval_results["score"],
+            "response": self_eval_results["response"],
+        },
         "score": score,
         "feedback": feedback,
     }

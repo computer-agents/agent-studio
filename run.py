@@ -287,8 +287,6 @@ def eval_headless(
                 score=score,
                 feedback=feedback,
             )
-        except KeyboardInterrupt:
-            break
         except Exception as e:
             import traceback
 

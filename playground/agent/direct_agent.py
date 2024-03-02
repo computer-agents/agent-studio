@@ -29,7 +29,8 @@ class DirectAgent(Agent):
                     - system
                     - user
                     - assistant
-                + content: The content of the message.
+                + content: The content of the message.\
+                    content can either be a string or a PIL.Image.
         """
         messages: list[dict[str, Any]] = []
         if self.system_prompt is not None:
@@ -42,7 +43,10 @@ class DirectAgent(Agent):
                 messages.append({"role": "user", "content": "[Observation]: \n"})
                 messages.append({"role": "user", "content": step["obs"]})
             messages.append(
-                {"role": "assistant", "content": f"[Action]: \n{step['act']}"}
+                {
+                    "role": "assistant",
+                    "content": f"[Action]: ```python\n{step['act']}\n```"
+                }
             )
             messages.append({"role": "user", "content": f"[Result]: \n{step['res']}"})
 
@@ -58,16 +62,16 @@ class DirectAgent(Agent):
         )
         for step in self.trajectory:
             if step["obs"] is not None:
-                messages.append(
-                    {"role": "user", "content": f"Observation: {step['obs']}"}
-                )
+                messages.append({"role": "user", "content": "[Observation]: \n"})
+                messages.append({"role": "user", "content": step["obs"]})
             messages.append(
                 {
                     "role": "assistant",
-                    "content": f"Action:\n```python\n{step['act']}\n```",
+                    "content": f"[Action]: ```python\n{step['act']}\n```"
                 }
             )
-            messages.append({"role": "user", "content": f"Result: {step['res']}"})
+            messages.append({"role": "user", "content": f"[Result]: \n{step['res']}"})
+
         messages.append(
             {
                 "role": "user",
@@ -83,7 +87,7 @@ class DirectAgent(Agent):
         )
 
         return {
-            "score": "True" in response,
+            "score": 1.0 if "True" in response else 0.0,
             "prompt": messages,
             "response": response,
         }

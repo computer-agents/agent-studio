@@ -52,8 +52,7 @@ class Config(metaclass=Singleton):
     # exec_model: str = "gpt-4-1106-vision-preview"
     exec_model: str = "gemini-pro-vision"
     # exec_model: str = "gemini-pro"
-    eval_model: str = "gemini-pro"
-    temperature: float = 0.0
+    eval_model: str = "gemini-pro-vision"
     max_tokens: int = 4096
     api_key_path: str = "playground/config/api_key.json"
 
