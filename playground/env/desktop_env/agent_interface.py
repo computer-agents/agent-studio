@@ -21,7 +21,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from qasync import asyncClose
 
 from playground.agent.base_agent import Agent
 from playground.config.config import Config
@@ -369,9 +368,9 @@ class AgentInterface(QMainWindow):
             vnc_layout = QVBoxLayout()
             self.vnc_frame = VNCFrame(self)
             vnc_layout.addWidget(self.vnc_frame)
-            reconnect_button = QPushButton("Re-connect")
-            reconnect_button.clicked.connect(self.vnc_thread.reconnect)
-            vnc_layout.addWidget(reconnect_button)
+            # reconnect_button = QPushButton("Re-connect")
+            # reconnect_button.clicked.connect(self.reconnect)
+            # vnc_layout.addWidget(reconnect_button)
             main_layout.addLayout(vnc_layout)
 
         agent_layout = QVBoxLayout()
@@ -723,14 +722,14 @@ class AgentInterface(QMainWindow):
         self.refreshing_screen = False
         self.refresh_timer.start()
 
-    @asyncClose
-    async def closeEvent(self, event):
+    def closeEvent(self, event):
         self.status_bar.showMessage("Closing")
         self.on_close = True
         if self.screen_recorder is not None:
             self.screen_recorder.stop()
             self.screen_recorder.wait_exit()
-        self.vnc_thread.stop()
+        if self.vnc_thread is not None:
+            self.vnc_thread.stop()
         self.refresh_timer.stop()
         logger.info("GUI closed")
         exit(0)
