@@ -17,6 +17,7 @@ PIL.PngImagePlugin
 
 
 class ChatCompletionRequest(BaseModel):
+    model: str
     messages: str
     config: str
 
@@ -33,12 +34,6 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Gemini API server.")
     parser.add_argument("--host", type=str, default=None, help="host name")
     parser.add_argument("--port", type=int, default=8000, help="port number")
-    parser.add_argument(
-        "--model",
-        type=str,
-        default="gemini-pro-vision",
-        help="name or path of the model to use",
-    )
     parser.add_argument(
         "--root-path",
         type=str,
@@ -57,7 +52,14 @@ async def health() -> Response:
 
 @app.post("/generate")
 async def create_chat_completion(request: ChatCompletionRequest) -> JSONResponse:
-    assert model is not None, "Model is not initialized"
+    if request.model in ["gemini-pro-vision", "gemini-pro"]:
+        with open(config.api_key_path, "r") as f:
+            api_keys = json.load(f)
+        genai.configure(api_key=api_keys["gemini"])
+        model = genai.GenerativeModel(request.model)
+    else:
+        raise NotImplementedError
+
     messages = pickle.loads(base64.b64decode(request.messages.encode("utf-8")))
     generation_config = pickle.loads(base64.b64decode(request.config.encode("utf-8")))
     logger.info(
@@ -78,12 +80,6 @@ async def create_chat_completion(request: ChatCompletionRequest) -> JSONResponse
 
 if __name__ == "__main__":
     args = parse_args()
-
-    if args.model == "gemini-pro-vision":
-        with open(config.api_key_path, "r") as f:
-            api_keys = json.load(f)
-        genai.configure(api_key=api_keys["gemini"])
-        model = genai.GenerativeModel(args.model)
 
     app.root_path = args.root_path
     uvicorn.run(

@@ -8,10 +8,8 @@ class BaseModel:
 
     def compose_messages(
         self,
-        obs: NDArray | None,
-        trajectory: list[dict[str, Any]],
-        system_prompt: str,
-    ) -> list[dict[str, Any]]:
+        intermediate_msg: list[dict[str, Any]],
+    ) -> Any:
         raise NotImplementedError
 
     def generate_response(

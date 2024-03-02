@@ -48,9 +48,9 @@ class Agent:
 
     def generate_action(self, obs: np.ndarray | None) -> tuple[str, str]:
         self.cur_obs = obs
-        self.cur_prompt = self.construct_prompt()
+        cur_messages = self.trajectory2intermediate_msg()
         self.cur_response, self.cur_info = self.model.generate_response(
-            messages=self.cur_prompt, model=config.model
+            messages=cur_messages, model=config.exec_model
         )
         self.cur_raw_code = extract_from_response(self.cur_response)
 
@@ -102,5 +102,5 @@ class Agent:
         if self.runtime is not None:
             self.runtime.close()
 
-    def construct_prompt(self) -> list[dict[str, Any]]:
+    def trajectory2intermediate_msg(self) -> list[dict[str, Any]]:
         raise NotImplementedError

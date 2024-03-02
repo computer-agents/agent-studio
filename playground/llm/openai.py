@@ -20,68 +20,68 @@ class OpenAIProvider(BaseModel):
             api_keys = json.load(f)
         self.client = OpenAI(api_key=api_keys["openai"])
 
-    def compose_messages(
-        self,
-        obs: NDArray | None,
-        trajectory: list[dict[str, Any]],
-        system_prompt: str,
-    ) -> list[dict[str, Any]]:
-        """
-        Composes a message from the trajectory, system prompt and obs.
-        """
-        messages: list[dict[str, Any]] = []
-        messages.append({"role": "system", "content": system_prompt})
-        for step in trajectory:
-            if not all(key in step for key in ["obs", "act", "res"]):
-                raise ValueError(
-                    "Each step in the trajectory must contain 'obs', 'act' and 'res'"
-                    f" keys. Got {step} instead."
-                )
-            messages.append(
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": "[Observation]: \n"},
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": encode_image(step["obs"])},
-                        },
-                    ],
-                }
-            )
-            messages.append(
-                {"role": "assistant", "content": f"[Action]: \n{step['act']}"}
-            )
-            messages.append(
-                {
-                    "role": "user",
-                    "content": f"[Result]: \n{step['res']}",
-                }
-            )
-        user_content = [
-            {"type": "text", "text": "[Observation]: \n"},
-            {
-                "type": "image_url",
-                "image_url": {"url": encode_image(obs)},
-            },
-        ]
-        if messages[-1]["role"] == "user":
-            messages[-1]["content"].extend(user_content)
-        else:
-            messages.append(
-                {
-                    "role": "user",
-                    "content": user_content,
-                }
-            )
-        return messages
+    # def compose_messages(
+    #     self,
+    #     obs: NDArray | None,
+    #     trajectory: list[dict[str, Any]],
+    #     system_prompt: str,
+    # ) -> list[dict[str, Any]]:
+    #     """
+    #     Composes a message from the trajectory, system prompt and obs.
+    #     """
+    #     messages: list[dict[str, Any]] = []
+    #     messages.append({"role": "system", "content": system_prompt})
+    #     for step in trajectory:
+    #         if not all(key in step for key in ["obs", "act", "res"]):
+    #             raise ValueError(
+    #                 "Each step in the trajectory must contain 'obs', 'act' and 'res'"
+    #                 f" keys. Got {step} instead."
+    #             )
+    #         messages.append(
+    #             {
+    #                 "role": "user",
+    #                 "content": [
+    #                     {"type": "text", "text": "[Observation]: \n"},
+    #                     {
+    #                         "type": "image_url",
+    #                         "image_url": {"url": encode_image(step["obs"])},
+    #                     },
+    #                 ],
+    #             }
+    #         )
+    #         messages.append(
+    #             {"role": "assistant", "content": f"[Action]: \n{step['act']}"}
+    #         )
+    #         messages.append(
+    #             {
+    #                 "role": "user",
+    #                 "content": f"[Result]: \n{step['res']}",
+    #             }
+    #         )
+    #     user_content = [
+    #         {"type": "text", "text": "[Observation]: \n"},
+    #         {
+    #             "type": "image_url",
+    #             "image_url": {"url": encode_image(obs)},
+    #         },
+    #     ]
+    #     if messages[-1]["role"] == "user":
+    #         messages[-1]["content"].extend(user_content)
+    #     else:
+    #         messages.append(
+    #             {
+    #                 "role": "user",
+    #                 "content": user_content,
+    #             }
+    #         )
+    #     return messages
 
     def generate_response(
         self, messages: list[dict[str, Any]], **kwargs
     ) -> tuple[str, dict[str, int]]:
         """Creates a chat completion using the OpenAI API."""
 
-        model = kwargs.get("model", config.model)
+        model = kwargs.get("model", config.exec_model)
         temperature = kwargs.get("temperature", config.temperature)
         max_tokens = kwargs.get("max_tokens", config.max_tokens)
         logger.info(f"Creating chat completion with model {model}...")
