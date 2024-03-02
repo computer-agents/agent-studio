@@ -53,18 +53,18 @@ class FrameBuffer:
 
 
 class WindowManagerDummy:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def send_to_background(self):
+    def send_to_background(self) -> None:
         pass
 
-    def bring_to_front(self):
+    def bring_to_front(self) -> None:
         pass
 
 
 class LinuxWindowManager(WindowManagerDummy):
-    def __init__(self):
+    def __init__(self) -> None:
         self.window: None | str = None
         self.window_position: None | tuple[int, int] = None
         self.window_size: None | tuple[int, int] = None
@@ -73,7 +73,7 @@ class LinuxWindowManager(WindowManagerDummy):
             subprocess.check_output(["xdotool", "getactivewindow"]).strip().decode()
         )
 
-    def send_to_background(self):
+    def send_to_background(self) -> None:
         try:
             assert isinstance(self.window, str)
             subprocess.run(["xdotool", "windowminimize", self.window])
@@ -83,7 +83,7 @@ class LinuxWindowManager(WindowManagerDummy):
                 "xdotool is required. Install it with `apt install xdotool`."
             )
 
-    def bring_to_front(self):
+    def bring_to_front(self) -> None:
         try:
             assert isinstance(self.window, str)
             subprocess.run(["xdotool", "windowactivate", self.window])
@@ -94,7 +94,7 @@ class LinuxWindowManager(WindowManagerDummy):
 
 
 class DarwinWindowManager(WindowManagerDummy):
-    def __init__(self):
+    def __init__(self) -> None:
         # Get name of the frontmost application
         get_name_script = (
             'tell application "System Events" to get name of first '
@@ -117,7 +117,7 @@ class DarwinWindowManager(WindowManagerDummy):
                 "There may be issues with the window."
             )
 
-    def send_to_background(self):
+    def send_to_background(self) -> None:
         try:
             # Minimize window
             assert isinstance(self.window, str)
@@ -131,7 +131,7 @@ class DarwinWindowManager(WindowManagerDummy):
             raise RuntimeError("AppleScript failed to send window to background.")
         logger.debug(f"Minimized window: {self.window}")
 
-    def bring_to_front(self):
+    def bring_to_front(self) -> None:
         try:
             assert isinstance(self.window, str)
             restore_script = f'tell application "{self.window}" to activate'
@@ -142,7 +142,7 @@ class DarwinWindowManager(WindowManagerDummy):
 
 
 class WindowsWindowManager(WindowManagerDummy):
-    def __init__(self):
+    def __init__(self) -> None:
         self.window = gw.getActiveWindow()
         assert self.window is not None, "No active window found"
         self.window_position = self.window.topleft
@@ -154,13 +154,13 @@ class WindowsWindowManager(WindowManagerDummy):
             f"with size {self.window_size}"
         )
 
-    def send_to_background(self):
+    def send_to_background(self) -> None:
         assert isinstance(self.window, gw.Win32Window), "Invalid window type"
         self.window.minimize()
         logger.debug(f"Minimized window: {self.window.title}")
         time.sleep(1.0)
 
-    def bring_to_front(self):
+    def bring_to_front(self) -> None:
         assert isinstance(self.window, gw.Win32Window), "Invalid window type"
         if self.window_is_maximized:
             self.window.maximize()
@@ -175,7 +175,7 @@ class ScreenRecorder(Recorder):
     def __init__(
         self,
         fps: int,
-    ):
+    ) -> None:
         super().__init__()
         self.fps = fps
         self.screen_region = {
@@ -225,17 +225,17 @@ class ScreenRecorder(Recorder):
                 break
             time.sleep(0.2)
 
-    def stop(self):
+    def stop(self) -> None:
         if not self.thread.is_alive():
             logger.warning("Screen capture thread is not executing")
         else:
             self.is_recording = False
 
-    def pause(self):
+    def pause(self) -> None:
         if not config.remote:
             self.window_manager.bring_to_front()
 
-    def resume(self):
+    def resume(self) -> None:
         if not config.remote:
             self.window_manager.send_to_background()
 
@@ -269,7 +269,7 @@ class ScreenRecorder(Recorder):
         with self.recording_lock:
             return self.current_frame
 
-    def _capture_screen(self):
+    def _capture_screen(self) -> None:
         # if not config.remote:
         #     self.window_manager.send_to_background()
         self.start_time = time.time()
@@ -299,7 +299,7 @@ class ScreenRecorder(Recorder):
 
 
 class VNCRecorder(ScreenRecorder):
-    def __init__(self, vnc_streamer: VNCStreamer, **args):
+    def __init__(self, vnc_streamer: VNCStreamer, **args) -> None:
         super().__init__(**args)
         self.vnc_streamer = vnc_streamer
         self.screen_region = {
@@ -315,7 +315,7 @@ class VNCRecorder(ScreenRecorder):
         self.start_time = time.time()
         logger.info("Screen recorder started")
         self.recording_lock.release()
-        last_capture_time = 0  # last saved frame capture time
+        last_capture_time = 0.0  # last saved frame capture time
         last_frame_time = time.time()  # last frame capture time
         while self.is_recording:
             frame = self.vnc_streamer.get_current_frame()

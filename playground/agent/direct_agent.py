@@ -45,7 +45,7 @@ class DirectAgent(Agent):
             messages.append(
                 {
                     "role": "assistant",
-                    "content": f"[Action]: ```python\n{step['act']}\n```"
+                    "content": f"[Action]: ```python\n{step['act']}\n```",
                 }
             )
             messages.append({"role": "user", "content": f"[Result]: \n{step['res']}"})
@@ -67,7 +67,7 @@ class DirectAgent(Agent):
             messages.append(
                 {
                     "role": "assistant",
-                    "content": f"[Action]: ```python\n{step['act']}\n```"
+                    "content": f"[Action]: ```python\n{step['act']}\n```",
                 }
             )
             messages.append({"role": "user", "content": f"[Result]: \n{step['res']}"})
