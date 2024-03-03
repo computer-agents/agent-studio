@@ -43,13 +43,13 @@ def add_jsonl(data: list, file_path: str, mode="a"):
             file.write(json_str + "\n")
 
 
-def format_json(data: dict):
+def format_json(data: dict, indent=4, sort_keys=False):
     """Prints a dictionary in a formatted way.
 
     Args:
         data (dict): The dictionary to print
     """
-    return json.dumps(data, indent=4, sort_keys=True)
+    return json.dumps(data, indent=indent, sort_keys=sort_keys)
 
 
 def export_trajectories(

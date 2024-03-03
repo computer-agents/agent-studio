@@ -1,14 +1,17 @@
+import ast
+import os
 import asyncio
 import functools
 import logging
 import sys
 import uuid
+import json
 from asyncio import open_connection
 
 import requests
 import numpy as np
 from PyQt6.QtCore import QTimer
-from PyQt6.QtGui import QImage
+from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QCheckBox,
     QHBoxLayout,
@@ -19,6 +22,10 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
+    QListWidget,
+    QComboBox,
+    QListWidgetItem,
+    QMessageBox,
 )
 from qasync import QApplication, asyncClose, asyncSlot
 
@@ -27,22 +34,85 @@ from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
 from playground.utils.json_utils import export_trajectories
 from playground.utils.communication import PlaygroundResponse
+from playground.utils.json_utils import format_json, add_jsonl
 
 config = Config()
 logger = logging.getLogger(__name__)
 
 
+# Function to parse the Python file and extract required information
+def parse_python_file(file_path):
+    with open(file_path, "r") as file:
+        tree = ast.parse(file.read(), filename=file_path)
+
+    # Initialize a list to hold the extracted information
+    extracted_info = []
+    evaluator_name = None
+
+    for node in ast.walk(tree):
+        # Check for class definitions that are derived from "Evaluator"
+        if isinstance(node, ast.ClassDef):
+            for base in node.bases:
+                if isinstance(base, ast.Name) and base.id == "Evaluator":
+                    # Iterate through the body of the class to find methods
+                    for item in node.body:
+                        if isinstance(item, ast.FunctionDef):
+                            # Check for decorators
+                            for decorator in item.decorator_list:
+                                if isinstance(decorator, ast.Call) and decorator.func.id in ["evaluation_handler", "reset_handler"]:
+                                    # Extract the decorator name and arguments
+                                    decorator_name = decorator.func.id
+                                    decorator_args = [ast.literal_eval(arg) for arg in decorator.args]
+
+                                    # Extract the function name, arguments, and docstring
+                                    function_name = item.name
+                                    function_args = [{arg.arg: ast.unparse(arg.annotation)} for arg in item.args.args if arg.annotation is not None]
+                                    docstring = ast.get_docstring(item)
+
+                                    # Add the extracted information to the list
+                                    extracted_info.append({
+                                        "decorator": decorator_name,
+                                        "decorator_args": decorator_args,
+                                        "function_name": function_name,
+                                        "function_args": function_args,
+                                        "docstring": docstring
+                                    })
+                        elif isinstance(item, ast.AnnAssign):
+                            target = item.target
+                            if isinstance(target, ast.Name) and target.id == "name":
+                                if evaluator_name is None:
+                                    evaluator_name = item.value.n
+                                else:
+                                    raise ValueError(f"Multiple evaluator names found in {file_path}")
+                        elif isinstance(item, ast.Assign):
+                            for target in item.targets:
+                                if isinstance(target, ast.Name) and target.id == "name":
+                                    if evaluator_name is None:
+                                        evaluator_name = item.value.n
+                                    else:
+                                        raise ValueError(f"Multiple evaluator names found in {file_path}")
+    if evaluator_name is None:
+        raise ValueError(f"No evaluator name found in {file_path}")
+    return evaluator_name, extracted_info
+
 class Task:
-    def __init__(self, instruction: str, trajectory: list[str], visual: bool) -> None:
+    def __init__(
+            self,
+            instruction: str,
+            trajectory: list[str],
+            evals: list[dict],
+            visual: bool
+        ) -> None:
         self.task_id = str(uuid.uuid4())
         self.instruction = instruction
         self.trajectory = trajectory
+        self.evals = evals
         self.visual = visual
 
     def step_action(self, action: str) -> None:
         self.trajectory.append(action)
 
-    def to_dict(self) -> dict:
+    def to_record(self) -> dict:
         return {
             "task_id": self.task_id,
             "instruction": self.instruction,
@@ -50,13 +120,20 @@ class Task:
             "visual": self.visual,
         }
 
+    def to_task_config(self) -> dict:
+        return {
+            "task_id": self.task_id,
+            "instruction": self.instruction,
+            "evals": self.evals,
+            "visual": self.visual,
+        }
+
 
 class HumanInterface(QMainWindow):
-    right_layout_width = 300
-
     def __init__(
         self,
         record_path: str,
+        task_config_path: str,
     ) -> None:
         super().__init__()
         self.refresh_timer = QTimer(self)
@@ -65,6 +142,7 @@ class HumanInterface(QMainWindow):
         self.refresh_timer.stop()
         self.refreshing_screen = False  # need for refresh flag
         self.last_message = ""
+        self.task_config_path = task_config_path
 
         # VNC
         self.record_path = record_path
@@ -72,14 +150,17 @@ class HumanInterface(QMainWindow):
         self.vnc_lock = asyncio.Lock()
         self.current_task: Task | None = None
 
+        self.evaluator_infos: dict[str, list[dict]] = {}
+        self.load_evaluator_args()
+
         self.setup_ui()
         self.agent = HumanAgent()
 
         self.reset()
 
     @classmethod
-    async def create(cls, record_path: str):
-        self = cls(record_path)
+    async def create(cls, record_path: str, task_config_path: str):
+        self = cls(record_path, task_config_path)
         await self.connect_vnc()
         return self
 
@@ -93,7 +174,8 @@ class HumanInterface(QMainWindow):
 
         self.status_bar: QStatusBar = self.statusBar()
 
-        left_layout = QVBoxLayout()
+        self.vnc_container = QWidget()
+        left_layout = QVBoxLayout(self.vnc_container)
         self.vnc_frame = VNCFrame(self)
         left_layout.addWidget(self.vnc_frame)
 
@@ -101,55 +183,89 @@ class HumanInterface(QMainWindow):
         reconnect_button.clicked.connect(self.reconnect)
         left_layout.addWidget(reconnect_button)
 
-        main_layout.addLayout(left_layout)
+        main_layout.addWidget(self.vnc_container)
 
-        right_layout = QVBoxLayout()
+        self.task_eval_info_container = QWidget()
+        task_eval_info_layout = QVBoxLayout(self.task_eval_info_container)
 
         clear_button = QPushButton("Clear All")
         clear_button.clicked.connect(self.reset)
-        right_layout.addWidget(clear_button)
+        task_eval_info_layout.addWidget(clear_button)
 
-        right_layout.addWidget(QLabel("Task Instruction"))
+        task_eval_info_layout.addWidget(QLabel("Task Instruction"))
         self.instruction_editor = QTextEdit(self)
-        right_layout.addWidget(self.instruction_editor)
-        self.instruction_editor.setFixedWidth(self.right_layout_width)
-        self.instruction_editor.setFixedHeight(60)
+        self.instruction_editor.setFixedHeight(100)
+        task_eval_info_layout.addWidget(self.instruction_editor)
 
         self.is_visual_checkbox = QCheckBox("Is visual Task?")
-        right_layout.addWidget(self.is_visual_checkbox)
+        task_eval_info_layout.addWidget(self.is_visual_checkbox)
+
+        task_eval_info_layout.addWidget(QLabel("Json format Preview"))
+        self.json_preview_display = QTextEdit(self)
+        self.json_preview_display.setReadOnly(True)
+        task_eval_info_layout.addWidget(self.json_preview_display)
+
+        task_eval_info_layout.addWidget(QLabel("Evaluation Steps"))
+        self.eval_steps_display = QTextEdit(self)
+        task_eval_info_layout.addWidget(self.eval_steps_display)
+
+        main_layout.addWidget(self.task_eval_info_container)
+
+        self.evaluator_sel_container = QWidget()
+        evaluator_sel_layout = QVBoxLayout(self.evaluator_sel_container)
+
+        evaluator_sel_layout.addWidget(QLabel("Evaluator"))
+        self.evaluator_dropdown = QComboBox()
+        self.evaluator_dropdown.addItems(list(self.evaluator_infos.keys()))
+        self.evaluator_dropdown.currentIndexChanged.connect(self.evaluator_changed)
+        evaluator_sel_layout.addWidget(self.evaluator_dropdown)
+
+        evaluator_sel_layout.addWidget(QLabel("Evaluator Method (Double click to select.)"))
+        self.eval_method_list = QListWidget()
+        self.eval_method_list.currentItemChanged.connect(self.list_item_changed)
+        self.eval_method_list.itemDoubleClicked.connect(self.list_item_double_clicked)
+        evaluator_sel_layout.addWidget(self.eval_method_list)
+
+        evaluator_sel_layout.addWidget(QLabel("Docs"))
+        self.eval_method_doc_display = QTextEdit(self)
+        self.eval_method_doc_display.setReadOnly(True)
+        evaluator_sel_layout.addWidget(self.eval_method_doc_display)
 
         self.start_button = QPushButton("Start Record")
         self.start_button.clicked.connect(self.start_record)
-        right_layout.addWidget(self.start_button)
+        evaluator_sel_layout.addWidget(self.start_button)
 
-        right_layout.addWidget(QLabel("Trajectory"))
+        main_layout.addWidget(self.evaluator_sel_container)
+
+        self.trajectory_container = QWidget()
+        trajectory_layout = QVBoxLayout(self.trajectory_container)
+
+        trajectory_layout.addWidget(QLabel("Trajectory"))
         self.trajectory_display = QTextEdit(self)
-        right_layout.addWidget(self.trajectory_display)
-        self.trajectory_display.setFixedWidth(self.right_layout_width)
+        trajectory_layout.addWidget(self.trajectory_display)
         self.trajectory_display.setFixedHeight(300)
         self.trajectory_display.setReadOnly(True)
 
-        right_layout.addWidget(QLabel("Action"))
+        trajectory_layout.addWidget(QLabel("Action"))
         self.next_action_editor = QTextEdit(self)
-        right_layout.addWidget(self.next_action_editor)
-        self.next_action_editor.setFixedWidth(self.right_layout_width)
+        trajectory_layout.addWidget(self.next_action_editor)
 
         self.step_action_button = QPushButton("Step Action")
         self.step_action_button.clicked.connect(self.step_action)
-        right_layout.addWidget(self.step_action_button)
+        trajectory_layout.addWidget(self.step_action_button)
 
         self.output_display = QTextEdit(self)
-        self.output_display.setFixedWidth(self.right_layout_width)
+        # self.output_display.setFixedWidth(self.right_layout_width)
         self.output_display.setFixedHeight(40)
         self.output_display.setReadOnly(True)
-        right_layout.addWidget(QLabel("Runtime Response"))
-        right_layout.addWidget(self.output_display)
+        trajectory_layout.addWidget(QLabel("Runtime Response"))
+        trajectory_layout.addWidget(self.output_display)
 
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self.save_trajectory)
-        right_layout.addWidget(self.save_button)
+        trajectory_layout.addWidget(self.save_button)
 
-        main_layout.addLayout(right_layout)
+        main_layout.addWidget(self.trajectory_container)
 
         self.setMouseTracking(True)
         self.showMaximized()
@@ -157,32 +273,59 @@ class HumanInterface(QMainWindow):
     def reset(self) -> None:
         """Clears all the text fields."""
         self.instruction_editor.clear()
+        self.instruction_editor.setReadOnly(False)
         self.trajectory_display.clear()
-        self.next_action_editor.clear()
-        self.output_display.clear()
-        self.next_action_editor.setEnabled(False)
-        self.instruction_editor.setEnabled(True)
-        self.output_display.setEnabled(False)
         self.trajectory_display.setEnabled(False)
+        self.next_action_editor.clear()
+        self.next_action_editor.setEnabled(False)
+        self.eval_method_doc_display.clear()
+        self.json_preview_display.clear()
+        self.eval_steps_display.clear()
+        self.eval_steps_display.setReadOnly(False)
+        self.output_display.clear()
+        self.output_display.setEnabled(False)
         self.start_button.setEnabled(True)
+        self.eval_method_list.clear()
         self.save_button.setEnabled(False)
         self.step_action_button.setEnabled(False)
         self.is_visual_checkbox.setEnabled(True)
         self.current_task = None
+        self.trajectory_container.hide()
+        self.vnc_container.hide()
+        self.evaluator_sel_container.show()
+        self.evaluator_changed(0)
 
     def start_record(self) -> None:
         """Starts the record."""
-        self.instruction_editor.setEnabled(False)
+        try:
+            evals: list = json.loads(
+                f"{self.eval_steps_display.toPlainText().strip().strip(',')}"
+            )
+            if not isinstance(evals, list):
+                raise ValueError("Evaluation Steps should be a list")
+        except Exception as e:
+            dlg = QMessageBox(self)
+            dlg.setWindowTitle("Invalid JSON format!")
+            dlg.setText(f"{e}")
+            dlg.exec()
+            return
+        self.evaluator_sel_container.hide()
+        self.trajectory_container.show()
+        self.vnc_container.show()
+        self.instruction_editor.setReadOnly(True)
         self.next_action_editor.setEnabled(True)
         self.output_display.setEnabled(True)
         self.trajectory_display.setEnabled(True)
+        self.eval_steps_display.setReadOnly(True)
         self.start_button.setEnabled(False)
         self.save_button.setEnabled(True)
         self.step_action_button.setEnabled(True)
         self.is_visual_checkbox.setEnabled(False)
+
         self.current_task = Task(
             instruction=self.instruction_editor.toPlainText(),
             trajectory=[],
+            evals=evals,
             visual=self.is_visual_checkbox.isChecked(),
         )
         self.agent.reset(self.current_task.instruction)
@@ -193,6 +336,90 @@ class HumanInterface(QMainWindow):
         response = PlaygroundResponse(**response_raw.json())
         assert response.status == "success",\
             f"Fail to reset runtime: {response_raw.text}"
+
+    def load_evaluator_args(
+            self,
+            base_path: str = "playground/env/desktop_env/eval",
+        ) -> None:
+        """Loads the evaluator arguments."""
+        evaluator_args = {}
+        for root, _, files in os.walk(base_path):
+            for file in files:
+                if file.endswith(".py"):
+                    file_path = os.path.join(root, file)
+                    try:
+                        evaluator_name, evaluator_info = parse_python_file(file_path)
+                        evaluator_args[evaluator_name] = evaluator_info
+                    except Exception as e:
+                        # logger.warn(f"Fail to parse {file_path}: {e}")
+                        pass
+
+        self.evaluator_infos = evaluator_args
+
+    def evaluator_changed(self, index):
+        evaluator_name = self.evaluator_dropdown.currentText()
+        self.load_functions(evaluator_name)
+
+    def load_functions(self, evaluator_name):
+        self.eval_method_list.clear()
+        self.eval_method_doc_display.clear()
+        for func in self.evaluator_infos[evaluator_name]:
+            item = QListWidgetItem(func['function_name'])
+            if func['decorator'] == "evaluation_handler":
+                item.setForeground(QColor("green"))
+            elif func['decorator'] == "reset_handler":
+                item.setForeground(QColor("blue"))
+            self.eval_method_list.addItem(item)
+
+    def list_item_changed(self, current, previous):
+        if current:
+            function_name = current.text()
+            evaluator_name = self.evaluator_dropdown.currentText()
+            for func in self.evaluator_infos[evaluator_name]:
+                if func['function_name'] == function_name:
+                    args = ""
+                    for func_arg in func['function_args']:
+                        args += \
+                            f"{list(func_arg.keys())[0]}: {list(func_arg.values())[0]}\n"
+                    docs = f"{args}\n{func['docstring']}"
+                    self.eval_method_doc_display.setText(docs)
+                    break
+
+    def list_item_double_clicked(self, item: QListWidgetItem) -> None:
+        function_name = item.text()
+        evaluator_name = self.evaluator_dropdown.currentText()
+        for func in self.evaluator_infos[evaluator_name]:
+            if func['function_name'] == function_name:
+                if func['decorator'] == "evaluation_handler":
+                    cfgs = {
+                        "eval_type": evaluator_name,
+                        "eval_procedure": [
+                            {
+                                func["decorator_args"][0]: {
+                                    list(item.keys())[0]: list(item.values())[0]
+                                    for item in func['function_args']
+                                }
+                            }
+                        ]
+                    }
+                elif func['decorator'] == "reset_handler":
+                    cfgs = {
+                        "eval_type": evaluator_name,
+                        "reset_procedure": [
+                            {
+                                func["decorator_args"][0]: {
+                                    list(item.keys())[0]: list(item.values())[0]
+                                    for item in func['function_args']
+                                }
+                            }
+                        ]
+                    }
+                else:
+                    raise ValueError(f"Unknown decorator: {func['decorator']}")
+                self.json_preview_display.setPlainText(
+                    f"{format_json(cfgs)},\n\n"
+                )
+                break
 
     def step_action(self) -> None:
         """Steps the next action and adds it to the trajectory."""
@@ -223,9 +450,10 @@ class HumanInterface(QMainWindow):
         """Saves the trajectory to the record path."""
         assert self.current_task is not None
         self.step_action_button.setEnabled(False)
+        add_jsonl([self.current_task.to_task_config()], self.task_config_path)
         export_trajectories(
             self_eval_results=None,
-            task_config=self.current_task.to_dict(),
+            task_config=self.current_task.to_record(),
             trajectory=self.agent.trajectory,
             record_path=self.record_path,
             score=None,
@@ -298,7 +526,7 @@ class HumanInterface(QMainWindow):
 
         self.refreshing_screen = True
         await self.update_screen()
-        if self.vnc is not None:
+        if self.vnc is not None and self.vnc_container.isVisible():
             if local_cursor_pos := self.vnc_frame.get_cursor_pos():
                 self.status_bar.showMessage(f"Cursor Position: {str(local_cursor_pos)}")
         self.refreshing_screen = False
@@ -316,7 +544,7 @@ class HumanInterface(QMainWindow):
         exit(0)
 
 
-async def run_ui(record_path: str):
+async def run_ui(record_path: str, task_config_path: str) -> None:
     def close_future(future, loop):
         loop.call_later(10, future.cancel)
         future.cancel()
@@ -330,7 +558,7 @@ async def run_ui(record_path: str):
             functools.partial(close_future, future, loop)
         )
 
-    interface = await HumanInterface.create(record_path)
+    interface = await HumanInterface.create(record_path, task_config_path)
 
     interface.show()
 
