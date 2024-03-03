@@ -56,7 +56,7 @@ class Agent:
 
         return self.cur_response, self.cur_raw_code
 
-    def step_action(self, confirmed: bool) -> tuple[dict, bool]:
+    def step_action(self, confirmed: bool, **kwargs) -> tuple[dict, bool]:
         """Executes the code and record the result."""
         result = {}
         if confirmed:

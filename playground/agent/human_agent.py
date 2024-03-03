@@ -1,14 +1,13 @@
 import logging
-from typing import Any
 import time
+from typing import Any
 
 import numpy as np
 import requests
 
-
 from playground.agent.base_agent import Agent
-from playground.config import Config
 from playground.agent.runtime import PythonRuntime, RemotePythonRuntime
+from playground.config import Config
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -30,8 +29,10 @@ class HumanAgent(Agent):
     def reset(self, instruction: str) -> None:
         super().reset(instruction=instruction)
 
-    def step_action(self, code: str, obs: np.ndarray | None) -> tuple[dict, bool]:
+    def step_action(self, confirmed: bool, **kwargs) -> tuple[dict, bool]:
         """Executes the code and record the result."""
+        obs = kwargs.get("obs", None)
+        code = kwargs.get("code", "")
         self.cur_obs = obs
         self.cur_raw_code = code
         result = {}

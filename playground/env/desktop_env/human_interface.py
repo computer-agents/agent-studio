@@ -2,41 +2,36 @@ import asyncio
 import functools
 import logging
 import sys
-from asyncio import open_connection
 import uuid
+from asyncio import open_connection
 
 import numpy as np
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QImage
 from PyQt6.QtWidgets import (
+    QCheckBox,
     QHBoxLayout,
     QLabel,
     QMainWindow,
     QPushButton,
+    QStatusBar,
     QTextEdit,
     QVBoxLayout,
     QWidget,
-    QStatusBar,
-    QCheckBox,
 )
 from qasync import QApplication, asyncClose, asyncSlot
 
+from playground.agent.human_agent import HumanAgent
 from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
 from playground.utils.json_utils import export_trajectories
-from playground.agent.human_agent import HumanAgent
 
 config = Config()
 logger = logging.getLogger(__name__)
 
 
 class Task:
-    def __init__(
-            self,
-            instruction: str,
-            trajectory: list[str],
-            visual: bool
-        ) -> None:
+    def __init__(self, instruction: str, trajectory: list[str], visual: bool) -> None:
         self.task_id = str(uuid.uuid4())
         self.instruction = instruction
         self.trajectory = trajectory
@@ -50,7 +45,7 @@ class Task:
             "task_id": self.task_id,
             "instruction": self.instruction,
             "trajectory": self.trajectory,
-            "visual": self.visual
+            "visual": self.visual,
         }
 
 
@@ -71,7 +66,7 @@ class HumanInterface(QMainWindow):
 
         # VNC
         self.record_path = record_path
-        self.vnc = None
+        self.vnc: None | VNCClient = None
         self.vnc_lock = asyncio.Lock()
         self.current_task: Task | None = None
 
@@ -186,7 +181,7 @@ class HumanInterface(QMainWindow):
         self.current_task = Task(
             instruction=self.instruction_editor.toPlainText(),
             trajectory=[],
-            visual=self.is_visual_checkbox.isChecked()
+            visual=self.is_visual_checkbox.isChecked(),
         )
         self.agent.reset(self.current_task.instruction)
 
@@ -200,7 +195,7 @@ class HumanInterface(QMainWindow):
                 obs = self.now_screenshot
             else:
                 obs = None
-            result, _ = self.agent.step_action(next_action_text, obs)
+            result, _ = self.agent.step_action(True, code=next_action_text, obs=obs)
             self.output_display.setText(str(result))
         except Exception as e:
             self.output_display.setText(f"Error: {str(e)}")
@@ -295,9 +290,7 @@ class HumanInterface(QMainWindow):
         await self.update_screen()
         if self.vnc is not None:
             if local_cursor_pos := self.vnc_frame.get_cursor_pos():
-                self.status_bar.showMessage(
-                    f"Cursor Position: {str(local_cursor_pos)}"
-                )
+                self.status_bar.showMessage(f"Cursor Position: {str(local_cursor_pos)}")
         self.refreshing_screen = False
         self.refresh_timer.start()
 
