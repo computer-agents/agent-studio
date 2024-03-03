@@ -222,7 +222,7 @@ class TelegramEvaluator(Evaluator):
         self.service = TelegramService()
 
     @evaluation_handler("message_match")
-    def message_match(self, **kwargs):
+    def message_match(self, chat_id: str | int, ref_messages: list[dict]) -> None:
         """
         Check if the messages in the chat match the reference messages.
 
@@ -271,10 +271,10 @@ class TelegramEvaluator(Evaluator):
                 }
             ]
         """
-        self.service.message_match(**kwargs)
+        self.service.message_match(chat_id, ref_messages)
 
     @reset_handler("send_messages")
-    def send_messages(self, **kwargs):
+    def send_messages(self, chat_id: str | int, messages: list[str]):
         """
         Send a message to specific chat.
 
@@ -286,28 +286,37 @@ class TelegramEvaluator(Evaluator):
         Returns:
             None
         """
-        self.service.send_messages(**kwargs)
+        self.service.send_messages(chat_id, messages)
 
     @reset_handler("delete_recent_messages")
-    def delete_recent_messages(self, **kwargs):
+    def delete_recent_messages(
+        self,
+        chat_id: str | int,
+        n: int,
+    ):
         """
         Delete recent messages from specific chat.
 
         Args:
             chat_id (str | int): Chat id.
             n (int): Number of messages to be deleted.
-            replyto_offset (int, optional): Offset of the message to reply to. \
-                Defaults to None. The offset is counted from the last message. \
-                E.g. 0 means reply to the last message, \
-                1 means reply to the second last message, etc.
 
         Returns:
             None
         """
-        self.service.delete_recent_messages(**kwargs)
+        self.service.delete_recent_messages(
+            chat_id=chat_id,
+            n=n,
+        )
 
     @reset_handler("send_document")
-    def send_document(self, **kwargs):
+    def send_document(
+        self,
+        chat_id: str | int,
+        file_path: str,
+        caption: str = "",
+        replyto_offset: int | None = None,
+    ):
         """
         Send a document to specific chat.
 
@@ -323,4 +332,9 @@ class TelegramEvaluator(Evaluator):
         Returns:
             None
         """
-        self.service.send_document(**kwargs)
+        self.service.send_document(
+            chat_id=chat_id,
+            file_path=file_path,
+            caption=caption,
+            replyto_offset=replyto_offset,
+        )
