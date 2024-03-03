@@ -3,9 +3,9 @@ import functools
 import logging
 import sys
 from asyncio import open_connection
+import uuid
 
 import numpy as np
-import requests
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QImage
 from PyQt6.QtWidgets import (
@@ -16,14 +16,42 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
+    QStatusBar,
+    QCheckBox,
 )
 from qasync import QApplication, asyncClose, asyncSlot
 
 from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
+from playground.utils.json_utils import export_trajectories
+from playground.agent.human_agent import HumanAgent
 
 config = Config()
 logger = logging.getLogger(__name__)
+
+
+class Task:
+    def __init__(
+            self,
+            instruction: str,
+            trajectory: list[str],
+            visual: bool
+        ) -> None:
+        self.task_id = str(uuid.uuid4())
+        self.instruction = instruction
+        self.trajectory = trajectory
+        self.visual = visual
+
+    def step_action(self, action: str) -> None:
+        self.trajectory.append(action)
+
+    def to_dict(self) -> dict:
+        return {
+            "task_id": self.task_id,
+            "instruction": self.instruction,
+            "trajectory": self.trajectory,
+            "visual": self.visual
+        }
 
 
 class HumanInterface(QMainWindow):
@@ -31,8 +59,8 @@ class HumanInterface(QMainWindow):
 
     def __init__(
         self,
-        record_path: str = config.record_path,
-    ):
+        record_path: str,
+    ) -> None:
         super().__init__()
         self.refresh_timer = QTimer(self)
         self.refresh_timer.setInterval(1)
@@ -41,13 +69,24 @@ class HumanInterface(QMainWindow):
         self.refreshing_screen = False  # need for refresh flag
         self.last_message = ""
 
-        self.setup_ui()
-
+        # VNC
+        self.record_path = record_path
         self.vnc = None
-        self.connect_vnc()
+        self.vnc_lock = asyncio.Lock()
+        self.current_task: Task | None = None
+
+        self.setup_ui()
+        self.agent = HumanAgent()
+
         self.reset()
 
-    def setup_ui(self):
+    @classmethod
+    async def create(cls, record_path: str):
+        self = cls(record_path)
+        await self.connect_vnc()
+        return self
+
+    def setup_ui(self) -> None:
         """Sets up the UI, including the VNC frame (left) and the right layout."""
         self.setWindowTitle("Playground Recorder")
         central_widget = QWidget(self)
@@ -55,16 +94,19 @@ class HumanInterface(QMainWindow):
         central_widget.setMouseTracking(True)
         main_layout = QHBoxLayout(central_widget)
 
+        self.status_bar: QStatusBar = self.statusBar()
+
         left_layout = QVBoxLayout()
         self.vnc_frame = VNCFrame(self)
         left_layout.addWidget(self.vnc_frame)
-        main_layout.addLayout(left_layout)
-
-        right_layout = QVBoxLayout()
 
         reconnect_button = QPushButton("Re-connect")
         reconnect_button.clicked.connect(self.reconnect)
-        right_layout.addWidget(reconnect_button)
+        left_layout.addWidget(reconnect_button)
+
+        main_layout.addLayout(left_layout)
+
+        right_layout = QVBoxLayout()
 
         clear_button = QPushButton("Clear All")
         clear_button.clicked.connect(self.reset)
@@ -76,85 +118,90 @@ class HumanInterface(QMainWindow):
         self.instruction_editor.setFixedWidth(self.right_layout_width)
         self.instruction_editor.setFixedHeight(60)
 
+        self.is_visual_checkbox = QCheckBox("Is visual Task?")
+        right_layout.addWidget(self.is_visual_checkbox)
+
+        self.start_button = QPushButton("Start Record")
+        self.start_button.clicked.connect(self.start_record)
+        right_layout.addWidget(self.start_button)
+
         right_layout.addWidget(QLabel("Trajectory"))
         self.trajectory_display = QTextEdit(self)
         right_layout.addWidget(self.trajectory_display)
         self.trajectory_display.setFixedWidth(self.right_layout_width)
         self.trajectory_display.setFixedHeight(300)
+        self.trajectory_display.setReadOnly(True)
 
-        right_layout.addWidget(QLabel("Next Action"))
+        right_layout.addWidget(QLabel("Action"))
         self.next_action_editor = QTextEdit(self)
         right_layout.addWidget(self.next_action_editor)
         self.next_action_editor.setFixedWidth(self.right_layout_width)
 
-        confirm_button = QPushButton("Confirm and execute action")
-        confirm_button.clicked.connect(self.step_action)
-        right_layout.addWidget(confirm_button)
+        self.step_action_button = QPushButton("Step Action")
+        self.step_action_button.clicked.connect(self.step_action)
+        right_layout.addWidget(self.step_action_button)
 
         self.output_display = QTextEdit(self)
         self.output_display.setFixedWidth(self.right_layout_width)
         self.output_display.setFixedHeight(40)
+        self.output_display.setReadOnly(True)
         right_layout.addWidget(QLabel("Runtime Response"))
         right_layout.addWidget(self.output_display)
 
-        clear_button = QPushButton("Save")
-        right_layout.addWidget(clear_button)
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.save_trajectory)
+        right_layout.addWidget(self.save_button)
 
         main_layout.addLayout(right_layout)
 
         self.setMouseTracking(True)
+        self.showMaximized()
 
-    @asyncSlot()
-    async def reconnect(self):
-        """Reconnects to VNC server."""
-        await self.vnc.disconnect()
-        self.connect_vnc()
-
-    @asyncSlot()
-    async def connect_vnc(self):
-        """Connects to VNC server."""
-        self.statusBar().showMessage("Connecting")
-
-        self._reader, self._writer = await open_connection(
-            config.env_server_addr, config.vnc_port
-        )
-        self.vnc = await VNCClient.create(
-            reader=self._reader, writer=self._writer, password=config.vnc_password
-        )
-        self.video_height = self.vnc.video.height
-        self.video_width = self.vnc.video.width
-        self.now_screenshot = np.zeros(
-            (self.video_height, self.video_width, 4), dtype="uint8"
-        )
-
-        self.setGeometry(0, 0, self.video_width, self.video_height)
-        self.vnc_frame.setFixedSize(self.video_width, self.video_height)
-        self.vnc_frame.setMouseTracking(True)
-
-        self.refresh_timer.start()
-        self.statusBar().showMessage("Connected")
-
-    def reset(self):
+    def reset(self) -> None:
         """Clears all the text fields."""
         self.instruction_editor.clear()
         self.trajectory_display.clear()
         self.next_action_editor.clear()
+        self.output_display.clear()
+        self.next_action_editor.setEnabled(False)
+        self.instruction_editor.setEnabled(True)
+        self.output_display.setEnabled(False)
+        self.trajectory_display.setEnabled(False)
+        self.start_button.setEnabled(True)
+        self.save_button.setEnabled(False)
+        self.step_action_button.setEnabled(False)
+        self.is_visual_checkbox.setEnabled(True)
+        self.current_task = None
 
-    def step_action(self):
+    def start_record(self) -> None:
+        """Starts the record."""
+        self.instruction_editor.setEnabled(False)
+        self.next_action_editor.setEnabled(True)
+        self.output_display.setEnabled(True)
+        self.trajectory_display.setEnabled(True)
+        self.start_button.setEnabled(False)
+        self.save_button.setEnabled(True)
+        self.step_action_button.setEnabled(True)
+        self.is_visual_checkbox.setEnabled(False)
+        self.current_task = Task(
+            instruction=self.instruction_editor.toPlainText(),
+            trajectory=[],
+            visual=self.is_visual_checkbox.isChecked()
+        )
+        self.agent.reset(self.current_task.instruction)
+
+    def step_action(self) -> None:
         """Steps the next action and adds it to the trajectory."""
+        assert self.current_task is not None
         next_action_text = self.next_action_editor.toPlainText()
-        body = {"code": next_action_text}
         # Send the request to the runtime
         try:
-            response_raw = requests.post("http://localhost:8000/execute", json=body)
-            # Process and display the output
-            runtime_output = response_raw.text
-            if "output" in runtime_output:
-                output_processed = eval(runtime_output)["output"]
-                self.output_display.setText(str(output_processed))
+            if self.current_task.visual:
+                obs = self.now_screenshot
             else:
-                output_processed = eval(runtime_output)["error"]
-                self.output_display.setText("Error: " + str(output_processed))
+                obs = None
+            result, _ = self.agent.step_action(next_action_text, obs)
+            self.output_display.setText(str(result))
         except Exception as e:
             self.output_display.setText(f"Error: {str(e)}")
 
@@ -168,11 +215,63 @@ class HumanInterface(QMainWindow):
             self.trajectory_display.setPlainText(new_trajectory_text)
             self.next_action_editor.clear()
 
-    async def update_screen(self):
-        try:
-            self.now_screenshot = await self.vnc.screenshot()
-        except Exception as e:
-            logger.error("Fail to get screenshot.", e)
+    def save_trajectory(self) -> None:
+        """Saves the trajectory to the record path."""
+        assert self.current_task is not None
+        self.step_action_button.setEnabled(False)
+        export_trajectories(
+            self_eval_results=None,
+            task_config=self.current_task.to_dict(),
+            trajectory=self.agent.trajectory,
+            record_path=self.record_path,
+            score=None,
+            feedback=None,
+            jsonl_name="tasks.jsonl",
+        )
+        self.reset()
+
+    @asyncSlot()
+    async def reconnect(self) -> None:
+        """Reconnects to VNC server."""
+        async with self.vnc_lock:
+            if self.vnc is not None:
+                await self.vnc.disconnect()
+            await self.connect_vnc()
+
+    @asyncSlot()
+    async def connect_vnc(self) -> None:
+        """Connects to VNC server."""
+        if not config.remote:
+            return
+        self.status_bar.showMessage("Connecting")
+
+        self._reader, self._writer = await open_connection(
+            config.env_server_addr, config.vnc_port
+        )
+        self.vnc = await VNCClient.create(
+            reader=self._reader, writer=self._writer, password=config.vnc_password
+        )
+        self.video_height = self.vnc.video.height
+        self.video_width = self.vnc.video.width
+        self.now_screenshot = np.zeros(
+            (self.video_height, self.video_width, 4), dtype="uint8"
+        )
+
+        # self.setGeometry(0, 0, self.video_width, self.video_height)
+        self.vnc_frame.setFixedSize(self.video_width, self.video_height)
+        self.vnc_frame.setMouseTracking(True)
+
+        self.refresh_timer.start()
+        self.status_bar.showMessage("Connected")
+
+    async def update_screen(self) -> None:
+        async with self.vnc_lock:
+            if self.vnc is None:
+                return
+            try:
+                self.now_screenshot = await self.vnc.screenshot()
+            except Exception as e:
+                logger.error("Fail to get screenshot.", e)
 
         rgba_array = self.now_screenshot
         if rgba_array is not None:
@@ -185,7 +284,7 @@ class HumanInterface(QMainWindow):
             self.vnc_frame.update(qimage)
 
     @asyncSlot()
-    async def render(self):
+    async def render(self) -> None:
         self.refresh_timer.stop()
 
         if self.refreshing_screen:
@@ -196,7 +295,7 @@ class HumanInterface(QMainWindow):
         await self.update_screen()
         if self.vnc is not None:
             if local_cursor_pos := self.vnc_frame.get_cursor_pos():
-                self.statusBar().showMessage(
+                self.status_bar.showMessage(
                     f"Cursor Position: {str(local_cursor_pos)}"
                 )
         self.refreshing_screen = False
@@ -204,11 +303,13 @@ class HumanInterface(QMainWindow):
 
     @asyncClose
     async def closeEvent(self, event):
-        self.statusBar().showMessage("Closing")
+        self.status_bar.showMessage("Closing")
         self.refresh_timer.stop()
-        if self.vnc is not None:
-            await self.vnc.disconnect()
-        logger.info("VNC disconnected")
+        async with self.vnc_lock:
+            if self.vnc is not None:
+                await self.vnc.disconnect()
+                self.vnc = None
+                logger.info("VNC disconnected")
         exit(0)
 
 
@@ -226,7 +327,7 @@ async def run_ui(record_path: str):
             functools.partial(close_future, future, loop)
         )
 
-    interface = HumanInterface(record_path=record_path)
+    interface = await HumanInterface.create(record_path)
 
     interface.show()
 

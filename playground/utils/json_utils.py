@@ -3,8 +3,6 @@ from pathlib import Path
 
 import cv2
 
-from playground.agent.base_agent import Agent
-
 
 def read_jsonl(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> list:
     """Reads lines from a .jsonl file between start_idx and end_idx.
@@ -55,33 +53,37 @@ def format_json(data: dict):
 
 
 def export_trajectories(
-    agent: Agent,
+    self_eval_results: dict | None,
     task_config: dict,
     trajectory: list,
     record_path: str,
-    score: float,
-    feedback: str,
+    score: float | None,
+    feedback: str | None,
+    jsonl_name: str = "results.jsonl",
 ) -> None:
     """Exports the trajectory data to a .jsonl file."""
     if task_config["visual"]:
         media_path = Path(record_path) / task_config["task_id"]
+        media_path.mkdir(parents=True, exist_ok=True)
         video_path = (media_path / "video.mp4").as_posix()
     else:
         media_path = None
         video_path = None
-    self_eval_results = agent.eval()
     results = {
         "video": video_path,
         "task_id": task_config["task_id"],
         "instruction": task_config["instruction"],
         "trajectory": [],
-        "self_eval": {
+    }
+    if score is not None:
+        results["score"] = score
+    if feedback is not None:
+        results["feedback"] = feedback
+    if self_eval_results is not None:
+        results["self_eval"] = {
             "score": self_eval_results["score"],
             "response": self_eval_results["response"],
-        },
-        "score": score,
-        "feedback": feedback,
-    }
+        }
     if task_config["visual"]:
         assert media_path is not None
         for traj in trajectory:
@@ -102,5 +104,5 @@ def export_trajectories(
         results["trajectory"] = trajectory
     add_jsonl(
         data=[results],
-        file_path=(Path(record_path) / "results.jsonl").as_posix(),
+        file_path=(Path(record_path) / jsonl_name).as_posix(),
     )

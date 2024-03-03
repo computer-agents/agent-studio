@@ -543,7 +543,7 @@ class AgentInterface(QMainWindow):
         assert self.selected_task is not None
 
         export_trajectories(
-            agent=self.agent,
+            self_eval_results=self.agent.eval(),
             task_config=self.selected_task,
             trajectory=self.agent.trajectory,
             record_path=self.record_path.as_posix(),

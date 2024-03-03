@@ -280,7 +280,7 @@ def eval_headless(
             else:
                 logger.info(f"[Result] (FAIL): {feedback}")
             export_trajectories(
-                agent=agent,
+                self_eval_results=agent.eval(),
                 task_config=task_config,
                 trajectory=agent.trajectory,
                 record_path=record_path,
