@@ -286,6 +286,7 @@ def eval_headless(
                 record_path=record_path,
                 score=score,
                 feedback=feedback,
+                video_path=video_path,
             )
         except Exception as e:
             import traceback

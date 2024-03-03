@@ -59,13 +59,17 @@ def export_trajectories(
     record_path: str,
     score: float | None,
     feedback: str | None,
+    video_path: str | None = None,
     jsonl_name: str = "results.jsonl",
 ) -> None:
     """Exports the trajectory data to a .jsonl file."""
     if task_config["visual"]:
         media_path = Path(record_path) / task_config["task_id"]
         media_path.mkdir(parents=True, exist_ok=True)
-        video_path = (media_path / "video.mp4").as_posix()
+        if video_path is not None:
+            video_path = (media_path / "video.mp4").as_posix()
+        else:
+            video_path = None
     else:
         media_path = None
         video_path = None

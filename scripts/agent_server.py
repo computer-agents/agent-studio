@@ -118,6 +118,18 @@ async def execute_code(request: PlaygroundTextRequest) -> dict:
     return result
 
 
+@app.post("/runtime/reset")
+async def reset_runtime() -> PlaygroundResponse:
+    runtimes["python"].close()
+    runtimes["python"] = PythonRuntime()
+    init_code = (
+        "from playground.env.desktop_env import Shell, Keyboard, Mouse\n\n"
+        "shell = Shell()\nkeyboard = Keyboard()\nmouse = Mouse()\n"
+    )
+    runtimes["python"](init_code)
+    return PlaygroundResponse(status="success")
+
+
 @app.post("/task/confirm")
 async def confirm(request: PlaygroundTextRequest) -> PlaygroundResponse:
     """

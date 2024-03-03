@@ -2,6 +2,7 @@ import logging
 import threading
 import time
 from pathlib import Path
+import queue
 
 import numpy as np
 import pyautogui
@@ -72,7 +73,6 @@ class WorkerSignals(QObject):
     decline_signal = pyqtSignal(bool)
     start_signal = pyqtSignal(bool)
     eval_signal = pyqtSignal(bool)
-    next_task_signal = pyqtSignal(bool)
     status_bar_signal = pyqtSignal(str, str)
     parsed_action_display_signal = pyqtSignal(str)
     response_display_signal = pyqtSignal(str)
@@ -136,6 +136,14 @@ class RunTaskThread(QThread):
 
     def reset_task(self):
         assert self.selected_task is not None
+        # reset remote runtime
+        response_raw = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert response.status == "success",\
+            f"Fail to reset runtime: {response_raw.text}"
+
         response_raw = requests.post(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
             json=PlaygroundResetRequest(task_config=self.selected_task).model_dump(),
@@ -181,6 +189,7 @@ class EvalTaskThread(QThread):
         trajectory_display: QTextEdit,
         selected_task: dict,
         agent: Agent,
+        result_queue: queue.Queue,
     ):
         super().__init__()
         self.mutex = QMutex()
@@ -189,6 +198,7 @@ class EvalTaskThread(QThread):
         self.agent = agent
         self.selected_task = selected_task
         self.trajectory_display = trajectory_display
+        self.result_queue = result_queue
 
     def _wait_finish(self):
         while True:
@@ -220,6 +230,7 @@ class EvalTaskThread(QThread):
             time.sleep(1)
 
     def run(self):
+        self.signals.status_bar_signal.emit("color: green;", "Task: Auto-Evaluating...")
         response_raw = requests.post(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
             json=PlaygroundEvalRequest(
@@ -228,17 +239,22 @@ class EvalTaskThread(QThread):
         )
         response = PlaygroundResponse(**response_raw.json())
         assert response.status == "submitted"
-        self.signals.status_bar_signal.emit("color: green;", "Task: Evaluating...")
         self._wait_finish()
         response_raw = requests.get(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
         )
         response = PlaygroundResultResponse(**response_raw.json())
         assert response.status == "finished" and isinstance(response.message, dict)
+        self.signals.status_bar_signal.emit("color: green;", "Task: Self-Evaluating...")
+        self_eval_result = self.agent.eval()
+        self.result_queue.put(response.message)
+        self.result_queue.put(self_eval_result)
         self.signals.evaluation_display_signal.emit(
-            f"Score: {response.message['score']}\nFeedback: {response.message['feedback']}"  # noqa: E501
+            "Auto-evaluation result:\n"
+            f"Score: {response.message['score']}\nFeedback: {response.message['feedback']}\n"
+            "\nSelf-evaluation result:\n"
+            f"Score: {self_eval_result['score']}\nFeedback: {self_eval_result['response']}"
         )
-        self.signals.next_task_signal.emit(True)
         self.signals.status_bar_signal.emit(
             "color: green;", "Task: Saving trajectory..."
         )
@@ -324,6 +340,10 @@ class AgentInterface(QMainWindow):
         self.status_bar: QStatusBar
         self.task_status_bar: QLabel
         self.on_close = False
+
+        self.current_thread: \
+            RunTaskThread | EvalTaskThread | StepActionThread | None = None
+        self.current_thread_result = queue.Queue()
 
         # screen recorder
         self.record_path: Path = Path(record_path)
@@ -519,6 +539,7 @@ class AgentInterface(QMainWindow):
         result = dlg.exec()
         assert result == QInputDialog.DialogCode.Accepted
         user_input = dlg.textValue()
+        assert self.current_thread is not None
         self.current_thread.receive_user_input(user_input)
 
     def reset(self):
@@ -541,23 +562,19 @@ class AgentInterface(QMainWindow):
 
     def save_trajectory(self):
         assert self.selected_task is not None
-
+        assert isinstance(self.current_thread, EvalTaskThread)
+        auto_eval_result = self.current_thread_result.get()
         export_trajectories(
-            self_eval_results=self.agent.eval(),
+            self_eval_results=self.current_thread_result.get(),
             task_config=self.selected_task,
             trajectory=self.agent.trajectory,
             record_path=self.record_path.as_posix(),
-            score=float(
-                self.evaluation_display.toPlainText()
-                .split("\n")[0]
-                .split(":")[1]
-                .strip()
-            ),
-            feedback=self.evaluation_display.toPlainText()
-            .split("\n")[1]
-            .split(":")[1]
-            .strip(),
+            score=float(auto_eval_result["score"]),
+            feedback=auto_eval_result["feedback"],
+            video_path=(self.record_path / self.selected_task["task_id"] / "video.mp4")
+            .as_posix(),
         )
+        self.next_button.setEnabled(True)
 
     def run_task(self):
         self.instruction_selection.setEnabled(False)
@@ -600,6 +617,7 @@ class AgentInterface(QMainWindow):
             obs = self.screen_recorder.get_current_frame()
         else:
             obs = None
+        self.current_thread_result = queue.Queue()
         self.current_thread = RunTaskThread(
             signals=signals,
             selected_task=self.selected_task,
@@ -623,14 +641,15 @@ class AgentInterface(QMainWindow):
         signals = WorkerSignals()
         signals.status_bar_signal.connect(self.set_task_status_bar_text)
         signals.evaluation_display_signal.connect(self.evaluation_display.setPlainText)
-        signals.next_task_signal.connect(self.next_button.setEnabled)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
         signals.save_trajectory_signal.connect(self.save_trajectory)
+        self.current_thread_result = queue.Queue()
         self.current_thread = EvalTaskThread(
             signals=signals,
             selected_task=self.selected_task,
             agent=self.agent,
             trajectory_display=self.trajectory_display,
+            result_queue=self.current_thread_result,
         )
         self.current_thread.start()
 
@@ -676,6 +695,7 @@ class AgentInterface(QMainWindow):
         signals.confirm_signal.connect(self.confirm_button.setEnabled)
         signals.decline_signal.connect(self.decline_button.setEnabled)
         signals.finish_run_task_signal.connect(self.finish_run_task)
+        self.current_thread_result = queue.Queue()
         self.current_thread = StepActionThread(
             signals=signals,
             trajectory_display=self.trajectory_display,
@@ -733,28 +753,3 @@ class AgentInterface(QMainWindow):
         self.refresh_timer.stop()
         logger.info("GUI closed")
         exit(0)
-
-
-# async def run_ui(agent: Agent, task_configs: list[dict], record_path: str):
-#     def close_future(future, loop):
-#         loop.call_later(10, future.cancel)
-#         future.cancel()
-
-#     loop = asyncio.get_event_loop()
-#     future: asyncio.Future = asyncio.Future()
-
-#     app = QApplication(sys.argv)
-#     if hasattr(app, "aboutToQuit"):
-#         getattr(app, "aboutToQuit").connect(
-#             functools.partial(close_future, future, loop)
-#         )
-
-#     interface = AgentInterface(
-#         agent=agent,
-#         task_configs=task_configs,
-#         record_path=record_path,
-#     )
-
-#     interface.show()
-
-#     await future

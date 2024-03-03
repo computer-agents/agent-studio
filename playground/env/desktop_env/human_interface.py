@@ -5,6 +5,7 @@ import sys
 import uuid
 from asyncio import open_connection
 
+import requests
 import numpy as np
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QImage
@@ -25,6 +26,7 @@ from playground.agent.human_agent import HumanAgent
 from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
 from playground.utils.json_utils import export_trajectories
+from playground.utils.communication import PlaygroundResponse
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -184,6 +186,13 @@ class HumanInterface(QMainWindow):
             visual=self.is_visual_checkbox.isChecked(),
         )
         self.agent.reset(self.current_task.instruction)
+        # reset remote runtime
+        response_raw = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert response.status == "success",\
+            f"Fail to reset runtime: {response_raw.text}"
 
     def step_action(self) -> None:
         """Steps the next action and adds it to the trajectory."""
@@ -221,6 +230,7 @@ class HumanInterface(QMainWindow):
             record_path=self.record_path,
             score=None,
             feedback=None,
+            video_path=None,
             jsonl_name="tasks.jsonl",
         )
         self.reset()
