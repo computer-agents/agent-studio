@@ -1,8 +1,8 @@
 import logging
+import queue
 import threading
 import time
 from pathlib import Path
-import queue
 
 import numpy as np
 import pyautogui
@@ -141,8 +141,9 @@ class RunTaskThread(QThread):
             f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
         )
         response = PlaygroundResponse(**response_raw.json())
-        assert response.status == "success",\
-            f"Fail to reset runtime: {response_raw.text}"
+        assert (
+            response.status == "success"
+        ), f"Fail to reset runtime: {response_raw.text}"
 
         response_raw = requests.post(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
@@ -251,9 +252,11 @@ class EvalTaskThread(QThread):
         self.result_queue.put(self_eval_result)
         self.signals.evaluation_display_signal.emit(
             "Auto-evaluation result:\n"
-            f"Score: {response.message['score']}\nFeedback: {response.message['feedback']}\n"
+            f"Score: {response.message['score']}\n"
+            f"Feedback: {response.message['feedback']}\n"
             "\nSelf-evaluation result:\n"
-            f"Score: {self_eval_result['score']}\nFeedback: {self_eval_result['response']}"
+            f"Score: {self_eval_result['score']}\n"
+            f"Feedback: {self_eval_result['response']}"
         )
         self.signals.status_bar_signal.emit(
             "color: green;", "Task: Saving trajectory..."
@@ -341,9 +344,9 @@ class AgentInterface(QMainWindow):
         self.task_status_bar: QLabel
         self.on_close = False
 
-        self.current_thread: \
-            RunTaskThread | EvalTaskThread | StepActionThread | None = None
-        self.current_thread_result = queue.Queue()
+        self.current_thread: RunTaskThread | EvalTaskThread | StepActionThread | None
+        self.current_thread = None
+        self.current_thread_result: queue.Queue = queue.Queue()
 
         # screen recorder
         self.record_path: Path = Path(record_path)
@@ -571,8 +574,9 @@ class AgentInterface(QMainWindow):
             record_path=self.record_path.as_posix(),
             score=float(auto_eval_result["score"]),
             feedback=auto_eval_result["feedback"],
-            video_path=(self.record_path / self.selected_task["task_id"] / "video.mp4")
-            .as_posix(),
+            video_path=(
+                self.record_path / self.selected_task["task_id"] / "video.mp4"
+            ).as_posix(),
         )
         self.next_button.setEnabled(True)
 
