@@ -327,10 +327,12 @@ def record(args) -> None:
             from playground.env.desktop_env.human_interface import run_ui
 
             try:
-                qasync.run(run_ui(
-                    record_path="playground_data/trajectories/human",
-                    task_config_path=config.task_config_paths["desktop"],
-                ))
+                qasync.run(
+                    run_ui(
+                        record_path="playground_data/trajectories/human",
+                        task_config_path=config.task_config_paths["desktop"],
+                    )
+                )
             except asyncio.exceptions.CancelledError:
                 sys.exit(0)
         case _:

@@ -1,11 +1,11 @@
 import ast
-import os
 import asyncio
 import functools
+import json
 import logging
+import os
 import sys
 import uuid
-import json
 from asyncio import open_connection
 
 import numpy as np
@@ -14,18 +14,18 @@ from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QCheckBox,
+    QComboBox,
     QHBoxLayout,
     QLabel,
+    QListWidget,
+    QListWidgetItem,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QStatusBar,
     QTextEdit,
     QVBoxLayout,
     QWidget,
-    QListWidget,
-    QComboBox,
-    QListWidgetItem,
-    QMessageBox,
 )
 from qasync import QApplication, asyncClose, asyncSlot
 
@@ -33,7 +33,7 @@ from playground.agent.human_agent import HumanAgent
 from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
 from playground.utils.communication import PlaygroundResponse
-from playground.utils.json_utils import format_json, add_jsonl, export_trajectories
+from playground.utils.json_utils import add_jsonl, export_trajectories, format_json
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -58,50 +58,65 @@ def parse_python_file(file_path):
                         if isinstance(item, ast.FunctionDef):
                             # Check for decorators
                             for decorator in item.decorator_list:
-                                if isinstance(decorator, ast.Call) and decorator.func.id in ["evaluation_handler", "reset_handler"]:
-                                    # Extract the decorator name and arguments
+                                if isinstance(
+                                    decorator, ast.Call
+                                ) and decorator.func.id in [
+                                    "evaluation_handler",
+                                    "reset_handler",
+                                ]:
+                                    # Extract decorator name and arguments
                                     decorator_name = decorator.func.id
-                                    decorator_args = [ast.literal_eval(arg) for arg in decorator.args]
+                                    decorator_args = [
+                                        ast.literal_eval(arg) for arg in decorator.args
+                                    ]
 
-                                    # Extract the function name, arguments, and docstring
+                                    # Extract function name, arguments, and docstring
                                     function_name = item.name
-                                    function_args = [{arg.arg: ast.unparse(arg.annotation)} for arg in item.args.args if arg.annotation is not None]
+                                    function_args = [
+                                        {arg.arg: ast.unparse(arg.annotation)}
+                                        for arg in item.args.args
+                                        if arg.annotation is not None
+                                    ]
                                     docstring = ast.get_docstring(item)
 
-                                    # Add the extracted information to the list
-                                    extracted_info.append({
-                                        "decorator": decorator_name,
-                                        "decorator_args": decorator_args,
-                                        "function_name": function_name,
-                                        "function_args": function_args,
-                                        "docstring": docstring
-                                    })
+                                    # Add extracted information to the list
+                                    extracted_info.append(
+                                        {
+                                            "decorator": decorator_name,
+                                            "decorator_args": decorator_args,
+                                            "function_name": function_name,
+                                            "function_args": function_args,
+                                            "docstring": docstring,
+                                        }
+                                    )
                         elif isinstance(item, ast.AnnAssign):
                             target = item.target
                             if isinstance(target, ast.Name) and target.id == "name":
                                 if evaluator_name is None:
                                     evaluator_name = item.value.n
                                 else:
-                                    raise ValueError(f"Multiple evaluator names found in {file_path}")
+                                    raise ValueError(
+                                        f"Multiple evaluator names found in {file_path}"
+                                    )
                         elif isinstance(item, ast.Assign):
                             for target in item.targets:
                                 if isinstance(target, ast.Name) and target.id == "name":
                                     if evaluator_name is None:
                                         evaluator_name = item.value.n
                                     else:
-                                        raise ValueError(f"Multiple evaluator names found in {file_path}")
+                                        raise ValueError(
+                                            "Multiple evaluator names found in "
+                                            f"{file_path}"
+                                        )
     if evaluator_name is None:
         raise ValueError(f"No evaluator name found in {file_path}")
     return evaluator_name, extracted_info
 
+
 class Task:
     def __init__(
-            self,
-            instruction: str,
-            trajectory: list[str],
-            evals: list[dict],
-            visual: bool
-        ) -> None:
+        self, instruction: str, trajectory: list[str], evals: list[dict], visual: bool
+    ) -> None:
         self.task_id = str(uuid.uuid4())
         self.instruction = instruction
         self.trajectory = trajectory
@@ -219,7 +234,9 @@ class HumanInterface(QMainWindow):
         self.evaluator_dropdown.currentIndexChanged.connect(self.evaluator_changed)
         evaluator_sel_layout.addWidget(self.evaluator_dropdown)
 
-        evaluator_sel_layout.addWidget(QLabel("Evaluator Method (Double click to select.)"))
+        evaluator_sel_layout.addWidget(
+            QLabel("Evaluator Method (Double click to select.)")
+        )
         self.eval_method_list = QListWidget()
         self.eval_method_list.currentItemChanged.connect(self.list_item_changed)
         self.eval_method_list.itemDoubleClicked.connect(self.list_item_double_clicked)
@@ -338,9 +355,9 @@ class HumanInterface(QMainWindow):
         ), f"Fail to reset runtime: {response_raw.text}"
 
     def load_evaluator_args(
-            self,
-            base_path: str = "playground/env/desktop_env/eval",
-        ) -> None:
+        self,
+        base_path: str = "playground/env/desktop_env/eval",
+    ) -> None:
         """Loads the evaluator arguments."""
         evaluator_args = {}
         for root, _, files in os.walk(base_path):
@@ -350,7 +367,7 @@ class HumanInterface(QMainWindow):
                     try:
                         evaluator_name, evaluator_info = parse_python_file(file_path)
                         evaluator_args[evaluator_name] = evaluator_info
-                    except Exception as e:
+                    except Exception:
                         # logger.warn(f"Fail to parse {file_path}: {e}")
                         pass
 
@@ -364,10 +381,10 @@ class HumanInterface(QMainWindow):
         self.eval_method_list.clear()
         self.eval_method_doc_display.clear()
         for func in self.evaluator_infos[evaluator_name]:
-            item = QListWidgetItem(func['function_name'])
-            if func['decorator'] == "evaluation_handler":
+            item = QListWidgetItem(func["function_name"])
+            if func["decorator"] == "evaluation_handler":
                 item.setForeground(QColor("green"))
-            elif func['decorator'] == "reset_handler":
+            elif func["decorator"] == "reset_handler":
                 item.setForeground(QColor("blue"))
             self.eval_method_list.addItem(item)
 
@@ -376,11 +393,11 @@ class HumanInterface(QMainWindow):
             function_name = current.text()
             evaluator_name = self.evaluator_dropdown.currentText()
             for func in self.evaluator_infos[evaluator_name]:
-                if func['function_name'] == function_name:
+                if func["function_name"] == function_name:
                     args = ""
-                    for func_arg in func['function_args']:
-                        args += \
-                            f"{list(func_arg.keys())[0]}: {list(func_arg.values())[0]}\n"
+                    for func_arg in func["function_args"]:
+                        args += f"{list(func_arg.keys())[0]}: \
+                            {list(func_arg.values())[0]}\n"
                     docs = f"{args}\n{func['docstring']}"
                     self.eval_method_doc_display.setText(docs)
                     break
@@ -389,36 +406,34 @@ class HumanInterface(QMainWindow):
         function_name = item.text()
         evaluator_name = self.evaluator_dropdown.currentText()
         for func in self.evaluator_infos[evaluator_name]:
-            if func['function_name'] == function_name:
-                if func['decorator'] == "evaluation_handler":
+            if func["function_name"] == function_name:
+                if func["decorator"] == "evaluation_handler":
                     cfgs = {
                         "eval_type": evaluator_name,
                         "eval_procedure": [
                             {
                                 func["decorator_args"][0]: {
                                     list(item.keys())[0]: list(item.values())[0]
-                                    for item in func['function_args']
+                                    for item in func["function_args"]
                                 }
                             }
-                        ]
+                        ],
                     }
-                elif func['decorator'] == "reset_handler":
+                elif func["decorator"] == "reset_handler":
                     cfgs = {
                         "eval_type": evaluator_name,
                         "reset_procedure": [
                             {
                                 func["decorator_args"][0]: {
                                     list(item.keys())[0]: list(item.values())[0]
-                                    for item in func['function_args']
+                                    for item in func["function_args"]
                                 }
                             }
-                        ]
+                        ],
                     }
                 else:
                     raise ValueError(f"Unknown decorator: {func['decorator']}")
-                self.json_preview_display.setPlainText(
-                    f"{format_json(cfgs)},\n\n"
-                )
+                self.json_preview_display.setPlainText(f"{format_json(cfgs)},\n\n")
                 break
 
     def step_action(self) -> None:

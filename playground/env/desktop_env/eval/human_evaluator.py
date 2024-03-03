@@ -1,13 +1,12 @@
 import logging
 
 from playground.config import Config
-from playground.env.desktop_env.eval.evaluator import Evaluator
-from playground.utils.task_status import StateEnum, StateInfo, TaskStatus
-
 from playground.env.desktop_env.eval.evaluator import (
-    evaluation_handler,
+    Evaluator,
     FeedbackException,
+    evaluation_handler,
 )
+from playground.utils.task_status import StateEnum, StateInfo, TaskStatus
 
 logger = logging.getLogger(__name__)
 task_status = TaskStatus()

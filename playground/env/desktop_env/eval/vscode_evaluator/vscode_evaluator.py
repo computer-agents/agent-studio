@@ -1,11 +1,13 @@
 import logging
 from datetime import datetime
-from typing import Any
 
 from playground.config import Config
 from playground.env.desktop_env.eval.connectors.vscode_connector import VSCodeConnector
-from playground.env.desktop_env.eval.evaluator import Evaluator
-from playground.env.desktop_env.eval.evaluator import evaluation_handler, reset_handler
+from playground.env.desktop_env.eval.evaluator import (
+    Evaluator,
+    evaluation_handler,
+    reset_handler,
+)
 
 config = Config()
 logger = logging.getLogger(__name__)
