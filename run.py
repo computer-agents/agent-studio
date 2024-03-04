@@ -233,16 +233,16 @@ def eval_headless(
 
             task_trajectory_path = Path(record_path) / task_config["task_id"]
             task_trajectory_path.mkdir(parents=True, exist_ok=True)
+            video_meta = None
             if task_config["visual"]:
                 assert screen_recorder is not None
                 screen_recorder.stop()
                 screen_recorder.wait_exit()
                 video_path = (task_trajectory_path / "video.mp4").as_posix()
-                screen_recorder.save(video_path, 0)
+                video_meta = screen_recorder.save(video_path, 0)
+                del screen_recorder
                 screen_recorder = None
                 logger.info(f"Video saved to {video_path}")
-            else:
-                video_path = None
 
             if config.remote:
                 response_raw = requests.post(
@@ -279,7 +279,7 @@ def eval_headless(
                 record_path=record_path,
                 score=score,
                 feedback=feedback,
-                video_path=video_path,
+                video_meta=video_meta,
             )
         except Exception as e:
             import traceback

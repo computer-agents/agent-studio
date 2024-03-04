@@ -84,6 +84,23 @@ class WorkerSignals(QObject):
     trajectory_display_signal = pyqtSignal(str)
 
 
+class ResetRuntimeThread(QThread):
+    def __init__(self, signals: WorkerSignals):
+        super().__init__()
+        self.signals = signals
+
+    def run(self):
+        # reset remote runtime
+        response_raw = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert (
+            response.status == "success"
+        ), f"Fail to reset runtime: {response_raw.text}"
+        self.signals.start_signal.emit(True)
+
+
 class RunTaskThread(QThread):
     def __init__(
         self,
@@ -136,15 +153,6 @@ class RunTaskThread(QThread):
 
     def reset_task(self):
         assert self.selected_task is not None
-        # reset remote runtime
-        response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
-        )
-        response = PlaygroundResponse(**response_raw.json())
-        assert (
-            response.status == "success"
-        ), f"Fail to reset runtime: {response_raw.text}"
-
         response_raw = requests.post(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
             json=PlaygroundResetRequest(task_config=self.selected_task).model_dump(),
@@ -344,7 +352,10 @@ class AgentInterface(QMainWindow):
         self.task_status_bar: QLabel
         self.on_close = False
 
-        self.current_thread: RunTaskThread | EvalTaskThread | StepActionThread | None
+        self.current_thread: (
+            RunTaskThread | EvalTaskThread | \
+            StepActionThread | ResetRuntimeThread | None
+        )
         self.current_thread = None
         self.current_thread_result: queue.Queue = queue.Queue()
 
@@ -548,9 +559,14 @@ class AgentInterface(QMainWindow):
 
     def reset(self):
         """Resets the task and waits for the environment to be ready."""
+        # Reset remote runtime
+        signals = WorkerSignals()
+        signals.start_signal.connect(self.start_button.setEnabled)
+        self.current_thread = ResetRuntimeThread(signals)
+        self.current_thread.start()
         # Clears all the text fields.
         self.eval_button.setEnabled(False)
-        self.start_button.setEnabled(True)
+        # self.start_button.setEnabled(True) # move to ResetRuntimeThread
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
         self.instruction_selection.setEnabled(True)
