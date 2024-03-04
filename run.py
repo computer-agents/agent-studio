@@ -35,13 +35,6 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
-class TestReq:
-    text: str
-
-    def __init__(self, text: str):
-        self.text = text
-
-
 def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
