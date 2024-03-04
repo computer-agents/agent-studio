@@ -391,9 +391,9 @@ class AgentInterface(QMainWindow):
             vnc_layout = QVBoxLayout()
             self.vnc_frame = VNCFrame(self)
             vnc_layout.addWidget(self.vnc_frame)
-            # reconnect_button = QPushButton("Re-connect")
-            # reconnect_button.clicked.connect(self.reconnect)
-            # vnc_layout.addWidget(reconnect_button)
+            reconnect_button = QPushButton("Re-connect")
+            reconnect_button.clicked.connect(self.reconnect)
+            vnc_layout.addWidget(reconnect_button)
             main_layout.addLayout(vnc_layout)
 
         agent_layout = QVBoxLayout()
@@ -562,6 +562,20 @@ class AgentInterface(QMainWindow):
         self.selected_task = None
         self.populate_instruction_selection_widget()
         self.set_task_status_bar_text("color: green;", "Task: Init")
+
+    def reconnect(self):
+        self.status_bar.showMessage("Reconnecting")
+        if self.vnc_thread is not None:
+            self.vnc_thread = VNCStreamer(
+                env_server_addr=config.env_server_addr,
+                vnc_port=config.vnc_port,
+                vnc_password=config.vnc_password,
+            )
+        self.vnc_thread.start()
+        if self.screen_recorder is not None and \
+            isinstance(self.screen_recorder, VNCRecorder):
+            self.screen_recorder.vnc_streamer = self.vnc_thread
+        self.status_bar.showMessage("Connected")
 
     def save_trajectory(self):
         assert self.selected_task is not None
