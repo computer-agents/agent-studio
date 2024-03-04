@@ -68,7 +68,7 @@ You can choose to record an existing task or create a new task. The following ar
 
 + Record an existing task:
     1. Choose task from the top right list.
-    3. Click the "Save Task Config/Start Record" button to start recording.
+    3. Click the "Save Task Config/Start Recording" button to start recording.
     ![](./imgs/recorder_choose_existing.png)
 + Create & Record new task:
     1. Input the task instruction.
@@ -76,7 +76,7 @@ You can choose to record an existing task or create a new task. The following ar
     3. Select the evaluator from the dropdown list.
     4. Select the evaluator methods from the list table. Single click will display the method description in "Docs" and double click will show the method example JSON snippet in "JSON format preview".
     5. Edit the "Evaluation Steps" input box, which should be a list of steps to evaluate the task. The format should match the "evals" field in task configuration JSON format.
-    6. Click the "Save Task Config/Start Record" button to start recording.
+    6. Click the "Save Task Config/Start Recording" button to start recording.
     ![](./imgs/recorder_create_new.png)
 
 The recording interface is shown below:

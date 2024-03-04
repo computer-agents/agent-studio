@@ -316,7 +316,7 @@ class HumanInterface(QMainWindow):
         self.eval_method_doc_display.setReadOnly(True)
         evaluator_sel_layout.addWidget(self.eval_method_doc_display)
 
-        self.start_button = QPushButton("Save Task Config/Start Record")
+        self.start_button = QPushButton("Save Task Config/Start Recording")
         self.start_button.clicked.connect(self.start_record)
         evaluator_sel_layout.addWidget(self.start_button)
 
@@ -591,7 +591,7 @@ class HumanInterface(QMainWindow):
             record_path=self.record_path,
             score=None,
             feedback=None,
-            video_path=None,
+            video_meta=None,
             jsonl_name="tasks.jsonl",
         )
         self.reset()

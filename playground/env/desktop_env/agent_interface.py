@@ -352,6 +352,7 @@ class AgentInterface(QMainWindow):
         self.record_path: Path = Path(record_path)
         self.recording_lock = threading.Lock()
         self.screen_recorder: ScreenRecorder | None = None
+        self.video_meta: dict | None = None
         if not config.remote:
             self.video_width, self.video_height = pyautogui.size()
 
@@ -560,6 +561,7 @@ class AgentInterface(QMainWindow):
         self.output_display.clear()
         self.evaluation_display.clear()
         self.selected_task = None
+        self.video_meta = None
         self.populate_instruction_selection_widget()
         self.set_task_status_bar_text("color: green;", "Task: Init")
 
@@ -588,9 +590,7 @@ class AgentInterface(QMainWindow):
             record_path=self.record_path.as_posix(),
             score=float(auto_eval_result["score"]),
             feedback=auto_eval_result["feedback"],
-            video_path=(
-                self.record_path / self.selected_task["task_id"] / "video.mp4"
-            ).as_posix(),
+            video_meta=self.video_meta,
         )
         self.next_button.setEnabled(True)
 
@@ -680,7 +680,7 @@ class AgentInterface(QMainWindow):
             video_path = (task_trajectory_path / "video.mp4").as_posix()
             self.screen_recorder.stop()
             self.screen_recorder.wait_exit()
-            self.screen_recorder.save(video_path, 0)
+            self.video_meta = self.screen_recorder.save(video_path, 0)
             del self.screen_recorder
             self.screen_recorder = None
         else:

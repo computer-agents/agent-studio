@@ -244,7 +244,7 @@ class ScreenRecorder(Recorder):
 
     def save(
         self, video_path: str, start_frame_id: int, end_frame_id: int | None = None
-    ) -> None:
+    ) -> dict:
         output_dir = os.path.dirname(video_path)
         if output_dir != "" and not os.path.exists(output_dir):
             os.makedirs(output_dir, exist_ok=True)
@@ -263,6 +263,16 @@ class ScreenRecorder(Recorder):
         for frame in frames:
             writer.write(frame[1])
         writer.release()
+
+        return {
+            "start_time": self.start_time,
+            "stop_time": self.stop_time,
+            "fps": self.fps,
+            "frame_count": len(frames),
+            "video_path": video_path,
+            "width": self.screen_region["width"],
+            "height": self.screen_region["height"],
+        }
 
     def get_current_frame(self) -> np.ndarray:
         assert self.current_frame is not None, "No frame is captured"
