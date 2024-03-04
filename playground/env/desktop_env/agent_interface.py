@@ -98,7 +98,11 @@ class ResetRuntimeThread(QThread):
         assert (
             response.status == "success"
         ), f"Fail to reset runtime: {response_raw.text}"
+        self.signals.status_bar_signal.emit("color: green;", "Task: Ready")
         self.signals.start_signal.emit(True)
+
+    def receive_user_input(self, text: str):
+        raise NotImplementedError
 
 
 class RunTaskThread(QThread):
@@ -286,6 +290,7 @@ class StepActionThread(QThread):
         trajectory_display: QTextEdit,
         parsed_action_display: QTextEdit,
         screen_recorder: ScreenRecorder | None,
+        current_step_num: int,
         agent: Agent,
     ):
         super().__init__()
@@ -294,6 +299,7 @@ class StepActionThread(QThread):
         self.trajectory_display = trajectory_display
         self.parsed_action_display = parsed_action_display
         self.screen_recorder = screen_recorder
+        self.current_step_num = current_step_num
 
     def run(self):
         """Steps the next action and adds it to the trajectory."""
@@ -311,19 +317,19 @@ class StepActionThread(QThread):
             )
             self.signals.trajectory_display_signal.emit(new_trajectory_text)
 
-        if not done:
+        if done or self.current_step_num >= config.max_step:
+            self.signals.finish_run_task_signal.emit()
+        else:
             if self.screen_recorder is not None:
                 obs = self.screen_recorder.get_current_frame()
                 assert obs is not None
             else:
                 obs = None
             response, raw_code = self.agent.generate_action(obs)
-            self.parsed_action_display.setPlainText(raw_code)
+            self.signals.parsed_action_display_signal.emit(raw_code)
             self.signals.response_display_signal.emit(response)
             self.signals.confirm_signal.emit(True)
             self.signals.decline_signal.emit(True)
-        else:
-            self.signals.finish_run_task_signal.emit()
 
     def receive_user_input(self, text: str):
         raise NotImplementedError
@@ -359,6 +365,8 @@ class AgentInterface(QMainWindow):
         self.current_thread = None
         self.current_thread_result: queue.Queue = queue.Queue()
 
+        self.current_step_num = 1
+
         # screen recorder
         self.record_path: Path = Path(record_path)
         self.recording_lock = threading.Lock()
@@ -368,8 +376,6 @@ class AgentInterface(QMainWindow):
             self.video_width, self.video_height = pyautogui.size()
 
         self.setup_ui()
-        # self.screenshot_thread = threading.Thread(target=self.capture_screen)
-        # self.screenshot_thread.start()
 
         self.vnc = None
         self.reset()
@@ -559,14 +565,10 @@ class AgentInterface(QMainWindow):
 
     def reset(self):
         """Resets the task and waits for the environment to be ready."""
-        # Reset remote runtime
-        signals = WorkerSignals()
-        signals.start_signal.connect(self.start_button.setEnabled)
-        self.current_thread = ResetRuntimeThread(signals)
-        self.current_thread.start()
+        self.set_task_status_bar_text("color: green;", "Task: Preparing...")
         # Clears all the text fields.
         self.eval_button.setEnabled(False)
-        # self.start_button.setEnabled(True) # move to ResetRuntimeThread
+        self.start_button.setEnabled(False) # move to ResetRuntimeThread
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
         self.instruction_selection.setEnabled(True)
@@ -578,8 +580,13 @@ class AgentInterface(QMainWindow):
         self.evaluation_display.clear()
         self.selected_task = None
         self.video_meta = None
+        # Reset remote runtime
+        signals = WorkerSignals()
+        signals.start_signal.connect(self.start_button.setEnabled)
+        signals.status_bar_signal.connect(self.set_task_status_bar_text)
+        self.current_thread = ResetRuntimeThread(signals)
+        self.current_thread.start()
         self.populate_instruction_selection_widget()
-        self.set_task_status_bar_text("color: green;", "Task: Init")
 
     def reconnect(self):
         self.status_bar.showMessage("Reconnecting")
@@ -726,6 +733,7 @@ class AgentInterface(QMainWindow):
         signals.response_display_signal.connect(self.response_display.setPlainText)
         signals.output_display_signal.connect(self.output_display.setPlainText)
         signals.trajectory_display_signal.connect(self.trajectory_display.setPlainText)
+        signals.parsed_action_display_signal.connect(self.parsed_action_display.setPlainText)
         signals.confirm_signal.connect(self.confirm_button.setEnabled)
         signals.decline_signal.connect(self.decline_button.setEnabled)
         signals.finish_run_task_signal.connect(self.finish_run_task)
@@ -735,9 +743,11 @@ class AgentInterface(QMainWindow):
             trajectory_display=self.trajectory_display,
             parsed_action_display=self.parsed_action_display,
             screen_recorder=self.screen_recorder,
+            current_step_num=self.current_step_num,
             agent=self.agent,
         )
         self.current_thread.start()
+        self.current_step_num += 1
 
     def interrupt_action(self):
         # TODO: send interrupt signal to the runtime
