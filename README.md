@@ -94,6 +94,14 @@ The recording interface is divided into three parts: the left part is the VNC wi
 
 ### Evaluate Agent
 
+#### Run Simulator with Docker
+
+```bash
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm playground:latest
+```
+
+### Run Evaluator
+
 ```bash
 python run.py --mode eval
 ```
