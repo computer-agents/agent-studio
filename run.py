@@ -35,6 +35,13 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
+class TestReq:
+    text: str
+
+    def __init__(self, text: str):
+        self.text = text
+
+
 def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -167,6 +174,13 @@ def eval_headless(
         try:
             task_id = task_config["task_id"]
             if config.remote:
+                response_raw = requests.post(
+                    f"{remote_server_addr}/runtime/reset"
+                )
+                response = PlaygroundResponse(**response_raw.json())
+                assert (
+                    response.status == "success"
+                ), f"Fail to reset runtime: {response_raw.text}"
                 if task_config["visual"]:
                     vnc_streamer = VNCStreamer(
                         env_server_addr=config.env_server_addr,
