@@ -359,8 +359,11 @@ class AgentInterface(QMainWindow):
         self.on_close = False
 
         self.current_thread: (
-            RunTaskThread | EvalTaskThread | \
-            StepActionThread | ResetRuntimeThread | None
+            RunTaskThread
+            | EvalTaskThread
+            | StepActionThread
+            | ResetRuntimeThread
+            | None
         )
         self.current_thread = None
         self.current_thread_result: queue.Queue = queue.Queue()
@@ -568,7 +571,7 @@ class AgentInterface(QMainWindow):
         self.set_task_status_bar_text("color: green;", "Task: Preparing...")
         # Clears all the text fields.
         self.eval_button.setEnabled(False)
-        self.start_button.setEnabled(False) # move to ResetRuntimeThread
+        self.start_button.setEnabled(False)  # move to ResetRuntimeThread
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
         self.instruction_selection.setEnabled(True)
@@ -597,8 +600,9 @@ class AgentInterface(QMainWindow):
                 vnc_password=config.vnc_password,
             )
         self.vnc_thread.start()
-        if self.screen_recorder is not None and \
-            isinstance(self.screen_recorder, VNCRecorder):
+        if self.screen_recorder is not None and isinstance(
+            self.screen_recorder, VNCRecorder
+        ):
             self.screen_recorder.vnc_streamer = self.vnc_thread
         self.status_bar.showMessage("Connected")
 
@@ -733,7 +737,9 @@ class AgentInterface(QMainWindow):
         signals.response_display_signal.connect(self.response_display.setPlainText)
         signals.output_display_signal.connect(self.output_display.setPlainText)
         signals.trajectory_display_signal.connect(self.trajectory_display.setPlainText)
-        signals.parsed_action_display_signal.connect(self.parsed_action_display.setPlainText)
+        signals.parsed_action_display_signal.connect(
+            self.parsed_action_display.setPlainText
+        )
         signals.confirm_signal.connect(self.confirm_button.setEnabled)
         signals.decline_signal.connect(self.decline_button.setEnabled)
         signals.finish_run_task_signal.connect(self.finish_run_task)
