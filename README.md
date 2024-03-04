@@ -64,19 +64,31 @@ The first screen is a task configuration interface, where you can create a new t
 
 ![](./imgs/recorder_task_config.png)
 
-Following the steps below to create a new task:
-1. Input the task instruction.
-2. Select the task type (whether is visual task or not).
-3. Select the evaluator from the dropdown list.
-4. Select the evaluator methods from the list table. Single click will display the method description in "Docs" and double click will show the method example JSON snippet in "Json format preview".
-5. Edit the "Evaluation Steps" input box, which should be a list of steps to evaluate the task. The format should match the "evals" field in task configuration JSON format.
-6. Click the "Start Record" button to start the task.
+You can choose to record an existing task or create a new task. The following are the steps to record a task:
+
++ Record an existing task:
+    1. Choose task from the top right list.
+    3. Click the "Save Task Config/Start Record" button to start recording.
+    ![](./imgs/recorder_choose_existing.png)
++ Create & Record new task:
+    1. Input the task instruction.
+    2. Select the task type (whether is visual task or not).
+    3. Select the evaluator from the dropdown list.
+    4. Select the evaluator methods from the list table. Single click will display the method description in "Docs" and double click will show the method example JSON snippet in "JSON format preview".
+    5. Edit the "Evaluation Steps" input box, which should be a list of steps to evaluate the task. The format should match the "evals" field in task configuration JSON format.
+    6. Click the "Save Task Config/Start Record" button to start recording.
+    ![](./imgs/recorder_create_new.png)
 
 The recording interface is shown below:
 
 ![](./imgs/recorder_record.png)
 
-The recording interface is divided into three parts: the left part is the VNC window, task configuration created in the previous step is displayed in the middle part, and the right part is the action panel.
+The recording interface is divided into three parts: the left part is the VNC window, task configuration created in the previous step is displayed in the middle part, and the right part is the "Action" panel. To record a task, you need to perform the following steps:
+1. Input actions (currently is Python code) in the "Action" panel.
+2. Click the "Step Action" button to execute the actions.
+3. See the result in the VNC window and "Runtime Response" panel.
+4. Repeat the above steps until the task is completed.
+5. Click the "Save" button to save the recording.
 
 ---
 

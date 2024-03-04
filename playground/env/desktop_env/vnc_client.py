@@ -61,7 +61,7 @@ async def read_text(reader: StreamReader, encoding: str) -> str:
 
 
 async def skip_to_eof(reader: StreamReader):
-    print("[asyncvnc] skip to eof")
+    logger.warn("[asyncvnc] skip to eof")
     await reader.read(-1)
 
 
@@ -89,7 +89,7 @@ class Clipboard:
         """
         Sends clipboard text to the server.
         """
-        print("[asyncvnc] send clipboard text: ", text)
+        logger.info("[asyncvnc] send clipboard text: ", text)
         data = text.encode("latin-1")
         self.writer.write(b"\x06\x00" + len(data).to_bytes(4, "big") + data)
 
@@ -191,7 +191,6 @@ class Video:
         compress_code_send_message = (
             b"\x02\x00" + compress_code_num_bytes + b"".join(compress_code)
         )
-        print(compress_code_send_message)
         writer.write(compress_code_send_message)
 
         decompress = decompressobj().decompress
@@ -588,7 +587,7 @@ class VNCClient:
             type_id = await read_int(self.reader, 1)
             update_type = UpdateType(type_id)
         except ValueError:
-            print(f"No such type_id: type_id: {type_id}")
+            logger.warn(f"No such type_id: type_id: {type_id}")
             await skip_to_eof(self.reader)
             return None
 

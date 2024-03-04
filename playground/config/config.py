@@ -15,8 +15,8 @@ class Config(metaclass=Singleton):
     minimal_action_interval: float = 3.0
 
     task_config_paths: dict = {
+        # "desktop": "playground_data/tasks/filesystem.jsonl",
         "desktop": "playground_data/tasks/windows_easy.jsonl",
-        # "desktop": "playground_data/tasks/test.jsonl",
     }
 
     stop_code: str = "\nexit()"

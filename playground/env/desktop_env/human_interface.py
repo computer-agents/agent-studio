@@ -7,10 +7,11 @@ import os
 import sys
 import uuid
 from asyncio import open_connection
+from pathlib import Path
 
 import numpy as np
 import requests
-from PyQt6.QtCore import QTimer
+from PyQt6.QtCore import QTimer, QThread, pyqtSignal, QObject
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QCheckBox,
@@ -33,10 +34,50 @@ from playground.agent.human_agent import HumanAgent
 from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
 from playground.utils.communication import PlaygroundResponse
-from playground.utils.json_utils import add_jsonl, export_trajectories, format_json
+from playground.utils.json_utils import (
+    add_jsonl,
+    export_trajectories,
+    format_json,
+    read_jsonl,
+)
 
 config = Config()
 logger = logging.getLogger(__name__)
+
+class WorkerSignals(QObject):
+    status_bar_signal = pyqtSignal(str, str)
+    next_action_editor_signal = pyqtSignal(bool)
+    save_button_signal = pyqtSignal(bool)
+    step_action_button_signal = pyqtSignal(bool)
+
+class ResetThread(QThread):
+    def __init__(
+        self,
+        signals: WorkerSignals,
+    ):
+        super().__init__()
+        self.signals = signals
+
+    def run(self):
+        # reset remote runtime
+        self.signals.status_bar_signal.emit(
+            "color: green;", "Task: Resetting runtime..."
+        )
+        response_raw = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert (
+            response.status == "success"
+        ), f"Fail to reset runtime: {response_raw.text}"
+
+        self.signals.status_bar_signal.emit(
+            "color: green;", "Task: Ready"
+        )
+
+        self.signals.next_action_editor_signal.emit(True)
+        self.signals.save_button_signal.emit(True)
+        self.signals.step_action_button_signal.emit(True)
 
 
 # Function to parse the Python file and extract required information
@@ -115,9 +156,17 @@ def parse_python_file(file_path):
 
 class Task:
     def __init__(
-        self, instruction: str, trajectory: list[str], evals: list[dict], visual: bool
+        self,
+        instruction: str,
+        trajectory: list[str],
+        evals: list[dict],
+        visual: bool,
+        task_id: str | None = None,
     ) -> None:
-        self.task_id = str(uuid.uuid4())
+        if task_id is None:
+            self.task_id = str(uuid.uuid4())
+        else:
+            self.task_id = task_id
         self.instruction = instruction
         self.trajectory = trajectory
         self.evals = evals
@@ -157,12 +206,18 @@ class HumanInterface(QMainWindow):
         self.refreshing_screen = False  # need for refresh flag
         self.last_message = ""
         self.task_config_path = task_config_path
+        self.current_thread: ResetThread | None = None
+        self.task_status_bar: QLabel
+
+        # Task
+        self.selected_task: dict | None = None
+        self.task_configs: list[dict] = []
+        self.current_task: Task | None = None
 
         # VNC
         self.record_path = record_path
         self.vnc: None | VNCClient = None
         self.vnc_lock = asyncio.Lock()
-        self.current_task: Task | None = None
 
         self.evaluator_infos: dict[str, list[dict]] = {}
         self.load_evaluator_args()
@@ -187,6 +242,10 @@ class HumanInterface(QMainWindow):
         main_layout = QHBoxLayout(central_widget)
 
         self.status_bar: QStatusBar = self.statusBar()
+        assert self.status_bar is not None
+
+        self.task_status_bar = QLabel()
+        self.status_bar.addPermanentWidget(self.task_status_bar)
 
         self.vnc_container = QWidget()
         left_layout = QVBoxLayout(self.vnc_container)
@@ -229,26 +288,31 @@ class HumanInterface(QMainWindow):
         self.evaluator_sel_container = QWidget()
         evaluator_sel_layout = QVBoxLayout(self.evaluator_sel_container)
 
-        evaluator_sel_layout.addWidget(QLabel("Evaluator"))
+        evaluator_sel_layout.addWidget(QLabel("[Existing Task]: Select from existing tasks (double click to select)"))
+        self.existing_task_list = QListWidget()
+        self.existing_task_list.itemDoubleClicked.connect(self.task_list_double_clicked)
+        evaluator_sel_layout.addWidget(self.existing_task_list)
+
+        evaluator_sel_layout.addWidget(QLabel("[New Task]: Evaluator"))
         self.evaluator_dropdown = QComboBox()
         self.evaluator_dropdown.addItems(list(self.evaluator_infos.keys()))
         self.evaluator_dropdown.currentIndexChanged.connect(self.evaluator_changed)
         evaluator_sel_layout.addWidget(self.evaluator_dropdown)
 
         evaluator_sel_layout.addWidget(
-            QLabel("Evaluator Method (Double click to select.)")
+            QLabel("[New Task]: Evaluator Method (Double click to select.)")
         )
         self.eval_method_list = QListWidget()
         self.eval_method_list.currentItemChanged.connect(self.list_item_changed)
-        self.eval_method_list.itemDoubleClicked.connect(self.list_item_double_clicked)
+        self.eval_method_list.itemDoubleClicked.connect(self.method_list_double_clicked)
         evaluator_sel_layout.addWidget(self.eval_method_list)
 
-        evaluator_sel_layout.addWidget(QLabel("Docs"))
+        evaluator_sel_layout.addWidget(QLabel("[New Task]: Docs"))
         self.eval_method_doc_display = QTextEdit(self)
         self.eval_method_doc_display.setReadOnly(True)
         evaluator_sel_layout.addWidget(self.eval_method_doc_display)
 
-        self.start_button = QPushButton("Start Record")
+        self.start_button = QPushButton("Save Task Config/Start Record")
         self.start_button.clicked.connect(self.start_record)
         evaluator_sel_layout.addWidget(self.start_button)
 
@@ -301,18 +365,21 @@ class HumanInterface(QMainWindow):
         self.eval_steps_display.setReadOnly(False)
         self.output_display.clear()
         self.output_display.setEnabled(False)
-        self.start_button.setEnabled(True)
+        self.evaluator_changed(0)
+        self.evaluator_dropdown.setEnabled(True)
         self.eval_method_list.clear()
+        self.eval_method_list.setEnabled(True)
         self.save_button.setEnabled(False)
         self.step_action_button.setEnabled(False)
         self.is_visual_checkbox.setEnabled(True)
         self.current_task = None
+        self.selected_task = None
         self.trajectory_container.hide()
         self.vnc_container.hide()
         self.evaluator_sel_container.show()
         self.json_preview_label.show()
         self.json_preview_display.show()
-        self.evaluator_changed(0)
+        self.populate_instruction_selection_widget()
 
     def start_record(self) -> None:
         """Starts the record."""
@@ -334,30 +401,42 @@ class HumanInterface(QMainWindow):
         self.json_preview_label.hide()
         self.json_preview_display.hide()
         self.instruction_editor.setReadOnly(True)
-        self.next_action_editor.setEnabled(True)
         self.output_display.setEnabled(True)
         self.trajectory_display.setEnabled(True)
         self.eval_steps_display.setReadOnly(True)
-        self.start_button.setEnabled(False)
-        self.save_button.setEnabled(True)
-        self.step_action_button.setEnabled(True)
+        self.save_button.setEnabled(False)
+        self.step_action_button.setEnabled(False)
         self.is_visual_checkbox.setEnabled(False)
 
+        if self.selected_task is not None:
+            task_id = self.selected_task["task_id"]
+        else:
+            task_id = None
         self.current_task = Task(
             instruction=self.instruction_editor.toPlainText(),
             trajectory=[],
             evals=evals,
             visual=self.is_visual_checkbox.isChecked(),
+            task_id=task_id,
         )
+        if self.selected_task is None:
+            add_jsonl([self.current_task.to_task_config()], self.task_config_path)
         self.agent.reset(self.current_task.instruction)
-        # reset remote runtime
-        response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
+        self.worker_signals = WorkerSignals()
+        self.worker_signals.status_bar_signal.connect(self.set_task_status_bar_text)
+        self.worker_signals.next_action_editor_signal.connect(
+            self.next_action_editor.setEnabled
         )
-        response = PlaygroundResponse(**response_raw.json())
-        assert (
-            response.status == "success"
-        ), f"Fail to reset runtime: {response_raw.text}"
+        self.worker_signals.save_button_signal.connect(self.save_button.setEnabled)
+        self.worker_signals.step_action_button_signal.connect(
+            self.step_action_button.setEnabled
+        )
+        self.current_thread = ResetThread(self.worker_signals)
+        self.current_thread.start()
+
+    def set_task_status_bar_text(self, color: str, text: str) -> None:
+        self.task_status_bar.setStyleSheet(color)
+        self.task_status_bar.setText(text)
 
     def load_evaluator_args(
         self,
@@ -407,7 +486,35 @@ class HumanInterface(QMainWindow):
                     self.eval_method_doc_display.setText(docs)
                     break
 
-    def list_item_double_clicked(self, item: QListWidgetItem) -> None:
+    def load_existing_task_configs(self) -> None:
+        jsonl_path = Path(self.task_config_path)
+        if jsonl_path.exists():
+            self.task_configs = read_jsonl(jsonl_path.as_posix())
+        else:
+            self.task_configs = []
+
+    def populate_instruction_selection_widget(self) -> None:
+        self.load_existing_task_configs()
+        self.existing_task_list.clear()
+        for task_config in self.task_configs:
+            item = QListWidgetItem(task_config["instruction"])
+            self.existing_task_list.addItem(item)
+
+    def task_list_double_clicked(self, item: QListWidgetItem) -> None:
+        self.task_instruction = item.text()
+        selected_task_idx = self.existing_task_list.currentRow()
+        self.selected_task = self.task_configs[selected_task_idx]
+        self.eval_steps_display.setPlainText(f"{format_json(self.selected_task['evals'])}")
+        self.is_visual_checkbox.setChecked(self.selected_task["visual"])
+        self.instruction_editor.setPlainText(self.selected_task["instruction"])
+        self.instruction_editor.setReadOnly(True)
+        self.evaluator_dropdown.setEnabled(False)
+        self.eval_method_list.setEnabled(False)
+        self.eval_steps_display.setReadOnly(True)
+        self.is_visual_checkbox.setEnabled(False)
+        self.instruction_editor.setReadOnly(True)
+
+    def method_list_double_clicked(self, item: QListWidgetItem) -> None:
         function_name = item.text()
         evaluator_name = self.evaluator_dropdown.currentText()
         for func in self.evaluator_infos[evaluator_name]:
@@ -470,7 +577,6 @@ class HumanInterface(QMainWindow):
         """Saves the trajectory to the record path."""
         assert self.current_task is not None
         self.step_action_button.setEnabled(False)
-        add_jsonl([self.current_task.to_task_config()], self.task_config_path)
         export_trajectories(
             self_eval_results=None,
             task_config=self.current_task.to_record(),
