@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 import requests
-from PyQt6.QtCore import QTimer, QThread, pyqtSignal, QObject
+from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QCheckBox,
@@ -44,11 +44,13 @@ from playground.utils.json_utils import (
 config = Config()
 logger = logging.getLogger(__name__)
 
+
 class WorkerSignals(QObject):
     status_bar_signal = pyqtSignal(str, str)
     next_action_editor_signal = pyqtSignal(bool)
     save_button_signal = pyqtSignal(bool)
     step_action_button_signal = pyqtSignal(bool)
+
 
 class ResetThread(QThread):
     def __init__(
@@ -71,9 +73,7 @@ class ResetThread(QThread):
             response.status == "success"
         ), f"Fail to reset runtime: {response_raw.text}"
 
-        self.signals.status_bar_signal.emit(
-            "color: green;", "Task: Ready"
-        )
+        self.signals.status_bar_signal.emit("color: green;", "Task: Ready")
 
         self.signals.next_action_editor_signal.emit(True)
         self.signals.save_button_signal.emit(True)
@@ -288,7 +288,11 @@ class HumanInterface(QMainWindow):
         self.evaluator_sel_container = QWidget()
         evaluator_sel_layout = QVBoxLayout(self.evaluator_sel_container)
 
-        evaluator_sel_layout.addWidget(QLabel("[Existing Task]: Select from existing tasks (double click to select)"))
+        evaluator_sel_layout.addWidget(
+            QLabel(
+                "[Existing Task]: Select from existing tasks (double click to select)"
+            )
+        )
         self.existing_task_list = QListWidget()
         self.existing_task_list.itemDoubleClicked.connect(self.task_list_double_clicked)
         evaluator_sel_layout.addWidget(self.existing_task_list)
@@ -504,7 +508,10 @@ class HumanInterface(QMainWindow):
         self.task_instruction = item.text()
         selected_task_idx = self.existing_task_list.currentRow()
         self.selected_task = self.task_configs[selected_task_idx]
-        self.eval_steps_display.setPlainText(f"{format_json(self.selected_task['evals'])}")
+        assert self.selected_task is not None
+        self.eval_steps_display.setPlainText(
+            f"{format_json(self.selected_task['evals'])}"
+        )
         self.is_visual_checkbox.setChecked(self.selected_task["visual"])
         self.instruction_editor.setPlainText(self.selected_task["instruction"])
         self.instruction_editor.setReadOnly(True)
