@@ -52,38 +52,41 @@ The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtai
 docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm playground:latest
 ```
 
-### Run Recorder Client
+#### Recorder Usage
 
-```bash
-python run.py --mode record
-```
-
----
-
-### Run on local machine
-
-If you enabled high DPI scaling, and the VNC window is beyond the screen, you may need to set the `QT_AUTO_SCREEN_SCALE_FACTOR` environment variable to `0` to disable high DPI scaling.
-
-```bash
-python run.py --mode eval
-```
-
-### Record agent's trajectory
+Run the following command to start the recorder:
 
 ```bash
 python run.py --mode record --env desktop
 ```
 
-### Run via ssh
+The first screen is a task configuration interface, where you can create a new task or load an existing task. The task configuration interface is shown below:
 
-If you want to run the agent in a virtual machine or remote machine, setup the `DISPLAY` environment variable via ssh.
+![](./imgs/recorder_task_config.png)
 
-Setup `playground/config/config.py`, change `on_ssh` to `True`.
+Following the steps below to create a new task:
+1. Input the task instruction.
+2. Select the task type (whether is visual task or not).
+3. Select the evaluator from the dropdown list.
+4. Select the evaluator methods from the list table. Single click will display the method description in "Docs" and double click will show the method example JSON snippet in "Json format preview".
+5. Edit the "Evaluation Steps" input box, which should be a list of steps to evaluate the task. The format should match the "evals" field in task configuration JSON format.
+6. Click the "Start Record" button to start the task.
+
+The recording interface is shown below:
+
+![](./imgs/recorder_record.png)
+
+The recording interface is divided into three parts: the left part is the VNC window, task configuration created in the previous step is displayed in the middle part, and the right part is the action panel.
+
+---
+
+### Evaluate Agent
 
 ```bash
-ssh user@remote # ssh to the remote machine
-DISPLAY=YOUR_DISPLAY python run.py --mode eval
+python run.py --mode eval
 ```
+
+If you enabled high DPI scaling, and the VNC window is beyond the screen, you may need to set the `QT_AUTO_SCREEN_SCALE_FACTOR` environment variable to `0` to disable high DPI scaling.
 
 ## Data
 

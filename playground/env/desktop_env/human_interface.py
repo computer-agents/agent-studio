@@ -214,7 +214,8 @@ class HumanInterface(QMainWindow):
         self.is_visual_checkbox = QCheckBox("Is visual Task?")
         task_eval_info_layout.addWidget(self.is_visual_checkbox)
 
-        task_eval_info_layout.addWidget(QLabel("Json format Preview"))
+        self.json_preview_label = QLabel("JSON format Preview")
+        task_eval_info_layout.addWidget(self.json_preview_label)
         self.json_preview_display = QTextEdit(self)
         self.json_preview_display.setReadOnly(True)
         task_eval_info_layout.addWidget(self.json_preview_display)
@@ -309,6 +310,8 @@ class HumanInterface(QMainWindow):
         self.trajectory_container.hide()
         self.vnc_container.hide()
         self.evaluator_sel_container.show()
+        self.json_preview_label.show()
+        self.json_preview_display.show()
         self.evaluator_changed(0)
 
     def start_record(self) -> None:
@@ -328,6 +331,8 @@ class HumanInterface(QMainWindow):
         self.evaluator_sel_container.hide()
         self.trajectory_container.show()
         self.vnc_container.show()
+        self.json_preview_label.hide()
+        self.json_preview_display.hide()
         self.instruction_editor.setReadOnly(True)
         self.next_action_editor.setEnabled(True)
         self.output_display.setEnabled(True)
