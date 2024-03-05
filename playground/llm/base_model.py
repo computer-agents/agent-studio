@@ -4,6 +4,12 @@ from typing import Any
 class BaseModel:
     """Base class for models."""
 
+    def __init__(self) -> None:
+        self.token_count: int = 0
+
+    def reset(self) -> None:
+        self.token_count: int = 0
+
     def compose_messages(
         self,
         intermediate_msg: list[dict[str, Any]],

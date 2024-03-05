@@ -369,6 +369,7 @@ class AgentInterface(QMainWindow):
         self.current_thread_result: queue.Queue = queue.Queue()
 
         self.current_step_num = 1
+        self.action_token_count = 0
 
         # screen recorder
         self.record_path: Path = Path(record_path)
@@ -583,6 +584,7 @@ class AgentInterface(QMainWindow):
         self.evaluation_display.clear()
         self.selected_task = None
         self.video_meta = None
+        self.action_token_count = 0
         # Reset remote runtime
         signals = WorkerSignals()
         signals.start_signal.connect(self.start_button.setEnabled)
@@ -617,6 +619,7 @@ class AgentInterface(QMainWindow):
             record_path=self.record_path.as_posix(),
             score=float(auto_eval_result["score"]),
             feedback=auto_eval_result["feedback"],
+            token_count=self.action_token_count,
             video_meta=self.video_meta,
         )
         self.next_button.setEnabled(True)
@@ -700,6 +703,7 @@ class AgentInterface(QMainWindow):
 
     def finish_run_task(self) -> None:
         assert self.selected_task is not None
+        self.action_token_count = self.agent.get_token_count()
         task_trajectory_path = self.record_path / self.selected_task["task_id"]
         task_trajectory_path.mkdir(parents=True, exist_ok=True)
         if self.selected_task["visual"]:

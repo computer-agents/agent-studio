@@ -59,6 +59,7 @@ def export_trajectories(
     record_path: str,
     score: float | None,
     feedback: str | None,
+    token_count: int | None,
     video_meta: dict | None = None,
     jsonl_name: str = "results.jsonl",
 ) -> None:
@@ -73,6 +74,7 @@ def export_trajectories(
         "task_id": task_config["task_id"],
         "instruction": task_config["instruction"],
         "trajectory": [],
+        "token_count": token_count,
     }
     if score is not None:
         results["score"] = score

@@ -591,6 +591,7 @@ class HumanInterface(QMainWindow):
             record_path=self.record_path,
             score=None,
             feedback=None,
+            token_count=None,
             video_meta=None,
             jsonl_name="tasks.jsonl",
         )

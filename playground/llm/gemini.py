@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class GeminiProvider(BaseModel):
     def __init__(self, **kwargs) -> None:
+        super().__init__()
         with open(config.api_key_path, "r") as f:
             api_keys = json.load(f)
         genai.configure(api_key=api_keys["gemini"])
@@ -68,6 +69,8 @@ class GeminiProvider(BaseModel):
         if not self.model_server:
             if model_name is not None:
                 model = genai.GenerativeModel(model_name)
+            else:
+                raise ValueError("Model name is required for GeminiProvider.")
             logger.info(
                 f"Creating chat completion with model {model_name}. "
                 f"Message:\n{model_message}"
@@ -94,14 +97,17 @@ class GeminiProvider(BaseModel):
                     "messages": bytes2str(model_message),
                     "config": bytes2str(generation_config),
                 }
-                response_raw = requests.post(self.model_server, json=body)
+                response_raw = requests.post(f"{self.model_server}/generate", json=body)
                 response: genai.types.GenerateContentResponse = str2bytes(
-                    response_raw.text
+                    response_raw.json()["content"]
                 )
+                self.token_count += response_raw.json()["token_count"]
             else:
                 response = model.generate_content(
                     contents=model_message, generation_config=generation_config
                 )
+                token_count = model.count_tokens(model_message)
+                self.token_count += token_count.total_tokens
             try:
                 message = response.text
             except ValueError:

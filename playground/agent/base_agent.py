@@ -38,6 +38,7 @@ class Agent:
         self.cur_response = None
         self.cur_info = {}
         self.cur_raw_code = ""
+        self.model.reset()
 
         if self.runtime is not None:
             self.runtime.close()
@@ -45,6 +46,9 @@ class Agent:
             self.runtime = RemotePythonRuntime()
         else:
             self.runtime = PythonRuntime()
+
+    def get_token_count(self) -> int:
+        return self.model.token_count
 
     def generate_action(self, obs: np.ndarray | None) -> tuple[str, str]:
         self.cur_obs = obs
