@@ -67,6 +67,7 @@ async def create_chat_completion(request: ChatCompletionRequest) -> JSONResponse
         f" and generation_config: {generation_config}"
     )
     r = model.generate_content(messages, generation_config=generation_config)
+    token_count = model.count_tokens(messages)
     try:
         print(r.text)
     except ValueError:
@@ -75,7 +76,12 @@ async def create_chat_completion(request: ChatCompletionRequest) -> JSONResponse
             print("Finish Reason: ", candidate.finish_reason)
             message = [part.text for part in candidate.content.parts]
             print("Message: ", message)
-    return JSONResponse(content=base64.b64encode(pickle.dumps(r)).decode("utf-8"))
+    return JSONResponse(
+        content={
+            "content": base64.b64encode(pickle.dumps(r)).decode("utf-8"),
+            "token_count": token_count.total_tokens,
+        }
+    )
 
 
 if __name__ == "__main__":
