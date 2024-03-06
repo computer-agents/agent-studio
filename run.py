@@ -286,6 +286,7 @@ def eval_headless(
                 logger.info(f"[Result] (PASS): {feedback}")
             else:
                 logger.info(f"[Result] (FAIL): {feedback}")
+            action_token_count = agent.get_token_count()
             export_trajectories(
                 self_eval_results=agent.eval(),
                 task_config=task_config,
@@ -293,6 +294,7 @@ def eval_headless(
                 record_path=record_path,
                 score=score,
                 feedback=feedback,
+                token_count=action_token_count,
                 video_meta=video_meta,
             )
         except Exception as e:
@@ -334,10 +336,11 @@ def record(args) -> None:
             from playground.env.desktop_env.human_interface import run_ui
 
             try:
+                assert config.remote == True, "Desktop env only supports remote mode."
                 qasync.run(
                     run_ui(
                         record_path="playground_data/trajectories/human",
-                        task_config_path=config.task_config_paths["desktop"],
+                        task_config_path=config.task_config_paths[args.env],
                     )
                 )
             except asyncio.exceptions.CancelledError:

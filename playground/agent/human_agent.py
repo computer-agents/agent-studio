@@ -8,6 +8,7 @@ import requests
 from playground.agent.base_agent import Agent
 from playground.agent.runtime import PythonRuntime, RemotePythonRuntime
 from playground.config import Config
+from playground.llm.base_model import BaseModel
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ class HumanAgent(Agent):
         self.cur_response: str | None = None
         self.cur_info: dict[str, Any] = {}
         self.cur_raw_code: str = ""
+        self.model = BaseModel()    # Dummy model
 
     def reset(self, instruction: str) -> None:
         super().reset(instruction=instruction)
