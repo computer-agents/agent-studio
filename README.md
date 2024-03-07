@@ -46,6 +46,11 @@ After obtaining the API keys and modifying the `api_key_template.json` file to i
 mv playground/config/api_key_template.json playground/config/api_key.json
 ```
 
+Some APIs need the user to log in account manually. Run the following command to finish the API keys setup:
+```bash
+python setup_api_keys.py
+```
+
 Build Docker image:
 ```bash
 docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t playground:latest
@@ -118,7 +123,6 @@ In `playground/config/config.py`, you can modify the corresponding field to conf
 `headless`: enable/disable headless mode for the evaluator. Set to `False` to enable GUI mode. Default is CLI mode. **GUI mode will ignore `need_human_confirmation=False`**.
 
 `remote`: where to execute the actions and run the evaluator. Default is `True`, the remote evaluator will execute the actions and run the evaluator in the docker. If set to `False`, the evaluator will execute the actions and run the evaluator in the local machine.
-
 
 
 ####  Run Evaluator
