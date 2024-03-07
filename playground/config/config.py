@@ -21,7 +21,7 @@ class Config(metaclass=Singleton):
     }
     api_key_path: str = "playground/config/api_key.json"
 
-    stop_code: str = "\nexit()"
+    stop_code: str = "exit()"
 
     # Env server config
     remote: bool = True  # True for remote, False for local
