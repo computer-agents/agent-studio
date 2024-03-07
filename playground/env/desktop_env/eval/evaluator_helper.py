@@ -19,14 +19,15 @@ class EvaluatorComb:
         for evaluator in self.evaluators:
             evaluator.reset()
 
-    def __call__(self, **kwargs) -> tuple[bool, str]:
+    def __call__(self, **kwargs) -> tuple[float, str]:
         score = 1.0
         feedback = ""
         for evaluator in self.evaluators:
             cur_score, cur_feedback = evaluator(**kwargs)
             score *= cur_score
             feedback += cur_feedback
-        return bool(score), feedback
+        # TODO: use bool instead of float
+        return score, feedback
 
 
 def register_evaluators(
@@ -87,26 +88,12 @@ def evaluator_router(
     for eval in task_configs["evals"]:
         eval_type: str = eval["eval_type"]
         if eval_type in registered_evaluators:
-            # TODO: Can we merge model evaluator and other evaluators?
-            if eval_type == "model":
-                from playground.llm import setup_model
-
-                model = setup_model(config.eval_model)
-                evaluators.append(
-                    registered_evaluators[eval_type](
-                        eval_procedure=[],
-                        reset_procedure=[],
-                        model=model,
-                        instruction=task_configs["instruction"],
-                    )
+            evaluators.append(
+                registered_evaluators[eval_type](
+                    eval_procedure=eval.get("eval_procedure", []),
+                    reset_procedure=eval.get("reset_procedure", []),
                 )
-            else:
-                evaluators.append(
-                    registered_evaluators[eval_type](
-                        eval_procedure=eval.get("eval_procedure", []),
-                        reset_procedure=eval.get("reset_procedure", []),
-                    )
-                )
+            )
         else:
             raise ValueError(f"eval_type {eval_type} is not supported")
 

@@ -1,17 +1,19 @@
 from typing import Any
 
-from numpy.typing import NDArray
-
 
 class BaseModel:
     """Base class for models."""
 
+    def __init__(self) -> None:
+        self.token_count: int = 0
+
+    def reset(self) -> None:
+        self.token_count = 0
+
     def compose_messages(
         self,
-        obs: NDArray | None,
-        trajectory: list[dict[str, Any]],
-        system_prompt: str,
-    ) -> list[dict[str, Any]]:
+        intermediate_msg: list[dict[str, Any]],
+    ) -> Any:
         raise NotImplementedError
 
     def generate_response(

@@ -1,25 +1,20 @@
-import json
 import logging
 from typing import Any
 
 import backoff
 import google.generativeai as genai
+import numpy as np
 
 # Magic import, add following import to fix bug
 # https://github.com/google/generative-ai-python/issues/178
 import PIL.PngImagePlugin
 import requests
 from google.generativeai.types import GenerationConfig
+from PIL import Image
 
 from playground.config.config import Config
 from playground.llm.base_model import BaseModel
 from playground.utils.communication import bytes2str, str2bytes
-
-# import numpy as np
-
-# from numpy.typing import NDArray
-# from PIL import Image
-
 
 # Run this to pass mypy checker
 PIL.PngImagePlugin
@@ -31,64 +26,51 @@ logger = logging.getLogger(__name__)
 
 class GeminiProvider(BaseModel):
     def __init__(self, **kwargs) -> None:
-        with open(config.api_key_path, "r") as f:
-            api_keys = json.load(f)
-        genai.configure(api_key=api_keys["gemini"])
+        super().__init__()
+        genai.configure(api_key=config.gemini_api_key)
         self.model_server: str | None = getattr(config, "model_server", None)
 
-    # def compose_messages(
-    #     self,
-    #     obs: NDArray | None,
-    #     trajectory: list[dict[str, Any]],
-    #     system_prompt: str | None,
-    # ) -> list[dict[str, Any]]:
-    #     messages: list[dict[str, Any]] = []
-    #     if system_prompt is not None:
-    #         messages.append({"role": "user", "parts": [system_prompt]})
-    #     for step in trajectory:
-    #         if not all(key in step for key in ["obs", "act", "res"]):
-    #             raise ValueError(
-    #                 "Each step in the trajectory must contain 'obs', 'act' and 'res'"
-    #                 f" keys. Got {step} instead."
-    #             )
-    #         img = Image.fromarray(np.uint8(step["obs"])).convert("RGB")
-    #         user_content: list[Image.Image | str] = ["[Observation]", img]
-    #         user_content.append(f"[Action]: \n{step['act']}")
-    #         user_content.append(f"[Result]: \n{step['res']}")
-    #         if messages[-1]["role"] == "user":
-    #             messages[-1]["parts"].extend(user_content)
-    #         else:
-    #             messages.append(
-    #                 {
-    #                     "role": "user",
-    #                     "parts": user_content,
-    #                 }
-    #             )
-    #     img = Image.fromarray(np.uint8(obs)).convert("RGB")
-    #     user_content = [img]
-    #     if messages[-1]["role"] == "user":
-    #         messages[-1]["parts"].append(*user_content)
-    #     else:
-    #         messages.append(
-    #             {
-    #                 "role": "user",
-    #                 "parts": user_content,
-    #             }
-    #         )
-    #     return messages
+    def compose_messages(
+        self,
+        intermedia_msg: list[dict[str, Any]],
+    ) -> Any:
+        model_message: dict[str, Any] = {
+            "role": "user",
+            "parts": [],
+        }
+        past_role = None
+        for msg in intermedia_msg:
+            current_role = msg["role"] if "role" != "system" else "user"
+            if past_role != current_role:
+                model_message["parts"].append(f"[{current_role.capitalize()}]: ")
+                past_role = current_role
+
+            if isinstance(msg["content"], str):
+                pass
+            elif isinstance(msg["content"], np.ndarray):
+                # convert from BGR NDArray to PIL RGB Image
+                msg["content"] = Image.fromarray(msg["content"][:, :, ::-1])
+            else:
+                assert False, f"Unknown message type: {msg['content']}"
+            model_message["parts"].append(msg["content"])
+
+        return model_message
 
     def generate_response(
         self, messages: list[dict[str, Any]], **kwargs
     ) -> tuple[str, dict[str, int]]:
         """Creates a chat completion using the Gemini API."""
-        prompt: str = "\n".join([m["content"] for m in messages])
+        model_message = self.compose_messages(intermedia_msg=messages)
 
+        model_name = kwargs.get("model", None)
         if not self.model_server:
-            model = kwargs.get("model", None)
-            if model is not None:
-                self.model = genai.GenerativeModel(model)
+            if model_name is not None:
+                model = genai.GenerativeModel(model_name)
+            else:
+                raise ValueError("Model name is required for GeminiProvider.")
             logger.info(
-                f"Creating chat completion with model {model}. Message:\n{prompt}"
+                f"Creating chat completion with model {model_name}. "
+                f"Message:\n{model_message}"
             )
 
         generation_config = GenerationConfig(
@@ -108,17 +90,21 @@ class GeminiProvider(BaseModel):
         def _generate_response_with_retry() -> tuple[str, dict[str, int]]:
             if self.model_server:
                 body = {
-                    "messages": bytes2str(prompt),
+                    "model": model_name,
+                    "messages": bytes2str(model_message),
                     "config": bytes2str(generation_config),
                 }
-                response_raw = requests.post(self.model_server, json=body)
+                response_raw = requests.post(f"{self.model_server}/generate", json=body)
                 response: genai.types.GenerateContentResponse = str2bytes(
-                    response_raw.text
+                    response_raw.json()["content"]
                 )
+                self.token_count += response_raw.json()["token_count"]
             else:
-                response = self.model.generate_content(
-                    contents=prompt, generation_config=generation_config
+                response = model.generate_content(
+                    contents=model_message, generation_config=generation_config
                 )
+                token_count = model.count_tokens(model_message)
+                self.token_count += token_count.total_tokens
             try:
                 message = response.text
             except ValueError:

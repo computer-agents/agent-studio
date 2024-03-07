@@ -16,7 +16,6 @@ from playground.utils.communication import (
     PlaygroundResultResponse,
     PlaygroundStatusResponse,
     PlaygroundTextRequest,
-    str2bytes,
 )
 from playground.utils.task_status import StateEnum, StateInfo, TaskStatus
 
@@ -54,8 +53,6 @@ def create_parser():
 def setup_evaluator(
     env: str,
 ):
-    assert env in config.task_config_paths, f"Invalid env {env}."
-
     match env:
         case "desktop":
             from playground.env.desktop_env.eval.evaluator_helper import (
@@ -85,14 +82,14 @@ def reset_task(task_config: dict):
         )
 
 
-def eval_task(task_config: dict, trajectory: list):
+def eval_task(task_config: dict):
     try:
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
         evaluator_router = setup_evaluator(
             env=args.env,
         )
         comb = evaluator_router(task_config)
-        score, feedback = comb(trajectory=trajectory)
+        score, feedback = comb()
         task_status.set_task_state(
             StateInfo(
                 state=StateEnum.FINISHED,
@@ -117,6 +114,18 @@ async def health() -> Response:
 async def execute_code(request: PlaygroundTextRequest) -> dict:
     result = runtimes["python"](request.message)
     return result
+
+
+@app.post("/runtime/reset")
+async def reset_runtime() -> PlaygroundResponse:
+    runtimes["python"].close()
+    runtimes["python"] = PythonRuntime()
+    init_code = (
+        "from playground.env.desktop_env import Shell, Keyboard, Mouse\n\n"
+        "shell = Shell()\nkeyboard = Keyboard()\nmouse = Mouse()\n"
+    )
+    runtimes["python"](init_code)
+    return PlaygroundResponse(status="success")
 
 
 @app.post("/task/confirm")
@@ -149,7 +158,10 @@ async def new_task(request: PlaygroundResetRequest) -> PlaygroundResponse:
             task_config: The task configuration.
     """
     cur_status = task_status.get_task_state()
-    assert cur_status.state == StateEnum.PENDING, f"Invalid status: {cur_status}"
+    assert cur_status.state in [
+        StateEnum.PENDING,
+        StateEnum.FINISHED,
+    ], f"Invalid status: {cur_status}"
     threading.Thread(target=reset_task, args=(request.task_config,)).start()
     return PlaygroundResponse(status="submitted")
 
@@ -170,13 +182,13 @@ async def submit_eval(request: PlaygroundEvalRequest) -> PlaygroundResponse:
             If failed, the result contains the error message.
     """
     cur_status = task_status.get_task_state()
-    assert cur_status.state == StateEnum.PENDING, f"Invalid status: {cur_status}"
+    assert cur_status.state in [
+        StateEnum.PENDING,
+        StateEnum.FINISHED,
+    ], f"Invalid status: {cur_status}"
     threading.Thread(
         target=eval_task,
-        args=(
-            request.task_config,
-            str2bytes(request.trajectory),
-        ),
+        args=(request.task_config,),
     ).start()
     return PlaygroundResponse(status="submitted")
 

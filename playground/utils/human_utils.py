@@ -23,10 +23,13 @@ def confirm_action(prompt: str = "") -> Callable:
                     task_status.set_task_state(
                         StateInfo(
                             state=StateEnum.WAIT_FOR_INPUT,
-                            message=f"{prompt}\nDo you want to continue? (y/n): ",
+                            message=f"{prompt}\nConfirm action (y/n): ",
                         )
                     )
-                    current_status = task_status.wait_for_state(StateEnum.IN_PROGRESS)
+                    current_status = task_status.wait_for_state_change(
+                        StateEnum.WAIT_FOR_INPUT
+                    )
+                    assert current_status.state == StateEnum.IN_PROGRESS, current_status
                     user_input = current_status.message.strip().lower()
                 if user_input == "y":
                     return True, func(*args, **kwargs)

@@ -20,7 +20,18 @@ class DirectAgent(Agent):
             assert self.runtime is not None
             self.runtime(init_code)
 
-    def construct_prompt(self) -> list[dict[str, Any]]:
+    def trajectory2intermediate_msg(self) -> list[dict[str, Any]]:
+        """Converts the trajectory to intermediate messages.
+
+        Returns:
+            list[dict[str, Any]]: The intermediate messages.
+                + role:
+                    - system
+                    - user
+                    - assistant
+                + content: The content of the message.\
+                    content can either be a string or a PIL.Image.
+        """
         messages: list[dict[str, Any]] = []
         if self.system_prompt is not None:
             messages.append({"role": "system", "content": self.system_prompt})
@@ -29,14 +40,18 @@ class DirectAgent(Agent):
         )
         for step in self.trajectory:
             if step["obs"] is not None:
-                messages.append(
-                    {"role": "user", "content": f"Observation: {step['obs']}"}
-                )
-            messages.append({"role": "assistant", "content": f"Action: {step['act']}"})
-            messages.append({"role": "user", "content": f"Result: {step['res']}"})
+                messages.append({"role": "user", "content": "[Observation]: \n"})
+                messages.append({"role": "user", "content": step["obs"]})
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": f"[Action]: ```python\n{step['act']}\n```",
+                }
+            )
+            messages.append({"role": "user", "content": f"[Result]: \n{step['res']}"})
 
         if self.cur_obs is not None:
-            messages.append({"role": "user", "content": f"Observation: {self.cur_obs}"})
+            messages.append({"role": "user", "content": self.cur_obs})
 
         return messages
 
@@ -47,32 +62,32 @@ class DirectAgent(Agent):
         )
         for step in self.trajectory:
             if step["obs"] is not None:
-                messages.append(
-                    {"role": "user", "content": f"Observation: {step['obs']}"}
-                )
+                messages.append({"role": "user", "content": "[Observation]: \n"})
+                messages.append({"role": "user", "content": step["obs"]})
             messages.append(
                 {
                     "role": "assistant",
-                    "content": f"Action:\n```python\n{step['act']}\n```",
+                    "content": f"[Action]: ```python\n{step['act']}\n```",
                 }
             )
-            messages.append({"role": "user", "content": f"Result: {step['res']}"})
+            messages.append({"role": "user", "content": f"[Result]: \n{step['res']}"})
+
         messages.append(
             {
                 "role": "user",
                 "content": (
                     "Answer 'True' if the trajectory successfully complete "
-                    "the task instruction, otherwise answer 'False'.",
+                    "the task instruction, otherwise answer 'False'."
                 ),
             }
         )
 
         response, _ = self.model.generate_response(
-            messages=messages, model=config.model
+            messages=messages, model=config.eval_model
         )
 
         return {
-            "score": "True" in response,
+            "score": 1.0 if "True" in response else 0.0,
             "prompt": messages,
             "response": response,
         }

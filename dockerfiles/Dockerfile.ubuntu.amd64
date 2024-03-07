@@ -15,8 +15,14 @@ RUN wget https://bootstrap.pypa.io/get-pip.py \
     && python3.11 get-pip.py \
     && python3.11 -m pip install --upgrade pip
 
-COPY . /root/playground
+RUN mkdir -p /root/playground
+COPY playground /root/playground/playground
+ADD scripts/agent_server.py /root/playground/scripts/agent_server.py
+ADD pyproject.toml /root/playground/pyproject.toml
+ADD requirements_linux.txt /root/playground/requirements_linux.txt
+ADD scripts/docker_startup.sh /root/playground/scripts/docker_startup.sh
 WORKDIR /root/playground
+RUN mv /root/playground/playground/config/agent_server_config.py /root/playground/playground/config/config.py
 RUN python3.11 -m pip install -e .
 RUN python3.11 -m pip install -r requirements_linux.txt
 RUN chmod +x /root/playground/scripts/docker_startup.sh

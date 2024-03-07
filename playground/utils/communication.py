@@ -40,4 +40,3 @@ class PlaygroundResetRequest(BaseModel):
 
 class PlaygroundEvalRequest(BaseModel):
     task_config: dict
-    trajectory: str

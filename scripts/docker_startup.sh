@@ -75,7 +75,7 @@ HTTP_PASSWORD=
 # Add agent_server to supervisord
 cat <<EOF > /etc/supervisor/conf.d/agent_server.conf
 [program:agent_server]
-command=python3.11 /root/playground/scripts/agent_server.py
+command=python3.11 /root/playground/scripts/agent_server.py --env desktop
 autostart=true
 autorestart=true
 stderr_logfile=/var/log/agent_server.err.log

@@ -45,7 +45,6 @@ class Evaluator:
         self,
         eval_procedure: list[dict[str, dict[str, Any]]],
         reset_procedure: list[dict[str, dict[str, Any]]],
-        **kwargs,
     ) -> None:
         self.eval_procedure = eval_procedure
         self.reset_procedure = reset_procedure
@@ -90,8 +89,10 @@ class Evaluator:
         for step in self.eval_procedure:
             for action, params in step.items():
                 if action in self.evaluation_handlers:
-                    for k, v in kwargs.items():
-                        params[k] = v
+                    # for k, v in kwargs.items():
+                    #     assert k not in params, \
+                    # f"Duplicate parameter {k} in {params}."
+                    #     params[k] = v
                     try:
                         self.evaluation_handlers[action](**params)
                     except FeedbackException as e:

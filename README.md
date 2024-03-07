@@ -29,18 +29,36 @@ Download dataset (you may need to [configure huggingface and git lfs](https://hu
 git submodule update --init --remote --recursive
 ```
 
+### Setup API Keys
+
+#### Google Workspace
+
+[Enable Google APIs, configure OAuth, download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), the credentials should be saved as `credentials.json` in the `playground/config` directory. Or you can modify the `google_credential_path` field [here](playground/config/config.py) to make sure the path matches.
+
+#### Google Calendar
+
+The agent and the evaluator will modify your Google Calendar. For safety, we recommend you create a new Calendar. Obtain the `calendar_id` by following the instructions [here](https://it.umn.edu/services-technologies/how-tos/google-calendar-find-your-google) and modify the `google_calendar_id` parameters [here](playground/config/api_key_template.json).
+
+#### Telegram
+
+The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtain the Telegram API key by following Telegram’s instructions and rules at https://core.telegram.org/api/obtaining_api_id. After obtaining the `api_id` and `api_hash`, modify the `telegram_api_id` and `telegram_api_hash` parameters [here](playground/config/api_key_template.json).
+
+### Setup Docker
+
+After obtaining the API keys and modifying the `api_key_template.json` file to include the keys, rename the `api_key_template.json` to `api_key.json`.
+```bash
+mv playground/config/api_key_template.json playground/config/api_key.json
+```
+
+Some APIs need the user to log in account manually. Run the following command to finish the API keys setup:
+```bash
+python setup_api_keys.py
+```
+
 Build Docker image:
 ```bash
 docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t playground:latest
 ```
-
-### Google Workspace
-
-[Enable Google APIs, configure OAuth, download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), and adjust configurations [here](playground/config/config.py).
-
-### Telegram
-
-The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtain the telegram API key by following Telegram’s instructions and rules at https://core.telegram.org/api/obtaining_api_id. After obtaining `api_id` and `api_hash`, modify the `telegram_api_id` and `telegram_api_hash` parameters [here](playground/config/config.py).
 
 ## Get Started
 
@@ -52,38 +70,73 @@ The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtai
 docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm playground:latest
 ```
 
-### Run Recorder Client
+#### Recorder Usage
 
-```bash
-python run.py --mode record
-```
-
----
-
-### Run on local machine
-
-If you enabled high DPI scaling, and the VNC window is beyond the screen, you may need to set the `QT_AUTO_SCREEN_SCALE_FACTOR` environment variable to `0` to disable high DPI scaling.
-
-```bash
-python run.py --mode eval
-```
-
-### Record agent's trajectory
+Run the following command to start the recorder:
 
 ```bash
 python run.py --mode record --env desktop
 ```
 
-### Run via ssh
+The first screen is a task configuration interface, where you can create a new task or load an existing task. The task configuration interface is shown below:
 
-If you want to run the agent in a virtual machine or remote machine, setup the `DISPLAY` environment variable via ssh.
+![](./imgs/recorder_task_config.png)
 
-Setup `playground/config/config.py`, change `on_ssh` to `True`.
+You can choose to record an existing task or create a new task. The following are the steps to record a task:
+
++ Record an existing task:
+    1. Choose task from the top right list.
+    3. Click the "Save Task Config/Start Recording" button to start recording.
+    ![](./imgs/recorder_choose_existing.png)
++ Create & Record new task:
+    1. Input the task instruction.
+    2. Select the task type (whether is visual task or not).
+    3. Select the evaluator from the dropdown list.
+    4. Select the evaluator methods from the list table. Single click will display the method description in "Docs" and double click will show the method example JSON snippet in "JSON format preview".
+    5. Edit the "Evaluation Steps" input box, which should be a list of steps to evaluate the task. The format should match the "evals" field in task configuration JSON format.
+    6. Click the "Save Task Config/Start Recording" button to start recording.
+    ![](./imgs/recorder_create_new.png)
+
+The recording interface is shown below:
+
+![](./imgs/recorder_record.png)
+
+The recording interface is divided into three parts: the left part is the VNC window, task configuration created in the previous step is displayed in the middle part, and the right part is the "Action" panel. To record a task, you need to perform the following steps:
+1. Input actions (currently is Python code) in the "Action" panel.
+2. Click the "Step Action" button to execute the actions.
+3. See the result in the VNC window and "Runtime Response" panel.
+4. Repeat the above steps until the task is completed.
+5. Click the "Save" button to save the recording.
+
+---
+
+### Evaluate Agent
+
+#### Run Simulator with Docker
 
 ```bash
-ssh user@remote # ssh to the remote machine
-DISPLAY=YOUR_DISPLAY python run.py --mode eval
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm playground:latest
 ```
+
+#### Evaluator Configuration
+
+In `playground/config/config.py`, you can modify the corresponding field to configurate the evaluator.
+
+`need_human_confirmation`: enable/disable human confirmation for the evaluator. Default is `True`, which means each action step and reset step needs human confirmation.
+
+`headless`: enable/disable headless mode for the evaluator. Set to `False` to enable GUI mode. Default is CLI mode. **GUI mode will ignore `need_human_confirmation=False`**.
+
+`remote`: where to execute the actions and run the evaluator. Default is `True`, the remote evaluator will execute the actions and run the evaluator in the docker. If set to `False`, the evaluator will execute the actions and run the evaluator in the local machine.
+
+
+####  Run Evaluator
+
+Run the following command to start the evaluator:
+```bash
+python run.py --mode eval
+```
+
+If you enabled high DPI scaling, and the VNC window is beyond the screen, you may need to set the `QT_AUTO_SCREEN_SCALE_FACTOR` environment variable to `0` to disable high DPI scaling.
 
 ## Data
 

@@ -38,6 +38,7 @@ class Agent:
         self.cur_response = None
         self.cur_info = {}
         self.cur_raw_code = ""
+        self.model.reset()
 
         if self.runtime is not None:
             self.runtime.close()
@@ -46,21 +47,24 @@ class Agent:
         else:
             self.runtime = PythonRuntime()
 
+    def get_token_count(self) -> int:
+        return self.model.token_count
+
     def generate_action(self, obs: np.ndarray | None) -> tuple[str, str]:
         self.cur_obs = obs
-        self.cur_prompt = self.construct_prompt()
+        cur_messages = self.trajectory2intermediate_msg()
         self.cur_response, self.cur_info = self.model.generate_response(
-            messages=self.cur_prompt, model=config.model
+            messages=cur_messages, model=config.exec_model
         )
         self.cur_raw_code = extract_from_response(self.cur_response)
 
         return self.cur_response, self.cur_raw_code
 
-    def step_action(self, confirmed: bool) -> tuple[dict, bool]:
+    def step_action(self, confirmed: bool, **kwargs) -> tuple[dict, bool]:
         """Executes the code and record the result."""
         result = {}
         if confirmed:
-            done = self.cur_raw_code.endswith(config.stop_code)
+            done = self.cur_raw_code.strip().endswith(config.stop_code)
             if done:
                 code = self.cur_raw_code[: -len(config.stop_code)]
             else:
@@ -78,6 +82,7 @@ class Agent:
                 result = self.runtime(code)
         else:
             result["content"] = "Cancelled by user."
+            done = True
 
         self.trajectory.append(
             {
@@ -101,5 +106,5 @@ class Agent:
         if self.runtime is not None:
             self.runtime.close()
 
-    def construct_prompt(self) -> list[dict[str, Any]]:
+    def trajectory2intermediate_msg(self) -> list[dict[str, Any]]:
         raise NotImplementedError

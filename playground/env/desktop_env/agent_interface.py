@@ -1,19 +1,12 @@
-import asyncio
-import functools
 import logging
-import sys
+import queue
 import threading
 import time
-from asyncio import open_connection
 from pathlib import Path
-from typing import Any
 
-import cv2
-import mss
 import numpy as np
 import pyautogui
 import requests
-from PIL import Image
 from PyQt6.QtCore import QMutex, QObject, QThread, QTimer, QWaitCondition, pyqtSignal
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
@@ -29,11 +22,14 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from qasync import QApplication, asyncClose, asyncSlot
 
 from playground.agent.base_agent import Agent
 from playground.config.config import Config
-from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
+from playground.env.desktop_env.recorder.screen_recorder import (
+    ScreenRecorder,
+    VNCRecorder,
+)
+from playground.env.desktop_env.vnc_client import VNCFrame, VNCStreamer
 from playground.utils.communication import (
     PlaygroundEvalRequest,
     PlaygroundResetRequest,
@@ -41,9 +37,8 @@ from playground.utils.communication import (
     PlaygroundResultResponse,
     PlaygroundStatusResponse,
     PlaygroundTextRequest,
-    bytes2str,
 )
-from playground.utils.json_utils import add_jsonl, format_json, read_jsonl
+from playground.utils.json_utils import export_trajectories, format_json, read_jsonl
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -78,18 +73,45 @@ class WorkerSignals(QObject):
     decline_signal = pyqtSignal(bool)
     start_signal = pyqtSignal(bool)
     eval_signal = pyqtSignal(bool)
-    next_task_signal = pyqtSignal(bool)
     status_bar_signal = pyqtSignal(str, str)
     parsed_action_display_signal = pyqtSignal(str)
     response_display_signal = pyqtSignal(str)
     evaluation_display_signal = pyqtSignal(str)
     show_input_dialog_signal = pyqtSignal(str)
+    output_display_signal = pyqtSignal(str)
     save_trajectory_signal = pyqtSignal()
+    finish_run_task_signal = pyqtSignal()
+    trajectory_display_signal = pyqtSignal(str)
+
+
+class ResetRuntimeThread(QThread):
+    def __init__(self, signals: WorkerSignals):
+        super().__init__()
+        self.signals = signals
+
+    def run(self):
+        # reset remote runtime
+        response_raw = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert (
+            response.status == "success"
+        ), f"Fail to reset runtime: {response_raw.text}"
+        self.signals.status_bar_signal.emit("color: green;", "Task: Ready")
+        self.signals.start_signal.emit(True)
+
+    def receive_user_input(self, text: str):
+        raise NotImplementedError
 
 
 class RunTaskThread(QThread):
     def __init__(
-        self, signals: WorkerSignals, selected_task: dict, obs: np.ndarray, agent: Agent
+        self,
+        signals: WorkerSignals,
+        selected_task: dict,
+        obs: np.ndarray | None,
+        agent: Agent,
     ):
         super().__init__()
         self.mutex = QMutex()
@@ -180,6 +202,7 @@ class EvalTaskThread(QThread):
         trajectory_display: QTextEdit,
         selected_task: dict,
         agent: Agent,
+        result_queue: queue.Queue,
     ):
         super().__init__()
         self.mutex = QMutex()
@@ -188,6 +211,7 @@ class EvalTaskThread(QThread):
         self.agent = agent
         self.selected_task = selected_task
         self.trajectory_display = trajectory_display
+        self.result_queue = result_queue
 
     def _wait_finish(self):
         while True:
@@ -219,26 +243,33 @@ class EvalTaskThread(QThread):
             time.sleep(1)
 
     def run(self):
+        self.signals.status_bar_signal.emit("color: green;", "Task: Auto-Evaluating...")
         response_raw = requests.post(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
             json=PlaygroundEvalRequest(
                 task_config=self.selected_task,
-                trajectory=bytes2str(self.trajectory_display.toPlainText()),
             ).model_dump(),
         )
         response = PlaygroundResponse(**response_raw.json())
         assert response.status == "submitted"
-        self.signals.status_bar_signal.emit("color: green;", "Task: Evaluating...")
         self._wait_finish()
         response_raw = requests.get(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
         )
         response = PlaygroundResultResponse(**response_raw.json())
         assert response.status == "finished" and isinstance(response.message, dict)
+        self.signals.status_bar_signal.emit("color: green;", "Task: Self-Evaluating...")
+        self_eval_result = self.agent.eval()
+        self.result_queue.put(response.message)
+        self.result_queue.put(self_eval_result)
         self.signals.evaluation_display_signal.emit(
-            f"Score: {response.message['score']}\nFeedback: {response.message['feedback']}"  # noqa: E501
+            "Auto-evaluation result:\n"
+            f"Score: {response.message['score']}\n"
+            f"Feedback: {response.message['feedback']}\n"
+            "\nSelf-evaluation result:\n"
+            f"Score: {self_eval_result['score']}\n"
+            f"Feedback: {self_eval_result['response']}"
         )
-        self.signals.next_task_signal.emit(True)
         self.signals.status_bar_signal.emit(
             "color: green;", "Task: Saving trajectory..."
         )
@@ -250,6 +281,58 @@ class EvalTaskThread(QThread):
         self.user_input = text  # Store the user input
         self.wait_condition.wakeAll()  # Resume the thread
         self.mutex.unlock()
+
+
+class StepActionThread(QThread):
+    def __init__(
+        self,
+        signals: WorkerSignals,
+        trajectory_display: QTextEdit,
+        parsed_action_display: QTextEdit,
+        screen_recorder: ScreenRecorder | None,
+        current_step_num: int,
+        agent: Agent,
+    ):
+        super().__init__()
+        self.signals = signals
+        self.agent = agent
+        self.trajectory_display = trajectory_display
+        self.parsed_action_display = parsed_action_display
+        self.screen_recorder = screen_recorder
+        self.current_step_num = current_step_num
+
+    def run(self):
+        """Steps the next action and adds it to the trajectory."""
+        next_action_text = self.parsed_action_display.toPlainText()
+        result, done = self.agent.step_action(confirmed=True)
+        self.signals.output_display_signal.emit(str(result))
+        time.sleep(config.minimal_action_interval)
+
+        if next_action_text.strip():
+            current_trajectory_text = self.trajectory_display.toPlainText()
+            new_trajectory_text = (
+                current_trajectory_text + "\n" + next_action_text
+                if current_trajectory_text
+                else next_action_text
+            )
+            self.signals.trajectory_display_signal.emit(new_trajectory_text)
+
+        if done or self.current_step_num >= config.max_step:
+            self.signals.finish_run_task_signal.emit()
+        else:
+            if self.screen_recorder is not None:
+                obs = self.screen_recorder.get_current_frame()
+                assert obs is not None
+            else:
+                obs = None
+            response, raw_code = self.agent.generate_action(obs)
+            self.signals.parsed_action_display_signal.emit(raw_code)
+            self.signals.response_display_signal.emit(response)
+            self.signals.confirm_signal.emit(True)
+            self.signals.decline_signal.emit(True)
+
+    def receive_user_input(self, text: str):
+        raise NotImplementedError
 
 
 class AgentInterface(QMainWindow):
@@ -266,27 +349,37 @@ class AgentInterface(QMainWindow):
         self.task_list = [task["instruction"] for task in task_configs]
         self.task_configs = task_configs
         self.refresh_timer = QTimer(self)
-        self.refresh_timer.setInterval(1)
+        self.refresh_timer.setInterval(10)
         self.refresh_timer.timeout.connect(self.render)
-        self.refresh_timer.stop()
+        self.refresh_timer.start()
         self.refreshing_screen = False  # need for refresh flag
         self.selected_task: dict | None = None
         self.status_bar: QStatusBar
         self.task_status_bar: QLabel
         self.on_close = False
 
+        self.current_thread: (
+            RunTaskThread
+            | EvalTaskThread
+            | StepActionThread
+            | ResetRuntimeThread
+            | None
+        )
+        self.current_thread = None
+        self.current_thread_result: queue.Queue = queue.Queue()
+
+        self.current_step_num = 1
+        self.action_token_count = 0
+
         # screen recorder
         self.record_path: Path = Path(record_path)
         self.recording_lock = threading.Lock()
-        self.frame_buffer = FrameBuffer()
-        self.current_frame_id = -1
-        self.is_recording = False
+        self.screen_recorder: ScreenRecorder | None = None
+        self.video_meta: dict | None = None
         if not config.remote:
             self.video_width, self.video_height = pyautogui.size()
 
         self.setup_ui()
-        self.screenshot_thread = threading.Thread(target=self.capture_screen)
-        self.screenshot_thread.start()
 
         self.vnc = None
         self.reset()
@@ -307,7 +400,16 @@ class AgentInterface(QMainWindow):
         self.status_bar.addPermanentWidget(self.task_status_bar)
 
         if config.remote:
-            self.connect_vnc()
+            self.vnc_thread = VNCStreamer(
+                env_server_addr=config.env_server_addr,
+                vnc_port=config.vnc_port,
+                vnc_password=config.vnc_password,
+            )
+            self.vnc_thread.start()
+            self.video_height, self.video_width = (
+                self.vnc_thread.video_height,
+                self.vnc_thread.video_width,
+            )
             vnc_layout = QVBoxLayout()
             self.vnc_frame = VNCFrame(self)
             vnc_layout.addWidget(self.vnc_frame)
@@ -334,7 +436,8 @@ class AgentInterface(QMainWindow):
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
         self.confirm_button.clicked.connect(self.step_action)
-        # self.decline_button.clicked.connect(self.reset)
+        # goto evaluation step if user rejects the action
+        self.decline_button.clicked.connect(self.reject_action)
         consent_button_layout = QHBoxLayout()
         consent_button_layout.addWidget(self.confirm_button)
         consent_button_layout.addWidget(self.decline_button)
@@ -414,12 +517,11 @@ class AgentInterface(QMainWindow):
         self.setMouseTracking(True)
 
     def load_task_results(self):
-        jsonl_path = self.record_path / "tasks.jsonl"
+        jsonl_path = self.record_path / "results.jsonl"
         if jsonl_path.exists():
             evaluated_tasks = read_jsonl(jsonl_path.as_posix())
             self.task_results = {
-                task_result["task_config"]["task_id"]: task_result
-                for task_result in evaluated_tasks
+                task_result["task_id"]: task_result for task_result in evaluated_tasks
             }
         else:
             self.task_results = {}
@@ -430,7 +532,7 @@ class AgentInterface(QMainWindow):
         for task in self.task_configs:
             item = QListWidgetItem(task["instruction"])
             if task["task_id"] in self.task_results:
-                if self.task_results[task["task_id"]]["score"] == "1.0":
+                if self.task_results[task["task_id"]]["score"] == 1.0:
                     item.setForeground(QColor("green"))
                 else:
                     item.setForeground(QColor("red"))
@@ -450,92 +552,6 @@ class AgentInterface(QMainWindow):
 
         self.start_button.setEnabled(True)
 
-    def capture_screen(self) -> None:
-        if config.remote:
-            while True:
-                if self.on_close:
-                    break
-                if self.is_recording:
-                    frame = self.now_screenshot.copy()
-                    capture_time = time.time()
-                    frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-                    # add frame to buffer
-                    self.current_frame_id += 1
-                    self.frame_buffer.add_frame(self.current_frame_id, frame)
-                    # preserve the frame rate
-                    wait_time = 1 / config.video_fps - (time.time() - capture_time)
-                    if wait_time > 0:
-                        time.sleep(wait_time)
-                    elif wait_time < 0:
-                        logger.warning("Frame rate is too high")
-                else:
-                    time.sleep(1 / config.video_fps)
-        else:
-            with mss.mss(with_cursor=False) as sct:
-                while True:
-                    if self.on_close:
-                        break
-                    if self.is_recording:
-                        frame = sct.grab(
-                            {
-                                "left": 0,
-                                "top": 0,
-                                "width": self.video_width,
-                                "height": self.video_height,
-                            }
-                        )
-                        capture_time = time.time()
-                        frame = np.array(frame)
-                        frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-                        # add frame to buffer
-                        self.current_frame_id += 1
-                        self.frame_buffer.add_frame(self.current_frame_id, frame)
-                        # preserve the frame rate
-                        wait_time = 1 / config.video_fps - (time.time() - capture_time)
-                        if wait_time > 0:
-                            time.sleep(wait_time)
-                        elif wait_time < 0:
-                            logger.warning("Frame rate is too high")
-                    else:
-                        time.sleep(1 / config.video_fps)
-
-    @asyncSlot()
-    async def reconnect(self):
-        """Reconnects to VNC server."""
-        if self.vnc is not None:
-            await self.vnc.disconnect()
-        await self.connect_vnc()
-
-    @asyncSlot()
-    async def connect_vnc(self):
-        """Connects to VNC server."""
-        self.status_bar.showMessage("Connecting")
-
-        try:
-            self._reader, self._writer = await open_connection(
-                config.env_server_addr, config.vnc_port
-            )
-            self.vnc = await VNCClient.create(
-                reader=self._reader, writer=self._writer, password=config.vnc_password
-            )
-        except (ConnectionRefusedError, ValueError) as e:
-            logger.warning(f"Fail to connect to VNC server: {e}")
-            self.status_bar.showMessage("VNC not available.")
-            return
-        self.video_height = self.vnc.video.height
-        self.video_width = self.vnc.video.width
-        with self.recording_lock:
-            self.now_screenshot = np.zeros(
-                (self.video_height, self.video_width, 4), dtype="uint8"
-            )
-
-        self.vnc_frame.setFixedSize(self.video_width, self.video_height)
-        self.vnc_frame.setMouseTracking(True)
-        self.showMaximized()
-
-        self.refresh_timer.start()
-        self.status_bar.showMessage("Connected")
-
     def set_task_status_bar_text(self, color: str, text: str) -> None:
         self.task_status_bar.setStyleSheet(color)
         self.task_status_bar.setText(text)
@@ -548,13 +564,15 @@ class AgentInterface(QMainWindow):
         result = dlg.exec()
         assert result == QInputDialog.DialogCode.Accepted
         user_input = dlg.textValue()
+        assert self.current_thread is not None
         self.current_thread.receive_user_input(user_input)
 
     def reset(self):
         """Resets the task and waits for the environment to be ready."""
+        self.set_task_status_bar_text("color: green;", "Task: Preparing...")
         # Clears all the text fields.
         self.eval_button.setEnabled(False)
-        self.start_button.setEnabled(True)
+        self.start_button.setEnabled(False)  # move to ResetRuntimeThread
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
         self.instruction_selection.setEnabled(True)
@@ -565,67 +583,46 @@ class AgentInterface(QMainWindow):
         self.output_display.clear()
         self.evaluation_display.clear()
         self.selected_task = None
+        self.video_meta = None
+        self.action_token_count = 0
+        # Reset remote runtime
+        signals = WorkerSignals()
+        signals.start_signal.connect(self.start_button.setEnabled)
+        signals.status_bar_signal.connect(self.set_task_status_bar_text)
+        self.current_thread = ResetRuntimeThread(signals)
+        self.current_thread.start()
         self.populate_instruction_selection_widget()
-        self.set_task_status_bar_text("color: green;", "Task: Init")
+
+    def reconnect(self):
+        self.status_bar.showMessage("Reconnecting")
+        if self.vnc_thread is not None:
+            self.vnc_thread = VNCStreamer(
+                env_server_addr=config.env_server_addr,
+                vnc_port=config.vnc_port,
+                vnc_password=config.vnc_password,
+            )
+        self.vnc_thread.start()
+        if self.screen_recorder is not None and isinstance(
+            self.screen_recorder, VNCRecorder
+        ):
+            self.screen_recorder.vnc_streamer = self.vnc_thread
+        self.status_bar.showMessage("Connected")
 
     def save_trajectory(self):
         assert self.selected_task is not None
-        self.is_recording = False
-
-        task_trajectory_path: Path = self.record_path / self.selected_task["task_id"]
-        video_path: Path = task_trajectory_path / ("video.mp4")
-        if task_trajectory_path != Path("") and not task_trajectory_path.exists():
-            task_trajectory_path.mkdir(parents=True, exist_ok=True)
-        writer = cv2.VideoWriter(
-            video_path.as_posix(),
-            cv2.VideoWriter.fourcc(*"mp4v"),
-            config.video_fps,
-            (
-                self.video_width,
-                self.video_height,
-            ),
+        assert isinstance(self.current_thread, EvalTaskThread)
+        auto_eval_result = self.current_thread_result.get()
+        export_trajectories(
+            self_eval_results=self.current_thread_result.get(),
+            task_config=self.selected_task,
+            trajectory=self.agent.trajectory,
+            record_path=self.record_path.as_posix(),
+            score=float(auto_eval_result["score"]),
+            feedback=auto_eval_result["feedback"],
+            token_count=self.action_token_count,
+            video_meta=self.video_meta,
         )
-
-        frames = self.frame_buffer.get_frames(0)
-        logger.info(f"Captured {len(frames)} frames with FPS={config.video_fps}")
-        for frame in frames:
-            writer.write(frame[1])
-        writer.release()
-
-        record_dict: dict[str, Any] = {"task_config": self.selected_task}
-        record_dict["video"] = {
-            "path": video_path.as_posix(),
-        }
-
-        trajectory = self.agent.trajectory
-        record_dict["actions"] = []
-        for idx, action in enumerate(trajectory):
-            im = Image.fromarray(action["obs"])
-            img_path = (task_trajectory_path / (f"{idx}.png")).as_posix()
-            im.save(img_path)
-            record_dict["actions"].append(
-                {
-                    "timestamp": action["timestamp"],
-                    "obs": img_path,
-                    "action": action["act"],
-                    "result": action["res"],
-                }
-            )
-
-        record_dict["score"] = (
-            self.evaluation_display.toPlainText().split("\n")[0].split(":")[1].strip()
-        )
-        record_dict["feedback"] = (
-            self.evaluation_display.toPlainText().split("\n")[1].split(":")[1].strip()
-        )
-
-        add_jsonl(
-            data=[record_dict],
-            file_path=(self.record_path / "tasks.jsonl").as_posix(),
-        )
-
-        self.frame_buffer.clear()
-        self.current_frame_id = -1
+        self.next_button.setEnabled(True)
 
     def run_task(self):
         self.instruction_selection.setEnabled(False)
@@ -637,7 +634,17 @@ class AgentInterface(QMainWindow):
             return
         else:
             self.set_task_status_bar_text("color: green;", "Task: Initializing...")
-        self.is_recording = True
+        # self.is_recording = True
+        if self.selected_task["visual"]:
+            if config.remote:
+                self.screen_recorder = VNCRecorder(
+                    fps=config.video_fps, vnc_streamer=self.vnc_thread
+                )
+                self.screen_recorder.start()
+            else:
+                # assert False, "Local recording is not supported"
+                self.screen_recorder = ScreenRecorder(fps=config.video_fps)
+                self.screen_recorder.start()
         self.start_button.setEnabled(False)
         self.eval_button.setEnabled(False)
         self.confirm_button.setEnabled(False)
@@ -653,7 +660,12 @@ class AgentInterface(QMainWindow):
         )
         signals.response_display_signal.connect(self.response_display.setPlainText)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
-        obs = self.now_screenshot.copy()
+        if self.selected_task["visual"]:
+            assert self.screen_recorder is not None
+            obs = self.screen_recorder.get_current_frame()
+        else:
+            obs = None
+        self.current_thread_result = queue.Queue()
         self.current_thread = RunTaskThread(
             signals=signals,
             selected_task=self.selected_task,
@@ -677,74 +689,98 @@ class AgentInterface(QMainWindow):
         signals = WorkerSignals()
         signals.status_bar_signal.connect(self.set_task_status_bar_text)
         signals.evaluation_display_signal.connect(self.evaluation_display.setPlainText)
-        signals.next_task_signal.connect(self.next_button.setEnabled)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
         signals.save_trajectory_signal.connect(self.save_trajectory)
+        self.current_thread_result = queue.Queue()
         self.current_thread = EvalTaskThread(
             signals=signals,
             selected_task=self.selected_task,
             agent=self.agent,
             trajectory_display=self.trajectory_display,
+            result_queue=self.current_thread_result,
         )
         self.current_thread.start()
 
-    def step_action(self):
+    def finish_run_task(self) -> None:
+        assert self.selected_task is not None
+        self.action_token_count = self.agent.get_token_count()
+        task_trajectory_path = self.record_path / self.selected_task["task_id"]
+        task_trajectory_path.mkdir(parents=True, exist_ok=True)
+        if self.selected_task["visual"]:
+            assert self.screen_recorder is not None
+            video_path = (task_trajectory_path / "video.mp4").as_posix()
+            self.screen_recorder.stop()
+            self.screen_recorder.wait_exit()
+            self.video_meta = self.screen_recorder.save(video_path, 0)
+            del self.screen_recorder
+            self.screen_recorder = None
+        else:
+            video_path = None
+        self.confirm_button.setEnabled(False)
+        self.decline_button.setEnabled(False)
+        self.start_button.setEnabled(False)
+        self.eval_button.setEnabled(True)
+        self.set_task_status_bar_text("color: green;", "Task: Executed")
+
+    def reject_action(self) -> None:
+        self.confirm_button.setEnabled(False)
+        self.decline_button.setEnabled(False)
+        self.set_task_status_bar_text("color: green;", "Task: Executing...")
+        result, done = self.agent.step_action(confirmed=False)
+        self.output_display.setPlainText(str(result))
+        self.finish_run_task()
+
+    def step_action(self) -> None:
         """Steps the next action and adds it to the trajectory."""
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
         self.set_task_status_bar_text("color: green;", "Task: Executing...")
-        next_action_text = self.parsed_action_display.toPlainText()
-        result, done = self.agent.step_action(confirmed=True)
-        self.output_display.setPlainText(str(result))
 
-        if next_action_text.strip():
-            current_trajectory_text = self.trajectory_display.toPlainText()
-            new_trajectory_text = (
-                current_trajectory_text + "\n" + next_action_text
-                if current_trajectory_text
-                else next_action_text
-            )
-            self.trajectory_display.setPlainText(new_trajectory_text)
-            self.parsed_action_display.clear()
-
-        if not done:
-            obs = self.now_screenshot.copy()
-            response, raw_code = self.agent.generate_action(obs)
-            self.parsed_action_display.setPlainText(raw_code)
-            self.response_display.setPlainText(response)
-            self.confirm_button.setEnabled(True)
-            self.decline_button.setEnabled(True)
-        else:
-            self.confirm_button.setEnabled(False)
-            self.decline_button.setEnabled(False)
-            self.start_button.setEnabled(False)
-            self.eval_button.setEnabled(True)
-        self.set_task_status_bar_text("color: green;", "Task: Executed")
+        signals = WorkerSignals()
+        signals.status_bar_signal.connect(self.set_task_status_bar_text)
+        signals.response_display_signal.connect(self.response_display.setPlainText)
+        signals.output_display_signal.connect(self.output_display.setPlainText)
+        signals.trajectory_display_signal.connect(self.trajectory_display.setPlainText)
+        signals.parsed_action_display_signal.connect(
+            self.parsed_action_display.setPlainText
+        )
+        signals.confirm_signal.connect(self.confirm_button.setEnabled)
+        signals.decline_signal.connect(self.decline_button.setEnabled)
+        signals.finish_run_task_signal.connect(self.finish_run_task)
+        self.current_thread_result = queue.Queue()
+        self.current_thread = StepActionThread(
+            signals=signals,
+            trajectory_display=self.trajectory_display,
+            parsed_action_display=self.parsed_action_display,
+            screen_recorder=self.screen_recorder,
+            current_step_num=self.current_step_num,
+            agent=self.agent,
+        )
+        self.current_thread.start()
+        self.current_step_num += 1
 
     def interrupt_action(self):
         # TODO: send interrupt signal to the runtime
         pass
 
-    async def update_screen(self):
+    def update_screen(self):
         try:
-            if config.remote and self.vnc is not None:
+            if config.remote:
                 with self.recording_lock:
-                    self.now_screenshot = await self.vnc.screenshot()
-
-                    rgba_array = self.now_screenshot.copy()
-                if rgba_array is not None:
+                    # self.now_screenshot = await self.vnc.screenshot()
+                    frame = self.vnc_thread.get_current_frame()
+                if frame is not None:
                     qimage = QImage(
-                        rgba_array.tobytes(),
+                        frame.tobytes(),
                         self.video_width,
                         self.video_height,
-                        QImage.Format.Format_RGBA8888,
+                        QImage.Format.Format_RGB888,
                     )
                     self.vnc_frame.update(qimage)
         except Exception as e:
             logger.error("Fail to get screenshot.", e)
 
-    @asyncSlot()
-    async def render(self):
+    def render(self):
         self.refresh_timer.stop()
 
         if self.refreshing_screen:
@@ -752,7 +788,7 @@ class AgentInterface(QMainWindow):
             return
 
         self.refreshing_screen = True
-        await self.update_screen()
+        self.update_screen()
         if self.vnc is not None:
             if local_cursor_pos := self.vnc_frame.get_cursor_pos():
                 self.status_bar.showMessage(f"Cursor Position: {str(local_cursor_pos)}")
@@ -760,39 +796,14 @@ class AgentInterface(QMainWindow):
         self.refreshing_screen = False
         self.refresh_timer.start()
 
-    @asyncClose
-    async def closeEvent(self, event):
+    def closeEvent(self, event):
         self.status_bar.showMessage("Closing")
         self.on_close = True
-        self.screenshot_thread.join()
+        if self.screen_recorder is not None:
+            self.screen_recorder.stop()
+            self.screen_recorder.wait_exit()
+        if self.vnc_thread is not None:
+            self.vnc_thread.stop()
         self.refresh_timer.stop()
-        if self.vnc is not None:
-            await self.vnc.disconnect()
-            logger.info("VNC disconnected")
         logger.info("GUI closed")
         exit(0)
-
-
-async def run_ui(agent: Agent, task_configs: list[dict], record_path: str):
-    def close_future(future, loop):
-        loop.call_later(10, future.cancel)
-        future.cancel()
-
-    loop = asyncio.get_event_loop()
-    future: asyncio.Future = asyncio.Future()
-
-    app = QApplication(sys.argv)
-    if hasattr(app, "aboutToQuit"):
-        getattr(app, "aboutToQuit").connect(
-            functools.partial(close_future, future, loop)
-        )
-
-    interface = AgentInterface(
-        agent=agent,
-        task_configs=task_configs,
-        record_path=record_path,
-    )
-
-    interface.show()
-
-    await future

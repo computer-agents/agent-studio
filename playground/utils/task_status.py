@@ -1,5 +1,4 @@
 import threading
-import time
 from enum import Enum
 
 from playground.utils.singleton import ThreadSafeSingleton
@@ -20,33 +19,26 @@ class StateInfo:
 
 
 class TaskStatus(metaclass=ThreadSafeSingleton):
-    def __init__(self):
+    def __init__(self) -> None:
         self.state_info: StateInfo = StateInfo(StateEnum.PENDING)
-        self.lock: threading.Lock = threading.Lock()
+        self.condition: threading.Condition = threading.Condition()
         self.active_thread: threading.Thread | None = None
 
     def set_task_state(self, state_info: StateInfo) -> None:
-        with self.lock:
+        with self.condition:
             self.state_info = state_info
+            self.condition.notify_all()
 
     def get_task_state(self) -> StateInfo:
-        with self.lock:
+        with self.condition:
             return self.state_info
 
-    def reset_state(self):
-        with self.lock:
+    def reset_state(self) -> None:
+        with self.condition:
             self.state_info = StateInfo(StateEnum.PENDING)
 
-    def wait_for_state(self, state: StateEnum) -> StateInfo:
-        while True:
-            with self.lock:
-                if self.state_info.state == state:
-                    return self.state_info
-            time.sleep(0.1)
-
-    def wait_not_state(self, state: StateEnum) -> StateInfo:
-        while True:
-            with self.lock:
-                if self.state_info.state != state:
-                    return self.state_info
-            time.sleep(0.1)
+    def wait_for_state_change(self, cur_state: StateEnum) -> StateInfo:
+        with self.condition:
+            while cur_state == self.state_info.state:
+                self.condition.wait()
+        return self.state_info
