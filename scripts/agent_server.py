@@ -53,7 +53,6 @@ def create_parser():
 def setup_evaluator(
     env: str,
 ):
-    assert env in config.task_config_paths, f"Invalid env {env}."
 
     match env:
         case "desktop":

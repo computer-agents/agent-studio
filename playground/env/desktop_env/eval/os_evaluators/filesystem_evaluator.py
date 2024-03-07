@@ -213,6 +213,10 @@ class FilesystemEvaluator(Evaluator):
         else:
             open(path, "w").close()
 
+    @reset_handler("create_directory")
+    def create_directory(self, path: str):
+        os.makedirs(path, exist_ok=True)
+
     @staticmethod
     @reset_handler("mkdir")
     def mkdir(path: str) -> None:

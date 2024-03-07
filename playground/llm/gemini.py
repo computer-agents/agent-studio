@@ -28,9 +28,7 @@ logger = logging.getLogger(__name__)
 class GeminiProvider(BaseModel):
     def __init__(self, **kwargs) -> None:
         super().__init__()
-        with open(config.api_key_path, "r") as f:
-            api_keys = json.load(f)
-        genai.configure(api_key=api_keys["gemini"])
+        genai.configure(api_key=config.gemini_api_key)
         self.model_server: str | None = getattr(config, "model_server", None)
 
     def compose_messages(

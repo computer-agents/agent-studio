@@ -82,7 +82,7 @@ class Evaluator:
                 else:
                     raise ValueError(f"Action {action} is not supported for reset.")
 
-    def __call__(self) -> tuple[float, str]:
+    def __call__(self, **kwargs) -> tuple[float, str]:
         """Evaluate the outcome of the task."""
         score = 1.0
         feedback = ""
@@ -90,6 +90,7 @@ class Evaluator:
             for action, params in step.items():
                 if action in self.evaluation_handlers:
                     # for k, v in kwargs.items():
+                    #     assert k not in params, f"Duplicate parameter {k} in {params}."
                     #     params[k] = v
                     try:
                         self.evaluation_handlers[action](**params)

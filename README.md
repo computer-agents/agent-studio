@@ -29,18 +29,27 @@ Download dataset (you may need to [configure huggingface and git lfs](https://hu
 git submodule update --init --remote --recursive
 ```
 
+### Setup API Keys
+
+#### Google Workspace
+
+[Enable Google APIs, configure OAuth, download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), and adjust configurations [here](playground/config/api_key_template.json).
+
+#### Telegram
+
+The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtain the telegram API key by following Telegram’s instructions and rules at https://core.telegram.org/api/obtaining_api_id. After obtaining `api_id` and `api_hash`, modify the `telegram_api_id` and `telegram_api_hash` parameters [here](playground/config/api_key_template.json).
+
+### Setup Docker
+
+After obtaining the API keys, modify the `api_key_template.json` file to include the keys. Then rename the `api_key_template.json` to `api_key.json`.
+```bash
+mv playground/config/api_key_template.json playground/config/api_key.json
+```
+
 Build Docker image:
 ```bash
 docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t playground:latest
 ```
-
-### Google Workspace
-
-[Enable Google APIs, configure OAuth, download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), and adjust configurations [here](playground/config/config.py).
-
-### Telegram
-
-The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtain the telegram API key by following Telegram’s instructions and rules at https://core.telegram.org/api/obtaining_api_id. After obtaining `api_id` and `api_hash`, modify the `telegram_api_id` and `telegram_api_hash` parameters [here](playground/config/config.py).
 
 ## Get Started
 
