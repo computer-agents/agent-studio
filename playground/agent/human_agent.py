@@ -26,7 +26,7 @@ class HumanAgent(Agent):
         self.cur_response: str | None = None
         self.cur_info: dict[str, Any] = {}
         self.cur_raw_code: str = ""
-        self.model = BaseModel()    # Dummy model
+        self.model = BaseModel()  # Dummy model
 
     def reset(self, instruction: str) -> None:
         super().reset(instruction=instruction)

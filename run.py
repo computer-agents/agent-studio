@@ -174,9 +174,7 @@ def eval_headless(
         try:
             task_id = task_config["task_id"]
             if config.remote:
-                response_raw = requests.post(
-                    f"{remote_server_addr}/runtime/reset"
-                )
+                response_raw = requests.post(f"{remote_server_addr}/runtime/reset")
                 response = PlaygroundResponse(**response_raw.json())
                 assert (
                     response.status == "success"
@@ -336,7 +334,7 @@ def record(args) -> None:
             from playground.env.desktop_env.human_interface import run_ui
 
             try:
-                assert config.remote == True, "Desktop env only supports remote mode."
+                assert config.remote is True, "Desktop env only supports remote mode."
                 qasync.run(
                     run_ui(
                         record_path="playground_data/trajectories/human",

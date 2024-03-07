@@ -8,7 +8,7 @@ class BaseModel:
         self.token_count: int = 0
 
     def reset(self) -> None:
-        self.token_count: int = 0
+        self.token_count = 0
 
     def compose_messages(
         self,

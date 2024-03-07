@@ -53,7 +53,6 @@ def create_parser():
 def setup_evaluator(
     env: str,
 ):
-
     match env:
         case "desktop":
             from playground.env.desktop_env.eval.evaluator_helper import (

@@ -90,7 +90,8 @@ class Evaluator:
             for action, params in step.items():
                 if action in self.evaluation_handlers:
                     # for k, v in kwargs.items():
-                    #     assert k not in params, f"Duplicate parameter {k} in {params}."
+                    #     assert k not in params, \
+                    # f"Duplicate parameter {k} in {params}."
                     #     params[k] = v
                     try:
                         self.evaluation_handlers[action](**params)

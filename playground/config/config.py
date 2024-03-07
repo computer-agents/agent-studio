@@ -1,5 +1,5 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 from playground.utils.singleton import Singleton
 
@@ -24,7 +24,7 @@ class Config(metaclass=Singleton):
     stop_code: str = "\nexit()"
 
     # Env server config
-    remote: bool = True # True for remote, False for local
+    remote: bool = True  # True for remote, False for local
     env_type: str = "desktop"
     env_server_addr: str = "127.0.0.1"
     env_server_host: str = "0.0.0.0"
