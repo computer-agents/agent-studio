@@ -33,15 +33,15 @@ git submodule update --init --remote --recursive
 
 #### Google Workspace
 
-[Enable Google APIs, configure OAuth, download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), and adjust configurations [here](playground/config/api_key_template.json).
+[Enable Google APIs, configure OAuth, download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), the credentials should be saved as `credentials.json` in the `playground/config` directory. Or you can modify the `google_credential_path` field [here](playground/config/config.py) to make sure the path matches.
 
 #### Telegram
 
-The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtain the telegram API key by following Telegram’s instructions and rules at https://core.telegram.org/api/obtaining_api_id. After obtaining `api_id` and `api_hash`, modify the `telegram_api_id` and `telegram_api_hash` parameters [here](playground/config/api_key_template.json).
+The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtain the Telegram API key by following Telegram’s instructions and rules at https://core.telegram.org/api/obtaining_api_id. After obtaining the `api_id` and `api_hash`, modify the `telegram_api_id` and `telegram_api_hash` parameters [here](playground/config/api_key_template.json).
 
 ### Setup Docker
 
-After obtaining the API keys, modify the `api_key_template.json` file to include the keys. Then rename the `api_key_template.json` to `api_key.json`.
+After obtaining the API keys and modifying the `api_key_template.json` file to include the keys, rename the `api_key_template.json` to `api_key.json`.
 ```bash
 mv playground/config/api_key_template.json playground/config/api_key.json
 ```
@@ -109,8 +109,21 @@ The recording interface is divided into three parts: the left part is the VNC wi
 docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm playground:latest
 ```
 
-### Run Evaluator
+#### Evaluator Configuration
 
+In `playground/config/config.py`, you can modify the corresponding field to configurate the evaluator.
+
+`need_human_confirmation`: enable/disable human confirmation for the evaluator. Default is `True`, which means each action step and reset step needs human confirmation.
+
+`headless`: enable/disable headless mode for the evaluator. Set to `False` to enable GUI mode. Default is CLI mode. **GUI mode will ignore `need_human_confirmation=False`**.
+
+`remote`: where to execute the actions and run the evaluator. Default is `True`, the remote evaluator will execute the actions and run the evaluator in the docker. If set to `False`, the evaluator will execute the actions and run the evaluator in the local machine.
+
+
+
+####  Run Evaluator
+
+Run the following command to start the evaluator:
 ```bash
 python run.py --mode eval
 ```

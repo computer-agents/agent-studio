@@ -10,21 +10,21 @@ class Config(metaclass=Singleton):
     """
 
     seed: int = 42
-    headless: bool = True
+    headless: bool = False  # True for CLI, False for GUI
     python_timeout: int = 10
     need_human_confirmation: bool = True
     minimal_action_interval: float = 3.0
 
     task_config_paths: dict = {
-        # "desktop": "playground_data/tasks/filesystem.jsonl",
-        "desktop": "playground_data/tasks/windows_easy.jsonl",
+        "desktop": "playground_data/tasks/filesystem.jsonl",
+        # "desktop": "playground_data/tasks/windows_easy.jsonl",
     }
     api_key_path: str = "playground/config/api_key.json"
 
     stop_code: str = "\nexit()"
 
     # Env server config
-    remote: bool = False
+    remote: bool = True # True for remote, False for local
     env_type: str = "desktop"
     env_server_addr: str = "127.0.0.1"
     env_server_host: str = "0.0.0.0"
@@ -52,9 +52,8 @@ class Config(metaclass=Singleton):
     agent: str = "direct"
     max_retries: int = 3
     # exec_model: str = "gpt-4-1106-vision-preview"
-    exec_model: str = "gemini-pro-vision"
-    # exec_model: str = "gemini-pro"
-    eval_model: str = "gemini-pro-vision"
+    exec_model: str = "gemini-pro"
+    eval_model: str = "gemini-pro"
     temperature: float = 0.0
     max_tokens: int = 4096
     gemini_api_key: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
