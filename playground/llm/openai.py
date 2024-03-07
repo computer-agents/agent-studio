@@ -105,6 +105,13 @@ class OpenAIProvider(BaseModel):
                 logger.error("Failed to get a response from OpenAI. Try again.")
 
             message = response.choices[0].message.content
+            if response.usage is None:
+                logger.warn(
+                    "Failed to get usage information from OpenAI."
+                )
+            else:
+                token_count = response.usage.total_tokens
+                self.token_count += token_count
 
             info = {
                 "prompt_tokens": response.usage.prompt_tokens,
