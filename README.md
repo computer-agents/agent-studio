@@ -35,6 +35,10 @@ git submodule update --init --remote --recursive
 
 [Enable Google APIs, configure OAuth, download the credentials](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), the credentials should be saved as `credentials.json` in the `playground/config` directory. Or you can modify the `google_credential_path` field [here](playground/config/config.py) to make sure the path matches.
 
+#### Google Calendar
+
+The agent and the evaluator will modify your Google Calendar. For safety, we recommend you create a new Calendar. Obtain the `calendar_id` by following the instructions [here](https://it.umn.edu/services-technologies/how-tos/google-calendar-find-your-google) and modify the `google_calendar_id` parameters [here](playground/config/api_key_template.json).
+
 #### Telegram
 
 The telegram evaluator is based on [Pyrogram](https://docs.pyrogram.org/). Obtain the Telegram API key by following Telegram’s instructions and rules at https://core.telegram.org/api/obtaining_api_id. After obtaining the `api_id` and `api_hash`, modify the `telegram_api_id` and `telegram_api_hash` parameters [here](playground/config/api_key_template.json).
