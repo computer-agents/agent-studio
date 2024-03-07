@@ -8,10 +8,11 @@ import sys
 import uuid
 from asyncio import open_connection
 from pathlib import Path
+import time
 
 import numpy as np
 import requests
-from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal
+from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal, QMutex, QWaitCondition
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QCheckBox,
@@ -27,18 +28,25 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
+    QInputDialog,
 )
 from qasync import QApplication, asyncClose, asyncSlot
 
 from playground.agent.human_agent import HumanAgent
 from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
-from playground.utils.communication import PlaygroundResponse
 from playground.utils.json_utils import (
     add_jsonl,
     export_trajectories,
     format_json,
     read_jsonl,
+)
+from playground.utils.communication import (
+    PlaygroundResetRequest,
+    PlaygroundResponse,
+    PlaygroundResultResponse,
+    PlaygroundStatusResponse,
+    PlaygroundTextRequest,
 )
 
 config = Config()
@@ -50,15 +58,54 @@ class WorkerSignals(QObject):
     next_action_editor_signal = pyqtSignal(bool)
     save_button_signal = pyqtSignal(bool)
     step_action_button_signal = pyqtSignal(bool)
+    show_input_dialog_signal = pyqtSignal(str)
 
 
 class ResetThread(QThread):
     def __init__(
         self,
         signals: WorkerSignals,
+        task_config: dict,
     ):
         super().__init__()
+        self.mutex = QMutex()
+        self.wait_condition = QWaitCondition()
         self.signals = signals
+        self.task_config = task_config
+
+    def _wait_finish(self):
+        while True:
+            response_raw = requests.get(
+                f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
+            )
+            response = PlaygroundStatusResponse(**response_raw.json())
+            if response.status == "finished":
+                break
+            elif response.status == "wait_for_input":
+                if config.need_human_confirmation:
+                    self.signals.status_bar_signal.emit(
+                        "color: blue;", "Waiting for input"
+                    )
+                    self.mutex.lock()
+                    self.signals.show_input_dialog_signal.emit(response.content)
+                    self.wait_condition.wait(self.mutex)
+                    self.mutex.unlock()
+                    user_input = self.user_input
+                else:
+                    user_input = "y"
+                response_raw = requests.post(
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",  # noqa: E501
+                    json=PlaygroundTextRequest(message=user_input).model_dump(),
+                )
+                response = PlaygroundResponse(**response_raw.json())
+                assert response.status == "success"
+            elif response.status == "pending":
+                self.signals.status_bar_signal.emit("color: green;", "Pending")
+            elif response.status == "in_progress":
+                pass
+            else:
+                raise ValueError(f"Unknown status: {response.status}")
+            time.sleep(1)
 
     def run(self):
         # reset remote runtime
@@ -72,6 +119,24 @@ class ResetThread(QThread):
         assert (
             response.status == "success"
         ), f"Fail to reset runtime: {response_raw.text}"
+        self.signals.status_bar_signal.emit(
+            "color: green;", "Task: Preparing the environment..."
+        )
+        response_raw = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
+            json=PlaygroundResetRequest(task_config=self.task_config).model_dump(),
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert response.status == "submitted"
+        self._wait_finish()
+        response_raw = requests.get(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/result",
+        )
+        response = PlaygroundResultResponse(**response_raw.json())
+        # TODO: handle failed reset
+        assert (
+            response.status == "finished" and response.result == "success"
+        ), f"Fail to reset environment: {response_raw.text}"
 
         self.signals.status_bar_signal.emit("color: green;", "Task: Ready")
 
@@ -79,9 +144,16 @@ class ResetThread(QThread):
         self.signals.save_button_signal.emit(True)
         self.signals.step_action_button_signal.emit(True)
 
+    def receive_user_input(self, text: str):
+        self.mutex.lock()
+        self.user_input = text  # Store the user input
+        self.wait_condition.wakeAll()  # Resume the thread
+        self.mutex.unlock()
 
-# Function to parse the Python file and extract required information
-def parse_python_file(file_path):
+
+def extract_evaluator_meta(file_path)-> tuple[str, list[dict]]:
+    """Extracts the reset_handler and evaluate_handler \
+        and their metadata from the evaluator."""
     with open(file_path, "r") as file:
         tree = ast.parse(file.read(), filename=file_path)
 
@@ -435,8 +507,23 @@ class HumanInterface(QMainWindow):
         self.worker_signals.step_action_button_signal.connect(
             self.step_action_button.setEnabled
         )
-        self.current_thread = ResetThread(self.worker_signals)
+        self.worker_signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        self.current_thread = ResetThread(
+            signals=self.worker_signals,
+            task_config=self.current_task.to_task_config(),
+        )
         self.current_thread.start()
+
+    def show_input_dialog(self, message: str):
+        dlg = QInputDialog()
+        dlg.setLabelText(message)
+        dlg.show()
+        dlg.findChildren(QPushButton)[1].hide()
+        result = dlg.exec()
+        assert result == QInputDialog.DialogCode.Accepted
+        user_input = dlg.textValue()
+        assert self.current_thread is not None
+        self.current_thread.receive_user_input(user_input)
 
     def set_task_status_bar_text(self, color: str, text: str) -> None:
         self.task_status_bar.setStyleSheet(color)
@@ -453,7 +540,7 @@ class HumanInterface(QMainWindow):
                 if file.endswith(".py"):
                     file_path = os.path.join(root, file)
                     try:
-                        evaluator_name, evaluator_info = parse_python_file(file_path)
+                        evaluator_name, evaluator_info = extract_evaluator_meta(file_path)
                         evaluator_args[evaluator_name] = evaluator_info
                     except Exception:
                         # logger.warn(f"Fail to parse {file_path}: {e}")
@@ -584,17 +671,20 @@ class HumanInterface(QMainWindow):
         """Saves the trajectory to the record path."""
         assert self.current_task is not None
         self.step_action_button.setEnabled(False)
-        export_trajectories(
-            self_eval_results=None,
-            task_config=self.current_task.to_record(),
-            trajectory=self.agent.trajectory,
-            record_path=self.record_path,
-            score=None,
-            feedback=None,
-            token_count=None,
-            video_meta=None,
-            jsonl_name="tasks.jsonl",
-        )
+        self.save_button.setEnabled(False)
+
+        if self.agent.trajectory != []:
+            export_trajectories(
+                self_eval_results=None,
+                task_config=self.current_task.to_record(),
+                trajectory=self.agent.trajectory,
+                record_path=self.record_path,
+                score=None,
+                feedback=None,
+                token_count=None,
+                video_meta=None,
+                jsonl_name="tasks.jsonl",
+            )
         self.reset()
 
     @asyncSlot()
