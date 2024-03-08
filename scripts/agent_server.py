@@ -120,10 +120,8 @@ async def execute_code(request: PlaygroundTextRequest) -> dict:
 async def reset_runtime() -> PlaygroundResponse:
     runtimes["python"].close()
     runtimes["python"] = PythonRuntime()
-    init_code = (
-        "from playground.env.desktop_env import Shell, Keyboard, Mouse\n\n"
-        "shell = Shell()\nkeyboard = Keyboard()\nmouse = Mouse()\n"
-    )
+    with open(config.init_code_path, "r") as f:
+        init_code = f.read()
     runtimes["python"](init_code)
     return PlaygroundResponse(status="success")
 
