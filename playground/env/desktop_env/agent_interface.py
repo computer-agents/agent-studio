@@ -358,6 +358,7 @@ class AgentInterface(QMainWindow):
         self.task_status_bar: QLabel
         self.on_close = False
 
+        self.vnc_thread: VNCStreamer | None = None
         self.current_thread: (
             RunTaskThread
             | EvalTaskThread
