@@ -64,11 +64,12 @@ class Agent:
         """Executes the code and record the result."""
         result = {}
         if confirmed:
-            done = self.cur_raw_code.strip().endswith(config.stop_code)
+            code_clean = self.cur_raw_code.strip()
+            done = code_clean.endswith(config.stop_code)
             if done:
-                code = self.cur_raw_code[: -len(config.stop_code)]
+                code = code_clean[: -len(config.stop_code)].strip()
             else:
-                code = self.cur_raw_code
+                code = code_clean
 
             logger.debug(f"Code to execute:\n{code}\n")
             if config.remote:
