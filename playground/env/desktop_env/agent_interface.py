@@ -94,6 +94,7 @@ class ResetRuntimeThread(QThread):
         response_raw = requests.post(
             f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
         )
+        assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = PlaygroundResponse(**response_raw.json())
         assert (
             response.status == "success"
@@ -126,6 +127,7 @@ class RunTaskThread(QThread):
             response_raw = requests.get(
                 f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
             )
+            assert response_raw.status_code == 200, f"{response_raw.status_code}"
             response = PlaygroundStatusResponse(**response_raw.json())
             if response.status == "finished":
                 break
@@ -145,6 +147,7 @@ class RunTaskThread(QThread):
                     url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",  # noqa: E501
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
+                assert response_raw.status_code == 200, f"{response_raw.status_code}"
                 response = PlaygroundResponse(**response_raw.json())
                 assert response.status == "success"
             elif response.status == "pending":
@@ -161,12 +164,14 @@ class RunTaskThread(QThread):
             f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
             json=PlaygroundResetRequest(task_config=self.selected_task).model_dump(),
         )
+        assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = PlaygroundResponse(**response_raw.json())
         assert response.status == "submitted"
         self._wait_finish()
         response_raw = requests.get(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/result",
         )
+        assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = PlaygroundResultResponse(**response_raw.json())
         # TODO: handle failed reset
         assert response.status == "finished" and response.result == "success"
@@ -218,6 +223,7 @@ class EvalTaskThread(QThread):
             response_raw = requests.get(
                 f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
             )
+            assert response_raw.status_code == 200, f"{response_raw.status_code}"
             response = PlaygroundStatusResponse(**response_raw.json())
             if response.status == "finished":
                 break
@@ -232,6 +238,7 @@ class EvalTaskThread(QThread):
                     url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",  # noqa: E501
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
+                assert response_raw.status_code == 200, f"{response_raw.status_code}"
                 response = PlaygroundResponse(**response_raw.json())
                 assert response.status == "success"
             elif response.status == "pending":
@@ -250,12 +257,14 @@ class EvalTaskThread(QThread):
                 task_config=self.selected_task,
             ).model_dump(),
         )
+        assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = PlaygroundResponse(**response_raw.json())
         assert response.status == "submitted"
         self._wait_finish()
         response_raw = requests.get(
             f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
         )
+        assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = PlaygroundResultResponse(**response_raw.json())
         assert response.status == "finished" and isinstance(response.message, dict)
         self.signals.status_bar_signal.emit("color: green;", "Task: Self-Evaluating...")

@@ -62,6 +62,36 @@ docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t playground:latest
 
 ## Get Started
 
+### Evaluate Agent
+
+#### Run Simulator with Docker
+
+```bash
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/playground/config/:/root/playground/playground/config/:ro playground:latest
+```
+
+#### Evaluator Configuration
+
+In `playground/config/config.py`, you can modify the corresponding field to configurate the evaluator.
+
+`need_human_confirmation`: enable/disable human confirmation for the evaluator. Default is `True`, which means each action step and reset step needs human confirmation.
+
+`headless`: enable/disable headless mode for the evaluator. Set to `False` to enable GUI mode. Default is CLI mode. **GUI mode will ignore `need_human_confirmation=False`**.
+
+`remote`: where to execute the actions and run the evaluator. Default is `True`, the remote evaluator will execute the actions and run the evaluator in the docker. If set to `False`, the evaluator will execute the actions and run the evaluator in the local machine.
+
+
+####  Run Evaluator
+
+Run the following command to start the evaluator:
+```bash
+python run.py --mode eval
+```
+
+If you enabled high DPI scaling, and the VNC window is beyond the screen, you may need to set the `QT_AUTO_SCREEN_SCALE_FACTOR` environment variable to `0` to disable high DPI scaling.
+
+---
+
 ### Record Dataset
 
 #### Run Simulator with Docker
@@ -107,36 +137,6 @@ The recording interface is divided into three parts: the left part is the VNC wi
 3. See the result in the VNC window and "Runtime Response" panel.
 4. Repeat the above steps until the task is completed.
 5. Click the "Save" button to save the recording.
-
----
-
-### Evaluate Agent
-
-#### Run Simulator with Docker
-
-```bash
-docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm playground:latest
-```
-
-#### Evaluator Configuration
-
-In `playground/config/config.py`, you can modify the corresponding field to configurate the evaluator.
-
-`need_human_confirmation`: enable/disable human confirmation for the evaluator. Default is `True`, which means each action step and reset step needs human confirmation.
-
-`headless`: enable/disable headless mode for the evaluator. Set to `False` to enable GUI mode. Default is CLI mode. **GUI mode will ignore `need_human_confirmation=False`**.
-
-`remote`: where to execute the actions and run the evaluator. Default is `True`, the remote evaluator will execute the actions and run the evaluator in the docker. If set to `False`, the evaluator will execute the actions and run the evaluator in the local machine.
-
-
-####  Run Evaluator
-
-Run the following command to start the evaluator:
-```bash
-python run.py --mode eval
-```
-
-If you enabled high DPI scaling, and the VNC window is beyond the screen, you may need to set the `QT_AUTO_SCREEN_SCALE_FACTOR` environment variable to `0` to disable high DPI scaling.
 
 ## Data
 
