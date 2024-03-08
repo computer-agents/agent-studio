@@ -1,3 +1,4 @@
+import sys
 import threading
 from enum import Enum
 
@@ -9,6 +10,7 @@ class StateEnum(Enum):
     IN_PROGRESS = "in_progress"
     WAIT_FOR_INPUT = "wait_for_input"
     FINISHED = "finished"
+    TERMINATE = "terminate"
 
 
 class StateInfo:
@@ -41,4 +43,6 @@ class TaskStatus(metaclass=ThreadSafeSingleton):
         with self.condition:
             while cur_state == self.state_info.state:
                 self.condition.wait()
+        if self.state_info.state == StateEnum.TERMINATE:
+            sys.exit(0)
         return self.state_info

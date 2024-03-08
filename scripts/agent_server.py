@@ -24,6 +24,11 @@ logger = logging.getLogger(__name__)
 task_status = TaskStatus()
 
 runtimes: dict[str, PythonRuntime] = {}
+config.remote = False
+config.headless = False
+config.need_human_confirmation = True
+
+current_thread: None | threading.Thread = None
 
 
 @asynccontextmanager
@@ -66,6 +71,7 @@ def setup_evaluator(
 
 def reset_task(task_config: dict):
     try:
+        logger.info(f"Start resetting task: {task_config}")
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
         evaluator_router = setup_evaluator(
             env=args.env,
@@ -75,6 +81,7 @@ def reset_task(task_config: dict):
         task_status.set_task_state(
             StateInfo(state=StateEnum.FINISHED, message="", result="success")
         )
+        logger.info(f"Finished resetting task")
     except Exception as e:
         logger.error(f"Failed to reset task: {e}")
         task_status.set_task_state(
@@ -84,6 +91,7 @@ def reset_task(task_config: dict):
 
 def eval_task(task_config: dict):
     try:
+        logger.info(f"Start evaluating task: {task_config}")
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
         evaluator_router = setup_evaluator(
             env=args.env,
@@ -97,6 +105,7 @@ def eval_task(task_config: dict):
                 result="success",
             )
         )
+        logger.info(f"Finished evaluating task")
     except Exception as e:
         logger.error(f"Failed to evaluate task: {e}")
         task_status.set_task_state(
@@ -138,6 +147,8 @@ async def confirm(request: PlaygroundTextRequest) -> PlaygroundResponse:
     Returns:
         Always "success".
     """
+    global current_thread
+    assert current_thread is not None, "Invalid current_thread"
     cur_state = task_status.get_task_state().state
     assert cur_state == StateEnum.WAIT_FOR_INPUT, f"Invalid status: {cur_state}"
     task_status.set_task_state(
@@ -155,12 +166,21 @@ async def new_task(request: PlaygroundResetRequest) -> PlaygroundResponse:
         request:
             task_config: The task configuration.
     """
+    global current_thread
     cur_status = task_status.get_task_state()
-    assert cur_status.state in [
-        StateEnum.PENDING,
-        StateEnum.FINISHED,
-    ], f"Invalid status: {cur_status}"
-    threading.Thread(target=reset_task, args=(request.task_config,)).start()
+    if cur_status.state not in [StateEnum.PENDING, StateEnum.FINISHED]:
+        logger.info(
+            f"Stopping current task: {cur_status.state}, on thread: {current_thread}"
+        )
+        assert current_thread is not None, "Invalid current_thread"
+        task_status.set_task_state(StateInfo(StateEnum.TERMINATE))
+        current_thread.join()
+        task_status.reset_state()
+
+    current_thread = threading.Thread(
+        target=reset_task, args=(request.task_config,)
+    )
+    current_thread.start()
     return PlaygroundResponse(status="submitted")
 
 
@@ -179,15 +199,18 @@ async def submit_eval(request: PlaygroundEvalRequest) -> PlaygroundResponse:
             If successful, the result contains the score and feedback.
             If failed, the result contains the error message.
     """
+    global current_thread
+    assert current_thread is not None, "Invalid current_thread"
     cur_status = task_status.get_task_state()
     assert cur_status.state in [
         StateEnum.PENDING,
         StateEnum.FINISHED,
     ], f"Invalid status: {cur_status}"
-    threading.Thread(
+    current_thread = threading.Thread(
         target=eval_task,
         args=(request.task_config,),
-    ).start()
+    )
+    current_thread.start()
     return PlaygroundResponse(status="submitted")
 
 
@@ -197,6 +220,7 @@ async def get_status() -> PlaygroundStatusResponse:
     Get the status of the current task.
     """
     cur_status = task_status.get_task_state()
+    logger.debug(f"Get current status: {cur_status}")
     if cur_status.state == StateEnum.PENDING:
         return PlaygroundStatusResponse(status="pending")
     elif cur_status.state == StateEnum.IN_PROGRESS:
@@ -210,6 +234,8 @@ async def get_status() -> PlaygroundStatusResponse:
         )
     elif cur_status.state == StateEnum.FINISHED:
         return PlaygroundStatusResponse(status="finished")
+    elif cur_status.state == StateEnum.TERMINATE:
+        return PlaygroundStatusResponse(status="terminate")
     else:
         raise ValueError(f"Invalid state: {cur_status}")
 
@@ -221,7 +247,6 @@ async def get_result() -> PlaygroundResultResponse:
     """
     cur_status = task_status.get_task_state()
     assert cur_status.state == StateEnum.FINISHED, f"Invalid status: {cur_status}"
-    task_status.reset_state()
     return PlaygroundResultResponse(
         status=cur_status.state.value,
         result=cur_status.result,
