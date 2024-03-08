@@ -381,7 +381,6 @@ class AgentInterface(QMainWindow):
 
         self.setup_ui()
 
-        self.vnc = None
         self.reset()
 
     def setup_ui(self):
@@ -767,7 +766,6 @@ class AgentInterface(QMainWindow):
         try:
             if config.remote:
                 with self.recording_lock:
-                    # self.now_screenshot = await self.vnc.screenshot()
                     frame = self.vnc_thread.get_current_frame()
                 if frame is not None:
                     qimage = QImage(
@@ -789,7 +787,7 @@ class AgentInterface(QMainWindow):
 
         self.refreshing_screen = True
         self.update_screen()
-        if self.vnc is not None:
+        if self.vnc_thread is not None:
             if local_cursor_pos := self.vnc_frame.get_cursor_pos():
                 self.status_bar.showMessage(f"Cursor Position: {str(local_cursor_pos)}")
 
