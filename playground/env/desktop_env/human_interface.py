@@ -794,7 +794,7 @@ class HumanInterface(QMainWindow):
         self.step_action_button.setEnabled(False)
         self.save_button.setEnabled(False)
         self.eval_button.setEnabled(False)
-        assert self.selected_task is not None, "No task selected"
+        assert self.current_task is not None, "No task selected"
 
         signals = WorkerSignals()
         signals.save_button_signal.connect(self.save_button.setEnabled)
@@ -804,7 +804,7 @@ class HumanInterface(QMainWindow):
         self.current_thread_result = queue.Queue()
         self.current_thread = EvalTaskThread(
             signals=signals,
-            selected_task=self.selected_task,
+            selected_task=self.current_task.to_task_config(),
             trajectory_display=self.trajectory_display,
             result_queue=self.current_thread_result,
         )
