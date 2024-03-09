@@ -42,7 +42,7 @@ from playground.utils.json_utils import export_trajectories, format_json, read_j
 
 config = Config()
 logger = logging.getLogger(__name__)
-REMOTE_SERVER_ADDR = f"http://{config.env_server_addr}:{config.env_server_port}"
+REMOTE_SERVER_ADDR = f"{config.env_server_addr}:{config.env_server_port}"
 
 
 class FrameBuffer:
