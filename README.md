@@ -97,7 +97,7 @@ If you enabled high DPI scaling, and the VNC window is beyond the screen, you ma
 #### Run Simulator with Docker
 
 ```bash
-docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm ${PWD}/playground/config/:/root/playground/playground/config/:ro playground:latest
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/playground/config/:/root/playground/playground/config/:ro playground:latest
 ```
 
 #### Recorder Usage
