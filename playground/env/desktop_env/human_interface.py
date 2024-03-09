@@ -4,21 +4,22 @@ import functools
 import json
 import logging
 import os
+import queue
 import sys
+import time
 import uuid
 from asyncio import open_connection
 from pathlib import Path
-import time
-import queue
 
 import numpy as np
 import requests
-from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal, QMutex, QWaitCondition
+from PyQt6.QtCore import QMutex, QObject, QThread, QTimer, QWaitCondition, pyqtSignal
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QListWidget,
     QListWidgetItem,
@@ -29,30 +30,30 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
-    QInputDialog,
 )
 from qasync import QApplication, asyncClose, asyncSlot
 
 from playground.agent.human_agent import HumanAgent
 from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
+from playground.utils.communication import (
+    PlaygroundEvalRequest,
+    PlaygroundResetRequest,
+    PlaygroundResponse,
+    PlaygroundResultResponse,
+    PlaygroundStatusResponse,
+    PlaygroundTextRequest,
+)
 from playground.utils.json_utils import (
     add_jsonl,
     export_trajectories,
     format_json,
     read_jsonl,
 )
-from playground.utils.communication import (
-    PlaygroundResetRequest,
-    PlaygroundResponse,
-    PlaygroundResultResponse,
-    PlaygroundStatusResponse,
-    PlaygroundTextRequest,
-    PlaygroundEvalRequest,
-)
 
 config = Config()
 logger = logging.getLogger(__name__)
+REMOTE_SERVER_ADDR = f"{config.env_server_addr}:{config.env_server_port}"
 
 
 class WorkerSignals(QObject):
@@ -79,9 +80,7 @@ class ResetThread(QThread):
 
     def _wait_finish(self):
         while True:
-            response_raw = requests.get(
-                f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
-            )
+            response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/status")
             assert response_raw.status_code == 200, f"{response_raw.status_code}"
             response = PlaygroundStatusResponse(**response_raw.json())
             if response.status == "finished":
@@ -99,7 +98,7 @@ class ResetThread(QThread):
                 else:
                     user_input = "y"
                 response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
                 assert response_raw.status_code == 200, f"{response_raw.status_code}"
@@ -118,9 +117,7 @@ class ResetThread(QThread):
         self.signals.status_bar_signal.emit(
             "color: green;", "Task: Resetting runtime..."
         )
-        response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
-        )
+        response_raw = requests.post(f"http://{REMOTE_SERVER_ADDR}/runtime/reset")
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = PlaygroundResponse(**response_raw.json())
         assert (
@@ -130,7 +127,7 @@ class ResetThread(QThread):
             "color: green;", "Task: Preparing the environment..."
         )
         response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
+            f"http://{REMOTE_SERVER_ADDR}/task/reset",
             json=PlaygroundResetRequest(task_config=self.task_config).model_dump(),
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
@@ -138,7 +135,7 @@ class ResetThread(QThread):
         assert response.status == "submitted"
         self._wait_finish()
         response_raw = requests.get(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/result",
+            f"http://{REMOTE_SERVER_ADDR}/task/result",
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = PlaygroundResultResponse(**response_raw.json())
@@ -160,6 +157,7 @@ class ResetThread(QThread):
         self.wait_condition.wakeAll()  # Resume the thread
         self.mutex.unlock()
 
+
 class EvalTaskThread(QThread):
     def __init__(
         self,
@@ -178,9 +176,7 @@ class EvalTaskThread(QThread):
 
     def _wait_finish(self):
         while True:
-            response_raw = requests.get(
-                f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
-            )
+            response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/status")
             response = PlaygroundStatusResponse(**response_raw.json())
             if response.status == "finished":
                 break
@@ -192,7 +188,7 @@ class EvalTaskThread(QThread):
                 self.mutex.unlock()
                 user_input = self.user_input
                 response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
                 response = PlaygroundResponse(**response_raw.json())
@@ -208,7 +204,7 @@ class EvalTaskThread(QThread):
     def run(self):
         self.signals.status_bar_signal.emit("color: green;", "Task: Auto-Evaluating...")
         response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
+            f"http://{REMOTE_SERVER_ADDR}/task/eval",
             json=PlaygroundEvalRequest(
                 task_config=self.selected_task,
             ).model_dump(),
@@ -216,9 +212,7 @@ class EvalTaskThread(QThread):
         response = PlaygroundResponse(**response_raw.json())
         assert response.status == "submitted"
         self._wait_finish()
-        response_raw = requests.get(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
-        )
+        response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/result")
         response = PlaygroundResultResponse(**response_raw.json())
         assert response.status == "finished" and isinstance(response.message, dict)
         self.result_queue.put(response.message)
@@ -237,7 +231,7 @@ class EvalTaskThread(QThread):
         self.mutex.unlock()
 
 
-def extract_evaluator_meta(file_path)-> tuple[str, list[dict]]:
+def extract_evaluator_meta(file_path) -> tuple[str, list[dict]]:
     """Extracts the reset_handler and evaluate_handler \
         and their metadata from the evaluator."""
     with open(file_path, "r") as file:
@@ -257,12 +251,15 @@ def extract_evaluator_meta(file_path)-> tuple[str, list[dict]]:
                         if isinstance(item, ast.FunctionDef):
                             # Check for decorators
                             for decorator in item.decorator_list:
-                                if isinstance(
-                                    decorator, ast.Call
-                                ) and decorator.func.id in [
-                                    "evaluation_handler",
-                                    "reset_handler",
-                                ]:
+                                if (
+                                    isinstance(decorator, ast.Call)
+                                    and hasattr(decorator.func, "id")
+                                    and decorator.func.id
+                                    in [
+                                        "evaluation_handler",
+                                        "reset_handler",
+                                    ]
+                                ):
                                     # Extract decorator name and arguments
                                     decorator_name = decorator.func.id
                                     decorator_args = [
@@ -291,15 +288,7 @@ def extract_evaluator_meta(file_path)-> tuple[str, list[dict]]:
                         elif isinstance(item, ast.AnnAssign):
                             target = item.target
                             if isinstance(target, ast.Name) and target.id == "name":
-                                if evaluator_name is None:
-                                    evaluator_name = item.value.n
-                                else:
-                                    raise ValueError(
-                                        f"Multiple evaluator names found in {file_path}"
-                                    )
-                        elif isinstance(item, ast.Assign):
-                            for target in item.targets:
-                                if isinstance(target, ast.Name) and target.id == "name":
+                                if item.value is not None and hasattr(item.value, "n"):
                                     if evaluator_name is None:
                                         evaluator_name = item.value.n
                                     else:
@@ -307,6 +296,19 @@ def extract_evaluator_meta(file_path)-> tuple[str, list[dict]]:
                                             "Multiple evaluator names found in "
                                             f"{file_path}"
                                         )
+                        elif isinstance(item, ast.Assign):
+                            for assign in item.targets:
+                                if isinstance(assign, ast.Name) and assign.id == "name":
+                                    if item.value is not None and hasattr(
+                                        item.value, "n"
+                                    ):
+                                        if evaluator_name is None:
+                                            evaluator_name = item.value.n
+                                        else:
+                                            raise ValueError(
+                                                "Multiple evaluator names found in "
+                                                f"{file_path}"
+                                            )
     if evaluator_name is None:
         raise ValueError(f"No evaluator name found in {file_path}")
     return evaluator_name, extracted_info
@@ -639,7 +641,9 @@ class HumanInterface(QMainWindow):
                 if file.endswith(".py"):
                     file_path = os.path.join(root, file)
                     try:
-                        evaluator_name, evaluator_info = extract_evaluator_meta(file_path)
+                        evaluator_name, evaluator_info = extract_evaluator_meta(
+                            file_path
+                        )
                         evaluator_args[evaluator_name] = evaluator_info
                     except Exception:
                         # logger.warn(f"Fail to parse {file_path}: {e}")

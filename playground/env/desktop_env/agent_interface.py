@@ -42,6 +42,7 @@ from playground.utils.json_utils import export_trajectories, format_json, read_j
 
 config = Config()
 logger = logging.getLogger(__name__)
+REMOTE_SERVER_ADDR = f"http://{config.env_server_addr}:{config.env_server_port}"
 
 
 class FrameBuffer:
@@ -91,9 +92,7 @@ class ResetRuntimeThread(QThread):
 
     def run(self):
         # reset remote runtime
-        response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
-        )
+        response_raw = requests.post(f"http://{REMOTE_SERVER_ADDR}/runtime/reset")
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = PlaygroundResponse(**response_raw.json())
         assert (
@@ -124,9 +123,7 @@ class RunTaskThread(QThread):
 
     def _wait_finish(self):
         while True:
-            response_raw = requests.get(
-                f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
-            )
+            response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/status")
             assert response_raw.status_code == 200, f"{response_raw.status_code}"
             response = PlaygroundStatusResponse(**response_raw.json())
             if response.status == "finished":
@@ -144,7 +141,7 @@ class RunTaskThread(QThread):
                 else:
                     user_input = "y"
                 response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
                 assert response_raw.status_code == 200, f"{response_raw.status_code}"
@@ -161,7 +158,7 @@ class RunTaskThread(QThread):
     def reset_task(self):
         assert self.selected_task is not None
         response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/reset",
+            f"http://{REMOTE_SERVER_ADDR}/task/reset",
             json=PlaygroundResetRequest(task_config=self.selected_task).model_dump(),
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
@@ -169,7 +166,7 @@ class RunTaskThread(QThread):
         assert response.status == "submitted"
         self._wait_finish()
         response_raw = requests.get(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/result",
+            f"http://{REMOTE_SERVER_ADDR}/task/result",
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = PlaygroundResultResponse(**response_raw.json())
@@ -220,9 +217,7 @@ class EvalTaskThread(QThread):
 
     def _wait_finish(self):
         while True:
-            response_raw = requests.get(
-                f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
-            )
+            response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/status")
             assert response_raw.status_code == 200, f"{response_raw.status_code}"
             response = PlaygroundStatusResponse(**response_raw.json())
             if response.status == "finished":
@@ -235,7 +230,7 @@ class EvalTaskThread(QThread):
                 self.mutex.unlock()
                 user_input = self.user_input
                 response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
                 assert response_raw.status_code == 200, f"{response_raw.status_code}"
@@ -252,7 +247,7 @@ class EvalTaskThread(QThread):
     def run(self):
         self.signals.status_bar_signal.emit("color: green;", "Task: Auto-Evaluating...")
         response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
+            f"http://{REMOTE_SERVER_ADDR}/task/eval",
             json=PlaygroundEvalRequest(
                 task_config=self.selected_task,
             ).model_dump(),
@@ -261,9 +256,7 @@ class EvalTaskThread(QThread):
         response = PlaygroundResponse(**response_raw.json())
         assert response.status == "submitted"
         self._wait_finish()
-        response_raw = requests.get(
-            f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
-        )
+        response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/result")
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = PlaygroundResultResponse(**response_raw.json())
         assert response.status == "finished" and isinstance(response.message, dict)
@@ -554,9 +547,10 @@ class AgentInterface(QMainWindow):
         self.task_config_display.setText(format_json(self.selected_task))
         self.evaluation_display.clear()
         if self.selected_task["task_id"] in self.task_results:
+            score = self.task_results[self.selected_task["task_id"]]["score"]
+            feedback = self.task_results[self.selected_task["task_id"]]["feedback"]
             self.evaluation_display.setPlainText(
-                f"Score: {self.task_results[self.selected_task['task_id']]['score']}\n"
-                f"Feedback: {self.task_results[self.selected_task['task_id']]['feedback']}"
+                f"Score: {score}\n" f"Feedback: {feedback}"
             )
 
         self.start_button.setEnabled(True)
@@ -610,9 +604,11 @@ class AgentInterface(QMainWindow):
                 vnc_port=config.vnc_port,
                 vnc_password=config.vnc_password,
             )
-        self.vnc_thread.start()
-        if self.screen_recorder is not None and isinstance(
-            self.screen_recorder, VNCRecorder
+            self.vnc_thread.start()
+        if (
+            self.screen_recorder is not None
+            and isinstance(self.screen_recorder, VNCRecorder)
+            and self.vnc_thread is not None
         ):
             self.screen_recorder.vnc_streamer = self.vnc_thread
         self.status_bar.showMessage("Connected")

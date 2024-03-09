@@ -81,7 +81,7 @@ def reset_task(task_config: dict):
         task_status.set_task_state(
             StateInfo(state=StateEnum.FINISHED, message="", result="success")
         )
-        logger.info(f"Finished resetting task")
+        logger.info("Finished resetting task")
     except Exception as e:
         logger.error(f"Failed to reset task: {e}")
         task_status.set_task_state(
@@ -105,7 +105,7 @@ def eval_task(task_config: dict):
                 result="success",
             )
         )
-        logger.info(f"Finished evaluating task")
+        logger.info("Finished evaluating task")
     except Exception as e:
         logger.error(f"Failed to evaluate task: {e}")
         task_status.set_task_state(
@@ -177,9 +177,7 @@ async def new_task(request: PlaygroundResetRequest) -> PlaygroundResponse:
         current_thread.join()
         task_status.reset_state()
 
-    current_thread = threading.Thread(
-        target=reset_task, args=(request.task_config,)
-    )
+    current_thread = threading.Thread(target=reset_task, args=(request.task_config,))
     current_thread.start()
     return PlaygroundResponse(status="submitted")
 
