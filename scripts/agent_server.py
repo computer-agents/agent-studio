@@ -18,6 +18,7 @@ from playground.utils.communication import (
     PlaygroundTextRequest,
 )
 from playground.utils.task_status import StateEnum, StateInfo, TaskStatus
+from playground.env.desktop_env.eval.evaluator_helper import EvaluatorComb
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -69,14 +70,9 @@ def setup_evaluator(
     return evaluator_router
 
 
-def reset_task(task_config: dict):
+def reset_task(comb: EvaluatorComb):
     try:
-        logger.info(f"Start resetting task: {task_config}")
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
-        evaluator_router = setup_evaluator(
-            env=args.env,
-        )
-        comb = evaluator_router(task_config)
         comb.reset()
         task_status.set_task_state(
             StateInfo(state=StateEnum.FINISHED, message="", result="success")
@@ -89,14 +85,9 @@ def reset_task(task_config: dict):
         )
 
 
-def eval_task(task_config: dict):
+def eval_task(comb: EvaluatorComb):
     try:
-        logger.info(f"Start evaluating task: {task_config}")
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
-        evaluator_router = setup_evaluator(
-            env=args.env,
-        )
-        comb = evaluator_router(task_config)
         score, feedback = comb()
         task_status.set_task_state(
             StateInfo(
@@ -177,7 +168,12 @@ async def new_task(request: PlaygroundResetRequest) -> PlaygroundResponse:
         current_thread.join()
         task_status.reset_state()
 
-    current_thread = threading.Thread(target=reset_task, args=(request.task_config,))
+    logger.info(f"Start resetting task: {request.task_config}")
+    evaluator_router = setup_evaluator(
+        env=args.env,
+    )
+    comb = evaluator_router(request.task_config)
+    current_thread = threading.Thread(target=reset_task, args=(comb,))
     current_thread.start()
     return PlaygroundResponse(status="submitted")
 
@@ -204,9 +200,15 @@ async def submit_eval(request: PlaygroundEvalRequest) -> PlaygroundResponse:
         StateEnum.PENDING,
         StateEnum.FINISHED,
     ], f"Invalid status: {cur_status}"
+
+    evaluator_router = setup_evaluator(
+        env=args.env,
+    )
+    logger.info(f"Start evaluating task: {request.task_config}")
+    comb: EvaluatorComb = evaluator_router(request.task_config)
     current_thread = threading.Thread(
         target=eval_task,
-        args=(request.task_config,),
+        args=(comb,),
     )
     current_thread.start()
     return PlaygroundResponse(status="submitted")
