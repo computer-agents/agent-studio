@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
 
-from playground.utils.singleton import Singleton
+from playground.utils.singleton import ThreadSafeSingleton
 
 
-class Config(metaclass=Singleton):
+class Config(metaclass=ThreadSafeSingleton):
     """
     Singleton for config.
     """
