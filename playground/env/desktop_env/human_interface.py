@@ -9,6 +9,7 @@ import uuid
 from asyncio import open_connection
 from pathlib import Path
 import time
+import queue
 
 import numpy as np
 import requests
@@ -47,6 +48,7 @@ from playground.utils.communication import (
     PlaygroundResultResponse,
     PlaygroundStatusResponse,
     PlaygroundTextRequest,
+    PlaygroundEvalRequest,
 )
 
 config = Config()
@@ -59,6 +61,8 @@ class WorkerSignals(QObject):
     save_button_signal = pyqtSignal(bool)
     step_action_button_signal = pyqtSignal(bool)
     show_input_dialog_signal = pyqtSignal(str)
+    evaluation_display_signal = pyqtSignal(str)
+    eval_button_signal = pyqtSignal(bool)
 
 
 class ResetThread(QThread):
@@ -95,7 +99,7 @@ class ResetThread(QThread):
                 else:
                     user_input = "y"
                 response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",  # noqa: E501
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
                 assert response_raw.status_code == 200, f"{response_raw.status_code}"
@@ -148,6 +152,83 @@ class ResetThread(QThread):
         self.signals.next_action_editor_signal.emit(True)
         self.signals.save_button_signal.emit(True)
         self.signals.step_action_button_signal.emit(True)
+        self.signals.eval_button_signal.emit(True)
+
+    def receive_user_input(self, text: str):
+        self.mutex.lock()
+        self.user_input = text  # Store the user input
+        self.wait_condition.wakeAll()  # Resume the thread
+        self.mutex.unlock()
+
+class EvalTaskThread(QThread):
+    def __init__(
+        self,
+        signals: WorkerSignals,
+        trajectory_display: QTextEdit,
+        selected_task: dict,
+        result_queue: queue.Queue,
+    ):
+        super().__init__()
+        self.mutex = QMutex()
+        self.wait_condition = QWaitCondition()
+        self.signals = signals
+        self.selected_task = selected_task
+        self.trajectory_display = trajectory_display
+        self.result_queue = result_queue
+
+    def _wait_finish(self):
+        while True:
+            response_raw = requests.get(
+                f"http://{config.env_server_addr}:{config.env_server_port}/task/status"
+            )
+            response = PlaygroundStatusResponse(**response_raw.json())
+            if response.status == "finished":
+                break
+            elif response.status == "wait_for_input":
+                self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
+                self.mutex.lock()
+                self.signals.show_input_dialog_signal.emit(response.content)
+                self.wait_condition.wait(self.mutex)
+                self.mutex.unlock()
+                user_input = self.user_input
+                response_raw = requests.post(
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
+                    json=PlaygroundTextRequest(message=user_input).model_dump(),
+                )
+                response = PlaygroundResponse(**response_raw.json())
+                assert response.status == "success"
+            elif response.status == "pending":
+                self.signals.status_bar_signal.emit("color: green;", "Pending")
+            elif response.status == "in_progress":
+                self.signals.status_bar_signal.emit("color: green;", "In Progress")
+            else:
+                raise ValueError(f"Unknown status: {response.status}")
+            time.sleep(1)
+
+    def run(self):
+        self.signals.status_bar_signal.emit("color: green;", "Task: Auto-Evaluating...")
+        response_raw = requests.post(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/eval",
+            json=PlaygroundEvalRequest(
+                task_config=self.selected_task,
+            ).model_dump(),
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert response.status == "submitted"
+        self._wait_finish()
+        response_raw = requests.get(
+            f"http://{config.env_server_addr}:{config.env_server_port}/task/result"
+        )
+        response = PlaygroundResultResponse(**response_raw.json())
+        assert response.status == "finished" and isinstance(response.message, dict)
+        self.result_queue.put(response.message)
+        self.signals.evaluation_display_signal.emit(
+            "Auto-evaluation result:\n"
+            f"Score: {response.message['score']}\n"
+            f"Feedback: {response.message['feedback']}\n"
+        )
+        self.signals.status_bar_signal.emit("color: green;", "Task: Finished")
+        self.signals.save_button_signal.emit(True)
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -283,7 +364,7 @@ class HumanInterface(QMainWindow):
         self.refreshing_screen = False  # need for refresh flag
         self.last_message = ""
         self.task_config_path = task_config_path
-        self.current_thread: ResetThread | None = None
+        self.current_thread: ResetThread | EvalTaskThread | None = None
         self.task_status_bar: QLabel
 
         # Task
@@ -418,10 +499,19 @@ class HumanInterface(QMainWindow):
 
         self.output_display = QTextEdit(self)
         # self.output_display.setFixedWidth(self.right_layout_width)
-        self.output_display.setFixedHeight(40)
+        # self.output_display.setFixedHeight(40)
         self.output_display.setReadOnly(True)
         trajectory_layout.addWidget(QLabel("Runtime Response"))
         trajectory_layout.addWidget(self.output_display)
+
+        trajectory_layout.addWidget(QLabel("Evaluation result"))
+        self.evaluation_display = QTextEdit(self)
+        trajectory_layout.addWidget(self.evaluation_display)
+        self.evaluation_display.setReadOnly(True)
+
+        self.eval_button = QPushButton("Evaluate")
+        self.eval_button.clicked.connect(self.eval_task)
+        trajectory_layout.addWidget(self.eval_button)
 
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self.save_trajectory)
@@ -446,10 +536,13 @@ class HumanInterface(QMainWindow):
         self.eval_steps_display.setReadOnly(False)
         self.output_display.clear()
         self.output_display.setEnabled(False)
+        self.evaluation_display.clear()
+        self.evaluation_display.setEnabled(True)
         self.evaluator_changed(0)
         self.evaluator_dropdown.setEnabled(True)
         self.eval_method_list.clear()
         self.eval_method_list.setEnabled(True)
+        self.eval_button.setEnabled(False)
         self.save_button.setEnabled(False)
         self.step_action_button.setEnabled(False)
         self.is_visual_checkbox.setEnabled(True)
@@ -474,7 +567,7 @@ class HumanInterface(QMainWindow):
             dlg = QMessageBox(self)
             dlg.setWindowTitle("Invalid JSON format!")
             dlg.setText(f"{e}")
-            dlg.exec()
+            dlg.show()
             return
         self.evaluator_sel_container.hide()
         self.trajectory_container.show()
@@ -513,6 +606,7 @@ class HumanInterface(QMainWindow):
             self.step_action_button.setEnabled
         )
         self.worker_signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        self.worker_signals.eval_button_signal.connect(self.eval_button.setEnabled)
         self.current_thread = ResetThread(
             signals=self.worker_signals,
             task_config=self.current_task.to_task_config(),
@@ -691,6 +785,26 @@ class HumanInterface(QMainWindow):
                 jsonl_name="tasks.jsonl",
             )
         self.reset()
+
+    def eval_task(self):
+        self.step_action_button.setEnabled(False)
+        self.save_button.setEnabled(False)
+        self.eval_button.setEnabled(False)
+        assert self.selected_task is not None, "No task selected"
+
+        signals = WorkerSignals()
+        signals.save_button_signal.connect(self.save_button.setEnabled)
+        signals.status_bar_signal.connect(self.set_task_status_bar_text)
+        signals.evaluation_display_signal.connect(self.evaluation_display.setPlainText)
+        signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        self.current_thread_result = queue.Queue()
+        self.current_thread = EvalTaskThread(
+            signals=signals,
+            selected_task=self.selected_task,
+            trajectory_display=self.trajectory_display,
+            result_queue=self.current_thread_result,
+        )
+        self.current_thread.start()
 
     @asyncSlot()
     async def reconnect(self) -> None:

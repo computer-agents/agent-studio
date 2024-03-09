@@ -144,7 +144,7 @@ class RunTaskThread(QThread):
                 else:
                     user_input = "y"
                 response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",  # noqa: E501
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
                 assert response_raw.status_code == 200, f"{response_raw.status_code}"
@@ -235,7 +235,7 @@ class EvalTaskThread(QThread):
                 self.mutex.unlock()
                 user_input = self.user_input
                 response_raw = requests.post(
-                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",  # noqa: E501
+                    url=f"http://{config.env_server_addr}:{config.env_server_port}/task/confirm",
                     json=PlaygroundTextRequest(message=user_input).model_dump(),
                 )
                 assert response_raw.status_code == 200, f"{response_raw.status_code}"
@@ -556,7 +556,7 @@ class AgentInterface(QMainWindow):
         if self.selected_task["task_id"] in self.task_results:
             self.evaluation_display.setPlainText(
                 f"Score: {self.task_results[self.selected_task['task_id']]['score']}\n"
-                f"Feedback: {self.task_results[self.selected_task['task_id']]['feedback']}"  # noqa: E501
+                f"Feedback: {self.task_results[self.selected_task['task_id']]['feedback']}"
             )
 
         self.start_button.setEnabled(True)
