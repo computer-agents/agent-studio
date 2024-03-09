@@ -560,7 +560,7 @@ class AgentInterface(QMainWindow):
         self.task_status_bar.setText(text)
 
     def show_input_dialog(self, message: str):
-        dlg = QInputDialog()
+        dlg = QInputDialog(self)
         dlg.setLabelText(message)
         dlg.show()
         dlg.findChildren(QPushButton)[1].hide()

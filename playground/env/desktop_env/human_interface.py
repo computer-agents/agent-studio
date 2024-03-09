@@ -616,7 +616,7 @@ class HumanInterface(QMainWindow):
         self.current_thread.start()
 
     def show_input_dialog(self, message: str):
-        dlg = QInputDialog()
+        dlg = QInputDialog(self)
         dlg.setLabelText(message)
         dlg.show()
         dlg.findChildren(QPushButton)[1].hide()
