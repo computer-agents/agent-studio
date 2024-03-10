@@ -72,15 +72,16 @@ fi
 PASSWORD=
 HTTP_PASSWORD=
 
-# Add agent_server to supervisord
+# Add agent_server to supervisord under ubuntu user space
 cat <<EOF > /etc/supervisor/conf.d/agent_server.conf
 [program:agent_server]
-command=python3.11 /root/playground/scripts/agent_server.py --env desktop
+command=python3.11 /home/ubuntu/playground/scripts/agent_server.py --env desktop
 autostart=true
 autorestart=true
+user=ubuntu
 stderr_logfile=/var/log/agent_server.err.log
 stdout_logfile=/var/log/agent_server.out.log
-environment=DISPLAY=":1.0"
+environment=HOME="/home/ubuntu",USER="ubuntu",PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",LOGNAME="ubuntu",DISPLAY=":1.0",DONT_PROMPT_WSL_INSTALL=True
 EOF
 
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf
