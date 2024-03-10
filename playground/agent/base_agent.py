@@ -27,6 +27,7 @@ class Agent:
         self.cur_response: str | None = None
         self.cur_info: dict[str, Any] = {}
         self.cur_raw_code: str = ""
+        self.token_cost: int = 0
 
     def reset(
         self,
@@ -38,7 +39,7 @@ class Agent:
         self.cur_response = None
         self.cur_info = {}
         self.cur_raw_code = ""
-        self.model.reset()
+        self.token_cost: int = 0
 
         if self.runtime is not None:
             self.runtime.close()
@@ -48,7 +49,7 @@ class Agent:
             self.runtime = PythonRuntime()
 
     def get_token_count(self) -> int:
-        return self.model.token_count
+        return self.token_cost
 
     def generate_action(self, obs: np.ndarray | None) -> tuple[str, str]:
         self.cur_obs = obs
@@ -56,6 +57,7 @@ class Agent:
         self.cur_response, self.cur_info = self.model.generate_response(
             messages=cur_messages, model=config.exec_model
         )
+        self.token_cost += self.cur_info.get("total_tokens", 0)
         self.cur_raw_code = extract_from_response(self.cur_response)
 
         return self.cur_response, self.cur_raw_code

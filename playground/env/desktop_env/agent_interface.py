@@ -565,7 +565,8 @@ class AgentInterface(QMainWindow):
         dlg.show()
         dlg.findChildren(QPushButton)[1].hide()
         result = dlg.exec()
-        assert result == QInputDialog.DialogCode.Accepted
+        if result != QInputDialog.DialogCode.Accepted:
+            result = "n"
         user_input = dlg.textValue()
         assert self.current_thread is not None
         self.current_thread.receive_user_input(user_input)

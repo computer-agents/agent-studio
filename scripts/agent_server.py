@@ -35,10 +35,8 @@ current_thread: None | threading.Thread = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     runtimes["python"] = PythonRuntime()
-    init_code = (
-        "from playground.env.desktop_env import Shell, Keyboard, Mouse\n\n"
-        "shell = Shell()\nkeyboard = Keyboard()\nmouse = Mouse()\n"
-    )
+    with open(config.init_code_path, "r") as f:
+        init_code = f.read()
     runtimes["python"](init_code)
     yield
     runtimes["python"].close()
@@ -112,6 +110,7 @@ async def health() -> Response:
 
 @app.post("/execute")
 async def execute_code(request: PlaygroundTextRequest) -> dict:
+    logger.info(f"Execute code: {request.message}")
     result = runtimes["python"](request.message)
     return result
 
@@ -123,6 +122,7 @@ async def reset_runtime() -> PlaygroundResponse:
     with open(config.init_code_path, "r") as f:
         init_code = f.read()
     runtimes["python"](init_code)
+    logger.info("Reset runtime")
     return PlaygroundResponse(status="success")
 
 

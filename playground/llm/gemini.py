@@ -95,16 +95,24 @@ class GeminiProvider(BaseModel):
                     "config": bytes2str(generation_config),
                 }
                 response_raw = requests.post(f"{self.model_server}/generate", json=body)
+                if response_raw.status_code != 200:
+                    logger.error(
+                        f"Failed to generate response: {response_raw.status_code}, "
+                        f"{response_raw.text}"
+                    )
+                    raise genai.types.IncompleteIterationError
                 response: genai.types.GenerateContentResponse = str2bytes(
                     response_raw.json()["content"]
                 )
-                self.token_count += response_raw.json()["token_count"]
+                info: dict[str, Any] = response_raw.json()["info"]
             else:
                 response = model.generate_content(
                     contents=model_message, generation_config=generation_config
                 )
                 token_count = model.count_tokens(model_message)
-                self.token_count += token_count.total_tokens
+                info: dict[str, Any] = {
+                    "total_tokens": token_count.total_tokens,
+                }
             try:
                 message = response.text
             except ValueError:
@@ -116,8 +124,7 @@ class GeminiProvider(BaseModel):
                     print("Message: ", message)
                 raise genai.types.IncompleteIterationError
 
-            info: dict[str, int] = {}
-            logger.info(f"\nReceived response:\n{message}")
+            logger.info(f"\nReceived response:\n{message}\nInfo:\n{info}")
             return message, info
 
         return _generate_response_with_retry()
