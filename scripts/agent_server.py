@@ -9,6 +9,7 @@ from fastapi.responses import Response
 
 from playground.agent.runtime import PythonRuntime
 from playground.config import Config
+from playground.env.desktop_env.eval.evaluator_helper import EvaluatorComb
 from playground.utils.communication import (
     PlaygroundEvalRequest,
     PlaygroundResetRequest,
@@ -18,7 +19,6 @@ from playground.utils.communication import (
     PlaygroundTextRequest,
 )
 from playground.utils.task_status import StateEnum, StateInfo, TaskStatus
-from playground.env.desktop_env.eval.evaluator_helper import EvaluatorComb
 
 config = Config()
 logger = logging.getLogger(__name__)

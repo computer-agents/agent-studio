@@ -110,7 +110,7 @@ class GeminiProvider(BaseModel):
                     contents=model_message, generation_config=generation_config
                 )
                 token_count = model.count_tokens(model_message)
-                info: dict[str, Any] = {
+                info = {
                     "total_tokens": token_count.total_tokens,
                 }
             try:

@@ -2,7 +2,6 @@ import logging
 from typing import Any
 
 import backoff
-
 import numpy as np
 from openai import APIError, APITimeoutError, OpenAI, RateLimitError
 
@@ -31,17 +30,19 @@ class OpenAIProvider(BaseModel):
         for msg in intermedia_msg:
             if isinstance(msg["content"], np.ndarray):
                 content: dict = {
-                            "type": "image_url",
-                            "image_url": {"url": encode_image(msg["content"])},
-                        }
+                    "type": "image_url",
+                    "image_url": {"url": encode_image(msg["content"])},
+                }
             elif isinstance(msg["content"], str):
-                content: dict = {"type": "text", "text": msg["content"]}
+                content = {"type": "text", "text": msg["content"]}
             current_role = msg["role"]
             if past_role != current_role:
-                model_message.append({
-                    "role": current_role,
-                    "content": [content],
-                })
+                model_message.append(
+                    {
+                        "role": current_role,
+                        "content": [content],
+                    }
+                )
             else:
                 model_message[-1]["content"].append(content)
         return model_message

@@ -1,8 +1,8 @@
 import logging
 import os
 import re
-import time
 import subprocess
+import time
 
 import psutil
 
@@ -90,6 +90,4 @@ class ProcessEvaluator(Evaluator):
                 pass
 
         for proc in find_procs_by_name(name):
-            confirm_action(
-                f"Killing process: {proc}"
-            )(_kill_process)(proc)
+            confirm_action(f"Killing process: {proc}")(_kill_process)(proc)
