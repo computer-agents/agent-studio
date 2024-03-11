@@ -1,6 +1,0 @@
-from playground.env.desktop_env import Shell, Keyboard, Mouse
-
-
-shell = Shell()
-keyboard = Keyboard()
-mouse = Mouse()

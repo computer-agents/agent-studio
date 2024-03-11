@@ -10,26 +10,26 @@ import qasync
 import requests
 from qasync import QApplication
 
-from playground.agent.base_agent import Agent
-from playground.config import Config
-from playground.env.desktop_env.agent_interface import AgentInterface
-from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
-from playground.env.desktop_env.recorder.screen_recorder import (
+from agent_studio.agent.base_agent import Agent
+from agent_studio.config import Config
+from agent_studio.envs.desktop_env.agent_interface import AgentInterface
+from agent_studio.envs.desktop_env.eval.evaluator_helper import evaluator_router
+from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
     VNCRecorder,
 )
-from playground.env.desktop_env.vnc_client import VNCStreamer
-from playground.llm import setup_model
-from playground.utils.communication import (
-    PlaygroundEvalRequest,
-    PlaygroundResetRequest,
-    PlaygroundResponse,
-    PlaygroundResultResponse,
-    PlaygroundStatusResponse,
-    PlaygroundTextRequest,
+from agent_studio.envs.desktop_env.vnc_client import VNCStreamer
+from agent_studio.llm import setup_model
+from agent_studio.utils.communication import (
+    AgentStudioEvalRequest,
+    AgentStudioResetRequest,
+    AgentStudioResponse,
+    AgentStudioResultResponse,
+    AgentStudioStatusResponse,
+    AgentStudioTextRequest,
 )
-from playground.utils.human_utils import confirm_action
-from playground.utils.json_utils import export_trajectories, read_jsonl
+from agent_studio.utils.human_utils import confirm_action
+from agent_studio.utils.json_utils import export_trajectories, read_jsonl
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -60,15 +60,15 @@ def setup_agent(args):
     model = setup_model(args.provider)
     match args.agent:
         case "dummy":
-            from playground.agent.base_agent import Agent
+            from agent_studio.agent.base_agent import Agent
 
             agent = Agent(model=model)
-            record_path = f"playground_data/trajectories/{args.provider}/dummy"
+            record_path = f"data/trajectories/{args.provider}/dummy"
         case "direct":
-            from playground.agent.direct_agent import DirectAgent
+            from agent_studio.agent.direct_agent import DirectAgent
 
             agent = DirectAgent(model=model)
-            record_path = f"playground_data/trajectories/{args.provider}/direct"
+            record_path = f"data/trajectories/{args.provider}/direct"
         case _:
             raise ValueError(f"Invalid agent: {args.agent}.")
 
@@ -90,7 +90,7 @@ def wait_finish():
     remote_server_addr = f"http://{config.env_server_addr}:{config.env_server_port}"
     while True:
         response_raw = requests.get(f"{remote_server_addr}/task/status")
-        response = PlaygroundStatusResponse(**response_raw.json())
+        response = AgentStudioStatusResponse(**response_raw.json())
         if response.status == "finished":
             break
         elif response.status == "wait_for_input":
@@ -100,9 +100,9 @@ def wait_finish():
                 user_input = "y"
             response_raw = requests.post(
                 url=f"{remote_server_addr}/task/confirm",  # noqa: E501
-                json=PlaygroundTextRequest(message=user_input).model_dump(),
+                json=AgentStudioTextRequest(message=user_input).model_dump(),
             )
-            response = PlaygroundResponse(**response_raw.json())
+            response = AgentStudioResponse(**response_raw.json())
             assert response.status == "success"
         elif response.status in ["pending", "in_progress"]:
             pass
@@ -178,7 +178,7 @@ def eval_headless(
             task_id = task_config["task_id"]
             if config.remote:
                 response_raw = requests.post(f"{remote_server_addr}/runtime/reset")
-                response = PlaygroundResponse(**response_raw.json())
+                response = AgentStudioResponse(**response_raw.json())
                 assert (
                     response.status == "success"
                 ), f"Fail to reset runtime: {response_raw.text}"
@@ -199,15 +199,15 @@ def eval_headless(
 
                 response_raw = requests.post(
                     f"{remote_server_addr}/task/reset",
-                    json=PlaygroundResetRequest(task_config=task_config).model_dump(),
+                    json=AgentStudioResetRequest(task_config=task_config).model_dump(),
                 )
-                response = PlaygroundResponse(**response_raw.json())
+                response = AgentStudioResponse(**response_raw.json())
                 assert response.status == "submitted"
                 wait_finish()
                 response_raw = requests.get(
                     f"{remote_server_addr}/task/result",
                 )
-                response = PlaygroundResultResponse(**response_raw.json())
+                response = AgentStudioResultResponse(**response_raw.json())
                 # TODO: handle failed reset
                 assert response.status == "finished" and response.result == "success"
 
@@ -262,15 +262,15 @@ def eval_headless(
             if config.remote:
                 response_raw = requests.post(
                     f"{remote_server_addr}/task/eval",
-                    json=PlaygroundEvalRequest(
+                    json=AgentStudioEvalRequest(
                         task_config=task_config,
                     ).model_dump(),
                 )
-                response = PlaygroundResponse(**response_raw.json())
+                response = AgentStudioResponse(**response_raw.json())
                 assert response.status == "submitted"
                 wait_finish()
                 response_raw = requests.get(f"{remote_server_addr}/task/result")
-                response = PlaygroundResultResponse(**response_raw.json())
+                response = AgentStudioResultResponse(**response_raw.json())
                 assert response.status == "finished" and isinstance(
                     response.message, dict
                 )
@@ -334,13 +334,13 @@ def eval(args) -> None:
 def record(args) -> None:
     match args.env:
         case "desktop":
-            from playground.env.desktop_env.human_interface import run_ui
+            from agent_studio.envs.desktop_env.human_interface import run_ui
 
             try:
                 assert config.remote is True, "Desktop env only supports remote mode."
                 qasync.run(
                     run_ui(
-                        record_path="playground_data/trajectories/human",
+                        record_path="data/trajectories/human",
                         task_config_path=config.task_config_paths[args.env],
                     )
                 )

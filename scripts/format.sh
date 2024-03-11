@@ -41,7 +41,7 @@ check_docstyle() {
     violations=$(git ls-files | grep '.py$' | xargs grep -E '^[ ]+[a-z_]+ ?\([a-zA-Z]+\): ' | grep -v 'str(' | grep -v noqa || true)
     if [[ -n "$violations" ]]; then
         echo
-        echo "=== Found Playground docstyle violations ==="
+        echo "=== Found AgentStudio docstyle violations ==="
         echo "$violations"
         echo
         echo "Per the Google pydoc style, omit types from pydoc args as they are redundant."
@@ -83,7 +83,7 @@ ISORT_VERSION=$(isort --version | grep VERSION | awk '{print $2}')
 # params: tool name, tool version, required version
 tool_version_check() {
     if [ "$2" != "$3" ]; then
-        echo "WARNING: Playground uses $1 $3, You currently are using $2. This might generate different results."
+        echo "WARNING: AgentStudio uses $1 $3, You currently are using $2. This might generate different results."
     fi
 }
 
@@ -96,15 +96,15 @@ if command -v shellcheck >/dev/null; then
     SHELLCHECK_VERSION=$(shellcheck --version | awk '/^version:/ {print $2}')
     tool_version_check "shellcheck" "$SHELLCHECK_VERSION" "$SHELLCHECK_VERSION_REQUIRED"
 else
-    echo "INFO: Playground uses shellcheck for shell scripts, which is not installed. You may install shellcheck=$SHELLCHECK_VERSION_REQUIRED with your system package manager."
+    echo "INFO: AgentStudio uses shellcheck for shell scripts, which is not installed. You may install shellcheck=$SHELLCHECK_VERSION_REQUIRED with your system package manager."
 fi
 
 if [[ $(flake8 --version) != *"flake8-quotes"* ]]; then
-    echo "WARNING: Playground uses flake8 with flake8_quotes. Might error without it. Install with: pip install flake8-quotes"
+    echo "WARNING: AgentStudio uses flake8 with flake8_quotes. Might error without it. Install with: pip install flake8-quotes"
 fi
 
 if [[ $(flake8 --version) != *"flake8-bugbear"* ]]; then
-    echo "WARNING: Playground uses flake8 with flake8-bugbear. Might error without it. Install with: pip install flake8-bugbear"
+    echo "WARNING: AgentStudio uses flake8 with flake8-bugbear. Might error without it. Install with: pip install flake8-bugbear"
 fi
 
 SHELLCHECK_FLAGS=(

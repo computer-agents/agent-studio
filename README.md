@@ -67,12 +67,12 @@ docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t agent-studio:latest
 #### Run Simulator with Docker
 
 ```bash
-docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/playground/config/:/root/playground/playground/config/:ro playground:latest
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/root/agent_studio/agent_studio/config/:ro agent_studio:latest
 ```
 
 #### Evaluator Configuration
 
-In `playground/config/config.py`, you can modify the corresponding field to configurate the evaluator.
+In `agent_studio/config/config.py`, you can modify the corresponding field to configurate the evaluator.
 
 `need_human_confirmation`: enable/disable human confirmation for the evaluator. Default is `True`, which means each action step and reset step needs human confirmation.
 
@@ -97,7 +97,7 @@ If you enabled high DPI scaling, and the VNC window is beyond the screen, you ma
 #### Run Simulator with Docker
 
 ```bash
-docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/playground/config/:/root/playground/playground/config/:ro agent-studio:latest
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/root/agent_studio/agent_studio/config/:ro agent-studio:latest
 ```
 
 #### Recorder Usage

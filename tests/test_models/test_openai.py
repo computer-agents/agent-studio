@@ -1,13 +1,13 @@
 import time
 
-from playground.env.desktop_env.recorder.agent_recorder import AgentRecorder
-from playground.llm.openai import OpenAIProvider
-from playground.llm.utils import encode_image
+from agent_studio.envs.desktop_env.recorder.agent_recorder import AgentRecorder
+from agent_studio.llm.openai import OpenAIProvider
+from agent_studio.llm.utils import encode_image
 
 
 def test_gpt4v():
     llm = OpenAIProvider()
-    recorder = AgentRecorder(record_path="playground_data/trajectories/test")
+    recorder = AgentRecorder(record_path="data/trajectories/test")
     recorder.reset(task_id=0, instruction="111")
     recorder.start()
     time.sleep(1)

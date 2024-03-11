@@ -1,11 +1,11 @@
-# Contributing to Playground
+# Contributing to AgentStudio
 
-Thank you for considering contributing to Playground!
+Thank you for considering contributing to AgentStudio!
 We believe in open source and welcome contributions from everyone, no matter the scale.
 
 There are many ways to contribute: you could introduce new tasks, improve our infrastructure, better the documentation, or fix bugs.
 
-A great way to support Playground is by promoting it. You can share it in your blog posts, illustrate how Playground drives your amazing projects, mention us on Twitter, or simply star our repository.
+A great way to support AgentStudio is by promoting it. You can share it in your blog posts, illustrate how AgentStudio drives your amazing projects, mention us on Twitter, or simply star our repository.
 
 ## Contributing Guidelines
 
@@ -42,4 +42,4 @@ pytest test/
 
 ### Thank You
 
-We sincerely appreciate the time you've taken to read these guidelines and your interest in contributing to Playground. Your involvement is what makes Playground a great project for everyone!
+We sincerely appreciate the time you've taken to read these guidelines and your interest in contributing to AgentStudio. Your involvement is what makes AgentStudio a great project for everyone!

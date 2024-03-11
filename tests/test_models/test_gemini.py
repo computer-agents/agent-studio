@@ -22,7 +22,7 @@ def test_gemini():
 
     # import google.generativeai as genai
 
-    # from playground.config import Config
+    # from agent_studio.config import Config
 
     # config = Config()
 
@@ -94,7 +94,7 @@ def test_gemini():
 
     # print(response.text)
 
-    from playground.llm.gemini import GeminiProvider
+    from agent_studio.llm.gemini import GeminiProvider
 
     model = GeminiProvider()
     print(

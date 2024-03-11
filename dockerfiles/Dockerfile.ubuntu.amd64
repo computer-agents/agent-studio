@@ -21,18 +21,18 @@ RUN wget https://bootstrap.pypa.io/get-pip.py \
 # Create a non-root user
 RUN useradd -m ubuntu
 
-# Change ownership of the playground directory
-RUN mkdir -p /home/ubuntu/playground
-COPY playground /home/ubuntu/playground/playground
-ADD scripts/agent_server.py /home/ubuntu/playground/scripts/agent_server.py
-ADD pyproject.toml /home/ubuntu/playground/pyproject.toml
-ADD requirements_linux.txt /home/ubuntu/playground/requirements_linux.txt
-ADD scripts/docker_startup.sh /home/ubuntu/playground/scripts/docker_startup.sh
+# Change ownership of the agent_studio directory
+RUN mkdir -p /home/ubuntu/agent_studio
+COPY agent_studio /home/ubuntu/agent_studio/agent_studio
+ADD scripts/agent_server.py /home/ubuntu/agent_studio/scripts/agent_server.py
+ADD pyproject.toml /home/ubuntu/agent_studio/pyproject.toml
+ADD requirements_linux.txt /home/ubuntu/agent_studio/requirements_linux.txt
+ADD scripts/docker_startup.sh /home/ubuntu/agent_studio/scripts/docker_startup.sh
 RUN chown -R ubuntu:ubuntu /home/ubuntu
 
-WORKDIR /home/ubuntu/playground
+WORKDIR /home/ubuntu/agent_studio
 RUN python3.11 -m pip install -e .
 RUN python3.11 -m pip install -r requirements_linux.txt
-RUN chmod +x /home/ubuntu/playground/scripts/docker_startup.sh
+RUN chmod +x /home/ubuntu/agent_studio/scripts/docker_startup.sh
 USER root
-ENTRYPOINT ["/home/ubuntu/playground/scripts/docker_startup.sh"]
+ENTRYPOINT ["/home/ubuntu/agent_studio/scripts/docker_startup.sh"]

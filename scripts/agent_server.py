@@ -7,18 +7,18 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import Response
 
-from playground.agent.runtime import PythonRuntime
-from playground.config import Config
-from playground.env.desktop_env.eval.evaluator_helper import EvaluatorComb
-from playground.utils.communication import (
-    PlaygroundEvalRequest,
-    PlaygroundResetRequest,
-    PlaygroundResponse,
-    PlaygroundResultResponse,
-    PlaygroundStatusResponse,
-    PlaygroundTextRequest,
+from agent_studio.agent.runtime import PythonRuntime
+from agent_studio.config import Config
+from agent_studio.envs.desktop_env.eval.evaluator_helper import EvaluatorComb
+from agent_studio.utils.communication import (
+    AgentStudioEvalRequest,
+    AgentStudioResetRequest,
+    AgentStudioResponse,
+    AgentStudioResultResponse,
+    AgentStudioStatusResponse,
+    AgentStudioTextRequest,
 )
-from playground.utils.task_status import StateEnum, StateInfo, TaskStatus
+from agent_studio.utils.task_status import StateEnum, StateInfo, TaskStatus
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ def setup_evaluator(
 ):
     match env:
         case "desktop":
-            from playground.env.desktop_env.eval.evaluator_helper import (
+            from agent_studio.envs.desktop_env.eval.evaluator_helper import (
                 evaluator_router,
             )
         case _:
@@ -109,25 +109,25 @@ async def health() -> Response:
 
 
 @app.post("/execute")
-async def execute_code(request: PlaygroundTextRequest) -> dict:
+async def execute_code(request: AgentStudioTextRequest) -> dict:
     logger.info(f"Execute code: {request.message}")
     result = runtimes["python"](request.message)
     return result
 
 
 @app.post("/runtime/reset")
-async def reset_runtime() -> PlaygroundResponse:
+async def reset_runtime() -> AgentStudioResponse:
     runtimes["python"].close()
     runtimes["python"] = PythonRuntime()
     with open(config.init_code_path, "r") as f:
         init_code = f.read()
     runtimes["python"](init_code)
     logger.info("Reset runtime")
-    return PlaygroundResponse(status="success")
+    return AgentStudioResponse(status="success")
 
 
 @app.post("/task/confirm")
-async def confirm(request: PlaygroundTextRequest) -> PlaygroundResponse:
+async def confirm(request: AgentStudioTextRequest) -> AgentStudioResponse:
     """
     Confirm critical action.
 
@@ -145,11 +145,11 @@ async def confirm(request: PlaygroundTextRequest) -> PlaygroundResponse:
     task_status.set_task_state(
         StateInfo(state=StateEnum.IN_PROGRESS, message=request.message)
     )
-    return PlaygroundResponse(status="success")
+    return AgentStudioResponse(status="success")
 
 
 @app.post("/task/reset")
-async def new_task(request: PlaygroundResetRequest) -> PlaygroundResponse:
+async def new_task(request: AgentStudioResetRequest) -> AgentStudioResponse:
     """
     Reset the task.
 
@@ -175,11 +175,11 @@ async def new_task(request: PlaygroundResetRequest) -> PlaygroundResponse:
     comb = evaluator_router(request.task_config)
     current_thread = threading.Thread(target=reset_task, args=(comb,))
     current_thread.start()
-    return PlaygroundResponse(status="submitted")
+    return AgentStudioResponse(status="submitted")
 
 
 @app.post("/task/eval")
-async def submit_eval(request: PlaygroundEvalRequest) -> PlaygroundResponse:
+async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioResponse:
     """
     Evaluate the given task.
 
@@ -211,43 +211,43 @@ async def submit_eval(request: PlaygroundEvalRequest) -> PlaygroundResponse:
         args=(comb,),
     )
     current_thread.start()
-    return PlaygroundResponse(status="submitted")
+    return AgentStudioResponse(status="submitted")
 
 
 @app.get("/task/status")
-async def get_status() -> PlaygroundStatusResponse:
+async def get_status() -> AgentStudioStatusResponse:
     """
     Get the status of the current task.
     """
     cur_status = task_status.get_task_state()
     logger.debug(f"Get current status: {cur_status}")
     if cur_status.state == StateEnum.PENDING:
-        return PlaygroundStatusResponse(status="pending")
+        return AgentStudioStatusResponse(status="pending")
     elif cur_status.state == StateEnum.IN_PROGRESS:
-        return PlaygroundStatusResponse(status="in_progress")
+        return AgentStudioStatusResponse(status="in_progress")
     elif cur_status.state == StateEnum.WAIT_FOR_INPUT:
         assert isinstance(
             cur_status.message, str
         ), f"Invalid message: {cur_status.message}"
-        return PlaygroundStatusResponse(
+        return AgentStudioStatusResponse(
             status="wait_for_input", content=cur_status.message
         )
     elif cur_status.state == StateEnum.FINISHED:
-        return PlaygroundStatusResponse(status="finished")
+        return AgentStudioStatusResponse(status="finished")
     elif cur_status.state == StateEnum.TERMINATE:
-        return PlaygroundStatusResponse(status="terminate")
+        return AgentStudioStatusResponse(status="terminate")
     else:
         raise ValueError(f"Invalid state: {cur_status}")
 
 
 @app.get("/task/result")
-async def get_result() -> PlaygroundResultResponse:
+async def get_result() -> AgentStudioResultResponse:
     """
     Get the result of the current task.
     """
     cur_status = task_status.get_task_state()
     assert cur_status.state == StateEnum.FINISHED, f"Invalid status: {cur_status}"
-    return PlaygroundResultResponse(
+    return AgentStudioResultResponse(
         status=cur_status.state.value,
         result=cur_status.result,
         message=cur_status.message,

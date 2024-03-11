@@ -1,7 +1,7 @@
 # pytest -s tests/test_evaluators/test_joint_evaluation.py
 import pytest
 
-from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
+from agent_studio.envs.desktop_env.eval.evaluator_helper import evaluator_router
 
 TASK_CONFIGS = [
     {

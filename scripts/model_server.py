@@ -11,7 +11,7 @@ import uvicorn
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
-from playground.config.config import Config
+from agent_studio.config.config import Config
 
 PIL.PngImagePlugin
 

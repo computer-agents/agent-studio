@@ -1,7 +1,7 @@
 # pytest -s tests/test_evaluators/test_telegram.py
 import pytest
 
-from playground.env.desktop_env.eval.evaluator_helper import evaluator_router
+from agent_studio.envs.desktop_env.eval.evaluator_helper import evaluator_router
 
 TASK_CONFIGS = [
     {
@@ -21,11 +21,11 @@ TASK_CONFIGS = [
                                 {
                                     "type": "text",
                                     "compare_method": "exact",
-                                    "value": "Welcome to the playground!",
+                                    "value": "Welcome to the agent_studio!",
                                 },
                                 {
                                     "type": "document",
-                                    "file_path": "playground_data/test/"
+                                    "file_path": "data/test/"
                                     "telegram/GitHub-logo.png",
                                     "caption": "GitHub logo.",
                                     "replyto": {
@@ -43,15 +43,14 @@ TASK_CONFIGS = [
                     {
                         "send_messages": {
                             "chat_id": "me",
-                            "messages": ["hi", "Welcome to the playground!"],
+                            "messages": ["hi", "Welcome to the agent_studio!"],
                         }
                     },
                     {
                         "send_document": {
                             "chat_id": "me",
                             "replyto_offset": 1,
-                            "file_path": "playground_data/test"
-                            "/telegram/GitHub-logo.png",
+                            "file_path": "data/test/telegram/GitHub-logo.png",
                             "caption": "GitHub logo.",
                         }
                     },

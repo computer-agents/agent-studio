@@ -75,7 +75,7 @@ HTTP_PASSWORD=
 # Add agent_server to supervisord under ubuntu user space
 cat <<EOF > /etc/supervisor/conf.d/agent_server.conf
 [program:agent_server]
-command=python3.11 /home/ubuntu/playground/scripts/agent_server.py --env desktop
+command=python3.11 /home/ubuntu/agent_studio/scripts/agent_server.py --env desktop
 autostart=true
 autorestart=true
 user=ubuntu

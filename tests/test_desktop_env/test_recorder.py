@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from playground.env.desktop_env.recorder.screen_recorder import (
+from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     DarwinWindowManager,
     LinuxWindowManager,
     ScreenRecorder,
@@ -39,4 +39,4 @@ def test_screen_recorder(fps: int = 5, duration: int = 10) -> None:
     rec.stop()
     frames = rec.frame_buffer.get_frames(start_frame_id=0, end_frame_id=None)
     assert len(frames) == duration * fps
-    rec.save("playground_data/trajectories/test/test.mp4", start_frame_id=0)
+    rec.save("data/trajectories/test/test.mp4", start_frame_id=0)
