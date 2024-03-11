@@ -155,7 +155,10 @@ def eval_gui(
             record_path=record_path,
         )
         interface.showMaximized()
-        sys.exit(app.exec())
+        exit_code = app.exec()
+        local_agent_server.terminate()
+        local_agent_server.wait()
+        sys.exit(exit_code)
     except asyncio.exceptions.CancelledError:
         sys.exit(0)
 

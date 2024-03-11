@@ -62,12 +62,42 @@ docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t agent-studio:latest
 
 ## Get Started
 
+### Evaluate Agent
+
+#### Run Simulator with Docker
+
+```bash
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/playground/config/:/root/playground/playground/config/:ro playground:latest
+```
+
+#### Evaluator Configuration
+
+In `playground/config/config.py`, you can modify the corresponding field to configurate the evaluator.
+
+`need_human_confirmation`: enable/disable human confirmation for the evaluator. Default is `True`, which means each action step and reset step needs human confirmation.
+
+`headless`: enable/disable headless mode for the evaluator. Set to `False` to enable GUI mode. Default is CLI mode. **GUI mode will ignore `need_human_confirmation=False`**.
+
+`remote`: where to execute the actions and run the evaluator. Default is `True`, the remote evaluator will execute the actions and run the evaluator in the docker. If set to `False`, the evaluator will execute the actions and run the evaluator in the local machine.
+
+
+####  Run Evaluator
+
+Run the following command to start the evaluator:
+```bash
+python run.py --mode eval
+```
+
+If you enabled high DPI scaling, and the VNC window is beyond the screen, you may need to set the `QT_AUTO_SCREEN_SCALE_FACTOR` environment variable to `0` to disable high DPI scaling.
+
+---
+
 ### Record Dataset
 
 #### Run Simulator with Docker
 
 ```bash
-docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm agent-studio:latest
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/playground/config/:/root/playground/playground/config/:ro agent-studio:latest
 ```
 
 #### Recorder Usage
@@ -90,10 +120,10 @@ You can choose to record an existing task or create a new task. The following ar
     ![](./imgs/recorder_choose_existing.png)
 + Create & Record new task:
     1. Input the task instruction.
-    2. Select the task type (whether is visual task or not).
+    2. Select the task type (whether is a visual task or not).
     3. Select the evaluator from the dropdown list.
-    4. Select the evaluator methods from the list table. Single click will display the method description in "Docs" and double click will show the method example JSON snippet in "JSON format preview".
-    5. Edit the "Evaluation Steps" input box, which should be a list of steps to evaluate the task. The format should match the "evals" field in task configuration JSON format.
+    4. Select the evaluator methods from the list table. A single click will display the method description in "Docs" and a double click will show the method example JSON snippet in "JSON format preview".
+    5. Edit the "Evaluation Steps" input box, which should be a list of steps to evaluate the task. The format should match the "evals" field in the task configuration JSON format.
     6. Click the "Save Task Config/Start Recording" button to start recording.
     ![](./imgs/recorder_create_new.png)
 
@@ -141,6 +171,17 @@ If you enabled high DPI scaling, and the VNC window is beyond the screen, you ma
 ## Data
 
 The agent trajectories can be found [here](https://huggingface.co/datasets/agent-studio/agent-studio-data)
+
+## Troubleshooting
+
+### [Errno 10048] error while attempting to bind on address ('0.0.0.0', 8000): only one usage of each socket address (protocol/network address/port) is normally permitted
+
+The port 8000 is already in use. Maybe there is another process running on the same port. Or the previous process is not closed properly. You can follow the following two solutions:
+1. check the process running on the port by running the following command and kill it if necessary:
+```bash
+sudo lsof -i:8000
+```
+2. If the port is used due to the previous process not closed properly, you can exit the GUI with `Ctrl+C` and run it again.
 
 ## Acknowledgement
 

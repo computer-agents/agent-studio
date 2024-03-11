@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import subprocess
 import time
 
 import psutil
@@ -51,20 +52,23 @@ class ProcessEvaluator(Evaluator):
             raise FeedbackException(f"Process with name {name} not found.")
 
     @reset_handler("create_process")
-    def create_process(self, cmd: list[str], wait_for: str) -> None:
+    def create_process(self, cmd: list[str], wait_for: str | None) -> None:
         """
         Create a process with the given command.
 
         Args:
             cmd (list[str]): Command to create the process.
-            wait_for (str): Name of the process. Ensure that the process is running.
+            wait_for (str | None): Name of the process to wait for. \
+                Can be a regex pattern. \
+                If None, the function will not wait for any process.
 
         Raises:
             FeedbackException: If the process creation fails.
         """
-        psutil.Popen(cmd, shell=True)
-        while len(find_procs_by_name(wait_for)) == 0:
-            time.sleep(0.5)
+        subprocess.Popen(cmd)
+        if wait_for is not None:
+            while len(find_procs_by_name(wait_for)) == 0:
+                time.sleep(0.5)
 
     @reset_handler("pkill_by_name")
     def pkill_by_name(self, name: str) -> None:
@@ -79,7 +83,6 @@ class ProcessEvaluator(Evaluator):
             FeedbackException: If the process is not found.
         """
 
-        @confirm_action()
         def _kill_process(proc: psutil.Process) -> None:
             try:
                 proc.kill()
@@ -87,5 +90,4 @@ class ProcessEvaluator(Evaluator):
                 pass
 
         for proc in find_procs_by_name(name):
-            print("Killing process: ", proc)
-            _kill_process(proc)
+            confirm_action(f"Killing process: {proc}")(_kill_process)(proc)

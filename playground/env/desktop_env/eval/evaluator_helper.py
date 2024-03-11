@@ -69,9 +69,10 @@ def register_evaluators(
                                         registered_classes[new_class.name] = new_class
                                     else:
                                         raise AttributeError
-                                except Exception:
+                                except Exception as e:
                                     logger.error(
-                                        f"Error importing {module_name} {node.name}"
+                                        f"Error importing {module_name} {node.name}. "
+                                        f"Due to {e} skipping..."
                                     )
                                 break
     return registered_classes
@@ -84,6 +85,7 @@ def evaluator_router(
 
     registered_evaluators: dict[str, type[Evaluator]] = register_evaluators()
     evaluators: list[Evaluator] = []
+    logger.info(f"Registered evaluators: {registered_evaluators.keys()}")
 
     for eval in task_configs["evals"]:
         eval_type: str = eval["eval_type"]

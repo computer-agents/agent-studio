@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
 
-from playground.utils.singleton import Singleton
+from playground.utils.singleton import ThreadSafeSingleton
 
 
-class Config(metaclass=Singleton):
+class Config(metaclass=ThreadSafeSingleton):
     """
     Singleton for config.
     """
@@ -21,7 +21,7 @@ class Config(metaclass=Singleton):
     }
     api_key_path: str = "playground/config/api_key.json"
 
-    stop_code: str = "\nexit()"
+    stop_code: str = "exit()"
 
     # Env server config
     remote: bool = False  # True for remote, False for local

@@ -1,11 +1,14 @@
 FROM dorowu/ubuntu-desktop-lxde-vnc:latest
 
 # Install Python 3.11
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add - \
+    && wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
 RUN apt update \
     && add-apt-repository ppa:deadsnakes/ppa \
+    && add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" \
     && apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated python3.11 build-essential python3.11-dev python3.11-tk libevdev-dev\
+    && apt install -y --no-install-recommends --allow-unauthenticated python3.11 build-essential python3.11-dev python3.11-tk libevdev-dev software-properties-common apt-transport-https \
+    && apt install -y --no-install-recommends --allow-unauthenticated code telegram-desktop \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
@@ -15,15 +18,21 @@ RUN wget https://bootstrap.pypa.io/get-pip.py \
     && python3.11 get-pip.py \
     && python3.11 -m pip install --upgrade pip
 
-RUN mkdir -p /root/playground
-COPY playground /root/playground/playground
-ADD scripts/agent_server.py /root/playground/scripts/agent_server.py
-ADD pyproject.toml /root/playground/pyproject.toml
-ADD requirements_linux.txt /root/playground/requirements_linux.txt
-ADD scripts/docker_startup.sh /root/playground/scripts/docker_startup.sh
-WORKDIR /root/playground
-RUN mv /root/playground/playground/config/agent_server_config.py /root/playground/playground/config/config.py
+# Create a non-root user
+RUN useradd -m ubuntu
+
+# Change ownership of the playground directory
+RUN mkdir -p /home/ubuntu/playground
+COPY playground /home/ubuntu/playground/playground
+ADD scripts/agent_server.py /home/ubuntu/playground/scripts/agent_server.py
+ADD pyproject.toml /home/ubuntu/playground/pyproject.toml
+ADD requirements_linux.txt /home/ubuntu/playground/requirements_linux.txt
+ADD scripts/docker_startup.sh /home/ubuntu/playground/scripts/docker_startup.sh
+RUN chown -R ubuntu:ubuntu /home/ubuntu
+
+WORKDIR /home/ubuntu/playground
 RUN python3.11 -m pip install -e .
 RUN python3.11 -m pip install -r requirements_linux.txt
-RUN chmod +x /root/playground/scripts/docker_startup.sh
-ENTRYPOINT ["/root/playground/scripts/docker_startup.sh"]
+RUN chmod +x /home/ubuntu/playground/scripts/docker_startup.sh
+USER root
+ENTRYPOINT ["/home/ubuntu/playground/scripts/docker_startup.sh"]

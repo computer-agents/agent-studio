@@ -4,19 +4,22 @@ import functools
 import json
 import logging
 import os
+import queue
 import sys
+import time
 import uuid
 from asyncio import open_connection
 from pathlib import Path
 
 import numpy as np
 import requests
-from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal
+from PyQt6.QtCore import QMutex, QObject, QThread, QTimer, QWaitCondition, pyqtSignal
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QListWidget,
     QListWidgetItem,
@@ -33,7 +36,14 @@ from qasync import QApplication, asyncClose, asyncSlot
 from playground.agent.human_agent import HumanAgent
 from playground.config.config import Config
 from playground.env.desktop_env.vnc_client import VNCClient, VNCFrame
-from playground.utils.communication import PlaygroundResponse
+from playground.utils.communication import (
+    PlaygroundEvalRequest,
+    PlaygroundResetRequest,
+    PlaygroundResponse,
+    PlaygroundResultResponse,
+    PlaygroundStatusResponse,
+    PlaygroundTextRequest,
+)
 from playground.utils.json_utils import (
     add_jsonl,
     export_trajectories,
@@ -43,6 +53,7 @@ from playground.utils.json_utils import (
 
 config = Config()
 logger = logging.getLogger(__name__)
+REMOTE_SERVER_ADDR = f"{config.env_server_addr}:{config.env_server_port}"
 
 
 class WorkerSignals(QObject):
@@ -50,38 +61,179 @@ class WorkerSignals(QObject):
     next_action_editor_signal = pyqtSignal(bool)
     save_button_signal = pyqtSignal(bool)
     step_action_button_signal = pyqtSignal(bool)
+    show_input_dialog_signal = pyqtSignal(str)
+    evaluation_display_signal = pyqtSignal(str)
+    eval_button_signal = pyqtSignal(bool)
 
 
 class ResetThread(QThread):
     def __init__(
         self,
         signals: WorkerSignals,
+        task_config: dict,
     ):
         super().__init__()
+        self.mutex = QMutex()
+        self.wait_condition = QWaitCondition()
         self.signals = signals
+        self.task_config = task_config
+
+    def _wait_finish(self):
+        while True:
+            response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/status")
+            assert response_raw.status_code == 200, f"{response_raw.status_code}"
+            response = PlaygroundStatusResponse(**response_raw.json())
+            if response.status == "finished":
+                break
+            elif response.status == "wait_for_input":
+                if config.need_human_confirmation:
+                    self.signals.status_bar_signal.emit(
+                        "color: blue;", "Waiting for input"
+                    )
+                    self.mutex.lock()
+                    self.signals.show_input_dialog_signal.emit(response.content)
+                    self.wait_condition.wait(self.mutex)
+                    self.mutex.unlock()
+                    user_input = self.user_input
+                else:
+                    user_input = "y"
+                response_raw = requests.post(
+                    url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
+                    json=PlaygroundTextRequest(message=user_input).model_dump(),
+                )
+                assert response_raw.status_code == 200, f"{response_raw.status_code}"
+                response = PlaygroundResponse(**response_raw.json())
+                assert response.status == "success"
+            elif response.status == "pending":
+                self.signals.status_bar_signal.emit("color: green;", "Pending")
+            elif response.status == "in_progress":
+                pass
+            else:
+                raise ValueError(f"Unknown status: {response.status}")
+            time.sleep(1)
 
     def run(self):
         # reset remote runtime
         self.signals.status_bar_signal.emit(
             "color: green;", "Task: Resetting runtime..."
         )
-        response_raw = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/runtime/reset"
-        )
+        response_raw = requests.post(f"http://{REMOTE_SERVER_ADDR}/runtime/reset")
+        assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = PlaygroundResponse(**response_raw.json())
         assert (
             response.status == "success"
         ), f"Fail to reset runtime: {response_raw.text}"
+        self.signals.status_bar_signal.emit(
+            "color: green;", "Task: Preparing the environment..."
+        )
+        response_raw = requests.post(
+            f"http://{REMOTE_SERVER_ADDR}/task/reset",
+            json=PlaygroundResetRequest(task_config=self.task_config).model_dump(),
+        )
+        assert response_raw.status_code == 200, f"{response_raw.status_code}"
+        response = PlaygroundResponse(**response_raw.json())
+        assert response.status == "submitted"
+        self._wait_finish()
+        response_raw = requests.get(
+            f"http://{REMOTE_SERVER_ADDR}/task/result",
+        )
+        assert response_raw.status_code == 200, f"{response_raw.status_code}"
+        response = PlaygroundResultResponse(**response_raw.json())
+        # TODO: handle failed reset
+        assert (
+            response.status == "finished" and response.result == "success"
+        ), f"Fail to reset environment: {response_raw.text}"
 
         self.signals.status_bar_signal.emit("color: green;", "Task: Ready")
 
         self.signals.next_action_editor_signal.emit(True)
         self.signals.save_button_signal.emit(True)
         self.signals.step_action_button_signal.emit(True)
+        self.signals.eval_button_signal.emit(True)
+
+    def receive_user_input(self, text: str):
+        self.mutex.lock()
+        self.user_input = text  # Store the user input
+        self.wait_condition.wakeAll()  # Resume the thread
+        self.mutex.unlock()
 
 
-# Function to parse the Python file and extract required information
-def parse_python_file(file_path):
+class EvalTaskThread(QThread):
+    def __init__(
+        self,
+        signals: WorkerSignals,
+        trajectory_display: QTextEdit,
+        selected_task: dict,
+        result_queue: queue.Queue,
+    ):
+        super().__init__()
+        self.mutex = QMutex()
+        self.wait_condition = QWaitCondition()
+        self.signals = signals
+        self.selected_task = selected_task
+        self.trajectory_display = trajectory_display
+        self.result_queue = result_queue
+
+    def _wait_finish(self):
+        while True:
+            response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/status")
+            response = PlaygroundStatusResponse(**response_raw.json())
+            if response.status == "finished":
+                break
+            elif response.status == "wait_for_input":
+                self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
+                self.mutex.lock()
+                self.signals.show_input_dialog_signal.emit(response.content)
+                self.wait_condition.wait(self.mutex)
+                self.mutex.unlock()
+                user_input = self.user_input
+                response_raw = requests.post(
+                    url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
+                    json=PlaygroundTextRequest(message=user_input).model_dump(),
+                )
+                response = PlaygroundResponse(**response_raw.json())
+                assert response.status == "success"
+            elif response.status == "pending":
+                self.signals.status_bar_signal.emit("color: green;", "Pending")
+            elif response.status == "in_progress":
+                self.signals.status_bar_signal.emit("color: green;", "In Progress")
+            else:
+                raise ValueError(f"Unknown status: {response.status}")
+            time.sleep(1)
+
+    def run(self):
+        self.signals.status_bar_signal.emit("color: green;", "Task: Auto-Evaluating...")
+        response_raw = requests.post(
+            f"http://{REMOTE_SERVER_ADDR}/task/eval",
+            json=PlaygroundEvalRequest(
+                task_config=self.selected_task,
+            ).model_dump(),
+        )
+        response = PlaygroundResponse(**response_raw.json())
+        assert response.status == "submitted"
+        self._wait_finish()
+        response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/result")
+        response = PlaygroundResultResponse(**response_raw.json())
+        assert response.status == "finished" and isinstance(response.message, dict)
+        self.result_queue.put(response.message)
+        self.signals.evaluation_display_signal.emit(
+            "Auto-evaluation result:\n"
+            f"Score: {response.message['score']}\n"
+            f"Feedback: {response.message['feedback']}\n"
+        )
+        self.signals.status_bar_signal.emit("color: green;", "Task: Finished")
+        self.signals.save_button_signal.emit(True)
+
+    def receive_user_input(self, text: str):
+        self.mutex.lock()
+        self.user_input = text  # Store the user input
+        self.wait_condition.wakeAll()  # Resume the thread
+        self.mutex.unlock()
+
+
+def extract_evaluator_meta(file_path) -> tuple[str, list[dict]]:
+    """Extracts the reset_handler and evaluate_handler \
+        and their metadata from the evaluator."""
     with open(file_path, "r") as file:
         tree = ast.parse(file.read(), filename=file_path)
 
@@ -99,12 +251,15 @@ def parse_python_file(file_path):
                         if isinstance(item, ast.FunctionDef):
                             # Check for decorators
                             for decorator in item.decorator_list:
-                                if isinstance(
-                                    decorator, ast.Call
-                                ) and decorator.func.id in [
-                                    "evaluation_handler",
-                                    "reset_handler",
-                                ]:
+                                if (
+                                    isinstance(decorator, ast.Call)
+                                    and hasattr(decorator.func, "id")
+                                    and decorator.func.id
+                                    in [
+                                        "evaluation_handler",
+                                        "reset_handler",
+                                    ]
+                                ):
                                     # Extract decorator name and arguments
                                     decorator_name = decorator.func.id
                                     decorator_args = [
@@ -133,15 +288,7 @@ def parse_python_file(file_path):
                         elif isinstance(item, ast.AnnAssign):
                             target = item.target
                             if isinstance(target, ast.Name) and target.id == "name":
-                                if evaluator_name is None:
-                                    evaluator_name = item.value.n
-                                else:
-                                    raise ValueError(
-                                        f"Multiple evaluator names found in {file_path}"
-                                    )
-                        elif isinstance(item, ast.Assign):
-                            for target in item.targets:
-                                if isinstance(target, ast.Name) and target.id == "name":
+                                if item.value is not None and hasattr(item.value, "n"):
                                     if evaluator_name is None:
                                         evaluator_name = item.value.n
                                     else:
@@ -149,6 +296,19 @@ def parse_python_file(file_path):
                                             "Multiple evaluator names found in "
                                             f"{file_path}"
                                         )
+                        elif isinstance(item, ast.Assign):
+                            for assign in item.targets:
+                                if isinstance(assign, ast.Name) and assign.id == "name":
+                                    if item.value is not None and hasattr(
+                                        item.value, "n"
+                                    ):
+                                        if evaluator_name is None:
+                                            evaluator_name = item.value.n
+                                        else:
+                                            raise ValueError(
+                                                "Multiple evaluator names found in "
+                                                f"{file_path}"
+                                            )
     if evaluator_name is None:
         raise ValueError(f"No evaluator name found in {file_path}")
     return evaluator_name, extracted_info
@@ -206,7 +366,7 @@ class HumanInterface(QMainWindow):
         self.refreshing_screen = False  # need for refresh flag
         self.last_message = ""
         self.task_config_path = task_config_path
-        self.current_thread: ResetThread | None = None
+        self.current_thread: ResetThread | EvalTaskThread | None = None
         self.task_status_bar: QLabel
 
         # Task
@@ -342,10 +502,19 @@ class HumanInterface(QMainWindow):
 
         self.output_display = QTextEdit(self)
         # self.output_display.setFixedWidth(self.right_layout_width)
-        self.output_display.setFixedHeight(40)
+        # self.output_display.setFixedHeight(40)
         self.output_display.setReadOnly(True)
         trajectory_layout.addWidget(QLabel("Runtime Response"))
         trajectory_layout.addWidget(self.output_display)
+
+        trajectory_layout.addWidget(QLabel("Evaluation result"))
+        self.evaluation_display = QTextEdit(self)
+        trajectory_layout.addWidget(self.evaluation_display)
+        self.evaluation_display.setReadOnly(True)
+
+        self.eval_button = QPushButton("Evaluate")
+        self.eval_button.clicked.connect(self.eval_task)
+        trajectory_layout.addWidget(self.eval_button)
 
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self.save_trajectory)
@@ -370,10 +539,13 @@ class HumanInterface(QMainWindow):
         self.eval_steps_display.setReadOnly(False)
         self.output_display.clear()
         self.output_display.setEnabled(False)
+        self.evaluation_display.clear()
+        self.evaluation_display.setEnabled(True)
         self.evaluator_changed(0)
         self.evaluator_dropdown.setEnabled(True)
         self.eval_method_list.clear()
         self.eval_method_list.setEnabled(True)
+        self.eval_button.setEnabled(False)
         self.save_button.setEnabled(False)
         self.step_action_button.setEnabled(False)
         self.is_visual_checkbox.setEnabled(True)
@@ -398,7 +570,7 @@ class HumanInterface(QMainWindow):
             dlg = QMessageBox(self)
             dlg.setWindowTitle("Invalid JSON format!")
             dlg.setText(f"{e}")
-            dlg.exec()
+            dlg.show()
             return
         self.evaluator_sel_container.hide()
         self.trajectory_container.show()
@@ -436,8 +608,24 @@ class HumanInterface(QMainWindow):
         self.worker_signals.step_action_button_signal.connect(
             self.step_action_button.setEnabled
         )
-        self.current_thread = ResetThread(self.worker_signals)
+        self.worker_signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        self.worker_signals.eval_button_signal.connect(self.eval_button.setEnabled)
+        self.current_thread = ResetThread(
+            signals=self.worker_signals,
+            task_config=self.current_task.to_task_config(),
+        )
         self.current_thread.start()
+
+    def show_input_dialog(self, message: str):
+        dlg = QInputDialog(self)
+        dlg.setLabelText(message)
+        dlg.show()
+        dlg.findChildren(QPushButton)[1].hide()
+        result = dlg.exec()
+        assert result == QInputDialog.DialogCode.Accepted
+        user_input = dlg.textValue()
+        assert self.current_thread is not None
+        self.current_thread.receive_user_input(user_input)
 
     def set_task_status_bar_text(self, color: str, text: str) -> None:
         self.task_status_bar.setStyleSheet(color)
@@ -454,7 +642,9 @@ class HumanInterface(QMainWindow):
                 if file.endswith(".py"):
                     file_path = os.path.join(root, file)
                     try:
-                        evaluator_name, evaluator_info = parse_python_file(file_path)
+                        evaluator_name, evaluator_info = extract_evaluator_meta(
+                            file_path
+                        )
                         evaluator_args[evaluator_name] = evaluator_info
                     except Exception:
                         # logger.warn(f"Fail to parse {file_path}: {e}")
@@ -585,26 +775,51 @@ class HumanInterface(QMainWindow):
         """Saves the trajectory to the record path."""
         assert self.current_task is not None
         self.step_action_button.setEnabled(False)
-        export_trajectories(
-            self_eval_results=None,
-            task_config=self.current_task.to_record(),
-            trajectory=self.agent.trajectory,
-            record_path=self.record_path,
-            score=None,
-            feedback=None,
-            token_count=None,
-            video_meta=None,
-            jsonl_name="tasks.jsonl",
-        )
+        self.save_button.setEnabled(False)
+
+        if self.agent.trajectory != []:
+            export_trajectories(
+                self_eval_results=None,
+                task_config=self.current_task.to_record(),
+                trajectory=self.agent.trajectory,
+                record_path=self.record_path,
+                score=None,
+                feedback=None,
+                token_count=None,
+                video_meta=None,
+                jsonl_name="tasks.jsonl",
+            )
         self.reset()
+
+    def eval_task(self):
+        self.step_action_button.setEnabled(False)
+        self.save_button.setEnabled(False)
+        self.eval_button.setEnabled(False)
+        assert self.current_task is not None, "No task selected"
+
+        signals = WorkerSignals()
+        signals.save_button_signal.connect(self.save_button.setEnabled)
+        signals.status_bar_signal.connect(self.set_task_status_bar_text)
+        signals.evaluation_display_signal.connect(self.evaluation_display.setPlainText)
+        signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        self.current_thread_result = queue.Queue()
+        self.current_thread = EvalTaskThread(
+            signals=signals,
+            selected_task=self.current_task.to_task_config(),
+            trajectory_display=self.trajectory_display,
+            result_queue=self.current_thread_result,
+        )
+        self.current_thread.start()
 
     @asyncSlot()
     async def reconnect(self) -> None:
         """Reconnects to VNC server."""
+        self.status_bar.showMessage("Reconnecting")
         async with self.vnc_lock:
             if self.vnc is not None:
                 await self.vnc.disconnect()
             await self.connect_vnc()
+        self.status_bar.showMessage("Connected")
 
     @asyncSlot()
     async def connect_vnc(self) -> None:
