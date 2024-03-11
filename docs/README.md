@@ -1,4 +1,4 @@
-# Playground documents
+# AgentStudio documents
 
 ## Build the docs
 
