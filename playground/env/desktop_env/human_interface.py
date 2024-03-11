@@ -813,10 +813,12 @@ class HumanInterface(QMainWindow):
     @asyncSlot()
     async def reconnect(self) -> None:
         """Reconnects to VNC server."""
+        self.status_bar.showMessage("Reconnecting")
         async with self.vnc_lock:
             if self.vnc is not None:
                 await self.vnc.disconnect()
             await self.connect_vnc()
+        self.status_bar.showMessage("Connected")
 
     @asyncSlot()
     async def connect_vnc(self) -> None:
