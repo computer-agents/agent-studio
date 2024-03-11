@@ -17,8 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 class GoogleDriveService(GoogleService):
-    name: str = "google_drive"
-
     def __init__(self) -> None:
         super().__init__(
             scopes=[
@@ -134,58 +132,6 @@ class GoogleDriveService(GoogleService):
         self.service.files().delete(fileId=folder_id).execute()
         logger.debug(f"Folder with ID {folder_id} has been deleted.")
 
-    def delete_file(self, file_name: str) -> None:
-        """Deletes a file from Google Drive with name."""
-        file_ids = self.search_file(file_name)
-        for file_id in file_ids:
-            file_name = self.get_filename(file_id)
-            logger.debug(f"Deleting file with name {file_name}")
-            confirm_action(f"Deleting file with name {file_name}")(
-                self.delete_file_by_id
-            )(file_id)
-
-    def delete_folder(self, folder_name: str) -> None:
-        """Deletes a folder from Google Drive with name."""
-        folder_ids = self.search_folder(folder_name)
-        for folder_id in folder_ids:
-            folder_name = self.get_filename(folder_id)
-            logger.debug(f"Deleting folder with name {folder_name}")
-            confirm_action(f"Deleting folder with name {folder_name}")(
-                self.delete_folder_by_id
-            )(folder_id)
-
-    def check_file_exists(
-        self, file_name: str, exists: bool, content: str | None = None
-    ) -> None:
-        """Checks if a file exists in Google Drive."""
-        file_ids = self.search_file(file_name)
-        file_exists = len(file_ids) > 0
-        if content is not None:
-            file_exists &= self.compare_file_content(file_ids[0], content)
-
-        if file_exists != exists:
-            raise FeedbackException(
-                f"The error occured when checking the existence of {file_name}. "
-                f"It should be {exists}."
-            )
-
-    def check_folder_exists(
-        self, folder_name: str, exists: bool, file_list: list[dict] | None = None
-    ) -> None:
-        """Checks if a folder exists in Google Drive."""
-        folder_ids = self.search_folder(folder_name)
-        folder_exists = len(folder_ids) > 0
-        if file_list:
-            files = self.list_files(folder_ids[0])
-            folder_exists &= len(files) == len(file_list) and all(
-                [f1["name"] == f2["name"] for f1, f2 in zip(file_list, files)]
-            )
-        if folder_exists != exists:
-            raise FeedbackException(
-                f"The error occured when checking the existence of {folder_name}. "
-                f"It should be {exists}."
-            )
-
     def compare_file_content(self, file_id: str, content: str) -> bool:
         """Compares the content of a file in Google Drive with the given content."""
         # Get file metadata to check MIME type
@@ -245,13 +191,35 @@ class GoogleDriveEvaluator(Evaluator):
     def check_file_exists(
         self, file_name: str, exists: bool, content: str | None = None
     ) -> None:
-        self.service.check_file_exists(file_name, exists, content)
+        """Checks if a file exists in Google Drive."""
+        file_ids = self.service.search_file(file_name)
+        file_exists = len(file_ids) > 0
+        if content is not None:
+            file_exists &= self.service.compare_file_content(file_ids[0], content)
+
+        if file_exists != exists:
+            raise FeedbackException(
+                f"The error occured when checking the existence of {file_name}. "
+                f"It should be {exists}."
+            )
 
     @evaluation_handler("check_folder_exists")
     def check_folder_exists(
         self, folder_name: str, exists: bool, file_list: list[dict] | None = None
     ) -> None:
-        self.service.check_folder_exists(folder_name, exists, file_list)
+        """Checks if a folder exists in Google Drive."""
+        folder_ids = self.service.search_folder(folder_name)
+        folder_exists = len(folder_ids) > 0
+        if file_list:
+            files = self.service.list_files(folder_ids[0])
+            folder_exists &= len(files) == len(file_list) and all(
+                [f1["name"] == f2["name"] for f1, f2 in zip(file_list, files)]
+            )
+        if folder_exists != exists:
+            raise FeedbackException(
+                f"The error occured when checking the existence of {folder_name}. "
+                f"It should be {exists}."
+            )
 
     @reset_handler("create_folder")
     def create_folder(
@@ -271,8 +239,22 @@ class GoogleDriveEvaluator(Evaluator):
 
     @reset_handler("delete_file")
     def delete_file(self, file_name: str) -> None:
-        self.service.delete_file(file_name)
+        """Deletes a file from Google Drive with name."""
+        file_ids = self.service.search_file(file_name)
+        for file_id in file_ids:
+            file_name = self.service.get_filename(file_id)
+            logger.debug(f"Deleting file with name {file_name}")
+            confirm_action(f"Deleting file with name {file_name}")(
+                self.service.delete_file_by_id
+            )(file_id)
 
     @reset_handler("delete_folder")
     def delete_folder(self, folder_name: str) -> None:
-        self.service.delete_folder(folder_name)
+        """Deletes a folder from Google Drive with name."""
+        folder_ids = self.service.search_folder(folder_name)
+        for folder_id in folder_ids:
+            folder_name = self.service.get_filename(folder_id)
+            logger.debug(f"Deleting folder with name {folder_name}")
+            confirm_action(f"Deleting folder with name {folder_name}")(
+                self.service.delete_folder_by_id
+            )(folder_id)

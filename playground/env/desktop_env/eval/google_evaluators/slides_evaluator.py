@@ -14,22 +14,24 @@ from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
 logger = logging.getLogger(__name__)
 
 
-class GoogleSlidesService(GoogleService):
+class GoogleSlidesEvaluator(Evaluator):
     name: str = "google_slides"
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        eval_procedure: list[dict],
+        reset_procedure: list[dict],
+    ) -> None:
         super().__init__(
+            eval_procedure=eval_procedure,
+            reset_procedure=reset_procedure,
+        )
+        self.service = GoogleService(
             scopes=["https://www.googleapis.com/auth/presentations"],
             service_name="slides",
             service_version="v1",
-        )
+        ).service
         self.drive_service = GoogleDriveService()
-
-    def create_presentation(self, title: str) -> dict:
-        """Creates a Google Slides presentation with the given title."""
-        body = {"title": title}
-        presentation = self.service.presentations().create(body=body).execute()
-        return presentation
 
     def get_presentation(self, presentation_id: str) -> dict:
         """Gets the Google Slides presentation by its ID."""
@@ -160,24 +162,18 @@ class GoogleSlidesService(GoogleService):
         presentation_ids = self.drive_service.search_file_by_condition(condition)
         return presentation_ids
 
-    def delete_presentation(self, title: str, content: str | None = None) -> None:
-        """Removes duplicate Google Slides presentations based on their content."""
-        presentation_ids = self.search_presentation_by_title(title)
-        for presentation_id in presentation_ids:
-            if content is None:
-                self.delete_presentation_by_id(presentation_id)
-            else:
-                if self.drive_service.compare_file_content(presentation_id, content):
-                    self.delete_presentation_by_id(presentation_id)
-
     def delete_presentation_by_id(self, presentation_id: str) -> None:
         """Deletes the Google Slides presentation with the given ID."""
         presentation = self.get_presentation(presentation_id)
         logger.info(f"Deleting presentation: {presentation['title']}")
         self.drive_service.delete_file_by_id(presentation_id)
 
+    @evaluation_handler("check_presentation_exists")
     def check_presentation_exists(
-        self, title: str, exists: bool, content: str | None = None
+        self,
+        title: str,
+        exists: bool,
+        content: str | None = None,
     ) -> None:
         """Checks if the presentation matches the given parameters."""
         presentation_ids = self.search_presentation_by_title(title)
@@ -201,34 +197,20 @@ class GoogleSlidesService(GoogleService):
                 f"It should be {exists}."
             )
 
-
-class GoogleSlidesEvaluator(Evaluator):
-    name: str = "google_slides"
-
-    def __init__(
-        self,
-        eval_procedure: list[dict],
-        reset_procedure: list[dict],
-    ) -> None:
-        super().__init__(
-            eval_procedure=eval_procedure,
-            reset_procedure=reset_procedure,
-        )
-        self.service = GoogleSlidesService()
-
-    @evaluation_handler("check_presentation_exists")
-    def check_presentation_exists(
-        self,
-        title: str,
-        exists: bool,
-        content: str | None = None,
-    ) -> None:
-        self.service.check_presentation_exists(title, exists, content)
-
     @reset_handler("create_presentation")
     def create_presentation(self, title: str) -> None:
-        self.service.create_presentation(title)
+        """Creates a Google Slides presentation with the given title."""
+        body = {"title": title}
+        presentation = self.service.presentations().create(body=body).execute()
+        return presentation
 
     @reset_handler("delete_presentation")
     def delete_presentation(self, title: str, content: str | None = None) -> None:
-        self.service.delete_presentation(title, content)
+        """Removes duplicate Google Slides presentations based on their content."""
+        presentation_ids = self.search_presentation_by_title(title)
+        for presentation_id in presentation_ids:
+            if content is None:
+                self.delete_presentation_by_id(presentation_id)
+            else:
+                if self.drive_service.compare_file_content(presentation_id, content):
+                    self.delete_presentation_by_id(presentation_id)

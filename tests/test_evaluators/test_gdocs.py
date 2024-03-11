@@ -76,6 +76,62 @@ TASK_CONFIGS = [
             }
         ]
     },
+    {
+        "evals": [
+            {
+                "eval_type": "google_docs",
+                "eval_procedure": [
+                    {
+                        "hyperlink_match": {
+                            "title": "Hyperlink Guide",
+                            "text": "Click Here",
+                            "url": "https://www.example.com",
+                            "exists": False,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "delete_document": {"title": "Hyperlink Guide"},
+                        "create_document": {
+                            "title": "Hyperlink Guide",
+                            "content": "This is the content of the hyperlink guide",
+                        },
+                    }
+                ],
+            }
+        ],
+    },
+    {
+        "evals": [
+            {
+                "eval_type": "google_docs",
+                "eval_procedure": [
+                    {
+                        "hyperlink_match": {
+                            "title": "Hyperlink Guide",
+                            "text": "Click Here",
+                            "url": "https://www.example.com",
+                            "exists": True,
+                        }
+                    }
+                ],
+                "reset_procedure": [
+                    {
+                        "delete_document": {"title": "Hyperlink Guide"},
+                        "create_document": {
+                            "title": "Hyperlink Guide",
+                            "content": "This is the content of the hyperlink guide",
+                            "hyperlink": {
+                                "text": "Click Here",
+                                "url": "https://www.example.com",
+                            },
+                        },
+                    }
+                ],
+            }
+        ],
+    },
 ]
 
 

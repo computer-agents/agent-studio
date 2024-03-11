@@ -10,7 +10,7 @@ class Config(metaclass=Singleton):
     """
 
     seed: int = 42
-    headless: bool = False  # True for CLI, False for GUI
+    headless: bool = True  # True for CLI, False for GUI
     python_timeout: int = 10
     need_human_confirmation: bool = True
     minimal_action_interval: float = 3.0
@@ -24,7 +24,7 @@ class Config(metaclass=Singleton):
     stop_code: str = "\nexit()"
 
     # Env server config
-    remote: bool = True  # True for remote, False for local
+    remote: bool = False  # True for remote, False for local
     env_type: str = "desktop"
     env_server_addr: str = "127.0.0.1"
     env_server_host: str = "0.0.0.0"

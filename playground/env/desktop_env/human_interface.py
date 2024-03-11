@@ -228,7 +228,7 @@ class HumanInterface(QMainWindow):
         self.reset()
 
     @classmethod
-    async def create(cls, record_path: str, task_config_path: str):
+    async def create_ui(cls, record_path: str, task_config_path: str):
         self = cls(record_path, task_config_path)
         await self.connect_vnc()
         return self
@@ -241,8 +241,9 @@ class HumanInterface(QMainWindow):
         central_widget.setMouseTracking(True)
         main_layout = QHBoxLayout(central_widget)
 
-        self.status_bar: QStatusBar = self.statusBar()
-        assert self.status_bar is not None
+        status_bar = self.statusBar()
+        assert status_bar is not None
+        self.status_bar: QStatusBar = status_bar
 
         self.task_status_bar = QLabel()
         self.status_bar.addPermanentWidget(self.task_status_bar)
@@ -692,7 +693,7 @@ async def run_ui(record_path: str, task_config_path: str) -> None:
             functools.partial(close_future, future, loop)
         )
 
-    interface = await HumanInterface.create(record_path, task_config_path)
+    interface = await HumanInterface.create_ui(record_path, task_config_path)
 
     interface.show()
 
