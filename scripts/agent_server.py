@@ -9,6 +9,7 @@ from fastapi.responses import Response
 
 from playground.agent.runtime import PythonRuntime
 from playground.config import Config
+from playground.env.desktop_env.eval.evaluator_helper import EvaluatorComb
 from playground.utils.communication import (
     PlaygroundEvalRequest,
     PlaygroundResetRequest,
@@ -34,10 +35,8 @@ current_thread: None | threading.Thread = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     runtimes["python"] = PythonRuntime()
-    init_code = (
-        "from playground.env.desktop_env import Shell, Keyboard, Mouse\n\n"
-        "shell = Shell()\nkeyboard = Keyboard()\nmouse = Mouse()\n"
-    )
+    with open(config.init_code_path, "r") as f:
+        init_code = f.read()
     runtimes["python"](init_code)
     yield
     runtimes["python"].close()
@@ -69,14 +68,9 @@ def setup_evaluator(
     return evaluator_router
 
 
-def reset_task(task_config: dict):
+def reset_task(comb: EvaluatorComb):
     try:
-        logger.info(f"Start resetting task: {task_config}")
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
-        evaluator_router = setup_evaluator(
-            env=args.env,
-        )
-        comb = evaluator_router(task_config)
         comb.reset()
         task_status.set_task_state(
             StateInfo(state=StateEnum.FINISHED, message="", result="success")
@@ -89,14 +83,9 @@ def reset_task(task_config: dict):
         )
 
 
-def eval_task(task_config: dict):
+def eval_task(comb: EvaluatorComb):
     try:
-        logger.info(f"Start evaluating task: {task_config}")
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
-        evaluator_router = setup_evaluator(
-            env=args.env,
-        )
-        comb = evaluator_router(task_config)
         score, feedback = comb()
         task_status.set_task_state(
             StateInfo(
@@ -121,6 +110,7 @@ async def health() -> Response:
 
 @app.post("/execute")
 async def execute_code(request: PlaygroundTextRequest) -> dict:
+    logger.info(f"Execute code: {request.message}")
     result = runtimes["python"](request.message)
     return result
 
@@ -132,6 +122,7 @@ async def reset_runtime() -> PlaygroundResponse:
     with open(config.init_code_path, "r") as f:
         init_code = f.read()
     runtimes["python"](init_code)
+    logger.info("Reset runtime")
     return PlaygroundResponse(status="success")
 
 
@@ -177,7 +168,12 @@ async def new_task(request: PlaygroundResetRequest) -> PlaygroundResponse:
         current_thread.join()
         task_status.reset_state()
 
-    current_thread = threading.Thread(target=reset_task, args=(request.task_config,))
+    logger.info(f"Start resetting task: {request.task_config}")
+    evaluator_router = setup_evaluator(
+        env=args.env,
+    )
+    comb = evaluator_router(request.task_config)
+    current_thread = threading.Thread(target=reset_task, args=(comb,))
     current_thread.start()
     return PlaygroundResponse(status="submitted")
 
@@ -204,9 +200,15 @@ async def submit_eval(request: PlaygroundEvalRequest) -> PlaygroundResponse:
         StateEnum.PENDING,
         StateEnum.FINISHED,
     ], f"Invalid status: {cur_status}"
+
+    evaluator_router = setup_evaluator(
+        env=args.env,
+    )
+    logger.info(f"Start evaluating task: {request.task_config}")
+    comb: EvaluatorComb = evaluator_router(request.task_config)
     current_thread = threading.Thread(
         target=eval_task,
-        args=(request.task_config,),
+        args=(comb,),
     )
     current_thread.start()
     return PlaygroundResponse(status="submitted")

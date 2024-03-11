@@ -18,9 +18,9 @@ from pathlib import Path
 
 # -- Project information -----------------------------------------------------
 
-project = "Playground"
-copyright = "2024, Playground Team"
-author = "the Playground Team"
+project = "AgentStudio"
+copyright = "2024, AgentStudio Team"
+author = "the AgentStudio Team"
 
 
 # -- General configuration ---------------------------------------------------
@@ -36,7 +36,7 @@ extensions = [
     "autoapi.extension",
 ]
 
-autoapi_dirs = [Path(__file__).parent.parent.parent / "playground"]
+autoapi_dirs = [Path(__file__).parent.parent.parent / "agent_studio"]
 autoapi_options = [
     'members',
     'undoc-members',
@@ -64,10 +64,10 @@ copybutton_prompt_is_regexp = True
 #
 html_title = project
 html_theme = "sphinx_book_theme"
-html_logo = "assets/logos/playground-logo-text-light.png"
+html_logo = "assets/logos/agent-studio-logo-text-light.png"
 html_theme_options = {
     "path_to_docs": "docs/source",
-    "repository_url": "https://github.com/ltzheng/playground",
+    "repository_url": "https://github.com/ltzheng/agent-studio",
     "use_repository_button": True,
 }
 

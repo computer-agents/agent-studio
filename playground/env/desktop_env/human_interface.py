@@ -388,7 +388,7 @@ class HumanInterface(QMainWindow):
         self.reset()
 
     @classmethod
-    async def create(cls, record_path: str, task_config_path: str):
+    async def create_ui(cls, record_path: str, task_config_path: str):
         self = cls(record_path, task_config_path)
         await self.connect_vnc()
         return self
@@ -401,8 +401,9 @@ class HumanInterface(QMainWindow):
         central_widget.setMouseTracking(True)
         main_layout = QHBoxLayout(central_widget)
 
-        self.status_bar: QStatusBar = self.statusBar()
-        assert self.status_bar is not None
+        status_bar = self.statusBar()
+        assert status_bar is not None
+        self.status_bar: QStatusBar = status_bar
 
         self.task_status_bar = QLabel()
         self.status_bar.addPermanentWidget(self.task_status_bar)
@@ -794,7 +795,7 @@ class HumanInterface(QMainWindow):
         self.step_action_button.setEnabled(False)
         self.save_button.setEnabled(False)
         self.eval_button.setEnabled(False)
-        assert self.selected_task is not None, "No task selected"
+        assert self.current_task is not None, "No task selected"
 
         signals = WorkerSignals()
         signals.save_button_signal.connect(self.save_button.setEnabled)
@@ -804,7 +805,7 @@ class HumanInterface(QMainWindow):
         self.current_thread_result = queue.Queue()
         self.current_thread = EvalTaskThread(
             signals=signals,
-            selected_task=self.selected_task,
+            selected_task=self.current_task.to_task_config(),
             trajectory_display=self.trajectory_display,
             result_queue=self.current_thread_result,
         )
@@ -813,10 +814,12 @@ class HumanInterface(QMainWindow):
     @asyncSlot()
     async def reconnect(self) -> None:
         """Reconnects to VNC server."""
+        self.status_bar.showMessage("Reconnecting")
         async with self.vnc_lock:
             if self.vnc is not None:
                 await self.vnc.disconnect()
             await self.connect_vnc()
+        self.status_bar.showMessage("Connected")
 
     @asyncSlot()
     async def connect_vnc(self) -> None:
@@ -905,7 +908,7 @@ async def run_ui(record_path: str, task_config_path: str) -> None:
             functools.partial(close_future, future, loop)
         )
 
-    interface = await HumanInterface.create(record_path, task_config_path)
+    interface = await HumanInterface.create_ui(record_path, task_config_path)
 
     interface.show()
 

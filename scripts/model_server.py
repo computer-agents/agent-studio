@@ -55,7 +55,7 @@ async def create_chat_completion(request: ChatCompletionRequest) -> JSONResponse
     if request.model in ["gemini-pro-vision", "gemini-pro"]:
         with open(config.api_key_path, "r") as f:
             api_keys = json.load(f)
-        genai.configure(api_key=api_keys["gemini"])
+        genai.configure(api_key=api_keys["gemini_api_key"])
         model = genai.GenerativeModel(request.model)
     else:
         raise NotImplementedError
@@ -67,7 +67,7 @@ async def create_chat_completion(request: ChatCompletionRequest) -> JSONResponse
         f" and generation_config: {generation_config}"
     )
     r = model.generate_content(messages, generation_config=generation_config)
-    token_count = model.count_tokens(messages)
+    token_count = model.count_tokens(messages).total_tokens
     try:
         print(r.text)
     except ValueError:
@@ -79,7 +79,7 @@ async def create_chat_completion(request: ChatCompletionRequest) -> JSONResponse
     return JSONResponse(
         content={
             "content": base64.b64encode(pickle.dumps(r)).decode("utf-8"),
-            "token_count": token_count.total_tokens,
+            "info": {"total_tokens": token_count},
         }
     )
 

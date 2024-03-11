@@ -1,4 +1,4 @@
-Welcome to Playground's documentation!
+Welcome to AgentStudio!
 ======================================
 
 .. toctree::
