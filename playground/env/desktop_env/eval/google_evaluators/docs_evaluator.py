@@ -14,9 +14,19 @@ from playground.env.desktop_env.eval.google_evaluators.drive_evaluator import (
 logger = logging.getLogger(__name__)
 
 
-class GoogleDocsService(GoogleService):
-    def __init__(self) -> None:
+class GoogleDocsEvaluator(Evaluator):
+    name: str = "google_docs"
+
+    def __init__(
+        self,
+        eval_procedure: list[dict],
+        reset_procedure: list[dict],
+    ) -> None:
         super().__init__(
+            eval_procedure=eval_procedure,
+            reset_procedure=reset_procedure,
+        )
+        self.service = GoogleService(
             scopes=[
                 "https://www.googleapis.com/auth/documents",
             ],
@@ -24,14 +34,6 @@ class GoogleDocsService(GoogleService):
             service_version="v1",
         )
         self.drive_service = GoogleDriveService()
-
-    def create_document(self, title: str, content: str | None = None) -> dict:
-        """Creates a document with the given title and content."""
-        body = {"title": title}
-        doc = self.service.documents().create(body=body).execute()
-        if content:
-            self.append_text(doc["documentId"], content)
-        return doc
 
     def get_document(self, document_id: str) -> dict:
         """Gets a document by its ID."""
@@ -132,53 +134,6 @@ class GoogleDocsService(GoogleService):
         logger.info(f"Deleting document: {document['title']}")
         self.drive_service.delete_file_by_id(doc_id)
 
-    def delete_document(self, title: str, content: str) -> None:
-        """Deletes a document with the given title and content."""
-        doc_ids = self.search_doc_by_title(title)
-        if len(doc_ids) != 0:
-            for doc_id in doc_ids:
-                if self.drive_service.compare_file_content(doc_id, content):
-                    self.delete_doc_by_id(doc_id)
-
-    def check_doc_exists(
-        self, title: str, exists: bool, content: str | None = None
-    ) -> None:
-        """Checks if the document matches the given parameters."""
-        doc_ids = self.search_doc_by_title(title)
-        doc_exists = False
-        if len(doc_ids) != 0:
-            for doc_id in doc_ids:
-                title_match = self.get_document_title(doc_id) == title
-                if content is None:
-                    content_match = True
-                else:
-                    content_match = self.drive_service.compare_file_content(
-                        doc_id, content
-                    )
-                if title_match and content_match:
-                    doc_exists = True
-                    break
-        if doc_exists != exists:
-            raise FeedbackException(
-                f"The error occured when checking the existence of {title}. "
-                f"It should be {exists}."
-            )
-
-
-class GoogleDocsEvaluator(Evaluator):
-    name: str = "google_docs"
-
-    def __init__(
-        self,
-        eval_procedure: list[dict],
-        reset_procedure: list[dict],
-    ) -> None:
-        super().__init__(
-            eval_procedure=eval_procedure,
-            reset_procedure=reset_procedure,
-        )
-        self.service = GoogleDocsService()
-
     @evaluation_handler("check_doc_exists")
     def check_doc_exists(
         self,
@@ -200,7 +155,25 @@ class GoogleDocsEvaluator(Evaluator):
         Returns:
             None
         """
-        self.service.check_doc_exists(title, exists, content)
+        doc_ids = self.search_doc_by_title(title)
+        doc_exists = False
+        if len(doc_ids) != 0:
+            for doc_id in doc_ids:
+                title_match = self.get_document_title(doc_id) == title
+                if content is None:
+                    content_match = True
+                else:
+                    content_match = self.drive_service.compare_file_content(
+                        doc_id, content
+                    )
+                if title_match and content_match:
+                    doc_exists = True
+                    break
+        if doc_exists != exists:
+            raise FeedbackException(
+                f"The error occured when checking the existence of {title}. "
+                f"It should be {exists}."
+            )
 
     @reset_handler("create_document")
     def create_document(self, title: str, content: str | None = None) -> dict:
@@ -214,7 +187,11 @@ class GoogleDocsEvaluator(Evaluator):
         Returns:
             dict: Document information.
         """
-        return self.service.create_document(title, content)
+        body = {"title": title}
+        doc = self.service.documents().create(body=body).execute()
+        if content:
+            self.append_text(doc["documentId"], content)
+        return doc
 
     @reset_handler("delete_document")
     def delete_document(self, title: str, content: str) -> None:
@@ -228,4 +205,8 @@ class GoogleDocsEvaluator(Evaluator):
         Returns:
             None
         """
-        self.service.delete_document(title, content)
+        doc_ids = self.search_doc_by_title(title)
+        if len(doc_ids) != 0:
+            for doc_id in doc_ids:
+                if self.drive_service.compare_file_content(doc_id, content):
+                    self.delete_doc_by_id(doc_id)
