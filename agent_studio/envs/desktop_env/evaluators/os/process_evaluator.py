@@ -6,7 +6,7 @@ import time
 
 import psutil
 
-from agent_studio.envs.desktop_env.eval.evaluator import (
+from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
     FeedbackException,
     evaluation_handler,

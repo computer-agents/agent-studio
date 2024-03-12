@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from agent_studio.envs.desktop_env.eval.evaluator import (
+from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
     FeedbackException,
     evaluation_handler,

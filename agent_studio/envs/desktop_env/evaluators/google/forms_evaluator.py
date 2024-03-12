@@ -2,16 +2,16 @@ import logging
 from typing import Any
 
 from agent_studio.config import Config
-from agent_studio.envs.desktop_env.eval.connectors.gservice import GoogleService
-from agent_studio.envs.desktop_env.eval.evaluator import (
+from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
     FeedbackException,
     evaluation_handler,
     reset_handler,
 )
-from agent_studio.envs.desktop_env.eval.google_evaluators.drive_evaluator import (
+from agent_studio.envs.desktop_env.evaluators.google.drive_evaluator import (
     GoogleDriveService,
 )
+from agent_studio.envs.desktop_env.evaluators.google.gservice import GoogleService
 
 config = Config()
 logger = logging.getLogger(__name__)

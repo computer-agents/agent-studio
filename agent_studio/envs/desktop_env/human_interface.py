@@ -633,7 +633,7 @@ class HumanInterface(QMainWindow):
 
     def load_evaluator_args(
         self,
-        base_path: str = "agent_studio/envs/desktop_env/eval",
+        base_path: str = "agent_studio/envs/desktop_env/evaluators",
     ) -> None:
         """Loads the evaluator arguments."""
         evaluator_args = {}

@@ -1,7 +1,7 @@
 # pytest -s tests/test_evaluators/test_gslides.py
 import pytest
 
-from agent_studio.envs.desktop_env.eval.evaluator_helper import evaluator_router
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
 
 TASK_CONFIGS = [
     {

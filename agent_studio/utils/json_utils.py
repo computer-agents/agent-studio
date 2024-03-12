@@ -43,6 +43,20 @@ def add_jsonl(data: list, file_path: str, mode="a"):
             file.write(json_str + "\n")
 
 
+def read_json(file_path: str) -> dict:
+    """Reads a dictionary from a .json file.
+
+    Args:
+        file_path (str): Path to the .json file
+
+    Returns:
+        dict: The dictionary read from the file
+    """
+    with open(file_path, "r") as file:
+        data = json.load(file)
+    return data
+
+
 def format_json(data: dict, indent=4, sort_keys=False):
     """Prints a dictionary in a formatted way.
 

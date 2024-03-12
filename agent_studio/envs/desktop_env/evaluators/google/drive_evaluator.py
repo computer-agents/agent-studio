@@ -4,13 +4,13 @@ import logging
 
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
-from agent_studio.envs.desktop_env.eval.connectors.gservice import GoogleService
-from agent_studio.envs.desktop_env.eval.evaluator import (
+from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
     FeedbackException,
     evaluation_handler,
     reset_handler,
 )
+from agent_studio.envs.desktop_env.evaluators.google.gservice import GoogleService
 from agent_studio.utils.human_utils import confirm_action
 
 logger = logging.getLogger(__name__)

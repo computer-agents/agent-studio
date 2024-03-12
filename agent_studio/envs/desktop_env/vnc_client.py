@@ -19,8 +19,6 @@ from cryptography.hazmat.primitives.serialization import load_der_public_key
 from PyQt6.QtGui import QCursor, QPixmap
 from PyQt6.QtWidgets import QLabel
 
-from agent_studio.envs.desktop_env.base import Position
-
 logger = logging.getLogger(__name__)
 
 # Common screen aspect ratios
@@ -72,6 +70,15 @@ def pack_ard(data):
     else:
         data = data[:64]
     return data
+
+
+@dataclass
+class Position:
+    width: int
+    height: int
+
+    def __str__(self):
+        return "Position({},{})".format(self.width, self.height)
 
 
 @dataclass

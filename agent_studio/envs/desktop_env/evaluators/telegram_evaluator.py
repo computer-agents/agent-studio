@@ -7,7 +7,7 @@ from pyrogram.errors import FloodWait
 from pyrogram.types import Message
 
 from agent_studio.config import Config
-from agent_studio.envs.desktop_env.eval.evaluator import (
+from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
     FeedbackException,
     evaluation_handler,

@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from agent_studio.config import Config
-from agent_studio.envs.desktop_env.eval.evaluator import Evaluator
+from agent_studio.envs.desktop_env.evaluators.evaluator import Evaluator
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class EvaluatorComb:
 
 
 def register_evaluators(
-    base_path: str | Path = "agent_studio/envs/desktop_env/eval",
+    base_path: str | Path = "agent_studio/envs/desktop_env/evaluators",
 ) -> dict[str, type[Evaluator]]:
     registered_classes = {}
     for root, _, files in os.walk(base_path):

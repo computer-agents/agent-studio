@@ -13,7 +13,7 @@ from qasync import QApplication
 from agent_studio.agent.base_agent import Agent
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.agent_interface import AgentInterface
-from agent_studio.envs.desktop_env.eval.evaluator_helper import evaluator_router
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
 from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
     VNCRecorder,

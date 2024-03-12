@@ -9,7 +9,7 @@ from fastapi.responses import Response
 
 from agent_studio.agent.runtime import PythonRuntime
 from agent_studio.config import Config
-from agent_studio.envs.desktop_env.eval.evaluator_helper import EvaluatorComb
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import EvaluatorComb
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
@@ -59,7 +59,7 @@ def setup_evaluator(
 ):
     match env:
         case "desktop":
-            from agent_studio.envs.desktop_env.eval.evaluator_helper import (
+            from agent_studio.envs.desktop_env.evaluators.evaluator_helper import (
                 evaluator_router,
             )
         case _:

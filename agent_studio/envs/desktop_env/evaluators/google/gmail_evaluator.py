@@ -5,13 +5,13 @@ from email.message import EmailMessage
 from typing import Any
 
 from agent_studio.config import Config
-from agent_studio.envs.desktop_env.eval.connectors.gservice import GoogleService
-from agent_studio.envs.desktop_env.eval.evaluator import (
+from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
     FeedbackException,
     evaluation_handler,
     reset_handler,
 )
+from agent_studio.envs.desktop_env.evaluators.google.gservice import GoogleService
 from agent_studio.utils.human_utils import confirm_action
 
 config = Config()

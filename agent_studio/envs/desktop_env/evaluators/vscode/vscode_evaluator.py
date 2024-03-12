@@ -2,13 +2,13 @@ import logging
 from datetime import datetime
 
 from agent_studio.config import Config
-from agent_studio.envs.desktop_env.eval.connectors.vscode_connector import (
-    VSCodeConnector,
-)
-from agent_studio.envs.desktop_env.eval.evaluator import (
+from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
     evaluation_handler,
     reset_handler,
+)
+from agent_studio.envs.desktop_env.evaluators.vscode.vscode_connector import (
+    VSCodeConnector,
 )
 
 config = Config()

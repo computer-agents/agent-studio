@@ -1,7 +1,7 @@
 import logging
 import time
 
-from agent_studio.envs.desktop_env.eval.evaluator import Evaluator, reset_handler
+from agent_studio.envs.desktop_env.evaluators.evaluator import Evaluator, reset_handler
 
 logger = logging.getLogger(__name__)
 
