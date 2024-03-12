@@ -3,8 +3,33 @@
 Installation
 ============
 
-Requirements
+Setup Environment
+-----------------
+
+Install requirements::
+
+    apt-get install gnome-screenshot xclip xdotool  # If using Ubuntu 22.04
+    conda create --name agent-studio python=3.11 -y
+    conda activate agent-studio
+    pip install -r requirements_{YOUR_SYSTEM_TYPE}.txt
+    pip install -e .
+
+This command will download the task suite and agent trajectories from `Huggingface <https://huggingface.co/datasets/agent-studio/agent-studio-data>`_ (you may need to `configure huggingface and git lfs <https://huggingface.co/docs/hub/en/repositories-getting-started#cloning-repositories>`_).
+
+::
+
+    git submodule update --init --remote --recursive
+
+Setup API Keys
+--------------
+
+Please refer to the `doc <docs/source/getting_started/setup_api_keys.rst>`_ for detailed instructions.
+
+Setup Docker
 ------------
 
-* OS: Linux
-* Python: 3.11
+This step is optional, only for running tasks with GUI in a docker container.
+
+Build Docker image::
+
+    docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t agent-studio:latest

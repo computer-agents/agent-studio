@@ -3,7 +3,7 @@ AgentStudio
 </h1>
 
 <p align="center">
-<a href="https://ltzheng.github.io/agent-studio/"><b>Documentation</b></a> | <a href="https://arxiv.org/abs/2403."><b>Paper</b></a>
+<a href="https://ltzheng.github.io/agent-studio/"><b>Documentation</b></a>
 </p>
 
 <p align="center">
@@ -20,6 +20,8 @@ building virtual agents that can interact with everything on digital worlds. Her
 ## Contributing
 
 We plan to expand the collection of environments, tasks, and data over time. Contributions and feedback from everyone on how to make this into a better tool are more than welcome, no matter the scale. Please check out [CONTRIBUTING.md](CONTRIBUTING.md) for how to get involved.
+
+![](docs/source/assets/imgs/overview.png)
 
 ## Quickstart
 
@@ -86,19 +88,19 @@ Start benchmarking:
 python run.py --mode eval --env desktop
 ```
 
-## Record Datasets
+## Record Datasets, Add Tasks & More
 
-Please refer to the [doc](docs/source/getting_started/start_recording.rst) for detailed instructions.
+Please refer to the our [documentation](https://ltzheng.github.io/agent-studio/) for detailed instructions on environment setup, running experiments, recording dataset, adding new tasks, and troubleshooting.
 
-## Troubleshooting
+Here is an example of recording human demonstrations:
 
-Please refer to the [doc](docs/source/getting_started/troubleshooting.rst) for detailed instructions.
+![](docs/source/assets/imgs/annotation_example.jpg)
 
 ## Acknowledgement
+
+We would like to thank the following projects for their inspiration and contributions to the open-source community:
 
 - [Open Interpreter](https://github.com/KillianLucas/open-interpreter)
 - [WebArena](https://github.com/web-arena-x/webarena)
 - [Cradle](https://baai-agents.github.io/Cradle/)
 - [ScreenAgent](https://github.com/niuzaisheng/ScreenAgent)
-
-## Citation
