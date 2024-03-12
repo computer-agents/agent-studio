@@ -787,7 +787,7 @@ class HumanInterface(QMainWindow):
                 feedback=None,
                 token_count=None,
                 video_meta=None,
-                jsonl_name="tasks.jsonl",
+                jsonl_name=config.result_jsonl_file,
             )
         self.reset()
 

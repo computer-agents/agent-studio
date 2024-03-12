@@ -519,7 +519,7 @@ class AgentInterface(QMainWindow):
         self.setMouseTracking(True)
 
     def load_task_results(self):
-        jsonl_path = self.record_path / "results.jsonl"
+        jsonl_path = self.record_path / config.result_jsonl_file
         if jsonl_path.exists():
             evaluated_tasks = read_jsonl(jsonl_path.as_posix())
             self.task_results = {
@@ -628,6 +628,7 @@ class AgentInterface(QMainWindow):
             feedback=auto_eval_result["feedback"],
             token_count=self.action_token_count,
             video_meta=self.video_meta,
+            jsonl_name=config.result_jsonl_file,
         )
         self.next_button.setEnabled(True)
 
@@ -644,6 +645,7 @@ class AgentInterface(QMainWindow):
         # self.is_recording = True
         if self.selected_task["visual"]:
             if config.remote:
+                assert self.vnc_thread is not None
                 self.screen_recorder = VNCRecorder(
                     fps=config.video_fps, vnc_streamer=self.vnc_thread
                 )
@@ -774,6 +776,7 @@ class AgentInterface(QMainWindow):
         try:
             if config.remote:
                 with self.recording_lock:
+                    assert self.vnc_thread is not None
                     frame = self.vnc_thread.get_current_frame()
                 if frame is not None:
                     qimage = QImage(

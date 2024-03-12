@@ -44,9 +44,6 @@ class TestReq:
 
 def create_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--env", type=str, choices=["desktop", "android"], default="desktop"
-    )
     parser.add_argument("--agent", type=str, default=config.agent)
     parser.add_argument("--provider", type=str, default=config.provider)
     parser.add_argument("--mode", type=str, choices=["record", "eval"], default="eval")
@@ -78,9 +75,11 @@ def setup_agent(args):
 
 
 def setup_tasks(args):
-    assert args.env in config.task_config_paths, f"Invalid env {args.env}."
+    assert (
+        config.env_type in config.task_config_paths
+    ), f"Invalid env {config.env_type}."
     task_configs = read_jsonl(
-        config.task_config_paths[args.env], args.start_idx, args.end_idx
+        config.task_config_paths[config.env_type], args.start_idx, args.end_idx
     )
 
     return task_configs
@@ -125,8 +124,6 @@ def eval_gui(
                 [
                     "python",
                     "scripts/agent_server.py",
-                    "--env",
-                    "desktop",
                 ]
             )
 
@@ -247,9 +244,9 @@ def eval_headless(
                     break
 
             task_trajectory_path = Path(record_path) / task_config["task_id"]
-            task_trajectory_path.mkdir(parents=True, exist_ok=True)
             video_meta = None
             if task_config["visual"]:
+                task_trajectory_path.mkdir(parents=True, exist_ok=True)
                 assert screen_recorder is not None
                 screen_recorder.stop()
                 screen_recorder.wait_exit()
@@ -297,6 +294,7 @@ def eval_headless(
                 feedback=feedback,
                 token_count=action_token_count,
                 video_meta=video_meta,
+                jsonl_name=config.result_jsonl_file,
             )
         except Exception as e:
             import traceback
@@ -321,18 +319,18 @@ def eval(args) -> None:
     agent, record_path = setup_agent(args)
     task_configs = setup_tasks(args)
 
-    match args.env:
+    match config.env_type:
         case "desktop":
             if not config.headless:
                 eval_gui(agent, task_configs, record_path)
             else:
                 eval_headless(agent, task_configs, record_path)
         case _:
-            raise ValueError(f"Invalid env: {args.env}.")
+            raise ValueError(f"Invalid env: {config.env_type}.")
 
 
 def record(args) -> None:
-    match args.env:
+    match config.env_type:
         case "desktop":
             from agent_studio.envs.desktop_env.human_interface import run_ui
 
@@ -341,13 +339,13 @@ def record(args) -> None:
                 qasync.run(
                     run_ui(
                         record_path="data/trajectories/human",
-                        task_config_path=config.task_config_paths[args.env],
+                        task_config_path=config.task_config_paths[config.env_type],
                     )
                 )
             except asyncio.exceptions.CancelledError:
                 sys.exit(0)
         case _:
-            raise ValueError(f"Invalid env: {args.env}.")
+            raise ValueError(f"Invalid env: {config.env_type}.")
 
 
 def main():

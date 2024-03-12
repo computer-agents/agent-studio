@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 from agent_studio.utils.singleton import ThreadSafeSingleton
@@ -17,7 +18,6 @@ class Config(metaclass=ThreadSafeSingleton):
 
     task_config_paths: dict = {
         "desktop": "data/tasks/filesystem.jsonl",
-        # "desktop": "data/tasks/windows_easy.jsonl",
     }
     api_key_path: str = "agent_studio/config/api_key.json"
 
@@ -82,6 +82,7 @@ class Config(metaclass=ThreadSafeSingleton):
         for api_key in api_keys:
             setattr(self, api_key, api_keys[api_key])
         self.log_dir.mkdir(parents=True, exist_ok=True)
+        self.result_jsonl_file = os.path.basename(self.task_config_paths[self.env_type])
 
     def __str__(self) -> str:
         return str(self.__dict__)

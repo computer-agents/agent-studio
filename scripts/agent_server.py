@@ -1,4 +1,3 @@
-import argparse
 import logging
 import threading
 from contextlib import asynccontextmanager
@@ -43,15 +42,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
-
-def create_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--env", type=str, choices=["desktop", "android"], default="desktop"
-    )
-
-    return parser
 
 
 def setup_evaluator(
@@ -170,7 +160,7 @@ async def new_task(request: AgentStudioResetRequest) -> AgentStudioResponse:
 
     logger.info(f"Start resetting task: {request.task_config}")
     evaluator_router = setup_evaluator(
-        env=args.env,
+        env=config.env_type,
     )
     comb = evaluator_router(request.task_config)
     current_thread = threading.Thread(target=reset_task, args=(comb,))
@@ -202,7 +192,7 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioResponse:
     ], f"Invalid status: {cur_status}"
 
     evaluator_router = setup_evaluator(
-        env=args.env,
+        env=config.env_type,
     )
     logger.info(f"Start evaluating task: {request.task_config}")
     comb: EvaluatorComb = evaluator_router(request.task_config)
@@ -255,9 +245,6 @@ async def get_result() -> AgentStudioResultResponse:
 
 
 if __name__ == "__main__":
-    parser = create_parser()
-    args = parser.parse_args()
-    logger.info(f"Running with args: {args}")
     uvicorn.run(
         app,
         host=config.env_server_host,
