@@ -1,7 +1,11 @@
+import os
+import uuid
 import json
-from pathlib import Path
+from typing import Any
 
+from PIL import Image
 import cv2
+import numpy as np
 
 
 def read_jsonl(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> list:
@@ -78,16 +82,12 @@ def export_trajectories(
     jsonl_name: str = "results.jsonl",
 ) -> None:
     """Exports the trajectory data to a .jsonl file."""
-    if task_config["visual"]:
-        media_path = Path(record_path) / task_config["task_id"]
-        media_path.mkdir(parents=True, exist_ok=True)
-    else:
-        media_path = None
+    media_path = os.path.join(record_path, task_config["task_id"])
     results = {
         "video": video_meta,
         "task_id": task_config["task_id"],
         "instruction": task_config["instruction"],
-        "trajectory": [],
+        "trajectory": trajectory,
         "token_count": token_count,
     }
     if score is not None:
@@ -99,25 +99,39 @@ def export_trajectories(
             "score": self_eval_results["score"],
             "response": self_eval_results["response"],
         }
-    if task_config["visual"]:
-        assert media_path is not None
-        for traj in trajectory:
-            image_path = (media_path / f"{traj['timestamp']}.png").as_posix()
-            cv2.imwrite(image_path, traj["obs"])
-            results["trajectory"].append(
-                {
-                    "obs": image_path,
-                    "prompt": traj["prompt"],
-                    "response": traj["response"],
-                    "info": traj["info"],
-                    "act": traj["act"],
-                    "res": traj["res"],
-                    "timestamp": traj["timestamp"],
-                }
-            )
-    else:
-        results["trajectory"] = trajectory
+    parse_and_save_objects(results, media_path)
     add_jsonl(
         data=[results],
-        file_path=(Path(record_path) / jsonl_name).as_posix(),
+        file_path=os.path.join(record_path, jsonl_name),
     )
+
+def save_image_or_array(obj: Any, folder_path: str) -> str:
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path, exist_ok=True)
+
+    # A unique identifier for the filename.
+    unique_filename = str(uuid.uuid4())
+    if isinstance(obj, Image.Image):
+        file_path = os.path.join(folder_path, f"{unique_filename}.png")
+        obj.save(file_path)
+    elif isinstance(obj, np.ndarray):
+        file_path = os.path.join(folder_path, f"{unique_filename}.png")
+        cv2.imwrite(file_path, obj)
+    else:
+        raise ValueError("Unsupported object type for saving.")
+    return file_path
+
+def parse_and_save_objects(obj: Any, folder_path: str) -> Any:
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if isinstance(value, (Image.Image, np.ndarray)):
+                obj[key] = save_image_or_array(value, folder_path)
+            elif isinstance(value, (dict, list)):
+                obj[key] = parse_and_save_objects(value, folder_path)
+    elif isinstance(obj, list):
+        for i in range(len(obj)):
+            if isinstance(obj[i], (Image.Image, np.ndarray)):
+                obj[i] = save_image_or_array(obj[i], folder_path)
+            elif isinstance(obj[i], (dict, list)):
+                obj[i] = parse_and_save_objects(obj[i], folder_path)
+    return obj

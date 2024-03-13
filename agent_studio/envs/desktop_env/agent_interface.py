@@ -83,6 +83,7 @@ class WorkerSignals(QObject):
     save_trajectory_signal = pyqtSignal()
     finish_run_task_signal = pyqtSignal()
     trajectory_display_signal = pyqtSignal(str)
+    generate_action_signal = pyqtSignal()
 
 
 class ResetRuntimeThread(QThread):
@@ -105,21 +106,17 @@ class ResetRuntimeThread(QThread):
         raise NotImplementedError
 
 
-class RunTaskThread(QThread):
+class ResetTaskThread(QThread):
     def __init__(
         self,
         signals: WorkerSignals,
         selected_task: dict,
-        obs: np.ndarray | None,
-        agent: Agent,
     ):
         super().__init__()
         self.mutex = QMutex()
         self.wait_condition = QWaitCondition()
         self.signals = signals
-        self.agent = agent
         self.selected_task = selected_task
-        self.obs = obs
 
     def _wait_finish(self):
         while True:
@@ -155,7 +152,7 @@ class RunTaskThread(QThread):
                 raise ValueError(f"Unknown status: {response.status}")
             time.sleep(1)
 
-    def reset_task(self):
+    def run(self):
         assert self.selected_task is not None
         response_raw = requests.post(
             f"http://{REMOTE_SERVER_ADDR}/task/reset",
@@ -172,23 +169,7 @@ class RunTaskThread(QThread):
         response = AgentStudioResultResponse(**response_raw.json())
         # TODO: handle failed reset
         assert response.status == "finished" and response.result == "success"
-        self.agent.reset(instruction=self.selected_task["instruction"])
-
-    def run(self):
-        self.reset_task()
-        self.signals.status_bar_signal.emit(
-            "color: green;", "Task: Generating action..."
-        )
-
-        response, raw_code = self.agent.generate_action(self.obs)
-
-        self.signals.status_bar_signal.emit(
-            "color: blue;", "Task: Waiting for confirmation..."
-        )
-        self.signals.parsed_action_display_signal.emit(raw_code)
-        self.signals.response_display_signal.emit(response)
-        self.signals.confirm_signal.emit(True)
-        self.signals.decline_signal.emit(True)
+        self.signals.generate_action_signal.emit()
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -196,6 +177,37 @@ class RunTaskThread(QThread):
         self.wait_condition.wakeAll()  # Resume the thread
         self.mutex.unlock()
 
+
+class GenerateActionThread(QThread):
+    def __init__(
+        self,
+        signals: WorkerSignals,
+        selected_task: dict,
+        obs: np.ndarray | None,
+        agent: Agent,
+    ) -> None:
+        super().__init__()
+        self.signals = signals
+        self.selected_task = selected_task
+        self.agent = agent
+        self.obs = obs
+
+    def run(self):
+        self.signals.status_bar_signal.emit("color: green;", "Task: Resetting Agent...")
+        self.agent.reset(instruction=self.selected_task["instruction"])
+        self.signals.status_bar_signal.emit(
+            "color: green;", "Task: Generating action..."
+        )
+
+        response, raw_code = self.agent.generate_action(self.obs)
+
+        self.signals.status_bar_signal.emit(
+            "color: blue;", "Task: Please Confirm Agent Action"
+        )
+        self.signals.parsed_action_display_signal.emit(raw_code)
+        self.signals.response_display_signal.emit(response)
+        self.signals.confirm_signal.emit(True)
+        self.signals.decline_signal.emit(True)
 
 class EvalTaskThread(QThread):
     def __init__(
@@ -362,10 +374,11 @@ class AgentInterface(QMainWindow):
 
         self.vnc_thread: VNCStreamer | None = None
         self.current_thread: (
-            RunTaskThread
+            ResetTaskThread
             | EvalTaskThread
             | StepActionThread
             | ResetRuntimeThread
+            | GenerateActionThread
             | None
         )
         self.current_thread = None
@@ -642,7 +655,25 @@ class AgentInterface(QMainWindow):
             return
         else:
             self.set_task_status_bar_text("color: green;", "Task: Initializing...")
-        # self.is_recording = True
+        self.start_button.setEnabled(False)
+        self.eval_button.setEnabled(False)
+        self.confirm_button.setEnabled(False)
+        self.decline_button.setEnabled(False)
+        self.next_button.setEnabled(False)
+
+        signals = WorkerSignals()
+        signals.status_bar_signal.connect(self.set_task_status_bar_text)
+        signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        signals.generate_action_signal.connect(self.generate_action)
+        self.current_thread_result = queue.Queue()
+        self.current_thread = ResetTaskThread(
+            signals=signals,
+            selected_task=self.selected_task
+        )
+        self.current_thread.start()
+
+    def generate_action(self) -> None:
+        assert self.selected_task is not None
         if self.selected_task["visual"]:
             if config.remote:
                 assert self.vnc_thread is not None
@@ -654,12 +685,12 @@ class AgentInterface(QMainWindow):
                 # assert False, "Local recording is not supported"
                 self.screen_recorder = ScreenRecorder(fps=config.video_fps)
                 self.screen_recorder.start()
-        self.start_button.setEnabled(False)
-        self.eval_button.setEnabled(False)
-        self.confirm_button.setEnabled(False)
-        self.decline_button.setEnabled(False)
-        self.next_button.setEnabled(False)
 
+        if self.selected_task["visual"]:
+            assert self.screen_recorder is not None
+            obs = self.screen_recorder.get_current_frame()
+        else:
+            obs = None
         signals = WorkerSignals()
         signals.confirm_signal.connect(self.confirm_button.setEnabled)
         signals.decline_signal.connect(self.decline_button.setEnabled)
@@ -668,18 +699,11 @@ class AgentInterface(QMainWindow):
             self.parsed_action_display.setPlainText
         )
         signals.response_display_signal.connect(self.response_display.setPlainText)
-        signals.show_input_dialog_signal.connect(self.show_input_dialog)
-        if self.selected_task["visual"]:
-            assert self.screen_recorder is not None
-            obs = self.screen_recorder.get_current_frame()
-        else:
-            obs = None
-        self.current_thread_result = queue.Queue()
-        self.current_thread = RunTaskThread(
+        self.current_thread = GenerateActionThread(
             signals=signals,
             selected_task=self.selected_task,
-            agent=self.agent,
             obs=obs,
+            agent=self.agent,
         )
         self.current_thread.start()
 
