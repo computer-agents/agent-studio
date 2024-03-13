@@ -98,9 +98,7 @@ class VSCodeEvaluator(Evaluator):
         installed_extensions: dict = self.vscode_connector.list_extensions()
         if exists:
             if extension_id not in installed_extensions:
-                raise FeedbackException(
-                    f"Extension {extension_id} is not installed"
-                )
+                raise FeedbackException(f"Extension {extension_id} is not installed")
             else:
                 installed_version = installed_extensions[extension_id]
                 if version is not None and version != installed_version:
@@ -117,7 +115,9 @@ class VSCodeEvaluator(Evaluator):
                     if len(extensions) > 1:
                         raise Exception(f"Multiple extension with id: {extension_id}")
                     elif len(extensions) == 0:
-                        raise Exception(f"Cannot find extension with id: {extension_id}")
+                        raise Exception(
+                            f"Cannot find extension with id: {extension_id}"
+                        )
                     else:
                         extension = extensions[0]
                         info_find: dict | None = None
