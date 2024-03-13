@@ -70,7 +70,7 @@ Set `headless = True` and `remote = False`. This setup is the simplest, and it i
 Start benchmarking:
 
 ```bash
-python run.py --mode eval --env desktop
+python run.py --mode eval
 ```
 
 ### Remote + GUI
@@ -79,13 +79,13 @@ Set `headless = False` and `remote = True`. This setup is suitable for evaluatin
 
 #### Run Docker (optional)
 ```bash
-docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/root/agent_studio/agent_studio/config/:ro agent_studio:latest
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/home/ubuntu/agent_studio/agent_studio/config/:ro -v ${PWD}/data:/home/ubuntu/agent_studio/data:ro agent_studio:latest
 ```
 
 Start benchmarking:
 
 ```bash
-python run.py --mode eval --env desktop
+python run.py --mode eval
 ```
 
 ## Record Datasets, Add Tasks & More
