@@ -1,3 +1,5 @@
+import configparser
+import filecmp
 import logging
 import os
 import platform
@@ -5,8 +7,6 @@ import shutil
 import stat
 from datetime import datetime
 from pathlib import Path
-import configparser
-import filecmp
 
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
@@ -219,6 +219,7 @@ class FilesystemEvaluator(Evaluator):
         Raises:
             FeedbackException: If the files don't match.
         """
+
         def _read_ini_file(file_path: str) -> dict:
             config = configparser.ConfigParser()
             config.read(file_path)
@@ -235,8 +236,8 @@ class FilesystemEvaluator(Evaluator):
         ref_ini = _read_ini_file(ref_path)
         if target_ini != ref_ini:
             raise FeedbackException(
-                f"Expect content:\n{ref_ini}\n"
-                f"But get: {target_ini}")
+                f"Expect content:\n{ref_ini}\n" f"But get: {target_ini}"
+            )
 
     @staticmethod
     @evaluation_handler("match_file")
