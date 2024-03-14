@@ -1,11 +1,11 @@
+import json
 import os
 import uuid
-import json
 from typing import Any
 
-from PIL import Image
 import cv2
 import numpy as np
+from PIL import Image
 
 
 def read_jsonl(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> list:
@@ -105,6 +105,7 @@ def export_trajectories(
         file_path=os.path.join(record_path, jsonl_name),
     )
 
+
 def save_image_or_array(obj: Any, folder_path: str) -> str:
     if not os.path.exists(folder_path):
         os.makedirs(folder_path, exist_ok=True)
@@ -120,6 +121,7 @@ def save_image_or_array(obj: Any, folder_path: str) -> str:
     else:
         raise ValueError("Unsupported object type for saving.")
     return file_path
+
 
 def parse_and_save_objects(obj: Any, folder_path: str) -> Any:
     if isinstance(obj, dict):

@@ -209,6 +209,7 @@ class GenerateActionThread(QThread):
         self.signals.confirm_signal.emit(True)
         self.signals.decline_signal.emit(True)
 
+
 class EvalTaskThread(QThread):
     def __init__(
         self,
@@ -667,8 +668,7 @@ class AgentInterface(QMainWindow):
         signals.generate_action_signal.connect(self.generate_action)
         self.current_thread_result = queue.Queue()
         self.current_thread = ResetTaskThread(
-            signals=signals,
-            selected_task=self.selected_task
+            signals=signals, selected_task=self.selected_task
         )
         self.current_thread.start()
 
