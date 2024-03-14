@@ -91,4 +91,5 @@ class ProcessEvaluator(Evaluator):
         message: str = f"Killing processes: \n"
         for proc in proc_list:
             message += f"{proc}\n"
-        confirm_action(message)(_kill_processes)(proc_list)
+        if len(proc_list) > 0:
+            confirm_action(message)(_kill_processes)(proc_list)

@@ -1,5 +1,7 @@
 import pyautogui
 
+pyautogui.FAILSAFE = False
+
 
 class Mouse:
     def scroll(self, clicks):
