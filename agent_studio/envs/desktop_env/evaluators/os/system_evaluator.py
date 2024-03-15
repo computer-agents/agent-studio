@@ -1,3 +1,4 @@
+import os
 import logging
 import time
 
@@ -20,3 +21,7 @@ class SystemEvaluator(Evaluator):
     @evaluation_handler("sleep")
     def sleep_eval(self, seconds: float) -> None:
         time.sleep(seconds)
+
+    @reset_handler("exec")
+    def exec(self, command: str) -> None:
+        os.system(command)
