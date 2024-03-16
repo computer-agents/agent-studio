@@ -88,7 +88,7 @@ class ProcessEvaluator(Evaluator):
                     pass
 
         proc_list = find_procs_by_name(name)
-        message: str = f"Killing processes: \n"
+        message: str = "Killing processes: \n"
         for proc in proc_list:
             message += f"{proc}\n"
         if len(proc_list) > 0:

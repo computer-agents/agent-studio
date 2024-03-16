@@ -17,10 +17,7 @@ class HumanEvaluator(Evaluator):
     name: str = "human"
 
     @evaluation_handler("human")
-    def handle_human_evaluation(
-        self,
-        prompt: str = "Is the task successful?"
-    ) -> None:
+    def handle_human_evaluation(self, prompt: str = "Is the task successful?") -> None:
         """Human evaluation handler."""
         if config.headless:
             score = float(input(f"{prompt} (y/n): ") == "y")
