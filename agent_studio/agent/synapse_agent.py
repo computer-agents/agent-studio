@@ -8,9 +8,7 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
-class DirectAgent(Agent):
-    """Zero-shot LLM agents."""
-
+class SynapseAgent(Agent):
     def reset(self, instruction: str) -> None:
         super().reset(instruction=instruction)
         with open(config.system_prompt_path, "r") as f:
@@ -39,12 +37,16 @@ class DirectAgent(Agent):
             {"role": "user", "content": f"The task instruction: {self.instruction}"}
         )
         for step in self.trajectory:
+            if step["obs"] is not None:
+                messages.append({"role": "user", "content": "[Observation]: \n"})
+                messages.append({"role": "user", "content": step["obs"]})
             messages.append(
                 {
                     "role": "assistant",
                     "content": f"[Action]: ```python\n{step['act']}\n```",
                 }
             )
+            messages.append({"role": "user", "content": f"[Result]: \n{step['res']}"})
 
         if self.cur_obs is not None:
             messages.append({"role": "user", "content": self.cur_obs})

@@ -11,6 +11,7 @@ import uuid
 from asyncio import open_connection
 from pathlib import Path
 
+import cv2
 import numpy as np
 import requests
 from PyQt6.QtCore import QMutex, QObject, QThread, QTimer, QWaitCondition, pyqtSignal
@@ -818,6 +819,7 @@ class HumanInterface(QMainWindow):
         async with self.vnc_lock:
             if self.vnc is not None:
                 await self.vnc.disconnect()
+                self.vnc = None
             await self.connect_vnc()
         self.status_bar.showMessage("Connected")
 
@@ -852,19 +854,20 @@ class HumanInterface(QMainWindow):
             if self.vnc is None:
                 return
             try:
-                self.now_screenshot = await self.vnc.screenshot()
+                screen_shot = await self.vnc.screenshot()
+                if screen_shot is None:
+                    return
             except Exception as e:
                 logger.error("Fail to get screenshot.", e)
 
-        rgba_array = self.now_screenshot
-        if rgba_array is not None:
-            qimage = QImage(
-                rgba_array.tobytes(),
-                self.video_width,
-                self.video_height,
-                QImage.Format.Format_RGBA8888,
-            )
-            self.vnc_frame.update(qimage)
+        self.now_screenshot = cv2.cvtColor(screen_shot, cv2.COLOR_RGBA2BGR)
+        qimage = QImage(
+            self.now_screenshot.tobytes(),
+            self.video_width,
+            self.video_height,
+            QImage.Format.Format_BGR888,
+        )
+        self.vnc_frame.update(qimage)
 
     @asyncSlot()
     async def render(self) -> None:

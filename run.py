@@ -66,6 +66,11 @@ def setup_agent(args):
 
             agent = DirectAgent(model=model)
             record_path = f"data/trajectories/{args.provider}/direct"
+        case "synapse":
+            from agent_studio.agent.synapse_agent import SynapseAgent
+
+            agent = SynapseAgent(model=model)
+            record_path = f"data/trajectories/{args.provider}/synapse"
         case _:
             raise ValueError(f"Invalid agent: {args.agent}.")
 

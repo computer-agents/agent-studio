@@ -12,7 +12,7 @@ class Config(metaclass=ThreadSafeSingleton):
 
     seed: int = 42
     headless: bool = True  # True for CLI, False for GUI
-    python_timeout: int = 10
+    python_timeout: int = 20
     need_human_confirmation: bool = True
     minimal_action_interval: float = 3.0
 

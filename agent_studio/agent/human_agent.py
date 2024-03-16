@@ -37,6 +37,7 @@ class HumanAgent(Agent):
         code = kwargs.get("code", "")
         self.cur_obs = obs
         self.cur_raw_code = code
+        cur_time = time.time()
         result = {}
 
         logger.debug(f"Code to execute:\n{code}\n")
@@ -58,7 +59,7 @@ class HumanAgent(Agent):
                 "info": self.cur_info,
                 "act": self.cur_raw_code,
                 "res": result,
-                "timestamp": time.time(),
+                "timestamp": cur_time,
             }
         )
         logger.info(f"Output: {result}")

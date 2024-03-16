@@ -163,16 +163,19 @@ class VSCodeConnector:
             .strip()
             .split("\n")
         )
-        return {
-            extension.split("@")[0]: extension.split("@")[1]
-            for extension in extension_list
-        }
+        if extension_list == [""]:  # no extensions installed
+            return {}
+        else:
+            return {
+                extension.split("@")[0]: extension.split("@")[1]
+                for extension in extension_list
+            }
 
     def uninstall_all_extensions(self) -> bool:
-        # TODO: For safety reasons, disable this method now.
-        assert False, "This method is not implemented yet"
-        os.system(f"{self.executable_path} --uninstall-extension '*'")
-        return self.list_extensions() == {}
+        for extension in self.list_extensions():
+            if not self.uninstall_extension(extension):
+                return False
+        return True
 
     def install_extension(self, extension_name: str) -> bool:
         os.system(f"{self.executable_path} --install-extension {extension_name}")

@@ -66,6 +66,7 @@ class Agent:
     def step_action(self, confirmed: bool, **kwargs) -> tuple[dict, bool]:
         """Executes the code and record the result."""
         result = {}
+        cur_time = time.time()
         if confirmed:
             code_clean = self.cur_raw_code.strip()
             done = code_clean.endswith(config.stop_code)
@@ -96,7 +97,7 @@ class Agent:
                 "info": self.cur_info,
                 "act": self.cur_raw_code,
                 "res": result,
-                "timestamp": time.time(),
+                "timestamp": cur_time,
             }
         )
         logger.info(f"Output: {result}")

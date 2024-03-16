@@ -1,3 +1,5 @@
+import configparser
+import filecmp
 import logging
 import os
 import platform
@@ -202,6 +204,49 @@ class FilesystemEvaluator(Evaluator):
                 raise FeedbackException(
                     f"The error occurd when checking {path} metadata. "
                     f"Can't access path."
+                )
+
+    @staticmethod
+    @evaluation_handler("verify_ini")
+    def verify_ini(target_path: str, ref_path: str) -> None:
+        """
+        Compare two ini files.
+
+        Args:
+            target_path: str: Path to the target ini file.
+            ref_path: str: Path to the reference ini file.
+
+        Raises:
+            FeedbackException: If the files don't match.
+        """
+
+        def _read_ini_file(file_path: str) -> dict:
+            config = configparser.ConfigParser()
+            config.read(file_path)
+            ini_dict = {
+                section: dict(config.items(section)) for section in config.sections()
+            }
+            return ini_dict
+
+        if not os.path.exists(ref_path):
+            raise ValueError(f"Reference file {ref_path} does not exist.")
+        if not os.path.exists(target_path):
+            raise FeedbackException(f"Target file {target_path} does not exist.")
+        target_ini = _read_ini_file(target_path)
+        ref_ini = _read_ini_file(ref_path)
+        if target_ini != ref_ini:
+            raise FeedbackException(
+                f"Expect content:\n{ref_ini}\n" f"But get: {target_ini}"
+            )
+
+    @staticmethod
+    @evaluation_handler("match_file")
+    def match_file(file_to_check: dict[str, str]) -> None:
+        for path, expected_path in file_to_check.items():
+            if not filecmp.cmp(path, expected_path, shallow=False):
+                raise FeedbackException(
+                    f"The error occurd when checking {path}."
+                    f"Expected: {expected_path}"
                 )
 
     @staticmethod

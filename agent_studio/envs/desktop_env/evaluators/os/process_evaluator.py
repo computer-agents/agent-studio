@@ -78,16 +78,18 @@ class ProcessEvaluator(Evaluator):
         Args:
             name (str): Name pattern of the process to kill. \
                 Can be a regex pattern.
-
-        Raises:
-            FeedbackException: If the process is not found.
         """
 
-        def _kill_process(proc: psutil.Process) -> None:
-            try:
-                proc.kill()
-            except psutil.NoSuchProcess:
-                pass
+        def _kill_processes(procs: list[psutil.Process]) -> None:
+            for proc in procs:
+                try:
+                    proc.kill()
+                except psutil.NoSuchProcess:
+                    pass
 
-        for proc in find_procs_by_name(name):
-            confirm_action(f"Killing process: {proc}")(_kill_process)(proc)
+        proc_list = find_procs_by_name(name)
+        message: str = "Killing processes: \n"
+        for proc in proc_list:
+            message += f"{proc}\n"
+        if len(proc_list) > 0:
+            confirm_action(message)(_kill_processes)(proc_list)
