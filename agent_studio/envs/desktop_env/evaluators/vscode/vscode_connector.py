@@ -172,8 +172,10 @@ class VSCodeConnector:
             }
 
     def uninstall_all_extensions(self) -> bool:
-        os.system(f"{self.executable_path} --uninstall-extension '*'")
-        return self.list_extensions() == {}
+        for extension in self.list_extensions():
+            if not self.uninstall_extension(extension):
+                return False
+        return True
 
     def install_extension(self, extension_name: str) -> bool:
         os.system(f"{self.executable_path} --install-extension {extension_name}")

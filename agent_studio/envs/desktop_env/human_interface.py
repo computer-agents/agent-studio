@@ -819,6 +819,7 @@ class HumanInterface(QMainWindow):
         async with self.vnc_lock:
             if self.vnc is not None:
                 await self.vnc.disconnect()
+                self.vnc = None
             await self.connect_vnc()
         self.status_bar.showMessage("Connected")
 
