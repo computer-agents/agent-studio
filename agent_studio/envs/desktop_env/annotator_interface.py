@@ -10,8 +10,6 @@ from asyncio import open_connection
 from pathlib import Path
 
 import cv2
-import numpy as np
-import pyautogui
 import requests
 from PyQt6.QtCore import QMutex, QObject, QThread, QTimer, QWaitCondition, pyqtSignal
 from PyQt6.QtGui import QColor, QImage
@@ -791,9 +789,12 @@ class DataCollector(QMainWindow):
 
         bounding_box = self.vnc_frame.get_selection()
         if bounding_box is not None:
+            frame = self.vnc_thread.get_current_frame()
+            assert frame is not None, "VNC client is not connected"
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
             trajectory = [
                 {
-                    "obs": self.vnc_thread.get_current_frame(),
+                    "obs": frame,
                     "prompt": self.current_task.instruction,
                     "response": None,
                     "info": None,
