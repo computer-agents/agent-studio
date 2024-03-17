@@ -584,6 +584,8 @@ class AgentInterface(QMainWindow):
         else:
             user_input = dlg.textValue()
         assert self.current_thread is not None
+        assert isinstance(self.current_thread, ResetTaskThread) or \
+            isinstance(self.current_thread, EvalTaskThread)
         self.current_thread.receive_user_input(user_input)
 
     def reset(self):
@@ -632,6 +634,7 @@ class AgentInterface(QMainWindow):
     def save_trajectory(self):
         assert self.selected_task is not None
         assert isinstance(self.current_thread, EvalTaskThread)
+        logger.info(f"Save trajectory for task: {self.selected_task['task_id']}")
         auto_eval_result = self.current_thread_result.get()
         export_trajectories(
             self_eval_results=self.current_thread_result.get(),
@@ -656,6 +659,8 @@ class AgentInterface(QMainWindow):
             return
         else:
             self.set_task_status_bar_text("color: green;", "Task: Initializing...")
+        logger.info(f"Run task: {self.selected_task['task_id']}")
+
         self.start_button.setEnabled(False)
         self.eval_button.setEnabled(False)
         self.confirm_button.setEnabled(False)
@@ -674,6 +679,8 @@ class AgentInterface(QMainWindow):
 
     def generate_action(self) -> None:
         assert self.selected_task is not None
+        logger.info(f"Generate action for task: {self.selected_task['task_id']}")
+
         if self.selected_task["visual"]:
             if config.remote:
                 assert self.vnc_thread is not None

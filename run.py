@@ -334,7 +334,7 @@ def eval(args) -> None:
         case _:
             raise ValueError(f"Invalid env: {config.env_type}.")
 
-def annotate(args) -> None:
+def record(args) -> None:
     try:
         while True:
             try:
@@ -351,7 +351,7 @@ def annotate(args) -> None:
 
         app = QApplication(sys.argv)
         interface = DataCollector(
-            record_path="data/trajectories/annotate",
+            record_path="data/trajectories/human",
             task_config_path=config.task_config_paths[config.env_type],
         )
         interface.showMaximized()
@@ -360,23 +360,23 @@ def annotate(args) -> None:
     except asyncio.exceptions.CancelledError:
         sys.exit(0)
 
-def record(args) -> None:
-    match config.env_type:
-        case "desktop":
-            from agent_studio.envs.desktop_env.human_interface import run_ui
+# def record(args) -> None:
+#     match config.env_type:
+#         case "desktop":
+#             from agent_studio.envs.desktop_env.human_interface import run_ui
 
-            try:
-                assert config.remote is True, "Desktop env only supports remote mode."
-                qasync.run(
-                    run_ui(
-                        record_path="data/trajectories/human",
-                        task_config_path=config.task_config_paths[config.env_type],
-                    )
-                )
-            except asyncio.exceptions.CancelledError:
-                sys.exit(0)
-        case _:
-            raise ValueError(f"Invalid env: {config.env_type}.")
+#             try:
+#                 assert config.remote is True, "Desktop env only supports remote mode."
+#                 qasync.run(
+#                     run_ui(
+#                         record_path="data/trajectories/human",
+#                         task_config_path=config.task_config_paths[config.env_type],
+#                     )
+#                 )
+#             except asyncio.exceptions.CancelledError:
+#                 sys.exit(0)
+#         case _:
+#             raise ValueError(f"Invalid env: {config.env_type}.")
 
 
 def main():
@@ -389,8 +389,6 @@ def main():
             eval(args)
         case "record":
             record(args)
-        case "annotate":
-            annotate(args)
         case _:
             raise ValueError(f"Invalid mode {args.mode}")
 

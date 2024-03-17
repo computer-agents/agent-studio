@@ -103,7 +103,7 @@ Using the annotator to record human demonstrations, you can easily create a data
 Start the annotator:
 
 ```bash
-python run.py --mode annotate
+python run.py --mode record
 ```
 
 The annotator is a simpler version of the Human Recorder. It only supports recording one mouse action for each task. The recorded data will be saved to the `data/trajectories/annotate` folder. Usage of the annotator is shown below:

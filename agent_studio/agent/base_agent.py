@@ -54,9 +54,11 @@ class Agent:
     def generate_action(self, obs: np.ndarray | None) -> tuple[str, str]:
         self.cur_obs = obs
         self.cur_prompt = self.trajectory2intermediate_msg()
+        logger.debug(f"Prompt: {self.cur_prompt}")
         self.cur_response, self.cur_info = self.model.generate_response(
             messages=self.cur_prompt, model=config.exec_model
         )
+        logger.debug(f"Response: {self.cur_response}")
         assert self.cur_response is not None, "Failed to generate response."
         self.total_tokens += self.cur_info.get("total_tokens", 0)
         self.cur_raw_code = extract_from_response(self.cur_response)
