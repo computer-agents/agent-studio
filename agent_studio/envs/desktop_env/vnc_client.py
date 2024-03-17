@@ -16,8 +16,9 @@ import numpy as np
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.serialization import load_der_public_key
-from PyQt6.QtGui import QCursor, QPixmap
+from PyQt6.QtGui import QCursor, QPixmap, QPainter, QPen, QFont, QColor
 from PyQt6.QtWidgets import QLabel
+from PyQt6.QtCore import Qt, QRect, QPoint
 
 logger = logging.getLogger(__name__)
 
@@ -639,8 +640,19 @@ class VNCClient:
 class VNCFrame(QLabel):
     """The VNC frame for rendering the VNC screen."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, enable_selection: bool = False):
         super().__init__(parent)
+        self.start_pos = None
+        self.end_pos = None
+        self.is_selecting = False
+        self.selection_rect = QRect()
+        self.enable_selection = enable_selection
+
+    def reset(self):
+        self.start_pos = None
+        self.end_pos = None
+        self.is_selecting = False
+        self.selection_rect = QRect()
 
     def get_cursor_pos(self):
         cursor_pos = self.mapFromGlobal(QCursor.pos())
@@ -654,6 +666,78 @@ class VNCFrame(QLabel):
         else:
             cursor_pos = Position(cursor_pos.x(), cursor_pos.y())
             return cursor_pos
+
+    def mousePressEvent(self, event):
+        """Capture the starting point of the selection."""
+        if self.enable_selection and event.button() == Qt.MouseButton.LeftButton:
+            self.selection_rect = QRect()
+            self.start_pos = event.pos()
+            self.is_selecting = True
+
+    def mouseMoveEvent(self, event):
+        """Update the selection end point and repaint the widget."""
+        if self.enable_selection and self.is_selecting:
+            self.end_pos = event.pos()
+            self.update_selection_rect()
+            self.repaint()
+
+    def mouseReleaseEvent(self, event):
+        """Finalize the selection on mouse release."""
+        if self.enable_selection\
+            and event.button() == Qt.MouseButton.LeftButton\
+            and self.is_selecting:
+            self.end_pos = event.pos()
+            self.is_selecting = False
+            self.update_selection_rect()
+            self.repaint()
+
+    def update_selection_rect(self):
+        if self.start_pos and self.end_pos:
+            if self.start_pos.x() < self.end_pos.x():
+                self.selection_rect.setLeft(self.start_pos.x())
+                self.selection_rect.setRight(self.end_pos.x())
+            else:
+                self.selection_rect.setLeft(self.end_pos.x())
+                self.selection_rect.setRight(self.start_pos.x())
+
+            if self.start_pos.y() < self.end_pos.y():
+                self.selection_rect.setTop(self.start_pos.y())
+                self.selection_rect.setBottom(self.end_pos.y())
+            else:
+                self.selection_rect.setTop(self.end_pos.y())
+                self.selection_rect.setBottom(self.start_pos.y())
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self.enable_selection and not self.selection_rect.isEmpty():
+            painter = QPainter(self)
+            pen = QPen(QColor('red'), 2, Qt.PenStyle.SolidLine)
+            painter.setPen(pen)
+            painter.drawRect(self.selection_rect)
+
+            font = QFont()
+            font.setPointSize(10)
+            painter.setFont(font)
+            painter.drawText(
+                self.selection_rect.topLeft() + QPoint(5, -5),
+                f"({self.selection_rect.topLeft().x()}, {self.selection_rect.topLeft().y()})"
+            )
+            painter.drawText(
+                self.selection_rect.bottomRight() + QPoint(-50, 15),
+                f"({self.selection_rect.bottomRight().x()}, {self.selection_rect.bottomRight().y()})"
+            )
+
+    def get_selection(self) -> tuple[int, int, int, int] | None:
+        """Return the coordinates of the selection."""
+        if self.enable_selection and not self.selection_rect.isEmpty():
+            return (
+                self.selection_rect.topLeft().x(),
+                self.selection_rect.topLeft().y(),
+                self.selection_rect.width(),
+                self.selection_rect.height(),
+            )
+        else:
+            return None
 
     def update(self, qimage):
         self.setPixmap(QPixmap.fromImage(qimage))

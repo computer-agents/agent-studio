@@ -82,6 +82,8 @@ def export_trajectories(
     jsonl_name: str = "results.jsonl",
 ) -> None:
     """Exports the trajectory data to a .jsonl file."""
+    if not os.path.exists(record_path):
+        os.makedirs(record_path, exist_ok=True)
     media_path = os.path.join(record_path, task_config["task_id"])
     results = {
         "video": video_meta,

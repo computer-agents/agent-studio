@@ -79,7 +79,7 @@ Set `headless = False` and `remote = True`. This setup is suitable for evaluatin
 
 #### Run Docker (optional)
 ```bash
-docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/home/ubuntu/agent_studio/agent_studio/config/:ro -v ${PWD}/data:/home/ubuntu/agent_studio/data:ro agent_studio:latest
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/home/ubuntu/agent_studio/agent_studio/config/:ro -v ${PWD}/data:/home/ubuntu/agent_studio/data:ro agent-studio:latest
 ```
 
 Start benchmarking:
@@ -95,6 +95,24 @@ Please refer to the our [documentation](https://ltzheng.github.io/agent-studio/)
 Here is an example of recording human demonstrations:
 
 ![](docs/source/assets/imgs/annotation_example.jpg)
+
+## Annotator
+
+Using the annotator to record human demonstrations, you can easily create a dataset for imitation learning. The annotator **only supports recording remotely with GUI**.
+
+Start the annotator:
+
+```bash
+python run.py --mode annotate
+```
+
+The annotator is a simpler version of the Human Recorder. It only supports recording one mouse action for each task. The recorded data will be saved to the `data/trajectories/annotate` folder. Usage of the annotator is shown below:
+
+1. Select an existing task or create a new task, and click the "Save Task Config/Start Recording" button to enter the annotator screen. (This step is the same as the recorder.)
+2. The task and remote environment will be reset before the recording starts. After the task is reset, you can draw the bounding box on the VNC screen by mouse.
+3. Select the mouse action type on the bottom-right side of the screen. The mouse action types include "left click", "double click", "right click", etc. After selecting the mouse action type, you can click the "Save" button save the trajectory. The trajectory data will be saved to the `data/trajectories/annotate` folder.
+
+**Note**: The "Trajectory", "Action", "Runtime Response", and "Evaluation Result" buttons are only used for debugging. You can use these buttons to check if the mouse click action is correct. You can record the trajectory without using these buttons.
 
 ## Acknowledgement
 

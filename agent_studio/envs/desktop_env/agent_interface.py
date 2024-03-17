@@ -515,7 +515,7 @@ class AgentInterface(QMainWindow):
 
         task_layout.addLayout(execution_button_layout)
 
-        task_layout.addWidget(QLabel("Evaluation result"))
+        task_layout.addWidget(QLabel("Evaluation Result"))
         self.evaluation_display = QTextEdit(self)
         task_layout.addWidget(self.evaluation_display)
         self.evaluation_display.setReadOnly(True)
