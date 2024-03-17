@@ -38,6 +38,7 @@ class FilesystemEvaluator(Evaluator):
     @evaluation_handler("exists")
     def exists(file_to_check: dict[str, bool]) -> None:
         for path, expected in file_to_check.items():
+            path = os.path.expanduser(path)
             if expected != Path(path).exists():
                 raise FeedbackException(
                     f"The error occurd when checking {path} existence. "
@@ -48,6 +49,7 @@ class FilesystemEvaluator(Evaluator):
     @evaluation_handler("type_check")
     def type_check(file_to_check: dict[str, str]) -> None:
         for path, expected_type in file_to_check.items():
+            path = os.path.expanduser(path)
             if expected_type == "file":
                 if not Path(path).is_file():
                     raise FeedbackException(
@@ -68,6 +70,7 @@ class FilesystemEvaluator(Evaluator):
     def permissions_check(file_to_check: dict[str, str]) -> None:
         if platform.system() != "Windows":
             for path, expected_permissions in file_to_check.items():
+                path = os.path.expanduser(path)
                 try:
                     # Compare permissions as octal
                     st_mode = os.stat(path).st_mode & 0o777
@@ -98,6 +101,7 @@ class FilesystemEvaluator(Evaluator):
     @evaluation_handler("content_check")
     def content_check(file_to_check: dict[str, str]) -> None:
         for path, expected_content in file_to_check.items():
+            path = os.path.expanduser(path)
             try:
                 with open(path, "r") as file:
                     content = file.read()
@@ -149,6 +153,7 @@ class FilesystemEvaluator(Evaluator):
 
         for path, metadata in file_to_check.items():
             try:
+                path = os.path.expanduser(path)
                 file_stat = os.stat(path)
 
                 for key, value in metadata.items():
@@ -228,6 +233,9 @@ class FilesystemEvaluator(Evaluator):
             }
             return ini_dict
 
+        ref_path = os.path.expanduser(ref_path)
+        target_path = os.path.expanduser(target_path)
+
         if not os.path.exists(ref_path):
             raise ValueError(f"Reference file {ref_path} does not exist.")
         if not os.path.exists(target_path):
@@ -243,6 +251,8 @@ class FilesystemEvaluator(Evaluator):
     @evaluation_handler("match_file")
     def match_file(file_to_check: dict[str, str]) -> None:
         for path, expected_path in file_to_check.items():
+            path = os.path.expanduser(path)
+            expected_path = os.path.expanduser(expected_path)
             if not filecmp.cmp(path, expected_path, shallow=False):
                 raise FeedbackException(
                     f"The error occurd when checking {path}."
@@ -252,6 +262,7 @@ class FilesystemEvaluator(Evaluator):
     @staticmethod
     @reset_handler("create_file")
     def create_file(path: str, content: str | None = None) -> None:
+        path = os.path.expanduser(path)
         if content is not None:
             with open(path, "w") as f:
                 f.write(content)
@@ -260,11 +271,13 @@ class FilesystemEvaluator(Evaluator):
 
     @reset_handler("create_directory")
     def create_directory(self, path: str):
+        path = os.path.expanduser(path)
         os.makedirs(path, exist_ok=True)
 
     @staticmethod
     @reset_handler("mkdir")
     def mkdir(path: str) -> None:
+        path = os.path.expanduser(path)
         dir_name = Path(path)
         dir_name.mkdir(parents=True, exist_ok=True)
 
@@ -277,6 +290,7 @@ class FilesystemEvaluator(Evaluator):
                 os.remove(path)
             logger.debug(f"{path} removed")
 
+        path = os.path.expanduser(path)
         logger.debug(f"Removing {path}")
         _rm(path)
 
@@ -289,27 +303,35 @@ class FilesystemEvaluator(Evaluator):
                 shutil.rmtree(path)
             logger.debug(f"{path} removed")
 
+        path = os.path.expanduser(path)
         logger.debug(f"Removing {path}")
         _rmdir(path)
 
     @staticmethod
     @reset_handler("rename")
     def rename(old_name: str, new_name: str) -> None:
+        old_name = os.path.expanduser(old_name)
+        new_name = os.path.expanduser(new_name)
         os.rename(old_name, new_name)
 
     @staticmethod
     @reset_handler("copy")
     def copy(src: str, dest: str) -> None:
+        src = os.path.expanduser(src)
+        dest = os.path.expanduser(dest)
         os.system(f"cp {src} {dest}")
 
     @staticmethod
     @reset_handler("move")
     def move(src: str, dest: str) -> None:
+        src = os.path.expanduser(src)
+        dest = os.path.expanduser(dest)
         os.system(f"mv {src} {dest}")
 
     @staticmethod
     @reset_handler("chmod")
     def chmod(path: str, mode: str) -> None:
+        path = os.path.expanduser(path)
         if platform.system() != "Windows":
             os.chmod(path, int(mode, 8))
         else:

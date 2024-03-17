@@ -91,7 +91,7 @@ def setup_tasks(args):
     return task_configs
 
 
-def wait_finish():
+def wait_finish(is_eval: bool):
     remote_server_addr = f"http://{config.env_server_addr}:{config.env_server_port}"
     while True:
         response_raw = requests.get(f"{remote_server_addr}/task/status")
@@ -99,7 +99,8 @@ def wait_finish():
         if response.status == "finished":
             break
         elif response.status == "wait_for_input":
-            if config.need_human_confirmation:
+            # Can't override in eval mode
+            if config.need_human_confirmation and not is_eval:
                 user_input = input(f"{response.content}")
             else:
                 user_input = "y"
@@ -206,7 +207,7 @@ def eval_headless(
                 )
                 response = AgentStudioResponse(**response_raw.json())
                 assert response.status == "submitted"
-                wait_finish()
+                wait_finish(is_eval=False)
                 response_raw = requests.get(
                     f"{remote_server_addr}/task/result",
                 )
@@ -271,7 +272,7 @@ def eval_headless(
                 )
                 response = AgentStudioResponse(**response_raw.json())
                 assert response.status == "submitted"
-                wait_finish()
+                wait_finish(is_eval=True)
                 response_raw = requests.get(f"{remote_server_addr}/task/result")
                 response = AgentStudioResultResponse(**response_raw.json())
                 assert response.status == "finished" and isinstance(
