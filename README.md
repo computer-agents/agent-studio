@@ -110,9 +110,7 @@ The annotator is a simpler version of the Human Recorder. It only supports recor
 
 1. Select an existing task or create a new task, and click the "Save Task Config/Start Recording" button to enter the annotator screen. (This step is the same as the recorder.)
 2. The task and remote environment will be reset before the recording starts. After the task is reset, you can draw the bounding box on the VNC screen by mouse.
-3. Select the mouse action type on the bottom-right side of the screen. The mouse action types include "left click", "double click", "right click", etc. After selecting the mouse action type, you can click the "Save" button save the trajectory. The trajectory data will be saved to the `data/trajectories/annotate` folder.
-
-**Note**: The "Trajectory", "Action", "Runtime Response", and "Evaluation Result" buttons are only used for debugging. You can use these buttons to check if the mouse click action is correct. You can record the trajectory without using these buttons.
+3. Select the mouse action type on the "Annotation Panel". The mouse action types include "left click", "double click", "right click", and "middle click". After selecting the mouse action type, you **must** click the "Step Action" button to record the mouse action and annotation. When finished, you can click the "Save" button to save the trajectory.
 
 ## Acknowledgement
 

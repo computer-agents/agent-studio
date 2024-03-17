@@ -6,10 +6,10 @@ import os
 import queue
 import time
 import uuid
-from asyncio import open_connection
 from pathlib import Path
 
 import cv2
+import numpy as np
 import requests
 from PyQt6.QtCore import QMutex, QObject, QThread, QTimer, QWaitCondition, pyqtSignal
 from PyQt6.QtGui import QColor, QImage
@@ -28,6 +28,7 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
+    QGroupBox,
 )
 
 from agent_studio.agent.human_agent import HumanAgent
@@ -61,6 +62,7 @@ class WorkerSignals(QObject):
     show_input_dialog_signal = pyqtSignal(str)
     evaluation_display_signal = pyqtSignal(str)
     eval_button_signal = pyqtSignal(bool)
+    annotator_panel_signal = pyqtSignal(bool)
 
 
 class ResetThread(QThread):
@@ -147,6 +149,7 @@ class ResetThread(QThread):
         self.signals.save_button_signal.emit(True)
         self.signals.step_action_button_signal.emit(True)
         self.signals.eval_button_signal.emit(True)
+        self.signals.annotator_panel_signal.emit(True)
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -220,6 +223,7 @@ class EvalTaskThread(QThread):
         )
         self.signals.status_bar_signal.emit("color: green;", "Task: Finished")
         self.signals.save_button_signal.emit(True)
+        self.signals.annotator_panel_signal.emit(True)
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -410,6 +414,9 @@ class DataCollector(QMainWindow):
             self.vnc_thread.video_height,
             self.vnc_thread.video_width,
         )
+        self.now_screenshot = np.zeros(
+            (self.video_height, self.video_width, 4), dtype="uint8"
+        )
         self.vnc_frame = VNCFrame(self, enable_selection=True)
         left_layout.addWidget(self.vnc_frame)
 
@@ -419,12 +426,14 @@ class DataCollector(QMainWindow):
 
         main_layout.addWidget(self.vnc_container)
 
-        self.task_eval_info_container = QWidget()
-        task_eval_info_layout = QVBoxLayout(self.task_eval_info_container)
+        self.task_eval_info_container = QGroupBox("Task Information Panel")
+
+        middle_layout = QVBoxLayout()
+        task_eval_info_layout = QVBoxLayout()
 
         clear_button = QPushButton("Clear All")
         clear_button.clicked.connect(self.reset)
-        task_eval_info_layout.addWidget(clear_button)
+        middle_layout.addWidget(clear_button)
 
         task_eval_info_layout.addWidget(QLabel("Task Instruction"))
         self.instruction_editor = QTextEdit(self)
@@ -444,10 +453,31 @@ class DataCollector(QMainWindow):
         self.eval_steps_display = QTextEdit(self)
         task_eval_info_layout.addWidget(self.eval_steps_display)
 
-        main_layout.addWidget(self.task_eval_info_container)
+        self.task_eval_info_container.setLayout(task_eval_info_layout)
 
-        self.evaluator_sel_container = QWidget()
-        evaluator_sel_layout = QVBoxLayout(self.evaluator_sel_container)
+        middle_layout.addWidget(self.task_eval_info_container)
+
+        self.annotator_container = QGroupBox("Annotation Panel")
+        annotator_layout = QVBoxLayout()
+        annotator_layout.addWidget(QLabel("Mouse Action"))
+        self.leftClickCheckbox = QCheckBox("Left Click")
+        self.rightClickCheckbox = QCheckBox("Right Click")
+        self.middleClickCheckbox = QCheckBox("Middle Click")
+        self.doubleClickCheckbox = QCheckBox("Double Click")
+        annotator_layout.addWidget(self.leftClickCheckbox)
+        annotator_layout.addWidget(self.rightClickCheckbox)
+        annotator_layout.addWidget(self.middleClickCheckbox)
+        annotator_layout.addWidget(self.doubleClickCheckbox)
+        annotate_button = QPushButton("Generate Annotation/Action")
+        annotate_button.clicked.connect(self.generate_annotation)
+        annotator_layout.addWidget(annotate_button)
+
+        self.annotator_container.setLayout(annotator_layout)
+        middle_layout.addWidget(self.annotator_container)
+
+        main_layout.addLayout(middle_layout)
+
+        evaluator_sel_layout = QVBoxLayout()
 
         evaluator_sel_layout.addWidget(
             QLabel(
@@ -481,10 +511,10 @@ class DataCollector(QMainWindow):
         self.start_button.clicked.connect(self.start_record)
         evaluator_sel_layout.addWidget(self.start_button)
 
+        self.evaluator_sel_container = QGroupBox("Evaluator Helper Panel")
+        self.evaluator_sel_container.setLayout(evaluator_sel_layout)
         main_layout.addWidget(self.evaluator_sel_container)
-
-        self.trajectory_container = QWidget()
-        trajectory_layout = QVBoxLayout(self.trajectory_container)
+        trajectory_layout = QVBoxLayout()
 
         trajectory_layout.addWidget(QLabel("Trajectory"))
         self.trajectory_display = QTextEdit(self)
@@ -516,20 +546,12 @@ class DataCollector(QMainWindow):
         self.eval_button.clicked.connect(self.eval_task)
         trajectory_layout.addWidget(self.eval_button)
 
-        trajectory_layout.addWidget(QLabel("Mouse Action"))
-        self.leftClickCheckbox = QCheckBox("Left Click")
-        self.rightClickCheckbox = QCheckBox("Right Click")
-        self.middleClickCheckbox = QCheckBox("Middle Click")
-        self.doubleClickCheckbox = QCheckBox("Double Click")
-        trajectory_layout.addWidget(self.leftClickCheckbox)
-        trajectory_layout.addWidget(self.rightClickCheckbox)
-        trajectory_layout.addWidget(self.middleClickCheckbox)
-        trajectory_layout.addWidget(self.doubleClickCheckbox)
-
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self.save_trajectory)
         trajectory_layout.addWidget(self.save_button)
 
+        self.trajectory_container = QGroupBox("Trajectory Panel")
+        self.trajectory_container.setLayout(trajectory_layout)
         main_layout.addWidget(self.trajectory_container)
 
         self.setMouseTracking(True)
@@ -564,10 +586,18 @@ class DataCollector(QMainWindow):
         self.vnc_frame.reset()
         self.trajectory_container.hide()
         self.vnc_container.hide()
+        self.annotator_container.hide()
         self.evaluator_sel_container.show()
         self.json_preview_label.show()
         self.json_preview_display.show()
         self.populate_instruction_selection_widget()
+
+    def show_popup(self, title: str, message: str) -> None:
+        """Shows a popup message."""
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle(title)
+        dlg.setText(message)
+        dlg.show()
 
     def start_record(self) -> None:
         """Starts the record."""
@@ -578,23 +608,11 @@ class DataCollector(QMainWindow):
             if not isinstance(evals, list):
                 raise ValueError("Evaluation Steps should be a list")
         except Exception as e:
-            dlg = QMessageBox(self)
-            dlg.setWindowTitle("Invalid JSON format!")
-            dlg.setText(f"{e}")
-            dlg.show()
+            self.show_popup(
+                "Invalid JSON format!",
+                f"[Error] Check Evaluation Steps Editor:\n{e}"
+            )
             return
-        self.evaluator_sel_container.hide()
-        self.trajectory_container.show()
-        self.vnc_container.show()
-        self.json_preview_label.hide()
-        self.json_preview_display.hide()
-        self.instruction_editor.setReadOnly(True)
-        self.output_display.setEnabled(True)
-        self.trajectory_display.setEnabled(True)
-        self.eval_steps_display.setReadOnly(True)
-        self.save_button.setEnabled(False)
-        self.step_action_button.setEnabled(False)
-        self.is_visual_checkbox.setEnabled(False)
 
         if self.selected_task is not None:
             task_id = self.selected_task["task_id"]
@@ -610,6 +628,23 @@ class DataCollector(QMainWindow):
         if self.selected_task is None:
             add_jsonl([self.current_task.to_task_config()], self.task_config_path)
         self.agent.reset(self.current_task.instruction)
+
+        self.evaluator_sel_container.hide()
+        self.trajectory_container.show()
+        self.vnc_container.show()
+        self.json_preview_label.hide()
+        self.json_preview_display.hide()
+        self.instruction_editor.setReadOnly(True)
+        self.output_display.setEnabled(True)
+        self.trajectory_display.setEnabled(True)
+        self.eval_steps_display.setReadOnly(True)
+        self.save_button.setEnabled(False)
+        self.step_action_button.setEnabled(False)
+        self.is_visual_checkbox.setEnabled(False)
+        if self.current_task.visual:
+            self.annotator_container.show()
+            self.annotator_container.setEnabled(False)
+
         self.worker_signals = WorkerSignals()
         self.worker_signals.status_bar_signal.connect(self.set_task_status_bar_text)
         self.worker_signals.next_action_editor_signal.connect(
@@ -621,13 +656,46 @@ class DataCollector(QMainWindow):
         )
         self.worker_signals.show_input_dialog_signal.connect(self.show_input_dialog)
         self.worker_signals.eval_button_signal.connect(self.eval_button.setEnabled)
+        self.worker_signals.annotator_panel_signal.connect(self.annotator_container.setEnabled)
         self.current_thread = ResetThread(
             signals=self.worker_signals,
             task_config=self.current_task.to_task_config(),
         )
         self.current_thread.start()
 
-    def show_input_dialog(self, message: str):
+    def generate_annotation(self) -> None:
+        bounding_box = self.vnc_frame.get_selection()
+        if bounding_box is not None:
+            # generate click random location in the bounding box
+            x = np.random.randint(bounding_box[0], bounding_box[0] + bounding_box[2])
+            y = np.random.randint(bounding_box[1], bounding_box[1] + bounding_box[3])
+            left, right, middle, double = (
+                self.leftClickCheckbox.isChecked(),
+                self.rightClickCheckbox.isChecked(),
+                self.middleClickCheckbox.isChecked(),
+                self.doubleClickCheckbox.isChecked(),
+            )
+            if not any([left, right, middle]) or sum([left, right, middle]) > 1:
+                self.show_popup("Error", "Wrong mouse action combination!")
+                return
+            if self.leftClickCheckbox.isChecked():
+                button = "left"
+            elif self.rightClickCheckbox.isChecked():
+                button = "right"
+            elif self.middleClickCheckbox.isChecked():
+                button = "middle"
+            if self.doubleClickCheckbox.isChecked():
+                clicks = 2
+                interval = 0.25
+            else:
+                clicks = 1
+                interval = 0.0
+            self.next_action_editor.setPlainText(
+                f"mouse.click({x}, {y}, button=\"{button}\", "
+                f"clicks={clicks}, interval={interval})"
+            )
+
+    def show_input_dialog(self, message: str) -> None:
         dlg = QInputDialog(self)
         dlg.setLabelText(message)
         dlg.show()
@@ -760,13 +828,38 @@ class DataCollector(QMainWindow):
     def step_action(self) -> None:
         """Steps the next action and adds it to the trajectory."""
         assert self.current_task is not None
-        assert self.current_task.visual is True, "Non-visual task"
         next_action_text = self.next_action_editor.toPlainText()
         # Send the request to the runtime
         try:
-            with self.recording_lock:
-                obs = self.vnc_thread.get_current_frame()
-            result, _ = self.agent.step_action(True, code=next_action_text, obs=obs)
+            if self.current_task.visual:
+                obs = self.now_screenshot
+            else:
+                obs = None
+
+            bounding_box = self.vnc_frame.get_selection()
+            if bounding_box is not None:
+                annotation = {
+                    "mouse_action": {
+                            "x": bounding_box[0],
+                            "y": bounding_box[1],
+                            "width": bounding_box[2],
+                            "height": bounding_box[3],
+                            "mouse_action": {
+                                "left_click": self.leftClickCheckbox.isChecked(),
+                                "right_click": self.rightClickCheckbox.isChecked(),
+                                "middle_click": self.middleClickCheckbox.isChecked(),
+                                "double_click": self.doubleClickCheckbox.isChecked(),
+                            }
+                    }
+                }
+            else:
+                annotation = None
+            result, _ = self.agent.step_action(
+                confirmed=True,
+                code=next_action_text,
+                obs=obs,
+                annotation=annotation,
+            )
             self.output_display.setText(str(result))
         except Exception as e:
             self.output_display.setText(f"Error: {str(e)}")
@@ -787,37 +880,11 @@ class DataCollector(QMainWindow):
         self.step_action_button.setEnabled(False)
         self.save_button.setEnabled(False)
 
-        bounding_box = self.vnc_frame.get_selection()
-        if bounding_box is not None:
-            frame = self.vnc_thread.get_current_frame()
-            assert frame is not None, "VNC client is not connected"
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
-            trajectory = [
-                {
-                    "obs": frame,
-                    "prompt": self.current_task.instruction,
-                    "response": None,
-                    "info": None,
-                    "act":{
-                            "x": bounding_box[0],
-                            "y": bounding_box[1],
-                            "width": bounding_box[2],
-                            "height": bounding_box[3],
-                            "mouse_action": {
-                                "left_click": self.leftClickCheckbox.isChecked(),
-                                "right_click": self.rightClickCheckbox.isChecked(),
-                                "middle_click": self.middleClickCheckbox.isChecked(),
-                                "double_click": self.doubleClickCheckbox.isChecked(),
-                            }
-                        },
-                    "res": None,
-                    "timestamp": time.time(),
-                }
-            ]
+        if self.agent.trajectory != []:
             export_trajectories(
                 self_eval_results=None,
                 task_config=self.current_task.to_record(),
-                trajectory=trajectory,
+                trajectory=self.agent.trajectory,
                 record_path=self.record_path,
                 score=None,
                 feedback=None,
@@ -831,6 +898,7 @@ class DataCollector(QMainWindow):
         self.step_action_button.setEnabled(False)
         self.save_button.setEnabled(False)
         self.eval_button.setEnabled(False)
+        self.annotator_container.setEnabled(False)
         assert self.current_task is not None, "No task selected"
 
         signals = WorkerSignals()
@@ -838,6 +906,7 @@ class DataCollector(QMainWindow):
         signals.status_bar_signal.connect(self.set_task_status_bar_text)
         signals.evaluation_display_signal.connect(self.evaluation_display.setPlainText)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        signals.annotator_panel_signal.connect(self.annotator_container.setEnabled)
         self.current_thread_result = queue.Queue()
         self.current_thread = EvalTaskThread(
             signals=signals,
@@ -849,6 +918,9 @@ class DataCollector(QMainWindow):
 
     def reconnect(self):
         self.status_bar.showMessage("Reconnecting")
+        self.now_screenshot = np.zeros(
+            (self.video_height, self.video_width, 4), dtype="uint8"
+        )
         if self.vnc_thread is not None:
             with self.recording_lock:
                 self.vnc_thread = VNCStreamer(
@@ -865,6 +937,7 @@ class DataCollector(QMainWindow):
                 assert self.vnc_thread is not None
                 frame = self.vnc_thread.get_current_frame()
             if frame is not None:
+                self.now_screenshot = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
                 qimage = QImage(
                     frame.tobytes(),
                     self.video_width,

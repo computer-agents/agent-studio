@@ -13,10 +13,14 @@ class Mouse:
         pyautogui.moveTo(x, y)
 
     def click(
-        self, x: float | None = None, y: float | None = None, button="left", clicks=1
+        self,
+        x: float | None = None,
+        y: float | None = None,
+        button="left", clicks=1,
+        interval=0.0
     ):
         """Performs a click at the specified coordinates."""
-        pyautogui.click(x=x, y=y, button=button, clicks=clicks)
+        pyautogui.click(x=x, y=y, button=button, clicks=clicks, interval=interval)
 
     def down(self):
         """Presses the mouse button."""

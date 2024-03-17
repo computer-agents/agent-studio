@@ -32,9 +32,21 @@ class HumanAgent(Agent):
         super().reset(instruction=instruction)
 
     def step_action(self, confirmed: bool, **kwargs) -> tuple[dict, bool]:
-        """Executes the code and record the result."""
+        """Executes the code and record the result.
+
+        Args:
+            confirmed (bool): Whether the action is confirmed by the human.
+            obs (np.ndarray | None): The observation of the environment. \
+                For example, the screenshot.
+            code (str): The code to execute.
+            annotation (dict): The annotation of the action. For bounding box, etc.
+
+        Returns:
+            tuple[dict, bool]: The result of the execution and whether the task is done.
+        """
         obs = kwargs.get("obs", None)
         code = kwargs.get("code", "")
+        annotation = kwargs.get("annotation", {})
         self.cur_obs = obs
         self.cur_raw_code = code
         cur_time = time.time()
@@ -58,6 +70,7 @@ class HumanAgent(Agent):
                 "response": self.cur_response,
                 "info": self.cur_info,
                 "act": self.cur_raw_code,
+                "annotation": annotation,
                 "res": result,
                 "timestamp": cur_time,
             }

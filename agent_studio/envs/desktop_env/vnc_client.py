@@ -673,12 +673,15 @@ class VNCFrame(QLabel):
             self.selection_rect = QRect()
             self.start_pos = event.pos()
             self.is_selecting = True
+        elif self.enable_selection and event.button() == Qt.MouseButton.RightButton:
+            self.reset()
+            self.repaint()
 
     def mouseMoveEvent(self, event):
         """Update the selection end point and repaint the widget."""
         if self.enable_selection and self.is_selecting:
             self.end_pos = event.pos()
-            self.update_selection_rect()
+            self._update_selection_rect()
             self.repaint()
 
     def mouseReleaseEvent(self, event):
@@ -688,10 +691,10 @@ class VNCFrame(QLabel):
             and self.is_selecting:
             self.end_pos = event.pos()
             self.is_selecting = False
-            self.update_selection_rect()
+            self._update_selection_rect()
             self.repaint()
 
-    def update_selection_rect(self):
+    def _update_selection_rect(self):
         if self.start_pos and self.end_pos:
             if self.start_pos.x() < self.end_pos.x():
                 self.selection_rect.setLeft(self.start_pos.x())
