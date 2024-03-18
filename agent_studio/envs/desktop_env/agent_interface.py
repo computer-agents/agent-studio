@@ -584,8 +584,9 @@ class AgentInterface(QMainWindow):
         else:
             user_input = dlg.textValue()
         assert self.current_thread is not None
-        assert isinstance(self.current_thread, ResetTaskThread) or \
-            isinstance(self.current_thread, EvalTaskThread)
+        assert isinstance(self.current_thread, ResetTaskThread) or isinstance(
+            self.current_thread, EvalTaskThread
+        )
         self.current_thread.receive_user_input(user_input)
 
     def reset(self):

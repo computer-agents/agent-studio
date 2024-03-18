@@ -6,7 +6,6 @@ import time
 from pathlib import Path
 
 import psutil
-import qasync
 import requests
 from qasync import QApplication
 
@@ -47,7 +46,9 @@ def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--agent", type=str, default=config.agent)
     parser.add_argument("--provider", type=str, default=config.provider)
-    parser.add_argument("--mode", type=str, choices=["record", "eval", "annotate"], default="eval")
+    parser.add_argument(
+        "--mode", type=str, choices=["record", "eval", "annotate"], default="eval"
+    )
     parser.add_argument("--start_idx", type=int, default=0)
     parser.add_argument("--end_idx", type=int, default=None)
 
@@ -335,6 +336,7 @@ def eval(args) -> None:
         case _:
             raise ValueError(f"Invalid env: {config.env_type}.")
 
+
 def record(args) -> None:
     try:
         while True:
@@ -360,6 +362,7 @@ def record(args) -> None:
         sys.exit(exit_code)
     except asyncio.exceptions.CancelledError:
         sys.exit(0)
+
 
 # def record(args) -> None:
 #     match config.env_type:

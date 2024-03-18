@@ -1,9 +1,9 @@
 import ast
-import threading
 import json
 import logging
 import os
 import queue
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -16,6 +16,7 @@ from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QGroupBox,
     QHBoxLayout,
     QInputDialog,
     QLabel,
@@ -28,12 +29,11 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
-    QGroupBox,
 )
 
 from agent_studio.agent.human_agent import HumanAgent
 from agent_studio.config.config import Config
-from agent_studio.envs.desktop_env.vnc_client import VNCStreamer, VNCFrame
+from agent_studio.envs.desktop_env.vnc_client import VNCFrame, VNCStreamer
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
@@ -378,9 +378,7 @@ class DataCollector(QMainWindow):
         # VNC
         self.record_path = record_path
         self.vnc_thread: VNCStreamer = VNCStreamer(
-            config.env_server_addr,
-            config.vnc_port,
-            config.vnc_password
+            config.env_server_addr, config.vnc_port, config.vnc_password
         )
 
         self.evaluator_infos: dict[str, list[dict]] = {}
@@ -609,8 +607,7 @@ class DataCollector(QMainWindow):
                 raise ValueError("Evaluation Steps should be a list")
         except Exception as e:
             self.show_popup(
-                "Invalid JSON format!",
-                f"[Error] Check Evaluation Steps Editor:\n{e}"
+                "Invalid JSON format!", f"[Error] Check Evaluation Steps Editor:\n{e}"
             )
             return
 
@@ -656,7 +653,9 @@ class DataCollector(QMainWindow):
         )
         self.worker_signals.show_input_dialog_signal.connect(self.show_input_dialog)
         self.worker_signals.eval_button_signal.connect(self.eval_button.setEnabled)
-        self.worker_signals.annotator_panel_signal.connect(self.annotator_container.setEnabled)
+        self.worker_signals.annotator_panel_signal.connect(
+            self.annotator_container.setEnabled
+        )
         self.current_thread = ResetThread(
             signals=self.worker_signals,
             task_config=self.current_task.to_task_config(),
@@ -669,7 +668,7 @@ class DataCollector(QMainWindow):
             # generate click random location in the bounding box
             x = np.random.randint(bounding_box[0], bounding_box[0] + bounding_box[2])
             y = np.random.randint(bounding_box[1], bounding_box[1] + bounding_box[3])
-            left, right, middle, double = (
+            left, right, middle, _ = (
                 self.leftClickCheckbox.isChecked(),
                 self.rightClickCheckbox.isChecked(),
                 self.middleClickCheckbox.isChecked(),
@@ -691,7 +690,7 @@ class DataCollector(QMainWindow):
                 clicks = 1
                 interval = 0.0
             self.next_action_editor.setPlainText(
-                f"mouse.click({x}, {y}, button=\"{button}\", "
+                f'mouse.click({x}, {y}, button="{button}", '
                 f"clicks={clicks}, interval={interval})"
             )
 
@@ -840,16 +839,16 @@ class DataCollector(QMainWindow):
             if bounding_box is not None:
                 annotation = {
                     "mouse_action": {
-                            "x": bounding_box[0],
-                            "y": bounding_box[1],
-                            "width": bounding_box[2],
-                            "height": bounding_box[3],
-                            "mouse_action": {
-                                "left_click": self.leftClickCheckbox.isChecked(),
-                                "right_click": self.rightClickCheckbox.isChecked(),
-                                "middle_click": self.middleClickCheckbox.isChecked(),
-                                "double_click": self.doubleClickCheckbox.isChecked(),
-                            }
+                        "x": bounding_box[0],
+                        "y": bounding_box[1],
+                        "width": bounding_box[2],
+                        "height": bounding_box[3],
+                        "mouse_action": {
+                            "left_click": self.leftClickCheckbox.isChecked(),
+                            "right_click": self.rightClickCheckbox.isChecked(),
+                            "middle_click": self.middleClickCheckbox.isChecked(),
+                            "double_click": self.doubleClickCheckbox.isChecked(),
+                        },
                     }
                 }
             else:

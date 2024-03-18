@@ -16,8 +16,9 @@ class Mouse:
         self,
         x: float | None = None,
         y: float | None = None,
-        button="left", clicks=1,
-        interval=0.0
+        button="left",
+        clicks=1,
+        interval=0.0,
     ):
         """Performs a click at the specified coordinates."""
         pyautogui.click(x=x, y=y, button=button, clicks=clicks, interval=interval)
