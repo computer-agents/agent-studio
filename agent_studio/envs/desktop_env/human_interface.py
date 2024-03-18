@@ -1,14 +1,11 @@
 import ast
-import asyncio
-import functools
 import json
 import logging
 import os
 import queue
-import sys
+import threading
 import time
 import uuid
-from asyncio import open_connection
 from pathlib import Path
 
 import cv2
@@ -19,6 +16,7 @@ from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QGroupBox,
     QHBoxLayout,
     QInputDialog,
     QLabel,
@@ -32,11 +30,10 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from qasync import QApplication, asyncClose, asyncSlot
 
 from agent_studio.agent.human_agent import HumanAgent
 from agent_studio.config.config import Config
-from agent_studio.envs.desktop_env.vnc_client import VNCClient, VNCFrame
+from agent_studio.envs.desktop_env.vnc_client import VNCFrame, VNCStreamer
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
@@ -65,6 +62,7 @@ class WorkerSignals(QObject):
     show_input_dialog_signal = pyqtSignal(str)
     evaluation_display_signal = pyqtSignal(str)
     eval_button_signal = pyqtSignal(bool)
+    annotator_panel_signal = pyqtSignal(bool)
 
 
 class ResetThread(QThread):
@@ -151,6 +149,7 @@ class ResetThread(QThread):
         self.signals.save_button_signal.emit(True)
         self.signals.step_action_button_signal.emit(True)
         self.signals.eval_button_signal.emit(True)
+        self.signals.annotator_panel_signal.emit(True)
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -224,6 +223,7 @@ class EvalTaskThread(QThread):
         )
         self.signals.status_bar_signal.emit("color: green;", "Task: Finished")
         self.signals.save_button_signal.emit(True)
+        self.signals.annotator_panel_signal.emit(True)
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -361,9 +361,9 @@ class HumanInterface(QMainWindow):
     ) -> None:
         super().__init__()
         self.refresh_timer = QTimer(self)
-        self.refresh_timer.setInterval(1)
+        self.refresh_timer.setInterval(10)
         self.refresh_timer.timeout.connect(self.render)
-        self.refresh_timer.stop()
+        self.refresh_timer.start()
         self.refreshing_screen = False  # need for refresh flag
         self.last_message = ""
         self.task_config_path = task_config_path
@@ -377,8 +377,9 @@ class HumanInterface(QMainWindow):
 
         # VNC
         self.record_path = record_path
-        self.vnc: None | VNCClient = None
-        self.vnc_lock = asyncio.Lock()
+        self.vnc_thread: VNCStreamer = VNCStreamer(
+            config.env_server_addr, config.vnc_port, config.vnc_password
+        )
 
         self.evaluator_infos: dict[str, list[dict]] = {}
         self.load_evaluator_args()
@@ -388,15 +389,9 @@ class HumanInterface(QMainWindow):
 
         self.reset()
 
-    @classmethod
-    async def create_ui(cls, record_path: str, task_config_path: str):
-        self = cls(record_path, task_config_path)
-        await self.connect_vnc()
-        return self
-
     def setup_ui(self) -> None:
         """Sets up the UI, including the VNC frame (left) and the right layout."""
-        self.setWindowTitle("AgentStudio Recorder")
+        self.setWindowTitle("AgentStudio Annotator")
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         central_widget.setMouseTracking(True)
@@ -411,7 +406,16 @@ class HumanInterface(QMainWindow):
 
         self.vnc_container = QWidget()
         left_layout = QVBoxLayout(self.vnc_container)
-        self.vnc_frame = VNCFrame(self)
+        self.vnc_thread.start()
+        self.recording_lock = threading.Lock()
+        self.video_height, self.video_width = (
+            self.vnc_thread.video_height,
+            self.vnc_thread.video_width,
+        )
+        self.now_screenshot = np.zeros(
+            (self.video_height, self.video_width, 4), dtype="uint8"
+        )
+        self.vnc_frame = VNCFrame(self, enable_selection=True)
         left_layout.addWidget(self.vnc_frame)
 
         reconnect_button = QPushButton("Re-connect")
@@ -420,12 +424,14 @@ class HumanInterface(QMainWindow):
 
         main_layout.addWidget(self.vnc_container)
 
-        self.task_eval_info_container = QWidget()
-        task_eval_info_layout = QVBoxLayout(self.task_eval_info_container)
+        self.task_eval_info_container = QGroupBox("Task Information Panel")
+
+        middle_layout = QVBoxLayout()
+        task_eval_info_layout = QVBoxLayout()
 
         clear_button = QPushButton("Clear All")
         clear_button.clicked.connect(self.reset)
-        task_eval_info_layout.addWidget(clear_button)
+        middle_layout.addWidget(clear_button)
 
         task_eval_info_layout.addWidget(QLabel("Task Instruction"))
         self.instruction_editor = QTextEdit(self)
@@ -445,10 +451,31 @@ class HumanInterface(QMainWindow):
         self.eval_steps_display = QTextEdit(self)
         task_eval_info_layout.addWidget(self.eval_steps_display)
 
-        main_layout.addWidget(self.task_eval_info_container)
+        self.task_eval_info_container.setLayout(task_eval_info_layout)
 
-        self.evaluator_sel_container = QWidget()
-        evaluator_sel_layout = QVBoxLayout(self.evaluator_sel_container)
+        middle_layout.addWidget(self.task_eval_info_container)
+
+        self.annotator_container = QGroupBox("Annotation Panel")
+        annotator_layout = QVBoxLayout()
+        annotator_layout.addWidget(QLabel("Mouse Action"))
+        self.leftClickCheckbox = QCheckBox("Left Click")
+        self.rightClickCheckbox = QCheckBox("Right Click")
+        self.middleClickCheckbox = QCheckBox("Middle Click")
+        self.doubleClickCheckbox = QCheckBox("Double Click")
+        annotator_layout.addWidget(self.leftClickCheckbox)
+        annotator_layout.addWidget(self.rightClickCheckbox)
+        annotator_layout.addWidget(self.middleClickCheckbox)
+        annotator_layout.addWidget(self.doubleClickCheckbox)
+        annotate_button = QPushButton("Generate Annotation/Action")
+        annotate_button.clicked.connect(self.generate_annotation)
+        annotator_layout.addWidget(annotate_button)
+
+        self.annotator_container.setLayout(annotator_layout)
+        middle_layout.addWidget(self.annotator_container)
+
+        main_layout.addLayout(middle_layout)
+
+        evaluator_sel_layout = QVBoxLayout()
 
         evaluator_sel_layout.addWidget(
             QLabel(
@@ -482,10 +509,10 @@ class HumanInterface(QMainWindow):
         self.start_button.clicked.connect(self.start_record)
         evaluator_sel_layout.addWidget(self.start_button)
 
+        self.evaluator_sel_container = QGroupBox("Evaluator Helper Panel")
+        self.evaluator_sel_container.setLayout(evaluator_sel_layout)
         main_layout.addWidget(self.evaluator_sel_container)
-
-        self.trajectory_container = QWidget()
-        trajectory_layout = QVBoxLayout(self.trajectory_container)
+        trajectory_layout = QVBoxLayout()
 
         trajectory_layout.addWidget(QLabel("Trajectory"))
         self.trajectory_display = QTextEdit(self)
@@ -521,6 +548,8 @@ class HumanInterface(QMainWindow):
         self.save_button.clicked.connect(self.save_trajectory)
         trajectory_layout.addWidget(self.save_button)
 
+        self.trajectory_container = QGroupBox("Trajectory Panel")
+        self.trajectory_container.setLayout(trajectory_layout)
         main_layout.addWidget(self.trajectory_container)
 
         self.setMouseTracking(True)
@@ -552,12 +581,21 @@ class HumanInterface(QMainWindow):
         self.is_visual_checkbox.setEnabled(True)
         self.current_task = None
         self.selected_task = None
+        self.vnc_frame.reset()
         self.trajectory_container.hide()
         self.vnc_container.hide()
+        self.annotator_container.hide()
         self.evaluator_sel_container.show()
         self.json_preview_label.show()
         self.json_preview_display.show()
         self.populate_instruction_selection_widget()
+
+    def show_popup(self, title: str, message: str) -> None:
+        """Shows a popup message."""
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle(title)
+        dlg.setText(message)
+        dlg.show()
 
     def start_record(self) -> None:
         """Starts the record."""
@@ -568,23 +606,10 @@ class HumanInterface(QMainWindow):
             if not isinstance(evals, list):
                 raise ValueError("Evaluation Steps should be a list")
         except Exception as e:
-            dlg = QMessageBox(self)
-            dlg.setWindowTitle("Invalid JSON format!")
-            dlg.setText(f"{e}")
-            dlg.show()
+            self.show_popup(
+                "Invalid JSON format!", f"[Error] Check Evaluation Steps Editor:\n{e}"
+            )
             return
-        self.evaluator_sel_container.hide()
-        self.trajectory_container.show()
-        self.vnc_container.show()
-        self.json_preview_label.hide()
-        self.json_preview_display.hide()
-        self.instruction_editor.setReadOnly(True)
-        self.output_display.setEnabled(True)
-        self.trajectory_display.setEnabled(True)
-        self.eval_steps_display.setReadOnly(True)
-        self.save_button.setEnabled(False)
-        self.step_action_button.setEnabled(False)
-        self.is_visual_checkbox.setEnabled(False)
 
         if self.selected_task is not None:
             task_id = self.selected_task["task_id"]
@@ -600,6 +625,23 @@ class HumanInterface(QMainWindow):
         if self.selected_task is None:
             add_jsonl([self.current_task.to_task_config()], self.task_config_path)
         self.agent.reset(self.current_task.instruction)
+
+        self.evaluator_sel_container.hide()
+        self.trajectory_container.show()
+        self.vnc_container.show()
+        self.json_preview_label.hide()
+        self.json_preview_display.hide()
+        self.instruction_editor.setReadOnly(True)
+        self.output_display.setEnabled(True)
+        self.trajectory_display.setEnabled(True)
+        self.eval_steps_display.setReadOnly(True)
+        self.save_button.setEnabled(False)
+        self.step_action_button.setEnabled(False)
+        self.is_visual_checkbox.setEnabled(False)
+        if self.current_task.visual:
+            self.annotator_container.show()
+            self.annotator_container.setEnabled(False)
+
         self.worker_signals = WorkerSignals()
         self.worker_signals.status_bar_signal.connect(self.set_task_status_bar_text)
         self.worker_signals.next_action_editor_signal.connect(
@@ -611,13 +653,50 @@ class HumanInterface(QMainWindow):
         )
         self.worker_signals.show_input_dialog_signal.connect(self.show_input_dialog)
         self.worker_signals.eval_button_signal.connect(self.eval_button.setEnabled)
+        self.worker_signals.annotator_panel_signal.connect(
+            self.annotator_container.setEnabled
+        )
         self.current_thread = ResetThread(
             signals=self.worker_signals,
             task_config=self.current_task.to_task_config(),
         )
         self.current_thread.start()
 
-    def show_input_dialog(self, message: str):
+    def generate_annotation(self) -> None:
+        bounding_box = self.vnc_frame.get_selection()
+        if bounding_box is not None:
+            # generate click action in the middle of the bounding box
+            x, y = (
+                bounding_box[0] + bounding_box[2] // 2,
+                bounding_box[1] + bounding_box[3] // 2,
+            )
+            left, right, middle, _ = (
+                self.leftClickCheckbox.isChecked(),
+                self.rightClickCheckbox.isChecked(),
+                self.middleClickCheckbox.isChecked(),
+                self.doubleClickCheckbox.isChecked(),
+            )
+            if not any([left, right, middle]) or sum([left, right, middle]) > 1:
+                self.show_popup("Error", "Wrong mouse action combination!")
+                return
+            if self.leftClickCheckbox.isChecked():
+                button = "left"
+            elif self.rightClickCheckbox.isChecked():
+                button = "right"
+            elif self.middleClickCheckbox.isChecked():
+                button = "middle"
+            if self.doubleClickCheckbox.isChecked():
+                clicks = 2
+                interval = 0.25
+            else:
+                clicks = 1
+                interval = 0.0
+            self.next_action_editor.setPlainText(
+                f'mouse.click({x}, {y}, button="{button}", '
+                f"clicks={clicks}, interval={interval})"
+            )
+
+    def show_input_dialog(self, message: str) -> None:
         dlg = QInputDialog(self)
         dlg.setLabelText(message)
         dlg.show()
@@ -757,7 +836,31 @@ class HumanInterface(QMainWindow):
                 obs = self.now_screenshot
             else:
                 obs = None
-            result, _ = self.agent.step_action(True, code=next_action_text, obs=obs)
+
+            bounding_box = self.vnc_frame.get_selection()
+            if bounding_box is not None:
+                annotation = {
+                    "mouse_action": {
+                        "x": bounding_box[0],
+                        "y": bounding_box[1],
+                        "width": bounding_box[2],
+                        "height": bounding_box[3],
+                        "mouse_action": {
+                            "left_click": self.leftClickCheckbox.isChecked(),
+                            "right_click": self.rightClickCheckbox.isChecked(),
+                            "middle_click": self.middleClickCheckbox.isChecked(),
+                            "double_click": self.doubleClickCheckbox.isChecked(),
+                        },
+                    }
+                }
+            else:
+                annotation = None
+            result, _ = self.agent.step_action(
+                confirmed=True,
+                code=next_action_text,
+                obs=obs,
+                annotation=annotation,
+            )
             self.output_display.setText(str(result))
         except Exception as e:
             self.output_display.setText(f"Error: {str(e)}")
@@ -796,6 +899,7 @@ class HumanInterface(QMainWindow):
         self.step_action_button.setEnabled(False)
         self.save_button.setEnabled(False)
         self.eval_button.setEnabled(False)
+        self.annotator_container.setEnabled(False)
         assert self.current_task is not None, "No task selected"
 
         signals = WorkerSignals()
@@ -803,6 +907,7 @@ class HumanInterface(QMainWindow):
         signals.status_bar_signal.connect(self.set_task_status_bar_text)
         signals.evaluation_display_signal.connect(self.evaluation_display.setPlainText)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        signals.annotator_panel_signal.connect(self.annotator_container.setEnabled)
         self.current_thread_result = queue.Queue()
         self.current_thread = EvalTaskThread(
             signals=signals,
@@ -812,65 +917,39 @@ class HumanInterface(QMainWindow):
         )
         self.current_thread.start()
 
-    @asyncSlot()
-    async def reconnect(self) -> None:
-        """Reconnects to VNC server."""
+    def reconnect(self):
         self.status_bar.showMessage("Reconnecting")
-        async with self.vnc_lock:
-            if self.vnc is not None:
-                await self.vnc.disconnect()
-                self.vnc = None
-            await self.connect_vnc()
-        self.status_bar.showMessage("Connected")
-
-    @asyncSlot()
-    async def connect_vnc(self) -> None:
-        """Connects to VNC server."""
-        if not config.remote:
-            return
-        self.status_bar.showMessage("Connecting")
-
-        self._reader, self._writer = await open_connection(
-            config.env_server_addr, config.vnc_port
-        )
-        self.vnc = await VNCClient.create(
-            reader=self._reader, writer=self._writer, password=config.vnc_password
-        )
-        self.video_height = self.vnc.video.height
-        self.video_width = self.vnc.video.width
         self.now_screenshot = np.zeros(
             (self.video_height, self.video_width, 4), dtype="uint8"
         )
-
-        # self.setGeometry(0, 0, self.video_width, self.video_height)
-        self.vnc_frame.setFixedSize(self.video_width, self.video_height)
-        self.vnc_frame.setMouseTracking(True)
-
-        self.refresh_timer.start()
+        if self.vnc_thread is not None:
+            with self.recording_lock:
+                self.vnc_thread = VNCStreamer(
+                    env_server_addr=config.env_server_addr,
+                    vnc_port=config.vnc_port,
+                    vnc_password=config.vnc_password,
+                )
+                self.vnc_thread.start()
         self.status_bar.showMessage("Connected")
 
-    async def update_screen(self) -> None:
-        async with self.vnc_lock:
-            if self.vnc is None:
-                return
-            try:
-                screen_shot = await self.vnc.screenshot()
-                if screen_shot is None:
-                    return
-            except Exception as e:
-                logger.error("Fail to get screenshot.", e)
+    def update_screen(self):
+        try:
+            with self.recording_lock:
+                assert self.vnc_thread is not None
+                frame = self.vnc_thread.get_current_frame()
+            if frame is not None:
+                self.now_screenshot = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+                qimage = QImage(
+                    frame.tobytes(),
+                    self.video_width,
+                    self.video_height,
+                    QImage.Format.Format_RGB888,
+                )
+                self.vnc_frame.update(qimage)
+        except Exception as e:
+            logger.error("Fail to get screenshot.", e)
 
-        self.now_screenshot = cv2.cvtColor(screen_shot, cv2.COLOR_RGBA2BGR)
-        qimage = QImage(
-            self.now_screenshot.tobytes(),
-            self.video_width,
-            self.video_height,
-            QImage.Format.Format_BGR888,
-        )
-        self.vnc_frame.update(qimage)
-
-    @asyncSlot()
-    async def render(self) -> None:
+    def render(self):
         self.refresh_timer.stop()
 
         if self.refreshing_screen:
@@ -878,41 +957,19 @@ class HumanInterface(QMainWindow):
             return
 
         self.refreshing_screen = True
-        await self.update_screen()
-        if self.vnc is not None and self.vnc_container.isVisible():
+        self.update_screen()
+        if self.vnc_thread is not None:
             if local_cursor_pos := self.vnc_frame.get_cursor_pos():
                 self.status_bar.showMessage(f"Cursor Position: {str(local_cursor_pos)}")
+
         self.refreshing_screen = False
         self.refresh_timer.start()
 
-    @asyncClose
-    async def closeEvent(self, event):
+    def closeEvent(self, event):
         self.status_bar.showMessage("Closing")
+        self.on_close = True
+        if self.vnc_thread is not None:
+            self.vnc_thread.stop()
         self.refresh_timer.stop()
-        async with self.vnc_lock:
-            if self.vnc is not None:
-                await self.vnc.disconnect()
-                self.vnc = None
-                logger.info("VNC disconnected")
+        logger.info("GUI closed")
         exit(0)
-
-
-async def run_ui(record_path: str, task_config_path: str) -> None:
-    def close_future(future, loop):
-        loop.call_later(10, future.cancel)
-        future.cancel()
-
-    loop = asyncio.get_event_loop()
-    future: asyncio.Future = asyncio.Future()
-
-    app = QApplication(sys.argv)
-    if hasattr(app, "aboutToQuit"):
-        getattr(app, "aboutToQuit").connect(
-            functools.partial(close_future, future, loop)
-        )
-
-    interface = await HumanInterface.create_ui(record_path, task_config_path)
-
-    interface.show()
-
-    await future

@@ -12,7 +12,7 @@ from qasync import QApplication
 from agent_studio.agent.base_agent import Agent
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.agent_interface import AgentInterface
-from agent_studio.envs.desktop_env.annotator_interface import DataCollector
+from agent_studio.envs.desktop_env.human_interface import HumanInterface
 from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
 from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
@@ -353,7 +353,7 @@ def record(record_path: str) -> None:
                 time.sleep(1)
 
         app = QApplication(sys.argv)
-        interface = DataCollector(
+        interface = HumanInterface(
             record_path=record_path,
             task_config_path=config.task_config_paths[config.env_type],
         )
@@ -362,25 +362,6 @@ def record(record_path: str) -> None:
         sys.exit(exit_code)
     except asyncio.exceptions.CancelledError:
         sys.exit(0)
-
-
-# def record(args) -> None:
-#     match config.env_type:
-#         case "desktop":
-#             from agent_studio.envs.desktop_env.human_interface import run_ui
-
-#             try:
-#                 assert config.remote is True, "Desktop env only supports remote mode."
-#                 qasync.run(
-#                     run_ui(
-#                         record_path="data/trajectories/human",
-#                         task_config_path=config.task_config_paths[config.env_type],
-#                     )
-#                 )
-#             except asyncio.exceptions.CancelledError:
-#                 sys.exit(0)
-#         case _:
-#             raise ValueError(f"Invalid env: {config.env_type}.")
 
 
 def main():
