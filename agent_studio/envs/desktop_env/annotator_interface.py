@@ -845,7 +845,7 @@ class DataCollector(QMainWindow):
                         "y": bounding_box[1],
                         "width": bounding_box[2],
                         "height": bounding_box[3],
-                        "mouse_action": {
+                        "click_type": {
                             "left_click": self.leftClickCheckbox.isChecked(),
                             "right_click": self.rightClickCheckbox.isChecked(),
                             "middle_click": self.middleClickCheckbox.isChecked(),
