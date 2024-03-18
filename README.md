@@ -23,6 +23,8 @@ We plan to expand the collection of environments, tasks, and data over time. Con
 
 ![](docs/source/assets/imgs/overview.png)
 
+![](docs/source/assets/imgs/agent_space.jpg)
+
 ## Quickstart
 
 ### Setup Environment
@@ -79,7 +81,7 @@ Set `headless = False` and `remote = True`. This setup is suitable for evaluatin
 
 #### Run Docker (optional)
 ```bash
-docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/home/ubuntu/agent_studio/agent_studio/config/:ro -v ${PWD}/data:/home/ubuntu/agent_studio/data:ro agent_studio:latest
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/home/ubuntu/agent_studio/agent_studio/config/:ro -v ${PWD}/data:/home/ubuntu/agent_studio/data:ro agent-studio:latest
 ```
 
 Start benchmarking:
@@ -95,6 +97,10 @@ Please refer to the our [documentation](https://ltzheng.github.io/agent-studio/)
 Here is an example of recording human demonstrations:
 
 ![](docs/source/assets/imgs/annotation_example.jpg)
+
+## Annotator
+
+We provide a simple annotator for GUI grounding data. Please refer to the [doc](docs/source/getting_started/annotation.rst) for detailed instructions.
 
 ## Acknowledgement
 

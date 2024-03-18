@@ -163,7 +163,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
-*token.json
-credentials.json
-*.session
-api_key.json
+agent_studio/config/*
+!agent_studio/config/config.py
+!agent_studio/config/__init__.py
+!agent_studio/config/api_key_template.json
+workspace/

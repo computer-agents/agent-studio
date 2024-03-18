@@ -6,13 +6,13 @@ import time
 from pathlib import Path
 
 import psutil
-import qasync
 import requests
 from qasync import QApplication
 
 from agent_studio.agent.base_agent import Agent
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.agent_interface import AgentInterface
+from agent_studio.envs.desktop_env.annotator_interface import DataCollector
 from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
 from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
@@ -46,7 +46,9 @@ def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--agent", type=str, default=config.agent)
     parser.add_argument("--provider", type=str, default=config.provider)
-    parser.add_argument("--mode", type=str, choices=["record", "eval"], default="eval")
+    parser.add_argument(
+        "--mode", type=str, choices=["record", "eval", "annotate"], default="eval"
+    )
     parser.add_argument("--start_idx", type=int, default=0)
     parser.add_argument("--end_idx", type=int, default=None)
 
@@ -90,7 +92,7 @@ def setup_tasks(args):
     return task_configs
 
 
-def wait_finish():
+def wait_finish(is_eval: bool):
     remote_server_addr = f"http://{config.env_server_addr}:{config.env_server_port}"
     while True:
         response_raw = requests.get(f"{remote_server_addr}/task/status")
@@ -98,7 +100,8 @@ def wait_finish():
         if response.status == "finished":
             break
         elif response.status == "wait_for_input":
-            if config.need_human_confirmation:
+            # Can't override in eval mode
+            if config.need_human_confirmation and not is_eval:
                 user_input = input(f"{response.content}")
             else:
                 user_input = "y"
@@ -205,7 +208,7 @@ def eval_headless(
                 )
                 response = AgentStudioResponse(**response_raw.json())
                 assert response.status == "submitted"
-                wait_finish()
+                wait_finish(is_eval=False)
                 response_raw = requests.get(
                     f"{remote_server_addr}/task/result",
                 )
@@ -270,7 +273,7 @@ def eval_headless(
                 )
                 response = AgentStudioResponse(**response_raw.json())
                 assert response.status == "submitted"
-                wait_finish()
+                wait_finish(is_eval=True)
                 response_raw = requests.get(f"{remote_server_addr}/task/result")
                 response = AgentStudioResultResponse(**response_raw.json())
                 assert response.status == "finished" and isinstance(
@@ -335,22 +338,49 @@ def eval(args) -> None:
 
 
 def record(args) -> None:
-    match config.env_type:
-        case "desktop":
-            from agent_studio.envs.desktop_env.human_interface import run_ui
-
+    try:
+        while True:
             try:
                 assert config.remote is True, "Desktop env only supports remote mode."
-                qasync.run(
-                    run_ui(
-                        record_path="data/trajectories/human",
-                        task_config_path=config.task_config_paths[config.env_type],
-                    )
+                response = requests.get(
+                    f"http://{config.env_server_addr}:"
+                    f"{config.env_server_port}/health"
                 )
-            except asyncio.exceptions.CancelledError:
-                sys.exit(0)
-        case _:
-            raise ValueError(f"Invalid env: {config.env_type}.")
+                if response.status_code == 200:
+                    break
+            except Exception:
+                logger.info("Waiting for the agent server to start...")
+                time.sleep(1)
+
+        app = QApplication(sys.argv)
+        interface = DataCollector(
+            record_path="data/trajectories/human",
+            task_config_path=config.task_config_paths[config.env_type],
+        )
+        interface.showMaximized()
+        exit_code = app.exec()
+        sys.exit(exit_code)
+    except asyncio.exceptions.CancelledError:
+        sys.exit(0)
+
+
+# def record(args) -> None:
+#     match config.env_type:
+#         case "desktop":
+#             from agent_studio.envs.desktop_env.human_interface import run_ui
+
+#             try:
+#                 assert config.remote is True, "Desktop env only supports remote mode."
+#                 qasync.run(
+#                     run_ui(
+#                         record_path="data/trajectories/human",
+#                         task_config_path=config.task_config_paths[config.env_type],
+#                     )
+#                 )
+#             except asyncio.exceptions.CancelledError:
+#                 sys.exit(0)
+#         case _:
+#             raise ValueError(f"Invalid env: {config.env_type}.")
 
 
 def main():

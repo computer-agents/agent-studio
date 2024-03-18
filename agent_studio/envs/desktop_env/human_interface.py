@@ -508,7 +508,7 @@ class HumanInterface(QMainWindow):
         trajectory_layout.addWidget(QLabel("Runtime Response"))
         trajectory_layout.addWidget(self.output_display)
 
-        trajectory_layout.addWidget(QLabel("Evaluation result"))
+        trajectory_layout.addWidget(QLabel("Evaluation Result"))
         self.evaluation_display = QTextEdit(self)
         trajectory_layout.addWidget(self.evaluation_display)
         self.evaluation_display.setReadOnly(True)
