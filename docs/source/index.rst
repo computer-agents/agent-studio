@@ -25,6 +25,8 @@ building virtual agents that can interact with everything on digital worlds. Her
 
 .. image:: ./assets/imgs/overview.png
 
+AgentStudio provides unified observation and action spaces aligned with how humans interact with computers, allowing agent evaluation and data collection on any human-performed task. This feature drastically expands the potential task space. Therefore, AgentStudio can facilitate the development and benchmark of agents that generalize across diverse real-world use cases. In comparison, most previous environments tailored the observation and action spaces solely for specific domains, such as web operations or API calls.
+
 .. image:: ./assets/imgs/agent_space.jpg
 
 Contributing
