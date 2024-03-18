@@ -16,9 +16,9 @@ import numpy as np
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.serialization import load_der_public_key
-from PyQt6.QtGui import QCursor, QPixmap, QPainter, QPen, QFont, QColor
+from PyQt6.QtCore import QPoint, QRect, Qt
+from PyQt6.QtGui import QColor, QCursor, QFont, QPainter, QPen, QPixmap
 from PyQt6.QtWidgets import QLabel
-from PyQt6.QtCore import Qt, QRect, QPoint
 
 logger = logging.getLogger(__name__)
 
@@ -686,9 +686,11 @@ class VNCFrame(QLabel):
 
     def mouseReleaseEvent(self, event):
         """Finalize the selection on mouse release."""
-        if self.enable_selection\
-            and event.button() == Qt.MouseButton.LeftButton\
-            and self.is_selecting:
+        if (
+            self.enable_selection
+            and event.button() == Qt.MouseButton.LeftButton
+            and self.is_selecting
+        ):
             self.end_pos = event.pos()
             self.is_selecting = False
             self._update_selection_rect()
@@ -714,7 +716,7 @@ class VNCFrame(QLabel):
         super().paintEvent(event)
         if self.enable_selection and not self.selection_rect.isEmpty():
             painter = QPainter(self)
-            pen = QPen(QColor('red'), 2, Qt.PenStyle.SolidLine)
+            pen = QPen(QColor("red"), 2, Qt.PenStyle.SolidLine)
             painter.setPen(pen)
             painter.drawRect(self.selection_rect)
 
@@ -723,11 +725,13 @@ class VNCFrame(QLabel):
             painter.setFont(font)
             painter.drawText(
                 self.selection_rect.topLeft() + QPoint(5, -5),
-                f"({self.selection_rect.topLeft().x()}, {self.selection_rect.topLeft().y()})"
+                f"({self.selection_rect.topLeft().x()}, "
+                f"{self.selection_rect.topLeft().y()})",
             )
             painter.drawText(
                 self.selection_rect.bottomRight() + QPoint(-50, 15),
-                f"({self.selection_rect.bottomRight().x()}, {self.selection_rect.bottomRight().y()})"
+                f"({self.selection_rect.bottomRight().x()}, "
+                f"{self.selection_rect.bottomRight().y()})",
             )
 
     def get_selection(self) -> tuple[int, int, int, int] | None:
