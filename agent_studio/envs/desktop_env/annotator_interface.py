@@ -665,9 +665,11 @@ class DataCollector(QMainWindow):
     def generate_annotation(self) -> None:
         bounding_box = self.vnc_frame.get_selection()
         if bounding_box is not None:
-            # generate click random location in the bounding box
-            x = np.random.randint(bounding_box[0], bounding_box[0] + bounding_box[2])
-            y = np.random.randint(bounding_box[1], bounding_box[1] + bounding_box[3])
+            # generate click action in the middle of the bounding box
+            x, y = (
+                bounding_box[0] + bounding_box[2] // 2,
+                bounding_box[1] + bounding_box[3] // 2,
+            )
             left, right, middle, _ = (
                 self.leftClickCheckbox.isChecked(),
                 self.rightClickCheckbox.isChecked(),
