@@ -375,7 +375,7 @@ def main():
         case "record":
             record(record_path="data/trajectories/human")
         case "annotate":
-            record(record_path="data/grounding")
+            record(record_path=config.annotation_path)
         case _:
             raise ValueError(f"Invalid mode {args.mode}")
 
