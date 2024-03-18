@@ -747,6 +747,7 @@ class VNCFrame(QLabel):
             return None
 
     def update(self, qimage):
+        self.setFixedSize(qimage.width(), qimage.height())
         self.setPixmap(QPixmap.fromImage(qimage))
 
 
