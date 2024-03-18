@@ -25,6 +25,8 @@ building virtual agents that can interact with everything on digital worlds. Her
 
 .. image:: ./assets/imgs/overview.png
 
+.. image:: ./assets/imgs/agent_space.jpg
+
 Contributing
 ------------
 
@@ -44,5 +46,7 @@ We plan to expand the collection of environments, tasks, and data over time. Con
    getting_started/evaluate_agents
 
    getting_started/start_recording
+
+   getting_started/annotation
 
    getting_started/troubleshooting
