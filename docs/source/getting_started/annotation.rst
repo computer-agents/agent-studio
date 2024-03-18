@@ -9,7 +9,7 @@ Start the annotator:
 
 .. code-block:: bash
 
-    python run.py --mode record
+    python run.py --mode annotate
 
 The annotator is a simpler version of the Human Recorder. It only supports recording one mouse action for each task. The recorded data will be saved to the ``data/trajectories/annotate`` folder. Usage of the annotator is shown below:
 

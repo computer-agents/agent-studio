@@ -11,20 +11,20 @@ class Config(metaclass=ThreadSafeSingleton):
     """
 
     seed: int = 42
-    headless: bool = True  # True for CLI, False for GUI
+    headless: bool = False  # True for CLI, False for GUI
     python_timeout: int = 20
     need_human_confirmation: bool = True
     minimal_action_interval: float = 3.0
 
     task_config_paths: dict = {
-        "desktop": "data/tasks/filesystem.jsonl",
+        "desktop": "data/tasks/calculator.jsonl",
     }
     api_key_path: str = "agent_studio/config/api_key.json"
 
     stop_code: str = "exit()"
 
     # Env server config
-    remote: bool = False  # True for remote, False for local
+    remote: bool = True  # True for remote, False for local
     env_type: str = "desktop"
     env_server_addr: str = "127.0.0.1"
     env_server_host: str = "0.0.0.0"
