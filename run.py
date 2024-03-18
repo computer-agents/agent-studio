@@ -337,7 +337,7 @@ def eval(args) -> None:
             raise ValueError(f"Invalid env: {config.env_type}.")
 
 
-def record(args) -> None:
+def record(record_path: str) -> None:
     try:
         while True:
             try:
@@ -354,7 +354,7 @@ def record(args) -> None:
 
         app = QApplication(sys.argv)
         interface = DataCollector(
-            record_path="data/trajectories/human",
+            record_path=record_path,
             task_config_path=config.task_config_paths[config.env_type],
         )
         interface.showMaximized()
@@ -392,7 +392,9 @@ def main():
         case "eval":
             eval(args)
         case "record":
-            record(args)
+            record(record_path="data/trajectories/human")
+        case "annotate":
+            record(record_path="data/grounding")
         case _:
             raise ValueError(f"Invalid mode {args.mode}")
 
