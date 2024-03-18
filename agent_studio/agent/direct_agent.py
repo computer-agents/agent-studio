@@ -30,7 +30,7 @@ class DirectAgent(Agent):
                     - user
                     - assistant
                 + content: The content of the message.\
-                    content can either be a string or a PIL.Image.
+                    content can either be a string or a np.array.
         """
         messages: list[dict[str, Any]] = []
         if self.system_prompt is not None:
