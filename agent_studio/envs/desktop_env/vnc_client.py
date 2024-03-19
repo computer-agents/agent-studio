@@ -16,7 +16,7 @@ import numpy as np
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.serialization import load_der_public_key
-from PyQt6.QtCore import QPoint, QRect, Qt
+from PyQt6.QtCore import QPoint, QRect, Qt, QSize
 from PyQt6.QtGui import QColor, QCursor, QFont, QPainter, QPen, QPixmap
 from PyQt6.QtWidgets import QLabel
 
@@ -640,13 +640,15 @@ class VNCClient:
 class VNCFrame(QLabel):
     """The VNC frame for rendering the VNC screen."""
 
-    def __init__(self, parent, enable_selection: bool = False):
+    def __init__(self, parent, size_hint: QSize, enable_selection: bool = False):
         super().__init__(parent)
         self.start_pos = None
         self.end_pos = None
         self.is_selecting = False
         self.selection_rect = QRect()
         self.enable_selection = enable_selection
+        self.scale_factor = 1.0
+        self.target_size = size_hint
 
     def reset(self):
         self.start_pos = None
@@ -664,7 +666,10 @@ class VNCFrame(QLabel):
         ):
             return None
         else:
-            cursor_pos = Position(cursor_pos.x(), cursor_pos.y())
+            cursor_pos = Position(
+                int(cursor_pos.x() / self.scale_factor),
+                int(cursor_pos.y() / self.scale_factor)
+            )
             return cursor_pos
 
     def mousePressEvent(self, event):
@@ -725,30 +730,40 @@ class VNCFrame(QLabel):
             painter.setFont(font)
             painter.drawText(
                 self.selection_rect.topLeft() + QPoint(5, -5),
-                f"({self.selection_rect.topLeft().x()}, "
-                f"{self.selection_rect.topLeft().y()})",
+                f"({int(self.selection_rect.topLeft().x() / self.scale_factor)}, "
+                f"{int(self.selection_rect.topLeft().y() / self.scale_factor)})",
             )
             painter.drawText(
                 self.selection_rect.bottomRight() + QPoint(-50, 15),
-                f"({self.selection_rect.bottomRight().x()}, "
-                f"{self.selection_rect.bottomRight().y()})",
+                f"({int(self.selection_rect.bottomRight().x() / self.scale_factor)}, "
+                f"{int(self.selection_rect.bottomRight().y() / self.scale_factor)})",
             )
 
     def get_selection(self) -> tuple[int, int, int, int] | None:
         """Return the coordinates of the selection."""
         if self.enable_selection and not self.selection_rect.isEmpty():
             return (
-                self.selection_rect.topLeft().x(),
-                self.selection_rect.topLeft().y(),
-                self.selection_rect.width(),
-                self.selection_rect.height(),
+                int(self.selection_rect.topLeft().x() / self.scale_factor),
+                int(self.selection_rect.topLeft().y() / self.scale_factor),
+                int(self.selection_rect.width() / self.scale_factor),
+                int(self.selection_rect.height() / self.scale_factor),
             )
         else:
             return None
 
     def update(self, qimage):
-        self.setFixedSize(qimage.width(), qimage.height())
-        self.setPixmap(QPixmap.fromImage(qimage))
+        scaled_qimage = qimage.scaled(
+            self.target_size,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+        self.scale_factor = max(
+            scaled_qimage.width() / qimage.width(),
+            scaled_qimage.height() / qimage.height()
+        )
+
+        self.setFixedSize(scaled_qimage.size())
+        self.setPixmap(QPixmap.fromImage(scaled_qimage))
 
 
 class VNCStreamer:

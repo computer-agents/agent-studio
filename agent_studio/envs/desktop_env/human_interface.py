@@ -8,11 +8,20 @@ import time
 import uuid
 from pathlib import Path
 
+import pyautogui
 import cv2
 import mss
 import numpy as np
 import requests
-from PyQt6.QtCore import QMutex, QObject, QThread, QTimer, QWaitCondition, pyqtSignal
+from PyQt6.QtCore import (
+    QMutex,
+    QObject,
+    QThread,
+    QTimer,
+    QWaitCondition,
+    pyqtSignal,
+    QSize
+)
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QCheckBox,
@@ -386,6 +395,7 @@ class HumanInterface(QMainWindow):
         else:
             self.vnc_thread = None
 
+        self.screen_width, self.screen_height = pyautogui.size()
         self.evaluator_infos: dict[str, list[dict]] = {}
         self.load_evaluator_args()
 
@@ -434,7 +444,8 @@ class HumanInterface(QMainWindow):
         self.now_screenshot = np.zeros(
             (self.video_height, self.video_width, 4), dtype="uint8"
         )
-        self.vnc_frame = VNCFrame(self, enable_selection=True)
+        frame_size_hint = QSize(self.screen_width//2, self.screen_height//2)
+        self.vnc_frame = VNCFrame(self, frame_size_hint, enable_selection=True)
         left_layout.addWidget(self.vnc_frame)
 
         if config.remote:

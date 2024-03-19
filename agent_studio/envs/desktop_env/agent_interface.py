@@ -7,7 +7,15 @@ from pathlib import Path
 import numpy as np
 import pyautogui
 import requests
-from PyQt6.QtCore import QMutex, QObject, QThread, QTimer, QWaitCondition, pyqtSignal
+from PyQt6.QtCore import (
+    QMutex,
+    QObject,
+    QThread,
+    QTimer,
+    QWaitCondition,
+    pyqtSignal,
+    QSize
+)
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QHBoxLayout,
@@ -393,6 +401,7 @@ class AgentInterface(QMainWindow):
         self.recording_lock = threading.Lock()
         self.screen_recorder: ScreenRecorder | None = None
         self.video_meta: dict | None = None
+        self.screen_width, self.screen_height = pyautogui.size()
         if not config.remote:
             self.video_width, self.video_height = pyautogui.size()
 
@@ -427,7 +436,8 @@ class AgentInterface(QMainWindow):
                 self.vnc_thread.video_width,
             )
             vnc_layout = QVBoxLayout()
-            self.vnc_frame = VNCFrame(self)
+            frame_size_hint = QSize(self.screen_width//2, self.screen_height//2)
+            self.vnc_frame = VNCFrame(self, frame_size_hint)
             vnc_layout.addWidget(self.vnc_frame)
             reconnect_button = QPushButton("Re-connect")
             reconnect_button.clicked.connect(self.reconnect)
