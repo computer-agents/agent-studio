@@ -15,21 +15,21 @@ from PyQt6.QtCore import (
     QMutex,
     QObject,
     QSize,
+    Qt,
     QThread,
     QTimer,
     QWaitCondition,
     pyqtSignal,
-    Qt,
 )
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QDialog,
     QGroupBox,
     QHBoxLayout,
-    QDialog,
-    QLineEdit,
     QLabel,
+    QLineEdit,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
@@ -126,9 +126,7 @@ class ResetThread(QThread):
             if response.status == "finished":
                 break
             elif response.status == "wait_for_input":
-                self.signals.status_bar_signal.emit(
-                    "color: blue;", "Waiting for input"
-                )
+                self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
                 self.mutex.lock()
                 self.signals.show_dialog_signal.emit(response.content)
                 self.wait_condition.wait(self.mutex)

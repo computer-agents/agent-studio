@@ -11,27 +11,27 @@ from PyQt6.QtCore import (
     QMutex,
     QObject,
     QSize,
+    Qt,
     QThread,
     QTimer,
     QWaitCondition,
     pyqtSignal,
-    Qt,
 )
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
-    QHBoxLayout,
     QDialog,
-    QLineEdit,
+    QHBoxLayout,
     QLabel,
+    QLineEdit,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QStatusBar,
     QTextEdit,
     QVBoxLayout,
     QWidget,
-    QMessageBox,
 )
 
 from agent_studio.agent.base_agent import Agent
@@ -164,9 +164,7 @@ class ResetTaskThread(QThread):
             if response.status == "finished":
                 break
             elif response.status == "wait_for_input":
-                self.signals.status_bar_signal.emit(
-                    "color: blue;", "Waiting for input"
-                )
+                self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
                 self.mutex.lock()
                 self.signals.show_dialog_signal.emit(response.content)
                 self.wait_condition.wait(self.mutex)
@@ -725,9 +723,7 @@ class AgentInterface(QMainWindow):
         signals.generate_action_signal.connect(self.generate_action)
         self.current_thread_result = queue.Queue()
         self.current_thread = ResetTaskThread(
-            agent=self.agent,
-            signals=signals,
-            selected_task=self.selected_task
+            agent=self.agent, signals=signals, selected_task=self.selected_task
         )
         self.current_thread.start()
 
