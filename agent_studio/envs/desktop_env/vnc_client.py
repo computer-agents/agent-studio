@@ -10,6 +10,7 @@ from os import urandom
 from struct import unpack
 from typing import Callable
 from zlib import decompressobj
+import platform
 
 import cv2
 import mss
@@ -649,7 +650,12 @@ class VNCFrame(QLabel):
         self.selection_rect = QRect()
         self.enable_selection = enable_selection
         self.scale_factor = 1.0
+        if platform.system() == "Windows":
+            import ctypes
+            scaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+            size_hint /= scaleFactor
         self.target_size = size_hint
+        logger.info(f"VNC Frame target size: {self.target_size}")
 
     def reset(self):
         self.start_pos = None

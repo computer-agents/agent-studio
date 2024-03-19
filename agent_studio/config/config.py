@@ -33,6 +33,7 @@ class Config(metaclass=ThreadSafeSingleton):
     env_server_port: int = 8000
     vnc_password: str = "123456"
     monitor_idx: int = 1  # 1 for the first monitor, 2 for the second monitor
+    vnc_frame_size: tuple[int, int] = (1500, 1500)
 
     # Recorder config
     record_path = "data/trajectories"
