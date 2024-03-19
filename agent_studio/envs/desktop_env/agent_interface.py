@@ -436,7 +436,7 @@ class AgentInterface(QMainWindow):
                 self.vnc_thread.video_width,
             )
             vnc_layout = QVBoxLayout()
-            frame_size_hint = QSize(self.screen_width//2, self.screen_height//2)
+            frame_size_hint = QSize(self.screen_width//3, self.screen_height//3)
             self.vnc_frame = VNCFrame(self, frame_size_hint)
             vnc_layout.addWidget(self.vnc_frame)
             reconnect_button = QPushButton("Re-connect")

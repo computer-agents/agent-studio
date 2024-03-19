@@ -444,7 +444,7 @@ class HumanInterface(QMainWindow):
         self.now_screenshot = np.zeros(
             (self.video_height, self.video_width, 4), dtype="uint8"
         )
-        frame_size_hint = QSize(self.screen_width//2, self.screen_height//2)
+        frame_size_hint = QSize(self.screen_width//3, self.screen_height//3)
         self.vnc_frame = VNCFrame(self, frame_size_hint, enable_selection=True)
         left_layout.addWidget(self.vnc_frame)
 
