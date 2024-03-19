@@ -786,6 +786,7 @@ class VNCStreamer:
         self.streaming_lock = threading.Lock()
         self.video_height = 0
         self.video_width = 0
+        self.current_frame = None
 
     def start(self) -> None:
         self.streaming_lock.acquire()
@@ -864,6 +865,7 @@ class LocalStreamer:
         self.video_height = 0
         self.video_width = 0
         self.monitor_idx = monitor_idx
+        self.current_frame = None
 
     def start(self) -> None:
         self.streaming_lock.acquire()

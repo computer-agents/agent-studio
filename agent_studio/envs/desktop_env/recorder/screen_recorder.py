@@ -261,7 +261,7 @@ class ScreenRecorder(Recorder):
         frames = self.frame_buffer.get_frames(start_frame_id, end_frame_id)
         logger.info(f"Captured {len(frames)} frames with FPS={self.fps}")
         for frame in frames:
-            writer.write(frame[1])
+            writer.write(cv2.cvtColor(frame[1], cv2.COLOR_RGB2BGR))
         writer.release()
 
         return {
@@ -290,7 +290,7 @@ class ScreenRecorder(Recorder):
                 last_capture_time = time.time()
                 frame = sct.grab(self.screen_region)
                 frame = np.array(frame)
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
                 # add frame to buffer
                 self.current_frame_id += 1
                 with self.recording_lock:
@@ -330,7 +330,6 @@ class VNCRecorder(ScreenRecorder):
         while self.is_recording:
             frame = self.vnc_streamer.get_current_frame()
             assert frame is not None, "VNC client is not connected"
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
             # add frame to buffer
             with self.recording_lock:
                 self.current_frame = frame.copy()

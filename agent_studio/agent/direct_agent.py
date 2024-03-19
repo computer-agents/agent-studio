@@ -30,7 +30,8 @@ class DirectAgent(Agent):
                     - user
                     - assistant
                 + content: The content of the message.\
-                    content can either be a string or a np.array.
+                    content can either be a string or a np.array.\
+                    If it is a np.array, it should be in RGB format.
         """
         messages: list[dict[str, Any]] = []
         if self.system_prompt is not None:

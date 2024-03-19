@@ -121,7 +121,7 @@ def save_image_or_array(obj: Any, folder_path: str) -> str:
         obj.save(file_path)
     elif isinstance(obj, np.ndarray):
         file_path = os.path.join(folder_path, f"{unique_filename}.png")
-        cv2.imwrite(file_path, obj)
+        cv2.imwrite(file_path, cv2.cvtColor(obj, cv2.COLOR_BGRA2RGB))
     else:
         raise ValueError("Unsupported object type for saving.")
     return file_path

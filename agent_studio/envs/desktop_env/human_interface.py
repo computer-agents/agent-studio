@@ -961,7 +961,7 @@ class HumanInterface(QMainWindow):
                 assert self.capture_thread is not None
                 frame = self.capture_thread.get_current_frame()
             if frame is not None:
-                self.now_screenshot = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+                self.now_screenshot = frame
                 qimage = QImage(
                     frame.tobytes(),
                     self.video_width,
