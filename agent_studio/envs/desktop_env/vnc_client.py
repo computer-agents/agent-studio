@@ -655,6 +655,7 @@ class VNCFrame(QLabel):
 
             scaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100  # type: ignore  # noqa: E501
             size_hint /= scaleFactor
+        # TODO: Fix the scale factor for Linux and macOS
         self.target_size = size_hint
         logger.info(f"VNC Frame target size: {self.target_size}")
 

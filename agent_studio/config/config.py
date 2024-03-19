@@ -68,7 +68,7 @@ class Config(metaclass=ThreadSafeSingleton):
     gmail_recipient: str = "gduser1@workspacesamples.dev"
 
     # VSCode config
-    vscode_workspace_path: str = "tmp/vscode_workspace"
+    vscode_workspace_path: str = "vscode_workspace"
     vscode_executable_path: str = "code"
 
     # Pyrogram config
