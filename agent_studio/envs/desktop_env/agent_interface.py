@@ -15,11 +15,13 @@ from PyQt6.QtCore import (
     QTimer,
     QWaitCondition,
     pyqtSignal,
+    Qt,
 )
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
     QHBoxLayout,
-    QInputDialog,
+    QDialog,
+    QLineEdit,
     QLabel,
     QListWidget,
     QListWidgetItem,
@@ -29,6 +31,7 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
+    QMessageBox,
 )
 
 from agent_studio.agent.base_agent import Agent
@@ -86,12 +89,37 @@ class WorkerSignals(QObject):
     parsed_action_display_signal = pyqtSignal(str)
     response_display_signal = pyqtSignal(str)
     evaluation_display_signal = pyqtSignal(str)
-    show_input_dialog_signal = pyqtSignal(str)
+    show_dialog_signal = pyqtSignal(str)
     output_display_signal = pyqtSignal(str)
     save_trajectory_signal = pyqtSignal()
     finish_run_task_signal = pyqtSignal()
     trajectory_display_signal = pyqtSignal(str)
     generate_action_signal = pyqtSignal()
+
+
+class InputDialog(QDialog):
+    def __init__(self, parent=None, message=""):
+        super().__init__(parent)
+        self.setWindowTitle("Input Dialog")
+        self.setModal(True)
+
+        layout = QVBoxLayout(self)
+
+        self.messageLabel = QLabel(message, self)
+        layout.addWidget(self.messageLabel)
+
+        self.inputBox = QLineEdit(self)
+        layout.addWidget(self.inputBox)
+
+        self.confirmButton = QPushButton("Confirm", self)
+        self.confirmButton.clicked.connect(self.accept)
+        layout.addWidget(self.confirmButton)
+
+        self.setWindowFlag(Qt.WindowType.CustomizeWindowHint, True)
+        self.setWindowFlag(Qt.WindowType.WindowCloseButtonHint, False)
+
+    def accept(self):
+        super().accept()
 
 
 class ResetRuntimeThread(QThread):
@@ -117,6 +145,7 @@ class ResetRuntimeThread(QThread):
 class ResetTaskThread(QThread):
     def __init__(
         self,
+        agent: Agent,
         signals: WorkerSignals,
         selected_task: dict,
     ):
@@ -125,6 +154,7 @@ class ResetTaskThread(QThread):
         self.wait_condition = QWaitCondition()
         self.signals = signals
         self.selected_task = selected_task
+        self.agent = agent
 
     def _wait_finish(self):
         while True:
@@ -134,17 +164,14 @@ class ResetTaskThread(QThread):
             if response.status == "finished":
                 break
             elif response.status == "wait_for_input":
-                if config.need_human_confirmation:
-                    self.signals.status_bar_signal.emit(
-                        "color: blue;", "Waiting for input"
-                    )
-                    self.mutex.lock()
-                    self.signals.show_input_dialog_signal.emit(response.content)
-                    self.wait_condition.wait(self.mutex)
-                    self.mutex.unlock()
-                    user_input = self.user_input
-                else:
-                    user_input = "y"
+                self.signals.status_bar_signal.emit(
+                    "color: blue;", "Waiting for input"
+                )
+                self.mutex.lock()
+                self.signals.show_dialog_signal.emit(response.content)
+                self.wait_condition.wait(self.mutex)
+                self.mutex.unlock()
+                user_input = self.user_input
                 response_raw = requests.post(
                     url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
                     json=AgentStudioTextRequest(message=user_input).model_dump(),
@@ -162,6 +189,9 @@ class ResetTaskThread(QThread):
 
     def run(self):
         assert self.selected_task is not None
+        self.signals.status_bar_signal.emit("color: green;", "Task: Resetting Agent...")
+        self.agent.reset(instruction=self.selected_task["instruction"])
+        self.signals.status_bar_signal.emit("color: green;", "Task: Resetting Task...")
         response_raw = requests.post(
             f"http://{REMOTE_SERVER_ADDR}/task/reset",
             json=AgentStudioResetRequest(task_config=self.selected_task).model_dump(),
@@ -201,8 +231,6 @@ class GenerateActionThread(QThread):
         self.obs = obs
 
     def run(self):
-        self.signals.status_bar_signal.emit("color: green;", "Task: Resetting Agent...")
-        self.agent.reset(instruction=self.selected_task["instruction"])
         self.signals.status_bar_signal.emit(
             "color: green;", "Task: Generating action..."
         )
@@ -246,7 +274,7 @@ class EvalTaskThread(QThread):
             elif response.status == "wait_for_input":
                 self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
                 self.mutex.lock()
-                self.signals.show_input_dialog_signal.emit(response.content)
+                self.signals.show_dialog_signal.emit(response.content)
                 self.wait_condition.wait(self.mutex)
                 self.mutex.unlock()
                 user_input = self.user_input
@@ -584,15 +612,28 @@ class AgentInterface(QMainWindow):
         self.task_status_bar.setText(text)
 
     def show_input_dialog(self, message: str):
-        dlg = QInputDialog(self)
-        dlg.setLabelText(message)
-        dlg.show()
-        dlg.findChildren(QPushButton)[1].hide()
+        dlg = InputDialog(self, message)
         result = dlg.exec()
-        if result != QInputDialog.DialogCode.Accepted:
-            user_input = "n"
+        assert result == QDialog.DialogCode.Accepted
+        user_input = dlg.inputBox.text()
+        assert self.current_thread is not None
+        assert isinstance(self.current_thread, ResetTaskThread) or isinstance(
+            self.current_thread, EvalTaskThread
+        )
+        self.current_thread.receive_user_input(user_input)
+
+    def show_choice_dialog(self, message: str) -> None:
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle("Confirm Action")
+        dlg.setText(message)
+        accept = dlg.addButton("Confirm", QMessageBox.ButtonRole.AcceptRole)
+        dlg.addButton("Reject", QMessageBox.ButtonRole.RejectRole)
+        dlg.exec()
+
+        if dlg.clickedButton() == accept:
+            user_input = "y"
         else:
-            user_input = dlg.textValue()
+            user_input = "n"
         assert self.current_thread is not None
         assert isinstance(self.current_thread, ResetTaskThread) or isinstance(
             self.current_thread, EvalTaskThread
@@ -680,11 +721,13 @@ class AgentInterface(QMainWindow):
 
         signals = WorkerSignals()
         signals.status_bar_signal.connect(self.set_task_status_bar_text)
-        signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        signals.show_dialog_signal.connect(self.show_choice_dialog)
         signals.generate_action_signal.connect(self.generate_action)
         self.current_thread_result = queue.Queue()
         self.current_thread = ResetTaskThread(
-            signals=signals, selected_task=self.selected_task
+            agent=self.agent,
+            signals=signals,
+            selected_task=self.selected_task
         )
         self.current_thread.start()
 
@@ -740,7 +783,7 @@ class AgentInterface(QMainWindow):
         signals = WorkerSignals()
         signals.status_bar_signal.connect(self.set_task_status_bar_text)
         signals.evaluation_display_signal.connect(self.evaluation_display.setPlainText)
-        signals.show_input_dialog_signal.connect(self.show_input_dialog)
+        signals.show_dialog_signal.connect(self.show_input_dialog)
         signals.save_trajectory_signal.connect(self.save_trajectory)
         self.current_thread_result = queue.Queue()
         self.current_thread = EvalTaskThread(
