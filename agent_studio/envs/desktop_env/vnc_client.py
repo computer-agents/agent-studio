@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import platform
 import threading
 import time
 from asyncio import StreamReader, StreamWriter, open_connection
@@ -10,7 +11,6 @@ from os import urandom
 from struct import unpack
 from typing import Callable
 from zlib import decompressobj
-import platform
 
 import cv2
 import mss
@@ -18,7 +18,7 @@ import numpy as np
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.serialization import load_der_public_key
-from PyQt6.QtCore import QPoint, QRect, Qt, QSize
+from PyQt6.QtCore import QPoint, QRect, QSize, Qt
 from PyQt6.QtGui import QColor, QCursor, QFont, QPainter, QPen, QPixmap
 from PyQt6.QtWidgets import QLabel
 
@@ -652,7 +652,8 @@ class VNCFrame(QLabel):
         self.scale_factor = 1.0
         if platform.system() == "Windows":
             import ctypes
-            scaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+
+            scaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100  # type: ignore  # noqa: E501
             size_hint /= scaleFactor
         self.target_size = size_hint
         logger.info(f"VNC Frame target size: {self.target_size}")
@@ -675,7 +676,7 @@ class VNCFrame(QLabel):
         else:
             cursor_pos = Position(
                 int(cursor_pos.x() / self.scale_factor),
-                int(cursor_pos.y() / self.scale_factor)
+                int(cursor_pos.y() / self.scale_factor),
             )
             return cursor_pos
 
@@ -762,11 +763,11 @@ class VNCFrame(QLabel):
         scaled_qimage = qimage.scaled(
             self.target_size,
             Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation
+            Qt.TransformationMode.SmoothTransformation,
         )
         self.scale_factor = max(
             scaled_qimage.width() / qimage.width(),
-            scaled_qimage.height() / qimage.height()
+            scaled_qimage.height() / qimage.height(),
         )
 
         self.setFixedSize(scaled_qimage.size())
@@ -890,12 +891,12 @@ class LocalStreamer:
     def _capture_screen(self):
         with mss.mss() as sct:
             monitor = sct.monitors[self.monitor_idx]
-            self.video_width, self.video_height = monitor["width"], monitor["height"]
             logger.info("Local Streamer started")
             self.streaming_lock.release()
             while self.is_streaming:
                 try:
                     frame = sct.grab(monitor)
+                    self.video_width, self.video_height = frame.width, frame.height
                     frame = np.array(frame)
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
                     with self.streaming_lock:
