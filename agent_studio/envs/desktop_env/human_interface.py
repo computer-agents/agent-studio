@@ -8,18 +8,18 @@ import time
 import uuid
 from pathlib import Path
 
-import pyautogui
 import cv2
 import numpy as np
+import pyautogui
 import requests
 from PyQt6.QtCore import (
     QMutex,
     QObject,
+    QSize,
     QThread,
     QTimer,
     QWaitCondition,
     pyqtSignal,
-    QSize
 )
 from PyQt6.QtGui import QColor, QImage
 from PyQt6.QtWidgets import (
@@ -43,9 +43,9 @@ from PyQt6.QtWidgets import (
 from agent_studio.agent.human_agent import HumanAgent
 from agent_studio.config.config import Config
 from agent_studio.envs.desktop_env.vnc_client import (
+    LocalStreamer,
     VNCFrame,
     VNCStreamer,
-    LocalStreamer,
 )
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
