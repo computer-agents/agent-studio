@@ -10,7 +10,6 @@ from pathlib import Path
 
 import pyautogui
 import cv2
-import mss
 import numpy as np
 import requests
 from PyQt6.QtCore import (
@@ -43,7 +42,11 @@ from PyQt6.QtWidgets import (
 
 from agent_studio.agent.human_agent import HumanAgent
 from agent_studio.config.config import Config
-from agent_studio.envs.desktop_env.vnc_client import VNCFrame, VNCStreamer
+from agent_studio.envs.desktop_env.vnc_client import (
+    VNCFrame,
+    VNCStreamer,
+    LocalStreamer,
+)
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
@@ -386,14 +389,14 @@ class HumanInterface(QMainWindow):
         self.current_task: Task | None = None
 
         self.record_path = record_path
-        self.vnc_thread: VNCStreamer | None
+        self.capture_thread: VNCStreamer | LocalStreamer | None
         if config.remote:
             # VNC remote desktop
-            self.vnc_thread = VNCStreamer(
+            self.capture_thread = VNCStreamer(
                 config.env_server_addr, config.vnc_port, config.vnc_password
             )
         else:
-            self.vnc_thread = None
+            self.capture_thread = LocalStreamer(config.monitor_idx)
 
         self.screen_width, self.screen_height = pyautogui.size()
         self.evaluator_infos: dict[str, list[dict]] = {}
@@ -421,25 +424,13 @@ class HumanInterface(QMainWindow):
 
         self.vnc_container = QWidget()
         left_layout = QVBoxLayout(self.vnc_container)
-        if config.remote:
-            assert self.vnc_thread is not None
-            self.vnc_thread.start()
-            self.recording_lock = threading.Lock()
-            self.video_height, self.video_width = (
-                self.vnc_thread.video_height,
-                self.vnc_thread.video_width,
-            )
-        else:
-            with mss.mss() as sct:
-                monitor = sct.monitors[config.monitor_idx]
-                sct_img = sct.grab(monitor)
-                self.video_height, self.video_width = (
-                    sct_img.height,
-                    sct_img.width,
-                )
-            self.timer = QTimer(self)
-            self.timer.timeout.connect(self.update_screen)
-            self.timer.start(int(1000 / config.video_fps))
+        assert self.capture_thread is not None
+        self.capture_thread.start()
+        self.recording_lock = threading.Lock()
+        self.video_height, self.video_width = (
+            self.capture_thread.video_height,
+            self.capture_thread.video_width,
+        )
 
         self.now_screenshot = np.zeros(
             (self.video_height, self.video_width, 4), dtype="uint8"
@@ -954,49 +945,32 @@ class HumanInterface(QMainWindow):
             self.now_screenshot = np.zeros(
                 (self.video_height, self.video_width, 4), dtype="uint8"
             )
-            if self.vnc_thread is not None:
+            if self.capture_thread is not None:
                 with self.recording_lock:
-                    self.vnc_thread = VNCStreamer(
+                    self.capture_thread = VNCStreamer(
                         env_server_addr=config.env_server_addr,
                         vnc_port=config.vnc_port,
                         vnc_password=config.vnc_password,
                     )
-                    self.vnc_thread.start()
+                    self.capture_thread.start()
             self.status_bar.showMessage("Connected")
 
     def update_screen(self):
-        if config.remote:
-            try:
-                with self.recording_lock:
-                    assert self.vnc_thread is not None
-                    frame = self.vnc_thread.get_current_frame()
-                if frame is not None:
-                    self.now_screenshot = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
-                    qimage = QImage(
-                        frame.tobytes(),
-                        self.video_width,
-                        self.video_height,
-                        QImage.Format.Format_RGB888,
-                    )
-                    self.vnc_frame.update(qimage)
-            except Exception as e:
-                logger.error("Fail to get screenshot.", e)
-        else:
-            with mss.mss() as sct:
-                monitor = sct.monitors[config.monitor_idx]
-                # Capture the screen
-                sct_img = sct.grab(monitor)
-                # frame = np.array(sct_img.pixels, dtype=np.uint8).reshape(sct_img.height, sct_img.width, 3)  # noqa: E501
-                # Convert RGB to BGR for OpenCV compatibility
-                # self.now_screenshot = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-                # Convert to QImage
+        try:
+            with self.recording_lock:
+                assert self.capture_thread is not None
+                frame = self.capture_thread.get_current_frame()
+            if frame is not None:
+                self.now_screenshot = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
                 qimage = QImage(
-                    sct_img.rgb,
-                    sct_img.width,
-                    sct_img.height,
+                    frame.tobytes(),
+                    self.video_width,
+                    self.video_height,
                     QImage.Format.Format_RGB888,
                 )
                 self.vnc_frame.update(qimage)
+        except Exception as e:
+            logger.error("Fail to get screenshot.", e)
 
     def render(self):
         self.refresh_timer.stop()
@@ -1007,7 +981,7 @@ class HumanInterface(QMainWindow):
 
         self.refreshing_screen = True
         self.update_screen()
-        if not config.remote or self.vnc_thread is not None:
+        if self.capture_thread is not None:
             if local_cursor_pos := self.vnc_frame.get_cursor_pos():
                 self.status_bar.showMessage(f"Cursor Position: {str(local_cursor_pos)}")
 
@@ -1017,8 +991,8 @@ class HumanInterface(QMainWindow):
     def closeEvent(self, event):
         self.status_bar.showMessage("Closing")
         self.on_close = True
-        if self.vnc_thread is not None:
-            self.vnc_thread.stop()
+        if self.capture_thread is not None:
+            self.capture_thread.stop()
         self.refresh_timer.stop()
         logger.info("GUI closed")
         exit(0)

@@ -339,18 +339,33 @@ def eval(args) -> None:
 
 def record(record_path: str) -> None:
     try:
-        if config.remote:
-            while True:
-                try:
-                    response = requests.get(
-                        f"http://{config.env_server_addr}:"
-                        f"{config.env_server_port}/health"
-                    )
-                    if response.status_code == 200:
-                        break
-                except Exception:
-                    logger.info("Waiting for the agent server to start...")
-                    time.sleep(1)
+        if not config.remote:
+            import atexit
+
+            local_agent_server = psutil.Popen(
+                [
+                    "python",
+                    "scripts/agent_server.py",
+                ]
+            )
+
+            def cleanup(local_agent_server: psutil.Process):
+                local_agent_server.terminate()
+                local_agent_server.wait()
+
+            atexit.register(cleanup, local_agent_server)
+
+        while True:
+            try:
+                response = requests.get(
+                    f"http://{config.env_server_addr}:"
+                    f"{config.env_server_port}/health"
+                )
+                if response.status_code == 200:
+                    break
+            except Exception:
+                logger.info("Waiting for the agent server to start...")
+                time.sleep(1)
 
         app = QApplication(sys.argv)
         interface = HumanInterface(
@@ -359,6 +374,8 @@ def record(record_path: str) -> None:
         )
         interface.showMaximized()
         exit_code = app.exec()
+        local_agent_server.terminate()
+        local_agent_server.wait()
         sys.exit(exit_code)
     except asyncio.exceptions.CancelledError:
         sys.exit(0)
