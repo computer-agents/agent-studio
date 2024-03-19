@@ -55,3 +55,11 @@ def encode_image(image: str | Image.Image | np.ndarray | None) -> str:
         )
 
     return encoded_image
+
+
+def decode_image(encoded_image: str) -> Image.Image:
+    if encoded_image.startswith("data:image"):
+        encoded_image = encoded_image.split(",")[-1]
+    decoded_image = base64.b64decode(encoded_image)
+    image = Image.open(io.BytesIO(decoded_image))
+    return image
