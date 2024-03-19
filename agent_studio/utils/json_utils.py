@@ -134,7 +134,11 @@ def parse_and_save_objects(obj: Any, folder_path: str) -> Any:
                 obj[key] = save_image_or_array(value, folder_path)
             elif isinstance(value, (dict, list)):
                 obj[key] = parse_and_save_objects(value, folder_path)
-            elif isinstance(value, str) and key == "url" and value.startswith("data:image"):
+            elif (
+                isinstance(value, str)
+                and key == "url"
+                and value.startswith("data:image")
+            ):
                 obj[key] = save_image_or_array(decode_image(value), folder_path)
     elif isinstance(obj, list):
         for i in range(len(obj)):

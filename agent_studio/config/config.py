@@ -25,13 +25,14 @@ class Config(metaclass=ThreadSafeSingleton):
     stop_code: str = "exit()"
 
     # Env server config
-    remote: bool = True  # True for remote, False for local
+    remote: bool = False  # True for remote, False for local
     env_type: str = "desktop"
     env_server_addr: str = "127.0.0.1"
     env_server_host: str = "0.0.0.0"
     vnc_port: int = 5900
     env_server_port: int = 8000
     vnc_password: str = "123456"
+    monitor_idx: int = 1  # 1 for the first monitor, 2 for the second monitor
 
     # Recorder config
     record_path = "data/trajectories"

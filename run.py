@@ -12,8 +12,8 @@ from qasync import QApplication
 from agent_studio.agent.base_agent import Agent
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.agent_interface import AgentInterface
-from agent_studio.envs.desktop_env.human_interface import HumanInterface
 from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
+from agent_studio.envs.desktop_env.human_interface import HumanInterface
 from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
     VNCRecorder,
@@ -339,18 +339,18 @@ def eval(args) -> None:
 
 def record(record_path: str) -> None:
     try:
-        while True:
-            try:
-                assert config.remote is True, "Desktop env only supports remote mode."
-                response = requests.get(
-                    f"http://{config.env_server_addr}:"
-                    f"{config.env_server_port}/health"
-                )
-                if response.status_code == 200:
-                    break
-            except Exception:
-                logger.info("Waiting for the agent server to start...")
-                time.sleep(1)
+        if config.remote:
+            while True:
+                try:
+                    response = requests.get(
+                        f"http://{config.env_server_addr}:"
+                        f"{config.env_server_port}/health"
+                    )
+                    if response.status_code == 200:
+                        break
+                except Exception:
+                    logger.info("Waiting for the agent server to start...")
+                    time.sleep(1)
 
         app = QApplication(sys.argv)
         interface = HumanInterface(
