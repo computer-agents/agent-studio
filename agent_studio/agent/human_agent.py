@@ -91,6 +91,6 @@ class HumanAgent(Agent):
         """This function shouldn't be called by human agents."""
         raise NotImplementedError
 
-    def eval(self) -> dict[str, Any]:
+    def eval(self, final_obs: np.ndarray | None = None) -> dict[str, Any]:
         """This function shouldn't be called by human agents."""
         raise NotImplementedError

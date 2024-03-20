@@ -793,7 +793,9 @@ class AgentInterface(QMainWindow):
             agent=self.agent,
             trajectory_display=self.trajectory_display,
             result_queue=self.current_thread_result,
-            final_obs=self.screen_recorder.get_current_frame() if self.screen_recorder else None,
+            final_obs=self.screen_recorder.get_current_frame()
+            if self.screen_recorder
+            else None,
         )
         self.current_thread.start()
 
