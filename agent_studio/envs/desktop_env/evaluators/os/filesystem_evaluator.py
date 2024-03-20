@@ -99,17 +99,26 @@ class FilesystemEvaluator(Evaluator):
 
     @staticmethod
     @evaluation_handler("content_check")
-    def content_check(file_to_check: dict[str, str]) -> None:
+    def content_check(file_to_check: dict[str, str], method: str = "exact") -> None:
         for path, expected_content in file_to_check.items():
             path = os.path.expanduser(path)
             try:
                 with open(path, "r") as file:
                     content = file.read()
-                if content != expected_content:
-                    raise FeedbackException(
-                        f"The error occurd when checking {path} content. "
-                        f"Expected: {expected_content}, but get: {content}"
-                    )
+                if method == "exact":
+                    if content != expected_content:
+                        raise FeedbackException(
+                            f"The error occurd when checking {path} content. "
+                            f"Expected: {expected_content}, but get: {content}"
+                        )
+                elif method == "strip":
+                    if content.strip() != expected_content.strip():
+                        raise FeedbackException(
+                            f"The error occurd when checking {path} content. "
+                            f"Expected: {expected_content}, but get: {content}"
+                        )
+                else:
+                    raise ValueError(f"Unknown content_check method: {method}")
             except IOError:
                 raise FeedbackException(
                     f"The error occurd when checking {path} content. "
