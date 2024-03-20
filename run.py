@@ -393,9 +393,9 @@ def main():
             record(record_path="data/trajectories/human")
         case "annotate":
             record(
-                record_path=Path(
-                    config.task_config_paths[config.env_type]
-                ).with_suffix("").as_posix()
+                record_path=Path(config.task_config_paths[config.env_type])
+                .with_suffix("")
+                .as_posix()
             )
         case _:
             raise ValueError(f"Invalid mode {args.mode}")
