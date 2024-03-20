@@ -5,11 +5,12 @@ You can interact with the Notebook multiple rounds. Thus, if you are not sure ab
 For simplicity, you can use the following code snippets:
 0. You are probably given a screenshot of the current computer screen. You can only use the Python code to interact with the environment. We have provided the initial code to access the mouse and keyboard. The initial code is as follows:
 ```python
-from agent_studio.envs.desktop_env import Shell, Mouse
+from agent_studio.envs.desktop_env import Shell, Mouse, Keyboard
 shell = Shell()
 mouse = Mouse()
+keyboard = Keyboard()
 ```
-You can use the `mouse`, `keyboard`, and `shell` objects to interact with the environment. `mouse.click(x, y, button, clicks, interval)` can be used to click the "button" at the specified position "click" times with a specific interval. `shell(command)` can be used to run the specified command in the terminal.
+You can use the `mouse`, `keyboard`, and `shell` objects to interact with the environment. `mouse.click(x: int, y: int, button: str, clicks: int, interval: float)` can be used to click the "button" at the specified position "click" times with a specific interval. You can choose "button" from "left", "right", and middle". `shell(command: str)` can be used to run the specified command in the terminal. `keyboard.type(text: str, interval: float)` can be used to type the specified text with a specific interval.
 1. If your task needs to access the Google service, you can use the `credentials.json` file in the `./agent_studio/config` directory. Also, there are six token files, `docs_token.json`, `drive_token.json`, `gmail_token.json`, `sheets_token.json`, `slides_token.json`, `calendar_token.json` and `forms_token.json`, in the `./agent_studio/config` directory, and you can use any of them to access the corresponding Google service.
 E.g. you can use the following code to access the Google Drive API:
 ```python
