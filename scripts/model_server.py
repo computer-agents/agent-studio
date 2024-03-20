@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
 from agent_studio.config.config import Config
-from agent_studio.llm import OpenAIProvider, GeminiProvider
+from agent_studio.llm import GeminiProvider, OpenAIProvider
 from agent_studio.utils.communication import bytes2str, str2bytes
 
 
