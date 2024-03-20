@@ -1,25 +1,19 @@
 import argparse
-import base64
-import json
 import logging
-import pickle
 
 import fastapi
-import google.generativeai as genai
-import PIL.PngImagePlugin
 import uvicorn
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
 from agent_studio.config.config import Config
-
-PIL.PngImagePlugin
+from agent_studio.llm import OpenAIProvider, GeminiProvider
+from agent_studio.utils.communication import bytes2str, str2bytes
 
 
 class ChatCompletionRequest(BaseModel):
     model: str
     messages: str
-    config: str
 
 
 TIMEOUT_KEEP_ALIVE = 5  # seconds
@@ -47,39 +41,23 @@ def parse_args():
 @app.get("/health")
 async def health() -> Response:
     """Health check."""
-    return Response(status_code=200)
+    return Response(status_code=200, content="OK")
 
 
 @app.post("/generate")
 async def create_chat_completion(request: ChatCompletionRequest) -> JSONResponse:
-    if request.model in ["gemini-pro-vision", "gemini-pro"]:
-        with open(config.api_key_path, "r") as f:
-            api_keys = json.load(f)
-        genai.configure(api_key=api_keys["gemini_api_key"])
-        model = genai.GenerativeModel(request.model)
+    messages = str2bytes(request.messages)
+    model = request.model
+    if model in ["gemini-pro-vision", "gemini-pro"]:
+        message, info = GeminiProvider().generate_response(messages, model=model)
+    elif model in ["gpt-4-vision-preview"]:
+        message, info = OpenAIProvider().generate_response(messages, model=model)
     else:
         raise NotImplementedError
-
-    messages = pickle.loads(base64.b64decode(request.messages.encode("utf-8")))
-    generation_config = pickle.loads(base64.b64decode(request.config.encode("utf-8")))
-    logger.info(
-        f"Generating content with messages: {messages}"
-        f" and generation_config: {generation_config}"
-    )
-    r = model.generate_content(messages, generation_config=generation_config)
-    token_count = model.count_tokens(messages).total_tokens
-    try:
-        print(r.text)
-    except ValueError:
-        # TODO: Remove this after debugging
-        for candidate in r.candidates:
-            print("Finish Reason: ", candidate.finish_reason)
-            message = [part.text for part in candidate.content.parts]
-            print("Message: ", message)
     return JSONResponse(
         content={
-            "content": base64.b64encode(pickle.dumps(r)).decode("utf-8"),
-            "info": {"total_tokens": token_count},
+            "message": bytes2str(message),
+            "info": bytes2str(info),
         }
     )
 

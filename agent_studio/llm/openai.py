@@ -52,7 +52,9 @@ class OpenAIProvider(BaseModel):
     ) -> tuple[str, dict[str, int]]:
         """Creates a chat completion using the OpenAI API."""
 
-        model = kwargs.get("model", config.exec_model)
+        model = kwargs.get("model", None)
+        if model is None:
+            raise ValueError("Model name is not set")
         temperature = kwargs.get("temperature", config.temperature)
         max_tokens = kwargs.get("max_tokens", config.max_tokens)
         model_message = self.compose_messages(intermedia_msg=messages)
