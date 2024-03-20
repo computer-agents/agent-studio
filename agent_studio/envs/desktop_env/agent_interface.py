@@ -252,6 +252,7 @@ class EvalTaskThread(QThread):
         selected_task: dict,
         agent: Agent,
         result_queue: queue.Queue,
+        final_obs: np.ndarray | None = None,
     ):
         super().__init__()
         self.mutex = QMutex()
@@ -261,6 +262,7 @@ class EvalTaskThread(QThread):
         self.selected_task = selected_task
         self.trajectory_display = trajectory_display
         self.result_queue = result_queue
+        self.final_obs = final_obs
 
     def _wait_finish(self):
         while True:
@@ -308,7 +310,7 @@ class EvalTaskThread(QThread):
         response = AgentStudioResultResponse(**response_raw.json())
         assert response.status == "finished" and isinstance(response.message, dict)
         self.signals.status_bar_signal.emit("color: green;", "Task: Self-Evaluating...")
-        self_eval_result = self.agent.eval()
+        self_eval_result = self.agent.eval(self.final_obs)
         self.result_queue.put(response.message)
         self.result_queue.put(self_eval_result)
         self.signals.evaluation_display_signal.emit(
@@ -654,8 +656,12 @@ class AgentInterface(QMainWindow):
         self.output_display.clear()
         self.evaluation_display.clear()
         self.selected_task = None
-        self.video_meta = None
         self.action_token_count = 0
+        # Reset screen recorder
+        self.video_meta = None
+        if self.screen_recorder is not None:
+            del self.screen_recorder
+            self.screen_recorder = None
         # Reset remote runtime
         signals = WorkerSignals()
         signals.start_signal.connect(self.start_button.setEnabled)
@@ -737,11 +743,10 @@ class AgentInterface(QMainWindow):
                 self.screen_recorder = VNCRecorder(
                     fps=config.video_fps, vnc_streamer=self.vnc_thread
                 )
-                self.screen_recorder.start()
             else:
                 # assert False, "Local recording is not supported"
                 self.screen_recorder = ScreenRecorder(fps=config.video_fps)
-                self.screen_recorder.start()
+            self.screen_recorder.start()
 
         if self.selected_task["visual"]:
             assert self.screen_recorder is not None
@@ -788,6 +793,9 @@ class AgentInterface(QMainWindow):
             agent=self.agent,
             trajectory_display=self.trajectory_display,
             result_queue=self.current_thread_result,
+            final_obs=self.screen_recorder.get_current_frame()
+            if self.screen_recorder
+            else None,
         )
         self.current_thread.start()
 
@@ -802,8 +810,6 @@ class AgentInterface(QMainWindow):
             self.screen_recorder.stop()
             self.screen_recorder.wait_exit()
             self.video_meta = self.screen_recorder.save(video_path, 0)
-            del self.screen_recorder
-            self.screen_recorder = None
         else:
             video_path = None
         self.confirm_button.setEnabled(False)

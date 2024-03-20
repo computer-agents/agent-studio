@@ -101,6 +101,7 @@ def export_trajectories(
     if self_eval_results is not None:
         results["self_eval"] = {
             "score": self_eval_results["score"],
+            "feedback": self_eval_results["feedback"],
             "response": self_eval_results["response"],
         }
     parse_and_save_objects(results, media_path)
@@ -121,7 +122,7 @@ def save_image_or_array(obj: Any, folder_path: str) -> str:
         obj.save(file_path)
     elif isinstance(obj, np.ndarray):
         file_path = os.path.join(folder_path, f"{unique_filename}.png")
-        cv2.imwrite(file_path, cv2.cvtColor(obj, cv2.COLOR_BGRA2RGB))
+        cv2.imwrite(file_path, cv2.cvtColor(obj, cv2.COLOR_RGB2BGR))
     else:
         raise ValueError("Unsupported object type for saving.")
     return file_path

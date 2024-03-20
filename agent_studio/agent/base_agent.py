@@ -106,7 +106,7 @@ class Agent:
 
         return result, done
 
-    def eval(self) -> dict[str, Any]:
+    def eval(self, final_obs: np.ndarray | None = None) -> dict[str, Any]:
         raise NotImplementedError
 
     def close(self) -> None:

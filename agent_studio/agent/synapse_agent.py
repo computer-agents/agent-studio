@@ -1,6 +1,8 @@
 import logging
 from typing import Any
 
+import numpy as np
+
 from agent_studio.agent.base_agent import Agent
 from agent_studio.config import Config
 
@@ -53,7 +55,7 @@ class SynapseAgent(Agent):
 
         return messages
 
-    def eval(self) -> dict[str, Any]:
+    def eval(self, final_obs: np.ndarray | None = None) -> dict[str, Any]:
         messages: list[dict[str, Any]] = []
         messages.append(
             {"role": "user", "content": f"The task instruction: {self.instruction}"}
@@ -65,17 +67,23 @@ class SynapseAgent(Agent):
             messages.append(
                 {
                     "role": "assistant",
-                    "content": f"[Action]: ```python\n{step['act']}\n```",
+                    "content": f"[Action]: \n```python\n{step['act']}\n```",
                 }
             )
             messages.append({"role": "user", "content": f"[Result]: \n{step['res']}"})
+
+        if final_obs is not None:
+            messages.append({"role": "user", "content": "[Observation]: \n"})
+            messages.append({"role": "user", "content": final_obs})
 
         messages.append(
             {
                 "role": "user",
                 "content": (
-                    "Answer 'True' if the trajectory successfully complete "
-                    "the task instruction, otherwise answer 'False'."
+                    "Answer 'True' if the above trajectory successfully complete "
+                    "the task instruction, otherwise answer 'False' and provide "
+                    "a explanation in one sentence. The explanation should not "
+                    "contain the word 'True'."
                 ),
             }
         )
@@ -84,8 +92,17 @@ class SynapseAgent(Agent):
             messages=messages, model=config.eval_model
         )
 
-        return {
-            "score": 1.0 if "True" in response else 0.0,
-            "prompt": messages,
-            "response": response,
-        }
+        if "True" in response:
+            return {
+                "score": 1.0,
+                "feedback": "",
+                "prompt": messages,
+                "response": response,
+            }
+        else:
+            return {
+                "score": 0.0,
+                "feedback": response,
+                "prompt": messages,
+                "response": response,
+            }
