@@ -716,13 +716,16 @@ class HumanInterface(QMainWindow):
                 bounding_box[0] + bounding_box[2] // 2,
                 bounding_box[1] + bounding_box[3] // 2,
             )
-            left, right, middle, _ = (
+            left, right, middle, double = (
                 self.leftClickCheckbox.isChecked(),
                 self.rightClickCheckbox.isChecked(),
                 self.middleClickCheckbox.isChecked(),
                 self.doubleClickCheckbox.isChecked(),
             )
-            if not any([left, right, middle]) or sum([left, right, middle]) > 1:
+            if (
+                not any([left, right, middle, double])
+                or sum([left, right, middle, double]) > 1
+            ):
                 self.show_popup("Error", "Wrong mouse action combination!")
                 return
             if self.leftClickCheckbox.isChecked():
@@ -732,6 +735,7 @@ class HumanInterface(QMainWindow):
             elif self.middleClickCheckbox.isChecked():
                 button = "middle"
             if self.doubleClickCheckbox.isChecked():
+                button = "left"
                 clicks = 2
                 interval = 0.25
             else:
