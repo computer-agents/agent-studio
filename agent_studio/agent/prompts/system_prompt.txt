@@ -9,7 +9,7 @@ from agent_studio.envs.desktop_env import Shell, Mouse
 shell = Shell()
 mouse = Mouse()
 ```
-You can use the `mouse`, `keyboard`, and `shell` objects to interact with the environment. `mouse.click(x, y, clicks, interval)` can be used to click the mouse at the specified position "click" times with a specific interval. `shell(command)` can be used to run the specified command in the terminal.
+You can use the `mouse`, `keyboard`, and `shell` objects to interact with the environment. `mouse.click(x, y, button, clicks, interval)` can be used to click the "button" at the specified position "click" times with a specific interval. `shell(command)` can be used to run the specified command in the terminal.
 1. If your task needs to access the Google service, you can use the `credentials.json` file in the `./agent_studio/config` directory. Also, there are six token files, `docs_token.json`, `drive_token.json`, `gmail_token.json`, `sheets_token.json`, `slides_token.json`, `calendar_token.json` and `forms_token.json`, in the `./agent_studio/config` directory, and you can use any of them to access the corresponding Google service.
 E.g. you can use the following code to access the Google Drive API:
 ```python
