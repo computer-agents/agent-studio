@@ -19,7 +19,6 @@ class Config(metaclass=ThreadSafeSingleton):
     task_config_paths: dict = {
         "desktop": "data/grounding/os.jsonl",
     }
-    annotation_path: str = "data/grounding/os"
     api_key_path: str = "agent_studio/config/api_key.json"
 
     stop_code: str = "exit()"
