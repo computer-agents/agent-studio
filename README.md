@@ -25,6 +25,12 @@ We plan to expand the collection of environments, tasks, and data over time. Con
 
 ![](docs/source/assets/imgs/agent_space.jpg)
 
+## Evaluation on GUI Grounding Dataset
+
+```bash
+python eval_dataset.py --start_idx 0 --end_idx 1 --data_path data/grounding/windows/powerpoint/actions.jsonl --provider gpt-4-vision-preview
+```
+
 ## Quickstart
 
 ### Setup Environment

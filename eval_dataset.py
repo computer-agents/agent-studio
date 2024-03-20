@@ -1,4 +1,3 @@
-# python eval_dataset.py --start_idx 1 --end_idx 3 --data_path data/grounding/calculator/calculator.jsonl --provider gemini-pro-vision  # noqa: E501
 import argparse
 import ast
 import logging
@@ -36,7 +35,7 @@ def construct_prompt(
     messages.append(
         {
             "role": "user",
-            "content": f"""You must use `mouse.click(x: int, y: int, click_type: str, is_double_click: bool)` to click at the specified coordinate. You can choose "left_click", "right_click" or "middle_click" as the click_type. "is_double_click" indicates whether the click is a double click.
+            "content": f"""You must use `mouse.click(x: int, y: int, click_type: str, is_double_click: bool)` to click at the specified coordinate. You can choose "left_click", "right_click" or "middle_click" as the click_type. "is_double_click" (True or False) indicates whether the click is a double click.
 For example, output `mouse.click(x, y, click_type, is_double_click)` to click at the coordinate (x, y).
 The image resolution is {resolution[0]}x{resolution[1]} pixels.
 The task instruction: {instruction}.
@@ -76,7 +75,7 @@ def get_args_as_kwargs(s):
     return all_kwargs
 
 
-def extract_action(response: str) -> tuple[dict, int, int] | None:
+def parse_action(response: str) -> tuple[dict, int, int] | None:
     logger.info(f"Extracted action: from response: {response}")
     pattern = r"(mouse\.click\([^)]+\))"
     matches = re.findall(pattern, response)
@@ -147,31 +146,32 @@ def main():
         score = 0.0
         message = construct_prompt(instruction, screenshot, resolution)
         response, info = model.generate_response(message, model=args.provider)
-        predicted_action = extract_action(response)
-        if predicted_action is None:
-            continue
-        else:
+        predicted_action = parse_action(response)
+        if predicted_action is not None:
             predicted_click_type, predicted_x, predicted_y = predicted_action
+            click_type_match = predicted_click_type == click_type
+            location_match = (
+                predicted_x >= left_x
+                and predicted_x <= right_x
+                and predicted_y >= top_y
+                and predicted_y <= bottom_y
+            )
 
-        click_type_match = predicted_click_type == click_type
-        location_match = (
-            predicted_x >= left_x
-            and predicted_x <= right_x
-            and predicted_y >= top_y
-            and predicted_y <= bottom_y
-        )
-
-        # calculate metrics
-        if click_type_match and location_match:
-            score = 1.0
-            logger.info("PASS")
+            # calculate metrics
+            if click_type_match and location_match:
+                score = 1.0
+                logger.info("PASS")
+            else:
+                logger.info("FAIL")
         else:
             logger.info("FAIL")
         total_scores[task_id] = score
 
         # save conversations
         save_path = Path(
-            args.data_path.replace("grounding", f"grounding_results/{args.provider}")
+            args.data_path.replace(
+                "grounding", f"grounding_results/{args.provider}"
+            ).replace("actions", "results")
         )
         save_path.parent.mkdir(parents=True, exist_ok=True)
         add_jsonl(
