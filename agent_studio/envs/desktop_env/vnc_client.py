@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import platform
 import threading
 import time
 from asyncio import StreamReader, StreamWriter, open_connection
@@ -12,11 +13,12 @@ from typing import Callable
 from zlib import decompressobj
 
 import cv2
+import mss
 import numpy as np
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.serialization import load_der_public_key
-from PyQt6.QtCore import QPoint, QRect, Qt
+from PyQt6.QtCore import QPoint, QRect, QSize, Qt
 from PyQt6.QtGui import QColor, QCursor, QFont, QPainter, QPen, QPixmap
 from PyQt6.QtWidgets import QLabel
 
@@ -640,13 +642,22 @@ class VNCClient:
 class VNCFrame(QLabel):
     """The VNC frame for rendering the VNC screen."""
 
-    def __init__(self, parent, enable_selection: bool = False):
+    def __init__(self, parent, size_hint: QSize, enable_selection: bool = False):
         super().__init__(parent)
         self.start_pos = None
         self.end_pos = None
         self.is_selecting = False
         self.selection_rect = QRect()
         self.enable_selection = enable_selection
+        self.scale_factor = 1.0
+        if platform.system() == "Windows":
+            import ctypes
+
+            scaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100  # type: ignore  # noqa: E501
+            size_hint /= scaleFactor
+        # TODO: Fix the scale factor for Linux and macOS
+        self.target_size = size_hint
+        logger.info(f"VNC Frame target size: {self.target_size}")
 
     def reset(self):
         self.start_pos = None
@@ -664,7 +675,10 @@ class VNCFrame(QLabel):
         ):
             return None
         else:
-            cursor_pos = Position(cursor_pos.x(), cursor_pos.y())
+            cursor_pos = Position(
+                int(cursor_pos.x() / self.scale_factor),
+                int(cursor_pos.y() / self.scale_factor),
+            )
             return cursor_pos
 
     def mousePressEvent(self, event):
@@ -725,30 +739,40 @@ class VNCFrame(QLabel):
             painter.setFont(font)
             painter.drawText(
                 self.selection_rect.topLeft() + QPoint(5, -5),
-                f"({self.selection_rect.topLeft().x()}, "
-                f"{self.selection_rect.topLeft().y()})",
+                f"({int(self.selection_rect.topLeft().x() / self.scale_factor)}, "
+                f"{int(self.selection_rect.topLeft().y() / self.scale_factor)})",
             )
             painter.drawText(
                 self.selection_rect.bottomRight() + QPoint(-50, 15),
-                f"({self.selection_rect.bottomRight().x()}, "
-                f"{self.selection_rect.bottomRight().y()})",
+                f"({int(self.selection_rect.bottomRight().x() / self.scale_factor)}, "
+                f"{int(self.selection_rect.bottomRight().y() / self.scale_factor)})",
             )
 
     def get_selection(self) -> tuple[int, int, int, int] | None:
         """Return the coordinates of the selection."""
         if self.enable_selection and not self.selection_rect.isEmpty():
             return (
-                self.selection_rect.topLeft().x(),
-                self.selection_rect.topLeft().y(),
-                self.selection_rect.width(),
-                self.selection_rect.height(),
+                int(self.selection_rect.topLeft().x() / self.scale_factor),
+                int(self.selection_rect.topLeft().y() / self.scale_factor),
+                int(self.selection_rect.width() / self.scale_factor),
+                int(self.selection_rect.height() / self.scale_factor),
             )
         else:
             return None
 
     def update(self, qimage):
-        self.setFixedSize(qimage.width(), qimage.height())
-        self.setPixmap(QPixmap.fromImage(qimage))
+        scaled_qimage = qimage.scaled(
+            self.target_size,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        self.scale_factor = max(
+            scaled_qimage.width() / qimage.width(),
+            scaled_qimage.height() / qimage.height(),
+        )
+
+        self.setFixedSize(scaled_qimage.size())
+        self.setPixmap(QPixmap.fromImage(scaled_qimage))
 
 
 class VNCStreamer:
@@ -763,6 +787,7 @@ class VNCStreamer:
         self.streaming_lock = threading.Lock()
         self.video_height = 0
         self.video_width = 0
+        self.current_frame = None
 
     def start(self) -> None:
         self.streaming_lock.acquire()
@@ -829,3 +854,56 @@ class VNCStreamer:
                 logger.warning(f"Fail to capture frame: {e}")
         await self.vnc.disconnect()
         logger.info("VNC Streamer stopped")
+
+
+class LocalStreamer:
+    def __init__(self, monitor_idx: int):
+        self.is_streaming = False
+        self.streaming_thread = threading.Thread(
+            target=self._capture_screen, name="Screen Stream"
+        )
+        self.streaming_lock = threading.Lock()
+        self.video_height = 0
+        self.video_width = 0
+        self.monitor_idx = monitor_idx
+        self.current_frame = None
+
+    def start(self) -> None:
+        self.streaming_lock.acquire()
+        self.is_streaming = True
+        self.streaming_thread.start()
+        with self.streaming_lock:
+            pass
+        while self.video_height == 0 or self.video_width == 0:
+            time.sleep(0.2)
+        self.current_frame = np.zeros(
+            (self.video_height, self.video_width, 3), dtype="uint8"
+        )
+
+    def stop(self):
+        if not self.streaming_thread.is_alive():
+            logger.warning("VNC thread is not executing")
+        else:
+            self.is_streaming = False
+            self.streaming_thread.join()
+
+    def get_current_frame(self) -> np.ndarray | None:
+        with self.streaming_lock:
+            return self.current_frame
+
+    def _capture_screen(self):
+        with mss.mss() as sct:
+            monitor = sct.monitors[self.monitor_idx]
+            logger.info("Local Streamer started")
+            self.streaming_lock.release()
+            while self.is_streaming:
+                try:
+                    frame = sct.grab(monitor)
+                    self.video_width, self.video_height = frame.width, frame.height
+                    frame = np.array(frame)
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
+                    with self.streaming_lock:
+                        self.current_frame = frame.copy()
+                except Exception as e:
+                    logger.warning(f"Fail to capture frame: {e}")
+            logger.info("Local Streamer stopped")

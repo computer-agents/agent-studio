@@ -11,13 +11,13 @@ class Config(metaclass=ThreadSafeSingleton):
     """
 
     seed: int = 42
-    headless: bool = True  # True for CLI, False for GUI
+    headless: bool = False  # True for CLI, False for GUI
     python_timeout: int = 20
     need_human_confirmation: bool = True
     minimal_action_interval: float = 3.0
 
     task_config_paths: dict = {
-        "desktop": "data/tasks/filesystem.jsonl",
+        "desktop": "data/grounding/os.jsonl",
     }
     api_key_path: str = "agent_studio/config/api_key.json"
 
@@ -31,6 +31,8 @@ class Config(metaclass=ThreadSafeSingleton):
     vnc_port: int = 5900
     env_server_port: int = 8000
     vnc_password: str = "123456"
+    monitor_idx: int = 1  # 1 for the first monitor, 2 for the second monitor
+    vnc_frame_size: tuple[int, int] = (1500, 1500)
 
     # Recorder config
     record_path = "data/trajectories"
@@ -65,7 +67,7 @@ class Config(metaclass=ThreadSafeSingleton):
     gmail_recipient: str = "gduser1@workspacesamples.dev"
 
     # VSCode config
-    vscode_workspace_path: str = "tmp/vscode_workspace"
+    vscode_workspace_path: str = "vscode_workspace"
     vscode_executable_path: str = "code"
 
     # Pyrogram config

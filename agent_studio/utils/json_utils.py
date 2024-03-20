@@ -7,6 +7,8 @@ import cv2
 import numpy as np
 from PIL import Image
 
+from agent_studio.llm.utils import decode_image
+
 
 def read_jsonl(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> list:
     """Reads lines from a .jsonl file between start_idx and end_idx.
@@ -119,7 +121,7 @@ def save_image_or_array(obj: Any, folder_path: str) -> str:
         obj.save(file_path)
     elif isinstance(obj, np.ndarray):
         file_path = os.path.join(folder_path, f"{unique_filename}.png")
-        cv2.imwrite(file_path, obj)
+        cv2.imwrite(file_path, cv2.cvtColor(obj, cv2.COLOR_BGRA2RGB))
     else:
         raise ValueError("Unsupported object type for saving.")
     return file_path
@@ -132,6 +134,12 @@ def parse_and_save_objects(obj: Any, folder_path: str) -> Any:
                 obj[key] = save_image_or_array(value, folder_path)
             elif isinstance(value, (dict, list)):
                 obj[key] = parse_and_save_objects(value, folder_path)
+            elif (
+                isinstance(value, str)
+                and key == "url"
+                and value.startswith("data:image")
+            ):
+                obj[key] = save_image_or_array(decode_image(value), folder_path)
     elif isinstance(obj, list):
         for i in range(len(obj)):
             if isinstance(obj[i], (Image.Image, np.ndarray)):

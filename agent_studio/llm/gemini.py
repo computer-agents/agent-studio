@@ -48,8 +48,8 @@ class GeminiProvider(BaseModel):
             if isinstance(msg["content"], str):
                 pass
             elif isinstance(msg["content"], np.ndarray):
-                # convert from BGR NDArray to PIL RGB Image
-                msg["content"] = Image.fromarray(msg["content"][:, :, ::-1])
+                # convert from RGB NDArray to PIL RGB Image
+                msg["content"] = Image.fromarray(msg["content"])
             else:
                 assert False, f"Unknown message type: {msg['content']}"
             model_message["parts"].append(msg["content"])

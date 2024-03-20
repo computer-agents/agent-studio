@@ -3,7 +3,6 @@ import io
 import os
 import re
 
-import cv2
 import numpy as np
 from PIL import Image
 
@@ -42,7 +41,6 @@ def encode_image(image: str | Image.Image | np.ndarray | None) -> str:
         encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
         encoded_image = f"data:image/jpeg;base64,{encoded_image}"
     elif isinstance(image, np.ndarray):  # cv2 image array
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # convert to RGB
         image = Image.fromarray(image)
         buffered = io.BytesIO()
         image.save(buffered, format="JPEG")
@@ -55,3 +53,11 @@ def encode_image(image: str | Image.Image | np.ndarray | None) -> str:
         )
 
     return encoded_image
+
+
+def decode_image(encoded_image: str) -> Image.Image:
+    if encoded_image.startswith("data:image"):
+        encoded_image = encoded_image.split(",")[-1]
+    decoded_image = base64.b64decode(encoded_image)
+    image = Image.open(io.BytesIO(decoded_image))
+    return image

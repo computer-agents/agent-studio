@@ -12,8 +12,8 @@ from qasync import QApplication
 from agent_studio.agent.base_agent import Agent
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.agent_interface import AgentInterface
-from agent_studio.envs.desktop_env.annotator_interface import DataCollector
 from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
+from agent_studio.envs.desktop_env.human_interface import HumanInterface
 from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
     VNCRecorder,
@@ -337,11 +337,26 @@ def eval(args) -> None:
             raise ValueError(f"Invalid env: {config.env_type}.")
 
 
-def record(args) -> None:
+def record(record_path: str) -> None:
     try:
+        if not config.remote:
+            import atexit
+
+            local_agent_server = psutil.Popen(
+                [
+                    "python",
+                    "scripts/agent_server.py",
+                ]
+            )
+
+            def cleanup(local_agent_server: psutil.Process):
+                local_agent_server.terminate()
+                local_agent_server.wait()
+
+            atexit.register(cleanup, local_agent_server)
+
         while True:
             try:
-                assert config.remote is True, "Desktop env only supports remote mode."
                 response = requests.get(
                     f"http://{config.env_server_addr}:"
                     f"{config.env_server_port}/health"
@@ -353,34 +368,17 @@ def record(args) -> None:
                 time.sleep(1)
 
         app = QApplication(sys.argv)
-        interface = DataCollector(
-            record_path="data/trajectories/human",
+        interface = HumanInterface(
+            record_path=record_path,
             task_config_path=config.task_config_paths[config.env_type],
         )
         interface.showMaximized()
         exit_code = app.exec()
+        local_agent_server.terminate()
+        local_agent_server.wait()
         sys.exit(exit_code)
     except asyncio.exceptions.CancelledError:
         sys.exit(0)
-
-
-# def record(args) -> None:
-#     match config.env_type:
-#         case "desktop":
-#             from agent_studio.envs.desktop_env.human_interface import run_ui
-
-#             try:
-#                 assert config.remote is True, "Desktop env only supports remote mode."
-#                 qasync.run(
-#                     run_ui(
-#                         record_path="data/trajectories/human",
-#                         task_config_path=config.task_config_paths[config.env_type],
-#                     )
-#                 )
-#             except asyncio.exceptions.CancelledError:
-#                 sys.exit(0)
-#         case _:
-#             raise ValueError(f"Invalid env: {config.env_type}.")
 
 
 def main():
@@ -392,7 +390,13 @@ def main():
         case "eval":
             eval(args)
         case "record":
-            record(args)
+            record(record_path="data/trajectories/human")
+        case "annotate":
+            record(
+                record_path=Path(config.task_config_paths[config.env_type])
+                .with_suffix("")
+                .as_posix()
+            )
         case _:
             raise ValueError(f"Invalid mode {args.mode}")
 

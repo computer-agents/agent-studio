@@ -34,9 +34,6 @@ current_thread: None | threading.Thread = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     runtimes["python"] = PythonRuntime()
-    with open(config.init_code_path, "r") as f:
-        init_code = f.read()
-    runtimes["python"](init_code)
     yield
     runtimes["python"].close()
 
@@ -109,9 +106,6 @@ async def execute_code(request: AgentStudioTextRequest) -> dict:
 async def reset_runtime() -> AgentStudioResponse:
     runtimes["python"].close()
     runtimes["python"] = PythonRuntime()
-    with open(config.init_code_path, "r") as f:
-        init_code = f.read()
-    runtimes["python"](init_code)
     logger.info("Reset runtime")
     return AgentStudioResponse(status="success")
 

@@ -30,6 +30,10 @@ class HumanAgent(Agent):
 
     def reset(self, instruction: str) -> None:
         super().reset(instruction=instruction)
+        with open(config.init_code_path, "r") as f:
+            init_code = f.read()
+            assert self.runtime is not None
+            self.runtime(init_code)
 
     def step_action(self, confirmed: bool, **kwargs) -> tuple[dict, bool]:
         """Executes the code and record the result.
