@@ -114,10 +114,7 @@ def main():
 
     task_configs = read_jsonl(args.data_path, args.start_idx, args.end_idx)
 
-    if args.provider in ["gemini-pro-vision"]:
-        model = setup_model("gemini")
-    if args.provider in ["gpt-4-vision-preview"]:
-        model = setup_model("openai")
+    model = setup_model(args.provider)
 
     total_scores = {}
     for task_config in task_configs:

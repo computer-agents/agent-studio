@@ -1,6 +1,8 @@
 from agent_studio.utils.json_utils import read_jsonl
 
-data = read_jsonl("data/trajectories/gemini-pro/direct/filesystem.jsonl")
+# data = read_jsonl("data/trajectories/gemini-pro/direct/gcalendar.jsonl")
+# data = read_jsonl("data/trajectories/gpt-4-0125-preview/direct/gcalendar.jsonl")
+data = read_jsonl("data/trajectories/gpt-3.5-turbo-0125/direct/gcalendar.jsonl")
 scores = [entry["score"] for entry in data]
 self_eval_scores = [entry["self_eval"]["score"] for entry in data]
 
@@ -26,6 +28,7 @@ print(f"True positive: {tp}")
 print(f"False positive: {fp}")
 print(f"True negative: {tn}")
 print(f"False negative: {fn}")
-print(f"Precision: {tp / (tp + fp)}")
-print(f"Recall: {tp / (tp + fn)}")
-print(f"F1 score: {round(2 * tp / (2 * tp + fp + fn), 3)}")
+# print(f"Precision: {tp / (tp + fp)}")
+# print(f"Recall: {tp / (tp + fn)}")
+# print(f"F1 score: {round(2 * tp / (2 * tp + fp + fn), 3)}")
+print(f"Accuracy: {round((tp + tn) / (tp + tn + fp + fn), 3)}")
