@@ -87,6 +87,12 @@ def setup_tasks(args):
     task_configs = read_jsonl(
         config.task_config_paths[config.env_type], args.start_idx, args.end_idx
     )
+    for task_config in task_configs:
+        if "GMAIL_RECIPIENT" in task_config["instruction"]:
+            assert len(config.gmail_recipient) > 0, "GMAIL_RECIPIENT is not set."
+            task_config["instruction"] = task_config["instruction"].replace(
+                "GMAIL_RECIPIENT", config.gmail_recipient
+            )
 
     return task_configs
 
@@ -275,9 +281,9 @@ def eval_headless(
                 wait_finish(is_eval=True)
                 response_raw = requests.get(f"{remote_server_addr}/task/result")
                 response = AgentStudioResultResponse(**response_raw.json())
-                if not (response.status == "finished" and isinstance(
-                    response.message, dict
-                )):
+                if not (
+                    response.status == "finished" and isinstance(response.message, dict)
+                ):
                     raise ValueError(f"Fail to evaluate task: {response.message}")
                 score, feedback = (
                     response.message["score"],

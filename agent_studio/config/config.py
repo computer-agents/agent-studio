@@ -50,7 +50,6 @@ class Config(metaclass=ThreadSafeSingleton):
     # repeating_action_failure_th = 3
 
     # LM config
-    provider: str = "gemini"
     agent: str = "direct"
     max_retries: int = 3
     # exec_model: str = "gpt-4-1106-vision-preview"
@@ -66,7 +65,7 @@ class Config(metaclass=ThreadSafeSingleton):
     # Google API config
     google_credential_path: str = "agent_studio/config/credentials.json"
     google_calendar_id: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
-    gmail_recipient: str = "gduser1@workspacesamples.dev"
+    gmail_recipient: str = ""
 
     # VSCode config
     vscode_workspace_path: str = "vscode_workspace"
