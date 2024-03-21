@@ -10,16 +10,15 @@ logger = logging.getLogger(__name__)
 
 def setup_model(provider_name: str) -> BaseModel:
     model = BaseModel()
-    match provider_name:
-        case "openai":
-            model = OpenAIProvider()
-        case "gemini":
-            model = GeminiProvider()
-        case _:
-            logger.warning(
-                f"Unknown provider {provider_name}, fallback to remote provider"
-            )
-            model = RemoteProvider()
+    if provider_name in ["gpt-3.5-turbo-0125"]:
+        model = OpenAIProvider()
+    elif provider_name in ["gemini-pro"]:
+        model = GeminiProvider()
+    else:
+        logger.warning(
+            f"Unknown provider {provider_name}, fallback to remote provider"
+        )
+        model = RemoteProvider()
 
     return model
 

@@ -45,7 +45,6 @@ class TestReq:
 def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--agent", type=str, default=config.agent)
-    parser.add_argument("--provider", type=str, default=config.provider)
     parser.add_argument(
         "--mode", type=str, choices=["record", "eval", "annotate"], default="eval"
     )
@@ -56,23 +55,23 @@ def create_parser():
 
 
 def setup_agent(args):
-    model = setup_model(args.provider)
+    model = setup_model(config.exec_model)
     match args.agent:
         case "dummy":
             from agent_studio.agent.base_agent import Agent
 
             agent = Agent(model=model)
-            record_path = f"data/trajectories/{args.provider}/dummy"
+            record_path = f"data/trajectories/{config.exec_model}/dummy"
         case "direct":
             from agent_studio.agent.direct_agent import DirectAgent
 
             agent = DirectAgent(model=model)
-            record_path = f"data/trajectories/{args.provider}/direct"
+            record_path = f"data/trajectories/{config.exec_model}/direct"
         case "synapse":
             from agent_studio.agent.synapse_agent import SynapseAgent
 
             agent = SynapseAgent(model=model)
-            record_path = f"data/trajectories/{args.provider}/synapse"
+            record_path = f"data/trajectories/{config.exec_model}/synapse"
         case _:
             raise ValueError(f"Invalid agent: {args.agent}.")
 

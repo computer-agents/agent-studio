@@ -11,14 +11,15 @@ class Config(metaclass=ThreadSafeSingleton):
     """
 
     seed: int = 42
-    headless: bool = False  # True for CLI, False for GUI
+    headless: bool = True  # True for CLI, False for GUI
     python_timeout: int = 20
-    need_human_confirmation: bool = True
+    need_human_confirmation: bool = False
     minimal_action_interval: float = 3.0
 
     task_config_paths: dict = {
-        "desktop": "data/grounding/os.jsonl",
+        "desktop": "data/tasks/filesystem.jsonl",
     }
+    max_step: int = 1
     api_key_path: str = "agent_studio/config/api_key.json"
 
     stop_code: str = "exit()"
@@ -43,7 +44,6 @@ class Config(metaclass=ThreadSafeSingleton):
     stop_hotkeys: str = "<ctrl>+<shift>+h"
 
     # sleep_after_execution: float = 2.0
-    max_step: int = 30
     system_prompt_path: str = "agent_studio/agent/prompts/system_prompt.txt"
     init_code_path: str = "agent_studio/agent/prompts/init_code.txt"
     # parsing_failure_th: int = 3
@@ -54,8 +54,10 @@ class Config(metaclass=ThreadSafeSingleton):
     agent: str = "direct"
     max_retries: int = 3
     # exec_model: str = "gpt-4-1106-vision-preview"
-    exec_model: str = "gemini-pro"
-    eval_model: str = "gemini-pro"
+    # exec_model: str = "gpt-4-0125-preview"
+    exec_model: str = "gpt-3.5-turbo-0125"
+    # exec_model: str = "gemini-pro"
+    eval_model: str = exec_model
     temperature: float = 0.0
     max_tokens: int = 4096
     gemini_api_key: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
