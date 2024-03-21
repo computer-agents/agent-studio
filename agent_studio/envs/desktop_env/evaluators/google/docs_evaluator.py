@@ -296,7 +296,7 @@ class GoogleDocsEvaluator(Evaluator):
     def create_document(
         self,
         title: str,
-        content: str | None = None,
+        content: str = "",
         hyperlink: dict[str, str] | None = None,
     ) -> dict:
         """
@@ -304,7 +304,7 @@ class GoogleDocsEvaluator(Evaluator):
 
         Args:
             title (str): Document title.
-            content (str | None): Document content.
+            content (str): Document content.
 
         Returns:
             dict: Document information.
@@ -314,18 +314,17 @@ class GoogleDocsEvaluator(Evaluator):
         document_id = doc["documentId"]
 
         requests = []
-        if content:
-            # Append the main content text first, if provided
-            requests.append(
-                {
-                    "insertText": {
-                        "location": {
-                            "index": 1,
-                        },
-                        "text": content + "\n",
-                    }
+        # Append the main content text first, if provided
+        requests.append(
+            {
+                "insertText": {
+                    "location": {
+                        "index": 1,
+                    },
+                    "text": content + "\n",
                 }
-            )
+            }
+        )
 
         if hyperlink is not None:
             # Calculate the index to insert the hyperlink based on content length

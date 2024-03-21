@@ -213,8 +213,8 @@ def eval_headless(
                     f"{remote_server_addr}/task/result",
                 )
                 response = AgentStudioResultResponse(**response_raw.json())
-                # TODO: handle failed reset
-                assert response.status == "finished" and response.result == "success"
+                if not (response.status == "finished" and response.result == "success"):
+                    raise ValueError(f"Fail to reset task: {response.message}")
 
                 instruction = task_config["instruction"]
                 logger.info(f"Task instruction: {instruction}")
@@ -276,9 +276,10 @@ def eval_headless(
                 wait_finish(is_eval=True)
                 response_raw = requests.get(f"{remote_server_addr}/task/result")
                 response = AgentStudioResultResponse(**response_raw.json())
-                assert response.status == "finished" and isinstance(
+                if not (response.status == "finished" and isinstance(
                     response.message, dict
-                )
+                )):
+                    raise ValueError(f"Fail to evaluate task: {response.message}")
                 score, feedback = (
                     response.message["score"],
                     response.message["feedback"],
