@@ -5,7 +5,7 @@ Record Dataset
 
 Start recording::
 
-    python run.py --mode record --env desktop
+    python run.py --mode record
 
 The first screen is a task configuration interface, where you can create a new task or load an existing task. The task configuration interface is shown below:
 

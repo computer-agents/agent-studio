@@ -79,6 +79,9 @@ class DirectAgent(Agent):
             {
                 "role": "user",
                 "content": (
+                    "The content in [Result:] is the output of the code execution. "
+                    "If it is empty, it means the code execution is successful, "
+                    "but you still need to check whether the code is correct. "
                     "Answer 'True' if the above trajectory successfully complete "
                     "the task instruction, otherwise answer 'False' and provide "
                     "a explanation in one sentence. The explanation should not "
