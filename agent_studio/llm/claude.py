@@ -1,8 +1,8 @@
 import logging
 from typing import Any
-import numpy as np
 
 import backoff
+import numpy as np
 from anthropic import Anthropic, APIError, APITimeoutError, RateLimitError
 
 from agent_studio.config.config import Config
