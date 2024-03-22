@@ -32,9 +32,12 @@ def calculate_results(result_dict, task_configs):
 
     return {
         "total_tasks": total_tasks,
-        "success": f"{success} / {total_tasks} = {round(success / total_tasks * 100, 1)}",
-        "click_type_match": f"{click_type_match} / {total_tasks} = {round(click_type_match / total_tasks * 100, 1)}",
-        "location_match": f"{location_match} / {total_tasks} = {round(location_match / total_tasks * 100, 1)}",
+        "success": f"{success} / {total_tasks} = "
+        f"{round(success / total_tasks * 100, 1)}",
+        "click_type_match": f"{click_type_match} / {total_tasks} = "
+        f"{round(click_type_match / total_tasks * 100, 1)}",
+        "location_match": f"{location_match} / {total_tasks} = "
+        f"{round(location_match / total_tasks * 100, 1)}",
         "total_tokens": total_tokens,
         "box_success_pairs": box_success_pairs,
     }

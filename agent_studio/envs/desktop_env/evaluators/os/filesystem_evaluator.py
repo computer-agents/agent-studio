@@ -176,7 +176,8 @@ class FilesystemEvaluator(Evaluator):
                     elif key == "creation_time":
                         if not _compare_time(file_stat.st_ctime, value):
                             raise FeedbackException(
-                                f"The error occurred when checking {path} creation time. "
+                                f"The error occurred "
+                                f"when checking {path} creation time. "
                                 f"Expected: {value}, but get: {file_stat.st_ctime}"
                             )
                     elif key == "size":

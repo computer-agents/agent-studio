@@ -26,7 +26,7 @@ def extract_from_response(response: str, backtick="```") -> str:
     return extracted_string
 
 
-def encode_image(image: str | Image.Image | np.ndarray | None) -> str:
+def openai_encode_image(image: str | Image.Image | np.ndarray | None) -> str:
     if isinstance(image, str):
         if os.path.exists(image):
             with open(image, "rb") as image_file:
@@ -46,6 +46,31 @@ def encode_image(image: str | Image.Image | np.ndarray | None) -> str:
         image.save(buffered, format="JPEG")
         encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
         encoded_image = f"data:image/jpeg;base64,{encoded_image}"
+    else:
+        raise ValueError(
+            "Invalid image type. Please provide a valid image path, PIL "
+            "image, or cv2 image array."
+        )
+
+    return encoded_image
+
+
+def anthropic_encode_image(image: str | Image.Image | np.ndarray | None) -> str:
+    if isinstance(image, str):
+        if os.path.exists(image):
+            with open(image, "rb") as image_file:
+                encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
+        else:
+            encoded_image = image
+    elif isinstance(image, Image.Image):  # PIL image
+        buffered = io.BytesIO()
+        image.save(buffered, format="JPEG")
+        encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    elif isinstance(image, np.ndarray):  # cv2 image array
+        image = Image.fromarray(image)
+        buffered = io.BytesIO()
+        image.save(buffered, format="JPEG")
+        encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
     else:
         raise ValueError(
             "Invalid image type. Please provide a valid image path, PIL "

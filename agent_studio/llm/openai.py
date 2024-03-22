@@ -7,7 +7,7 @@ from openai import APIError, APITimeoutError, OpenAI, RateLimitError
 
 from agent_studio.config.config import Config
 from agent_studio.llm.base_model import BaseModel
-from agent_studio.llm.utils import encode_image
+from agent_studio.llm.utils import openai_encode_image
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class OpenAIProvider(BaseModel):
             if isinstance(msg["content"], np.ndarray):
                 content: dict = {
                     "type": "image_url",
-                    "image_url": {"url": encode_image(msg["content"])},
+                    "image_url": {"url": openai_encode_image(msg["content"])},
                 }
             elif isinstance(msg["content"], str):
                 content = {"type": "text", "text": msg["content"]}
@@ -43,6 +43,7 @@ class OpenAIProvider(BaseModel):
                         "content": [content],
                     }
                 )
+                past_role = current_role
             else:
                 model_message[-1]["content"].append(content)
         return model_message

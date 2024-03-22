@@ -1,11 +1,13 @@
 import logging
 from typing import Any
+import numpy as np
 
 import backoff
 from anthropic import Anthropic, APIError, APITimeoutError, RateLimitError
 
 from agent_studio.config.config import Config
 from agent_studio.llm.base_model import BaseModel
+from agent_studio.llm.utils import anthropic_encode_image
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -30,13 +32,13 @@ class AnthropicProvider(BaseModel):
             if msg["role"] == "system":
                 self.system_prompt = msg["content"]
                 continue
-            if isinstance(msg["content"], list):
+            if isinstance(msg["content"], np.ndarray):
                 content: dict = {
                     "type": "image",
                     "source": {
                         "type": "base64",
-                        "media_type": "image/png",
-                        "data": msg["content"][0],
+                        "media_type": "image/jpeg",
+                        "data": anthropic_encode_image(msg["content"]),
                     },
                 }
             elif isinstance(msg["content"], str):
@@ -49,6 +51,7 @@ class AnthropicProvider(BaseModel):
                         "content": [content],
                     }
                 )
+                past_role = current_role
             else:
                 model_message[-1]["content"].append(content)
         return model_message

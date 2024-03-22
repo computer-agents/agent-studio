@@ -19,7 +19,12 @@ def create_parser():
         "--provider",
         type=str,
         default=None,
-        choices=["gemini-pro-vision", "gpt-4-vision-preview"],
+        choices=[
+            "gemini-pro-vision",
+            "gpt-4-vision-preview",
+            "claude-3-sonnet-20240229",
+            "claude-3-opus-20240229",
+        ],
     )
     parser.add_argument("--data_path", type=str, default=None)
     parser.add_argument("--start_idx", type=int, default=0)
@@ -29,9 +34,9 @@ def create_parser():
 
 
 def construct_prompt(
-    instruction: str, screenshot: np.ndarray | list[str], resolution: tuple[int, int]
+    instruction: str, screenshot: np.ndarray, resolution: tuple[int, int]
 ) -> list:
-    messages: list[dict[str, str | np.ndarray | list[str]]] = []
+    messages: list[dict[str, str | np.ndarray]] = []
     messages.append(
         {
             "role": "user",
@@ -128,8 +133,6 @@ def main():
         screenshot = np.array(img)
         height, width = screenshot.shape[:2]
         resolution = (width, height)
-        if args.provider in ["claude-3-sonnet-20240229" and "claude-3-opus-20240229"]:
-            screenshot = [trajectory[0]["obs"]]
 
         annotation = trajectory[0]["annotation"]
         mouse_action = annotation["mouse_action"]
