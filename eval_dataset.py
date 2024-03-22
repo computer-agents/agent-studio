@@ -24,6 +24,7 @@ def create_parser():
             "gpt-4-vision-preview",
             "claude-3-sonnet-20240229",
             "claude-3-opus-20240229",
+            "Qwen/Qwen-VL-Chat",
         ],
     )
     parser.add_argument("--data_path", type=str, default=None)
@@ -34,9 +35,9 @@ def create_parser():
 
 
 def construct_prompt(
-    instruction: str, screenshot: np.ndarray, resolution: tuple[int, int]
+    instruction: str, screenshot: np.ndarray | Path, resolution: tuple[int, int]
 ) -> list:
-    messages: list[dict[str, str | np.ndarray]] = []
+    messages: list[dict[str, str | np.ndarray | Path]] = []
     messages.append(
         {
             "role": "user",
@@ -133,6 +134,8 @@ def main():
         screenshot = np.array(img)
         height, width = screenshot.shape[:2]
         resolution = (width, height)
+        if args.provider in ["Qwen/Qwen-VL-Chat"]:
+            screenshot = Path(trajectory[0]["obs"])
 
         annotation = trajectory[0]["annotation"]
         mouse_action = annotation["mouse_action"]

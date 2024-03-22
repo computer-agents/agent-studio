@@ -3,6 +3,7 @@ import logging
 from agent_studio.llm.base_model import BaseModel
 from agent_studio.llm.claude import AnthropicProvider
 from agent_studio.llm.gemini import GeminiProvider
+from agent_studio.llm.huggingface import HuggingFaceProvider
 from agent_studio.llm.openai import OpenAIProvider
 from agent_studio.llm.remote_model import RemoteProvider
 
@@ -21,6 +22,8 @@ def setup_model(provider_name: str) -> BaseModel:
         model = GeminiProvider()
     elif provider_name in ["claude-3-sonnet-20240229", "claude-3-opus-20240229"]:
         model = AnthropicProvider()
+    elif provider_name in ["Qwen/Qwen-VL-Chat"]:
+        model = HuggingFaceProvider()
     else:
         logger.warning(f"Unknown provider {provider_name}, fallback to remote provider")
         model = RemoteProvider()
@@ -31,6 +34,8 @@ def setup_model(provider_name: str) -> BaseModel:
 __all__ = [
     "OpenAIProvider",
     "GeminiProvider",
+    "AnthropicProvider",
+    "HuggingFaceProvider",
     "RemoteProvider",
     "setup_model",
 ]
