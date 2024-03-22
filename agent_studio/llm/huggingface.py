@@ -41,8 +41,12 @@ class HuggingFaceProvider(BaseModel):
 
         if self.model is None:
             self.model_name = kwargs.get("model", None)
+            if self.model_name == "cckevinn/SeeClick":
+                tokenizer_name = "Qwen/Qwen-VL-Chat"
+            else:
+                tokenizer_name = self.model_name
             self.tokenizer = AutoTokenizer.from_pretrained(
-                self.model_name, trust_remote_code=True
+                tokenizer_name, trust_remote_code=True
             )
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_name, device_map="cuda", trust_remote_code=True, bf16=True

@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 def setup_model(provider_name: str) -> BaseModel:
-    model = BaseModel()
     if provider_name in [
         "gpt-3.5-turbo-0125",
         "gpt-4-vision-preview",
@@ -22,7 +21,7 @@ def setup_model(provider_name: str) -> BaseModel:
         model = GeminiProvider()
     elif provider_name in ["claude-3-sonnet-20240229", "claude-3-opus-20240229"]:
         model = AnthropicProvider()
-    elif provider_name in ["Qwen/Qwen-VL-Chat"]:
+    elif provider_name in ["Qwen/Qwen-VL-Chat", "cckevinn/SeeClick"]:
         model = HuggingFaceProvider()
     else:
         logger.warning(f"Unknown provider {provider_name}, fallback to remote provider")
