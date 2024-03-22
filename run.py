@@ -399,9 +399,7 @@ def main():
             record(record_path="data/trajectories/human")
         case "annotate":
             config.result_jsonl_file = "actions.jsonl"
-            record(
-                record_path=Path(config.task_config_paths[config.env_type]).parent
-            )
+            record(record_path=Path(config.task_config_paths[config.env_type]).parent)
         case _:
             raise ValueError(f"Invalid mode {args.mode}")
 

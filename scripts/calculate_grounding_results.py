@@ -1,5 +1,6 @@
 import json
 import os
+
 from agent_studio.utils.json_utils import read_jsonl
 
 
@@ -28,7 +29,7 @@ def calculate_results(result_dict, task_configs):
             location_match += 1
         total_tokens += result["total_tokens"]
         box_success_pairs.append((box_size[result["task_id"]], result["score"]))
-    
+
     return {
         "total_tasks": total_tasks,
         "success": f"{success} / {total_tasks} = {round(success / total_tasks * 100, 1)}",
@@ -50,10 +51,20 @@ def main():
         model_results = {}
         for os_folder in os.listdir(os.path.join(folder_path, model_folder)):
             os_results = {}
-            for app_folder in os.listdir(os.path.join(folder_path, model_folder, os_folder)):
-                result_path = os.path.join(folder_path, model_folder, os_folder, app_folder, "results.jsonl")
-                action_path = result_path.replace("results.jsonl", "actions.jsonl").replace("grounding_results", "grounding").replace(f"{model_folder}/", "")
-                results = calculate_results(read_jsonl(result_path), read_jsonl(action_path))
+            for app_folder in os.listdir(
+                os.path.join(folder_path, model_folder, os_folder)
+            ):
+                result_path = os.path.join(
+                    folder_path, model_folder, os_folder, app_folder, "results.jsonl"
+                )
+                action_path = (
+                    result_path.replace("results.jsonl", "actions.jsonl")
+                    .replace("grounding_results", "grounding")
+                    .replace(f"{model_folder}/", "")
+                )
+                results = calculate_results(
+                    read_jsonl(result_path), read_jsonl(action_path)
+                )
                 os_results[app_folder] = {
                     "total_tasks": results["total_tasks"],
                     "success": results["success"],
@@ -63,10 +74,10 @@ def main():
                 total_tasks += results["total_tasks"]
                 total_tokens += results["total_tokens"]
                 box_success_pairs = results["box_success_pairs"]
-                
+
             model_results[os_folder] = os_results
         results[model_folder] = model_results
-    
+
     print(json.dumps(results, indent=4))
     print("Total tasks:", total_tasks)
     print("Total tokens:", total_tokens)

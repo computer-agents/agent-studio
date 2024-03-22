@@ -9,13 +9,12 @@ Example:
 
 
 import argparse
-import os
 import logging
+import os
 
 import pandas as pd
 
 from agent_studio.utils.json_utils import read_jsonl
-
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +50,21 @@ def extract_info_from_trajectory(trajectories: dict[str, dict]):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Parse all jsonl files and output the statistics to csv.")
-    parser.add_argument("config_root", type=str, help="The root path of the config jsonl files.")
-    parser.add_argument("-t", "--trajectory_root", type=str, help="The root path of the trajectory jsonl files.")
-    parser.add_argument("-o", "--output_path", type=str, help="The output path of the statistics csv.")
+    parser = argparse.ArgumentParser(
+        description="Parse all jsonl files and output the statistics to csv."
+    )
+    parser.add_argument(
+        "config_root", type=str, help="The root path of the config jsonl files."
+    )
+    parser.add_argument(
+        "-t",
+        "--trajectory_root",
+        type=str,
+        help="The root path of the trajectory jsonl files.",
+    )
+    parser.add_argument(
+        "-o", "--output_path", type=str, help="The output path of the statistics csv."
+    )
     args = parser.parse_args()
 
     config_root = args.config_root

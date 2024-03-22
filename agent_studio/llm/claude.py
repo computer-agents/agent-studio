@@ -1,11 +1,11 @@
-from typing import Any
 import logging
+from typing import Any
+
 import backoff
+from anthropic import Anthropic, APIError, APITimeoutError, RateLimitError
 
 from agent_studio.config.config import Config
 from agent_studio.llm.base_model import BaseModel
-
-from anthropic import Anthropic, APIError, RateLimitError, APITimeoutError
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -103,7 +103,8 @@ class AnthropicProvider(BaseModel):
                 info = {
                     "prompt_tokens": response.usage.input_tokens,
                     "completion_tokens": response.usage.output_tokens,
-                    "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
+                    "total_tokens": response.usage.input_tokens
+                    + response.usage.output_tokens,
                 }
 
             logger.info(f"\nReceived response:\n{response_message}\nInfo:\n{info}")
