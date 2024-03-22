@@ -40,21 +40,21 @@ class HuggingFaceProvider(BaseModel):
         model_message = self.compose_messages(intermedia_msg=messages)
 
         if self.model is None:
-            model_name = kwargs.get("model", None)
+            self.model_name = kwargs.get("model", None)
             self.tokenizer = AutoTokenizer.from_pretrained(
-                model_name, trust_remote_code=True
+                self.model_name, trust_remote_code=True
             )
             self.model = AutoModelForCausalLM.from_pretrained(
-                model_name, device_map="cuda", trust_remote_code=True, bf16=True
+                self.model_name, device_map="cuda", trust_remote_code=True, bf16=True
             ).eval()
-            assert self.model is not None, "Model is not initialized"
+            assert self.model is not None, "Model is not loaded."
             self.model.generation_config = GenerationConfig.from_pretrained(
-                model_name, trust_remote_code=True
+                self.model_name, do_sample=False, trust_remote_code=True
             )
-        assert self.model is not None, "Model is not initialized"
+        assert self.model is not None, "Model is not loaded."
 
         logger.info(
-            f"Creating chat completion with model {model_name}. "
+            f"Creating chat completion with model {self.model_name}. "
             f"Message:\n{model_message}"
         )
 
