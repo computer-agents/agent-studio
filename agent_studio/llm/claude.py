@@ -15,6 +15,7 @@ class AnthropicProvider(BaseModel):
     def __init__(self, **kwargs: Any) -> None:
         super().__init__()
         self.client = Anthropic(api_key=config.anthropic_api_key)
+        self.system_prompt = None
 
     def compose_messages(
         self,
@@ -26,6 +27,9 @@ class AnthropicProvider(BaseModel):
         model_message: list[dict[str, Any]] = []
         past_role = None
         for msg in intermedia_msg:
+            if msg["role"] == "system":
+                self.system_prompt = msg["content"]
+                continue
             if isinstance(msg["content"], list):
                 content: dict = {
                     "type": "image",
@@ -72,12 +76,21 @@ class AnthropicProvider(BaseModel):
             interval=10,
         )
         def _generate_response_with_retry() -> tuple[str, dict[str, int]]:
-            response = self.client.messages.create(
-                model=model,
-                messages=model_message,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
+            if self.system_prompt is not None:
+                response = self.client.messages.create(
+                    model=model,
+                    messages=model_message,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    system=self.system_prompt,
+                )
+            else:
+                response = self.client.messages.create(
+                    model=model,
+                    messages=model_message,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
 
             if response is None:
                 logger.error("Failed to get a response from Anthropic. Try again.")
