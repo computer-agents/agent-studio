@@ -347,6 +347,7 @@ class StepActionThread(QThread):
         parsed_action_display: QTextEdit,
         screen_recorder: ScreenRecorder | None,
         current_step_num: int,
+        max_steps: int,
         agent: Agent,
     ):
         super().__init__()
@@ -356,6 +357,7 @@ class StepActionThread(QThread):
         self.parsed_action_display = parsed_action_display
         self.screen_recorder = screen_recorder
         self.current_step_num = current_step_num
+        self.max_steps = max_steps
 
     def run(self):
         """Steps the next action and adds it to the trajectory."""
@@ -373,7 +375,7 @@ class StepActionThread(QThread):
             )
             self.signals.trajectory_display_signal.emit(new_trajectory_text)
 
-        if done or self.current_step_num >= config.max_step:
+        if done or self.current_step_num >= self.max_steps:
             self.signals.finish_run_task_signal.emit()
         else:
             if self.screen_recorder is not None:
@@ -833,6 +835,7 @@ class AgentInterface(QMainWindow):
 
     def step_action(self) -> None:
         """Steps the next action and adds it to the trajectory."""
+        assert self.selected_task is not None
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
         self.set_task_status_bar_text("color: green;", "Task: Executing...")
@@ -855,6 +858,7 @@ class AgentInterface(QMainWindow):
             parsed_action_display=self.parsed_action_display,
             screen_recorder=self.screen_recorder,
             current_step_num=self.current_step_num,
+            max_steps=self.selected_task["max_steps"],
             agent=self.agent,
         )
         self.current_thread.start()

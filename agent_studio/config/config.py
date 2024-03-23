@@ -20,7 +20,6 @@ class Config(metaclass=ThreadSafeSingleton):
         # "desktop": "data/tasks/filesystem.jsonl",
         "desktop": "data/grounding/linux/os/tasks.jsonl",
     }
-    max_step: int = 1
     api_key_path: str = "agent_studio/config/api_key.json"
 
     stop_code: str = "exit()"
