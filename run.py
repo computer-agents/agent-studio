@@ -54,7 +54,7 @@ def create_parser():
 
 
 def setup_agent(args):
-    model = setup_model(config.exec_model)
+    model = setup_model(config.provider)
     match args.agent:
         case "dummy":
             from agent_studio.agent.base_agent import Agent
@@ -211,7 +211,8 @@ def eval_headless(
                     json=AgentStudioResetRequest(task_config=task_config).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
-                assert response.status == "submitted"
+                if response.status != "submitted":
+                    raise ValueError(f"Fail to reset task: {response.content}")
                 wait_finish(is_eval=False)
                 response_raw = requests.get(
                     f"{remote_server_addr}/task/result",

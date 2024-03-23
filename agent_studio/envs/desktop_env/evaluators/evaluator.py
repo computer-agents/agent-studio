@@ -99,12 +99,8 @@ class Evaluator:
                         score = 0.0
                         feedback += e.message + "\n"
                     except Exception as e:
-                        score = 0.0
-                        feedback += (
-                            f"Evaluator {self.name} failed due to {e}\n"
-                            "Score may not be accurate.\n"
-                        )
                         logger.error(f"Evaluation failed due to {e}")
+                        raise e
                 else:
                     raise ValueError(
                         f"Action {action} is not supported for {self.name} evaluation."
