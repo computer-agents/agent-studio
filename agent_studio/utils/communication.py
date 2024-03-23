@@ -15,7 +15,6 @@ str2bytes: Callable[..., Any] = (
 )
 
 
-
 class AgentStudioStatusResponse(BaseModel):
     status: str
     content: str = ""

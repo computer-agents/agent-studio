@@ -12,7 +12,6 @@ from agent_studio.envs.desktop_env.evaluators.evaluator_helper import EvaluatorC
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
-    AgentStudioStatusResponse,
     AgentStudioResultResponse,
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
