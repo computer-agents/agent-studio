@@ -239,7 +239,7 @@ def eval_headless(
 
             agent.reset(instruction=instruction)
             # Loop until the task is done or the max step is reached.
-            for t in range(config.max_step):
+            for t in range(task_config["max_steps"]):
                 logger.info(f"Step {t}")
                 if task_config["visual"]:
                     assert screen_recorder is not None
