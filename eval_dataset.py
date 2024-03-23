@@ -185,7 +185,7 @@ def main():
         # save conversations
         save_path = Path(
             args.data_path.replace(
-                "grounding", f"grounding_results/{args.provider}"
+                "grounding", f"grounding_results/{args.provider.split('/')[-1]}"
             ).replace("actions", "results")
         )
         save_path.parent.mkdir(parents=True, exist_ok=True)
