@@ -23,7 +23,6 @@ from agent_studio.llm import setup_model
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
-    AgentStudioResponse,
     AgentStudioResultResponse,
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
@@ -114,7 +113,7 @@ def wait_finish(is_eval: bool):
                 url=f"{remote_server_addr}/task/confirm",  # noqa: E501
                 json=AgentStudioTextRequest(message=user_input).model_dump(),
             )
-            response = AgentStudioResponse(**response_raw.json())
+            response = AgentStudioStatusResponse(**response_raw.json())
             assert response.status == "success"
         elif response.status in ["pending", "in_progress"]:
             pass
@@ -188,7 +187,7 @@ def eval_headless(
             task_id = task_config["task_id"]
             if config.remote:
                 response_raw = requests.post(f"{remote_server_addr}/runtime/reset")
-                response = AgentStudioResponse(**response_raw.json())
+                response = AgentStudioStatusResponse(**response_raw.json())
                 assert (
                     response.status == "success"
                 ), f"Fail to reset runtime: {response_raw.text}"
@@ -211,7 +210,7 @@ def eval_headless(
                     f"{remote_server_addr}/task/reset",
                     json=AgentStudioResetRequest(task_config=task_config).model_dump(),
                 )
-                response = AgentStudioResponse(**response_raw.json())
+                response = AgentStudioStatusResponse(**response_raw.json())
                 assert response.status == "submitted"
                 wait_finish(is_eval=False)
                 response_raw = requests.get(
@@ -276,7 +275,7 @@ def eval_headless(
                         task_config=task_config,
                     ).model_dump(),
                 )
-                response = AgentStudioResponse(**response_raw.json())
+                response = AgentStudioStatusResponse(**response_raw.json())
                 assert response.status == "submitted"
                 wait_finish(is_eval=True)
                 response_raw = requests.get(f"{remote_server_addr}/task/result")

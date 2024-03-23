@@ -15,9 +15,6 @@ str2bytes: Callable[..., Any] = (
 )
 
 
-class AgentStudioResponse(BaseModel):
-    status: str
-
 
 class AgentStudioStatusResponse(BaseModel):
     status: str

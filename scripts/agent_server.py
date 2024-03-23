@@ -12,7 +12,7 @@ from agent_studio.envs.desktop_env.evaluators.evaluator_helper import EvaluatorC
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
-    AgentStudioResponse,
+    AgentStudioStatusResponse,
     AgentStudioResultResponse,
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
@@ -103,15 +103,15 @@ async def execute_code(request: AgentStudioTextRequest) -> dict:
 
 
 @app.post("/runtime/reset")
-async def reset_runtime() -> AgentStudioResponse:
+async def reset_runtime() -> AgentStudioStatusResponse:
     runtimes["python"].close()
     runtimes["python"] = PythonRuntime()
     logger.info("Reset runtime")
-    return AgentStudioResponse(status="success")
+    return AgentStudioStatusResponse(status="success")
 
 
 @app.post("/task/confirm")
-async def confirm(request: AgentStudioTextRequest) -> AgentStudioResponse:
+async def confirm(request: AgentStudioTextRequest) -> AgentStudioStatusResponse:
     """
     Confirm critical action.
 
@@ -129,11 +129,11 @@ async def confirm(request: AgentStudioTextRequest) -> AgentStudioResponse:
     task_status.set_task_state(
         StateInfo(state=StateEnum.IN_PROGRESS, message=request.message)
     )
-    return AgentStudioResponse(status="success")
+    return AgentStudioStatusResponse(status="success")
 
 
 @app.post("/task/reset")
-async def new_task(request: AgentStudioResetRequest) -> AgentStudioResponse:
+async def new_task(request: AgentStudioResetRequest) -> AgentStudioStatusResponse:
     """
     Reset the task.
 
@@ -153,17 +153,20 @@ async def new_task(request: AgentStudioResetRequest) -> AgentStudioResponse:
         task_status.reset_state()
 
     logger.info(f"Start resetting task: {request.task_config}")
-    evaluator_router = setup_evaluator(
-        env=config.env_type,
-    )
-    comb = evaluator_router(request.task_config)
-    current_thread = threading.Thread(target=reset_task, args=(comb,))
-    current_thread.start()
-    return AgentStudioResponse(status="submitted")
+    try:
+        evaluator_router = setup_evaluator(
+            env=config.env_type,
+        )
+        comb = evaluator_router(request.task_config)
+        current_thread = threading.Thread(target=reset_task, args=(comb,))
+        current_thread.start()
+        return AgentStudioStatusResponse(status="submitted")
+    except Exception as e:
+        return AgentStudioStatusResponse(status="error", content=str(e))
 
 
 @app.post("/task/eval")
-async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioResponse:
+async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusResponse:
     """
     Evaluate the given task.
 
@@ -185,17 +188,20 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioResponse:
         StateEnum.FINISHED,
     ], f"Invalid status: {cur_status}"
 
-    evaluator_router = setup_evaluator(
-        env=config.env_type,
-    )
-    logger.info(f"Start evaluating task: {request.task_config}")
-    comb: EvaluatorComb = evaluator_router(request.task_config)
-    current_thread = threading.Thread(
-        target=eval_task,
-        args=(comb,),
-    )
-    current_thread.start()
-    return AgentStudioResponse(status="submitted")
+    try:
+        evaluator_router = setup_evaluator(
+            env=config.env_type,
+        )
+        logger.info(f"Start evaluating task: {request.task_config}")
+        comb: EvaluatorComb = evaluator_router(request.task_config)
+        current_thread = threading.Thread(
+            target=eval_task,
+            args=(comb,),
+        )
+        current_thread.start()
+        return AgentStudioStatusResponse(status="submitted")
+    except Exception as e:
+        return AgentStudioStatusResponse(status="error", content=str(e))
 
 
 @app.get("/task/status")
