@@ -114,7 +114,7 @@ def parse_action(response: str) -> tuple[dict, int, int] | None:
             click_type_dict[kwargs["click_type"]] = True
             if kwargs["is_double_click"]:
                 click_type_dict["double_click"] = True
-        except (ValueError, IndexError, SyntaxError) as e:
+        except Exception as e:
             logger.warning(f"Failed to extract action: {e}")
             return None
     return click_type_dict, kwargs["x"], kwargs["y"]
