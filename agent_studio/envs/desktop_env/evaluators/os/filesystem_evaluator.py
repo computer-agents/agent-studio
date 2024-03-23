@@ -41,7 +41,7 @@ class FilesystemEvaluator(Evaluator):
             path = os.path.expanduser(path)
             if expected != Path(path).exists():
                 raise FeedbackException(
-                    f"The error occurd when checking {path} existence. "
+                    f"The error occurred when checking {path} existence. "
                     f"Expected: {expected}, but get: {not expected}"
                 )
 
@@ -53,13 +53,13 @@ class FilesystemEvaluator(Evaluator):
             if expected_type == "file":
                 if not Path(path).is_file():
                     raise FeedbackException(
-                        f"The error occurd when checking {path} type. "
+                        f"The error occurred when checking {path} type. "
                         f"Expected: {expected_type}, but get: folder"
                     )
             elif expected_type == "folder":
                 if not Path(path).is_dir():
                     raise FeedbackException(
-                        f"The error occurd when checking {path} type. "
+                        f"The error occurred when checking {path} type. "
                         f"Expected: {expected_type}, but get: file"
                     )
             else:
@@ -76,7 +76,7 @@ class FilesystemEvaluator(Evaluator):
                     st_mode = os.stat(path).st_mode & 0o777
                     if st_mode != int(expected_permissions, 8):
                         raise FeedbackException(
-                            f"The error occurd when checking {path} permissions. "
+                            f"The error occurred when checking {path} permissions. "
                             f"Expected: {expected_permissions}, but get: {oct(st_mode)}"
                         )
                 except ValueError:
@@ -85,13 +85,13 @@ class FilesystemEvaluator(Evaluator):
                     actual_permissions = stat.filemode(st_mode)
                     if actual_permissions != expected_permissions:
                         raise FeedbackException(
-                            f"The error occurd when checking {path} permissions. "
+                            f"The error occurred when checking {path} permissions. "
                             f"Expected: {expected_permissions}, "
                             f"but get: {actual_permissions}"
                         )
                 except IOError:
                     raise FeedbackException(
-                        f"The error occurd when checking {path} permissions. "
+                        f"The error occurred when checking {path} permissions. "
                         f"Can't access path."
                     )
         else:
@@ -99,20 +99,29 @@ class FilesystemEvaluator(Evaluator):
 
     @staticmethod
     @evaluation_handler("content_check")
-    def content_check(file_to_check: dict[str, str]) -> None:
+    def content_check(file_to_check: dict[str, str], method: str = "exact") -> None:
         for path, expected_content in file_to_check.items():
             path = os.path.expanduser(path)
             try:
                 with open(path, "r") as file:
                     content = file.read()
-                if content != expected_content:
-                    raise FeedbackException(
-                        f"The error occurd when checking {path} content. "
-                        f"Expected: {expected_content}, but get: {content}"
-                    )
+                if method == "exact":
+                    if content != expected_content:
+                        raise FeedbackException(
+                            f"The error occurred when checking {path} content. "
+                            f"Expected: {expected_content}, but get: {content}"
+                        )
+                elif method == "strip":
+                    if content.strip() != expected_content.strip():
+                        raise FeedbackException(
+                            f"The error occurred when checking {path} content. "
+                            f"Expected: {expected_content}, but get: {content}"
+                        )
+                else:
+                    raise ValueError(f"Unknown content_check method: {method}")
             except IOError:
                 raise FeedbackException(
-                    f"The error occurd when checking {path} content. "
+                    f"The error occurred when checking {path} content. "
                     f"Can't access path."
                 )
 
@@ -160,20 +169,21 @@ class FilesystemEvaluator(Evaluator):
                     if key == "last_modified":
                         if not _compare_time(file_stat.st_mtime, value):
                             raise FeedbackException(
-                                f"The error occurd "
+                                f"The error occurred "
                                 f"when checking {path} last modified time. "
                                 f"Expected: {value}, but get: {file_stat.st_mtime}"
                             )
                     elif key == "creation_time":
                         if not _compare_time(file_stat.st_ctime, value):
                             raise FeedbackException(
-                                f"The error occurd when checking {path} creation time. "
+                                f"The error occurred "
+                                f"when checking {path} creation time. "
                                 f"Expected: {value}, but get: {file_stat.st_ctime}"
                             )
                     elif key == "size":
                         if file_stat.st_size != value:
                             raise FeedbackException(
-                                f"The error occurd when checking {path} size. "
+                                f"The error occurred when checking {path} size. "
                                 f"Expected: {value}, but get: {file_stat.st_size}"
                             )
                     elif key == "owner":
@@ -183,7 +193,7 @@ class FilesystemEvaluator(Evaluator):
                             file_owner = pwd.getpwuid(file_stat.st_uid).pw_name
                             if file_owner != value:
                                 raise FeedbackException(
-                                    f"The error occurd when checking {path} owner. "
+                                    f"The error occurred when checking {path} owner. "
                                     f"Expected: {value}, but get: {file_owner}"
                                 )
                         else:
@@ -197,7 +207,7 @@ class FilesystemEvaluator(Evaluator):
                             file_group = grp.getgrgid(file_stat.st_gid).gr_name
                             if file_group != value:
                                 raise FeedbackException(
-                                    f"The error occurd when checking {path} group. "
+                                    f"The error occurred when checking {path} group. "
                                     f"Expected: {value}, but get: {file_group}"
                                 )
                         else:
@@ -207,7 +217,7 @@ class FilesystemEvaluator(Evaluator):
 
             except IOError:
                 raise FeedbackException(
-                    f"The error occurd when checking {path} metadata. "
+                    f"The error occurred when checking {path} metadata. "
                     f"Can't access path."
                 )
 
@@ -255,7 +265,7 @@ class FilesystemEvaluator(Evaluator):
             expected_path = os.path.expanduser(expected_path)
             if not filecmp.cmp(path, expected_path, shallow=False):
                 raise FeedbackException(
-                    f"The error occurd when checking {path}."
+                    f"The error occurred when checking {path}."
                     f"Expected: {expected_path}"
                 )
 

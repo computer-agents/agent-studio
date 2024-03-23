@@ -13,18 +13,19 @@ class Config(metaclass=ThreadSafeSingleton):
     seed: int = 42
     headless: bool = False  # True for CLI, False for GUI
     python_timeout: int = 20
-    need_human_confirmation: bool = True
+    need_human_confirmation: bool = False
     minimal_action_interval: float = 3.0
 
     task_config_paths: dict = {
-        "desktop": "data/grounding/os.jsonl",
+        # "desktop": "data/tasks/filesystem.jsonl",
+        "desktop": "data/grounding/linux/os/tasks.jsonl",
     }
     api_key_path: str = "agent_studio/config/api_key.json"
 
     stop_code: str = "exit()"
 
     # Env server config
-    remote: bool = False  # True for remote, False for local
+    remote: bool = True  # True for remote, False for local
     env_type: str = "desktop"
     env_server_addr: str = "127.0.0.1"
     env_server_host: str = "0.0.0.0"
@@ -32,7 +33,7 @@ class Config(metaclass=ThreadSafeSingleton):
     env_server_port: int = 8000
     vnc_password: str = "123456"
     monitor_idx: int = 1  # 1 for the first monitor, 2 for the second monitor
-    vnc_frame_size: tuple[int, int] = (1500, 1500)
+    vnc_frame_size: tuple[int, int] = (1000, 1000)
 
     # Recorder config
     record_path = "data/trajectories"
@@ -43,28 +44,31 @@ class Config(metaclass=ThreadSafeSingleton):
     stop_hotkeys: str = "<ctrl>+<shift>+h"
 
     # sleep_after_execution: float = 2.0
-    max_step: int = 30
     system_prompt_path: str = "agent_studio/agent/prompts/system_prompt.txt"
     init_code_path: str = "agent_studio/agent/prompts/init_code.txt"
     # parsing_failure_th: int = 3
     # repeating_action_failure_th = 3
 
     # LM config
-    provider: str = "gemini"
     agent: str = "direct"
     max_retries: int = 3
     # exec_model: str = "gpt-4-1106-vision-preview"
-    exec_model: str = "gemini-pro"
-    eval_model: str = "gemini-pro"
+    # exec_model: str = "gpt-4-0125-preview"
+    # exec_model: str = "gpt-3.5-turbo-0125"
+    # exec_model: str = "gemini-pro"
+    exec_model: str = "claude-3-sonnet-20240229"
+    # exec_model: str = "claude-3-opus-20240229"
+    eval_model: str = exec_model
     temperature: float = 0.0
     max_tokens: int = 4096
     gemini_api_key: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
     openai_api_key: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
+    anthropic_api_key: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
 
     # Google API config
     google_credential_path: str = "agent_studio/config/credentials.json"
     google_calendar_id: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
-    gmail_recipient: str = "gduser1@workspacesamples.dev"
+    gmail_recipient: str = ""
 
     # VSCode config
     vscode_workspace_path: str = "vscode_workspace"

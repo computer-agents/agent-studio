@@ -51,7 +51,6 @@ from agent_studio.envs.desktop_env.vnc_client import (
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
-    AgentStudioResponse,
     AgentStudioResultResponse,
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
@@ -137,7 +136,7 @@ class ResetThread(QThread):
                     json=AgentStudioTextRequest(message=user_input).model_dump(),
                 )
                 assert response_raw.status_code == 200, f"{response_raw.status_code}"
-                response = AgentStudioResponse(**response_raw.json())
+                response = AgentStudioStatusResponse(**response_raw.json())
                 assert response.status == "success"
             elif response.status == "pending":
                 self.signals.status_bar_signal.emit("color: green;", "Pending")
@@ -154,7 +153,7 @@ class ResetThread(QThread):
         )
         response_raw = requests.post(f"http://{REMOTE_SERVER_ADDR}/runtime/reset")
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
-        response = AgentStudioResponse(**response_raw.json())
+        response = AgentStudioStatusResponse(**response_raw.json())
         assert (
             response.status == "success"
         ), f"Fail to reset runtime: {response_raw.text}"
@@ -167,7 +166,7 @@ class ResetThread(QThread):
             json=AgentStudioResetRequest(task_config=self.task_config).model_dump(),
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
-        response = AgentStudioResponse(**response_raw.json())
+        response = AgentStudioStatusResponse(**response_raw.json())
         assert response.status == "submitted"
         self._wait_finish()
         response_raw = requests.get(
@@ -228,7 +227,7 @@ class EvalTaskThread(QThread):
                     url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
                     json=AgentStudioTextRequest(message=user_input).model_dump(),
                 )
-                response = AgentStudioResponse(**response_raw.json())
+                response = AgentStudioStatusResponse(**response_raw.json())
                 assert response.status == "success"
             elif response.status == "pending":
                 self.signals.status_bar_signal.emit("color: green;", "Pending")
@@ -246,7 +245,7 @@ class EvalTaskThread(QThread):
                 task_config=self.selected_task,
             ).model_dump(),
         )
-        response = AgentStudioResponse(**response_raw.json())
+        response = AgentStudioStatusResponse(**response_raw.json())
         assert response.status == "submitted"
         self._wait_finish()
         response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/result")

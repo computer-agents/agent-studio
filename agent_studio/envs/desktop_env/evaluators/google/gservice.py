@@ -48,8 +48,9 @@ class GoogleService(object):
             logger.error("Failed to authenticate")
             raise Exception("Failed to authenticate")
         else:
-            with open(token_path, "w") as token:
-                token.write(creds.to_json())
+            if token != json.loads(creds.to_json()):
+                with open(token_path, "w") as token:
+                    token.write(creds.to_json())
         return creds
 
     def update_token_crediential(

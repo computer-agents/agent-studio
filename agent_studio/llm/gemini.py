@@ -8,13 +8,11 @@ import numpy as np
 # Magic import, add following import to fix bug
 # https://github.com/google/generative-ai-python/issues/178
 import PIL.PngImagePlugin
-import requests
 from google.generativeai.types import GenerationConfig
 from PIL import Image
 
 from agent_studio.config.config import Config
 from agent_studio.llm.base_model import BaseModel
-from agent_studio.utils.communication import bytes2str, str2bytes
 
 # Run this to pass mypy checker
 PIL.PngImagePlugin
@@ -28,7 +26,6 @@ class GeminiProvider(BaseModel):
     def __init__(self, **kwargs) -> None:
         super().__init__()
         genai.configure(api_key=config.gemini_api_key)
-        self.model_server: str | None = getattr(config, "model_server", None)
 
     def compose_messages(
         self,
@@ -63,15 +60,14 @@ class GeminiProvider(BaseModel):
         model_message = self.compose_messages(intermedia_msg=messages)
 
         model_name = kwargs.get("model", None)
-        if not self.model_server:
-            if model_name is not None:
-                model = genai.GenerativeModel(model_name)
-            else:
-                raise ValueError("Model name is required for GeminiProvider.")
-            logger.info(
-                f"Creating chat completion with model {model_name}. "
-                f"Message:\n{model_message}"
-            )
+        if model_name is not None:
+            model = genai.GenerativeModel(model_name)
+        else:
+            raise ValueError("Model name is required for GeminiProvider.")
+        logger.info(
+            f"Creating chat completion with model {model_name}. "
+            f"Message:\n{model_message}"
+        )
 
         generation_config = GenerationConfig(
             temperature=kwargs.get("temperature", config.temperature),
@@ -88,31 +84,13 @@ class GeminiProvider(BaseModel):
             interval=10,
         )
         def _generate_response_with_retry() -> tuple[str, dict[str, int]]:
-            if self.model_server:
-                body = {
-                    "model": model_name,
-                    "messages": bytes2str(model_message),
-                    "config": bytes2str(generation_config),
-                }
-                response_raw = requests.post(f"{self.model_server}/generate", json=body)
-                if response_raw.status_code != 200:
-                    logger.error(
-                        f"Failed to generate response: {response_raw.status_code}, "
-                        f"{response_raw.text}"
-                    )
-                    raise genai.types.IncompleteIterationError
-                response: genai.types.GenerateContentResponse = str2bytes(
-                    response_raw.json()["content"]
-                )
-                info: dict[str, Any] = response_raw.json()["info"]
-            else:
-                response = model.generate_content(
-                    contents=model_message, generation_config=generation_config
-                )
-                token_count = model.count_tokens(model_message)
-                info = {
-                    "total_tokens": token_count.total_tokens,
-                }
+            response = model.generate_content(
+                contents=model_message, generation_config=generation_config
+            )
+            token_count = model.count_tokens(model_message)
+            info = {
+                "total_tokens": token_count.total_tokens,
+            }
             try:
                 message = response.text
             except ValueError:

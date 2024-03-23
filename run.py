@@ -23,7 +23,6 @@ from agent_studio.llm import setup_model
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
-    AgentStudioResponse,
     AgentStudioResultResponse,
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
@@ -45,7 +44,6 @@ class TestReq:
 def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--agent", type=str, default=config.agent)
-    parser.add_argument("--provider", type=str, default=config.provider)
     parser.add_argument(
         "--mode", type=str, choices=["record", "eval", "annotate"], default="eval"
     )
@@ -56,23 +54,23 @@ def create_parser():
 
 
 def setup_agent(args):
-    model = setup_model(args.provider)
+    model = setup_model(config.exec_model)
     match args.agent:
         case "dummy":
             from agent_studio.agent.base_agent import Agent
 
             agent = Agent(model=model)
-            record_path = f"data/trajectories/{args.provider}/dummy"
+            record_path = f"data/trajectories/{config.exec_model}/dummy"
         case "direct":
             from agent_studio.agent.direct_agent import DirectAgent
 
             agent = DirectAgent(model=model)
-            record_path = f"data/trajectories/{args.provider}/direct"
+            record_path = f"data/trajectories/{config.exec_model}/direct"
         case "synapse":
             from agent_studio.agent.synapse_agent import SynapseAgent
 
             agent = SynapseAgent(model=model)
-            record_path = f"data/trajectories/{args.provider}/synapse"
+            record_path = f"data/trajectories/{config.exec_model}/synapse"
         case _:
             raise ValueError(f"Invalid agent: {args.agent}.")
 
@@ -88,6 +86,12 @@ def setup_tasks(args):
     task_configs = read_jsonl(
         config.task_config_paths[config.env_type], args.start_idx, args.end_idx
     )
+    for task_config in task_configs:
+        if "GMAIL_RECIPIENT" in task_config["instruction"]:
+            assert len(config.gmail_recipient) > 0, "GMAIL_RECIPIENT is not set."
+            task_config["instruction"] = task_config["instruction"].replace(
+                "GMAIL_RECIPIENT", config.gmail_recipient
+            )
 
     return task_configs
 
@@ -109,7 +113,7 @@ def wait_finish(is_eval: bool):
                 url=f"{remote_server_addr}/task/confirm",  # noqa: E501
                 json=AgentStudioTextRequest(message=user_input).model_dump(),
             )
-            response = AgentStudioResponse(**response_raw.json())
+            response = AgentStudioStatusResponse(**response_raw.json())
             assert response.status == "success"
         elif response.status in ["pending", "in_progress"]:
             pass
@@ -183,7 +187,7 @@ def eval_headless(
             task_id = task_config["task_id"]
             if config.remote:
                 response_raw = requests.post(f"{remote_server_addr}/runtime/reset")
-                response = AgentStudioResponse(**response_raw.json())
+                response = AgentStudioStatusResponse(**response_raw.json())
                 assert (
                     response.status == "success"
                 ), f"Fail to reset runtime: {response_raw.text}"
@@ -206,15 +210,15 @@ def eval_headless(
                     f"{remote_server_addr}/task/reset",
                     json=AgentStudioResetRequest(task_config=task_config).model_dump(),
                 )
-                response = AgentStudioResponse(**response_raw.json())
+                response = AgentStudioStatusResponse(**response_raw.json())
                 assert response.status == "submitted"
                 wait_finish(is_eval=False)
                 response_raw = requests.get(
                     f"{remote_server_addr}/task/result",
                 )
                 response = AgentStudioResultResponse(**response_raw.json())
-                # TODO: handle failed reset
-                assert response.status == "finished" and response.result == "success"
+                if not (response.status == "finished" and response.result == "success"):
+                    raise ValueError(f"Fail to reset task: {response.message}")
 
                 instruction = task_config["instruction"]
                 logger.info(f"Task instruction: {instruction}")
@@ -234,7 +238,7 @@ def eval_headless(
 
             agent.reset(instruction=instruction)
             # Loop until the task is done or the max step is reached.
-            for t in range(config.max_step):
+            for t in range(task_config["max_steps"]):
                 logger.info(f"Step {t}")
                 if task_config["visual"]:
                     assert screen_recorder is not None
@@ -271,14 +275,15 @@ def eval_headless(
                         task_config=task_config,
                     ).model_dump(),
                 )
-                response = AgentStudioResponse(**response_raw.json())
+                response = AgentStudioStatusResponse(**response_raw.json())
                 assert response.status == "submitted"
                 wait_finish(is_eval=True)
                 response_raw = requests.get(f"{remote_server_addr}/task/result")
                 response = AgentStudioResultResponse(**response_raw.json())
-                assert response.status == "finished" and isinstance(
-                    response.message, dict
-                )
+                if not (
+                    response.status == "finished" and isinstance(response.message, dict)
+                ):
+                    raise ValueError(f"Fail to evaluate task: {response.message}")
                 score, feedback = (
                     response.message["score"],
                     response.message["feedback"],
@@ -392,11 +397,8 @@ def main():
         case "record":
             record(record_path="data/trajectories/human")
         case "annotate":
-            record(
-                record_path=Path(config.task_config_paths[config.env_type])
-                .with_suffix("")
-                .as_posix()
-            )
+            config.result_jsonl_file = "actions.jsonl"
+            record(record_path=Path(config.task_config_paths[config.env_type]).parent)
         case _:
             raise ValueError(f"Invalid mode {args.mode}")
 

@@ -3,20 +3,21 @@ from typing import Any
 
 import backoff
 import numpy as np
-from openai import APIError, APITimeoutError, OpenAI, RateLimitError
+from anthropic import Anthropic, APIError, APITimeoutError, RateLimitError
 
 from agent_studio.config.config import Config
 from agent_studio.llm.base_model import BaseModel
-from agent_studio.llm.utils import openai_encode_image
+from agent_studio.llm.utils import anthropic_encode_image
 
 config = Config()
 logger = logging.getLogger(__name__)
 
 
-class OpenAIProvider(BaseModel):
+class AnthropicProvider(BaseModel):
     def __init__(self, **kwargs: Any) -> None:
         super().__init__()
-        self.client = OpenAI(api_key=config.openai_api_key)
+        self.client = Anthropic(api_key=config.anthropic_api_key)
+        self.system_prompt = None
 
     def compose_messages(
         self,
@@ -28,10 +29,17 @@ class OpenAIProvider(BaseModel):
         model_message: list[dict[str, Any]] = []
         past_role = None
         for msg in intermedia_msg:
+            if msg["role"] == "system":
+                self.system_prompt = msg["content"]
+                continue
             if isinstance(msg["content"], np.ndarray):
                 content: dict = {
-                    "type": "image_url",
-                    "image_url": {"url": openai_encode_image(msg["content"])},
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/jpeg",
+                        "data": anthropic_encode_image(msg["content"]),
+                    },
                 }
             elif isinstance(msg["content"], str):
                 content = {"type": "text", "text": msg["content"]}
@@ -51,7 +59,7 @@ class OpenAIProvider(BaseModel):
     def generate_response(
         self, messages: list[dict[str, Any]], **kwargs
     ) -> tuple[str, dict[str, int]]:
-        """Creates a chat completion using the OpenAI API."""
+        """Creates a chat completion using the Anthropic API."""
 
         model = kwargs.get("model", None)
         if model is None:
@@ -71,27 +79,35 @@ class OpenAIProvider(BaseModel):
             interval=10,
         )
         def _generate_response_with_retry() -> tuple[str, dict[str, int]]:
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=model_message,
-                temperature=temperature,
-                seed=config.seed,
-                max_tokens=max_tokens,
-            )
+            if self.system_prompt is not None:
+                response = self.client.messages.create(
+                    model=model,
+                    messages=model_message,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    system=self.system_prompt,
+                )
+            else:
+                response = self.client.messages.create(
+                    model=model,
+                    messages=model_message,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
 
             if response is None:
-                logger.error("Failed to get a response from OpenAI. Try again.")
+                logger.error("Failed to get a response from Anthropic. Try again.")
 
-            response_message = response.choices[0].message.content
+            response_message = response.content[0].text
             if response.usage is None:
                 info = {}
                 logger.warn("Failed to get usage information from OpenAI.")
             else:
                 info = {
-                    "prompt_tokens": response.usage.prompt_tokens,
-                    "completion_tokens": response.usage.completion_tokens,
-                    "total_tokens": response.usage.total_tokens,
-                    "system_fingerprint": response.system_fingerprint,
+                    "prompt_tokens": response.usage.input_tokens,
+                    "completion_tokens": response.usage.output_tokens,
+                    "total_tokens": response.usage.input_tokens
+                    + response.usage.output_tokens,
                 }
 
             logger.info(f"\nReceived response:\n{response_message}\nInfo:\n{info}")

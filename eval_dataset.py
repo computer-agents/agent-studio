@@ -19,7 +19,14 @@ def create_parser():
         "--provider",
         type=str,
         default=None,
-        choices=["gemini-pro-vision", "gpt-4-vision-preview"],
+        choices=[
+            "gemini-pro-vision",
+            "gpt-4-vision-preview",
+            "claude-3-sonnet-20240229",
+            "claude-3-opus-20240229",
+            "Qwen/Qwen-VL-Chat",
+            "cckevinn/SeeClick",
+        ],
     )
     parser.add_argument("--data_path", type=str, default=None)
     parser.add_argument("--start_idx", type=int, default=0)
@@ -29,9 +36,14 @@ def create_parser():
 
 
 def construct_prompt(
-    instruction: str, screenshot: np.ndarray, resolution: tuple[int, int]
+    instruction: str,
+    screenshot: np.ndarray | Path,
+    resolution: tuple[int, int],
+    image_first: bool = False,
 ) -> list:
-    messages: list[dict[str, str | np.ndarray]] = []
+    messages: list[dict[str, str | np.ndarray | Path]] = []
+    if image_first:
+        messages.append({"role": "user", "content": screenshot})
     messages.append(
         {
             "role": "user",
@@ -42,7 +54,8 @@ The task instruction: {instruction}.
 Output:""",  # noqa: E501
         }
     )
-    messages.append({"role": "user", "content": screenshot})
+    if not image_first:
+        messages.append({"role": "user", "content": screenshot})
 
     return messages
 
@@ -101,7 +114,7 @@ def parse_action(response: str) -> tuple[dict, int, int] | None:
             click_type_dict[kwargs["click_type"]] = True
             if kwargs["is_double_click"]:
                 click_type_dict["double_click"] = True
-        except (ValueError, IndexError) as e:
+        except Exception as e:
             logger.warning(f"Failed to extract action: {e}")
             return None
     return click_type_dict, kwargs["x"], kwargs["y"]
@@ -114,10 +127,7 @@ def main():
 
     task_configs = read_jsonl(args.data_path, args.start_idx, args.end_idx)
 
-    if args.provider in ["gemini-pro-vision"]:
-        model = setup_model("gemini")
-    if args.provider in ["gpt-4-vision-preview"]:
-        model = setup_model("openai")
+    model = setup_model(args.provider)
 
     total_scores = {}
     for task_config in task_configs:
@@ -144,7 +154,12 @@ def main():
         click_type_match = False
         location_match = False
         score = 0.0
-        message = construct_prompt(instruction, screenshot, resolution)
+        if args.provider in ["Qwen/Qwen-VL-Chat", "cckevinn/SeeClick"]:
+            message = construct_prompt(
+                instruction, Path(trajectory[0]["obs"]), resolution, image_first=True
+            )
+        else:
+            message = construct_prompt(instruction, screenshot, resolution)
         response, info = model.generate_response(message, model=args.provider)
         predicted_action = parse_action(response)
         if predicted_action is not None:
@@ -170,7 +185,7 @@ def main():
         # save conversations
         save_path = Path(
             args.data_path.replace(
-                "grounding", f"grounding_results/{args.provider}"
+                "grounding", f"grounding_results/{args.provider.split('/')[-1]}"
             ).replace("actions", "results")
         )
         save_path.parent.mkdir(parents=True, exist_ok=True)

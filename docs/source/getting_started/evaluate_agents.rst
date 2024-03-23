@@ -16,7 +16,7 @@ Set ``headless = True`` and ``remote = False``. This setup is the simplest, and 
 
 Start benchmarking::
 
-    python run.py --mode eval --env desktop
+    python run.py --mode eval
 
 Remote + GUI
 ------------
@@ -32,4 +32,4 @@ Run Docker (optional)
 
 Start benchmarking::
 
-    python run.py --mode eval --env desktop
+    python run.py --mode eval

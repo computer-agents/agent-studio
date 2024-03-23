@@ -44,7 +44,6 @@ from agent_studio.envs.desktop_env.vnc_client import VNCFrame, VNCStreamer
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
-    AgentStudioResponse,
     AgentStudioResultResponse,
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
@@ -131,7 +130,7 @@ class ResetRuntimeThread(QThread):
         # reset remote runtime
         response_raw = requests.post(f"http://{REMOTE_SERVER_ADDR}/runtime/reset")
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
-        response = AgentStudioResponse(**response_raw.json())
+        response = AgentStudioStatusResponse(**response_raw.json())
         assert (
             response.status == "success"
         ), f"Fail to reset runtime: {response_raw.text}"
@@ -175,7 +174,7 @@ class ResetTaskThread(QThread):
                     json=AgentStudioTextRequest(message=user_input).model_dump(),
                 )
                 assert response_raw.status_code == 200, f"{response_raw.status_code}"
-                response = AgentStudioResponse(**response_raw.json())
+                response = AgentStudioStatusResponse(**response_raw.json())
                 assert response.status == "success"
             elif response.status == "pending":
                 self.signals.status_bar_signal.emit("color: green;", "Pending")
@@ -194,8 +193,10 @@ class ResetTaskThread(QThread):
             f"http://{REMOTE_SERVER_ADDR}/task/reset",
             json=AgentStudioResetRequest(task_config=self.selected_task).model_dump(),
         )
-        assert response_raw.status_code == 200, f"{response_raw.status_code}"
-        response = AgentStudioResponse(**response_raw.json())
+        assert (
+            response_raw.status_code == 200
+        ), f"{response_raw.status_code} {response_raw.text}"
+        response = AgentStudioStatusResponse(**response_raw.json())
         assert response.status == "submitted"
         self._wait_finish()
         response_raw = requests.get(
@@ -203,8 +204,9 @@ class ResetTaskThread(QThread):
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = AgentStudioResultResponse(**response_raw.json())
-        # TODO: handle failed reset
-        assert response.status == "finished" and response.result == "success"
+        assert (
+            response.status == "finished" and response.result == "success"
+        ), f"Failed to reset task: {response.message}"
         self.signals.generate_action_signal.emit()
 
     def receive_user_input(self, text: str):
@@ -283,7 +285,7 @@ class EvalTaskThread(QThread):
                     json=AgentStudioTextRequest(message=user_input).model_dump(),
                 )
                 assert response_raw.status_code == 200, f"{response_raw.status_code}"
-                response = AgentStudioResponse(**response_raw.json())
+                response = AgentStudioStatusResponse(**response_raw.json())
                 assert response.status == "success"
             elif response.status == "pending":
                 self.signals.status_bar_signal.emit("color: green;", "Pending")
@@ -302,13 +304,15 @@ class EvalTaskThread(QThread):
             ).model_dump(),
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
-        response = AgentStudioResponse(**response_raw.json())
+        response = AgentStudioStatusResponse(**response_raw.json())
         assert response.status == "submitted"
         self._wait_finish()
         response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/result")
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = AgentStudioResultResponse(**response_raw.json())
-        assert response.status == "finished" and isinstance(response.message, dict)
+        assert response.status == "finished" and isinstance(
+            response.message, dict
+        ), f"Failed to evaluate task: {response.message}"
         self.signals.status_bar_signal.emit("color: green;", "Task: Self-Evaluating...")
         self_eval_result = self.agent.eval(self.final_obs)
         self.result_queue.put(response.message)
@@ -342,6 +346,7 @@ class StepActionThread(QThread):
         parsed_action_display: QTextEdit,
         screen_recorder: ScreenRecorder | None,
         current_step_num: int,
+        max_steps: int,
         agent: Agent,
     ):
         super().__init__()
@@ -351,6 +356,7 @@ class StepActionThread(QThread):
         self.parsed_action_display = parsed_action_display
         self.screen_recorder = screen_recorder
         self.current_step_num = current_step_num
+        self.max_steps = max_steps
 
     def run(self):
         """Steps the next action and adds it to the trajectory."""
@@ -368,7 +374,7 @@ class StepActionThread(QThread):
             )
             self.signals.trajectory_display_signal.emit(new_trajectory_text)
 
-        if done or self.current_step_num >= config.max_step:
+        if done or self.current_step_num >= self.max_steps:
             self.signals.finish_run_task_signal.emit()
         else:
             if self.screen_recorder is not None:
@@ -828,6 +834,7 @@ class AgentInterface(QMainWindow):
 
     def step_action(self) -> None:
         """Steps the next action and adds it to the trajectory."""
+        assert self.selected_task is not None
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
         self.set_task_status_bar_text("color: green;", "Task: Executing...")
@@ -850,6 +857,7 @@ class AgentInterface(QMainWindow):
             parsed_action_display=self.parsed_action_display,
             screen_recorder=self.screen_recorder,
             current_step_num=self.current_step_num,
+            max_steps=self.selected_task["max_steps"],
             agent=self.agent,
         )
         self.current_thread.start()
