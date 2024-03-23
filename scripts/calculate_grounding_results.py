@@ -77,7 +77,7 @@ def main():
                 }
                 total_tasks += app_results["total_tasks"]
                 total_tokens += app_results["total_tokens"]
-                box_success_pairs = app_results["box_success_pairs"]
+                # box_success_pairs = app_results["box_success_pairs"]
 
             model_results[os_folder] = os_results
             model_results["total_tasks"] = total_tasks

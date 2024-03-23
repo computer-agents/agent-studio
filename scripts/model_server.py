@@ -7,7 +7,6 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
 from agent_studio.config.config import Config
-from agent_studio.llm import GeminiProvider, OpenAIProvider
 from agent_studio.utils.communication import bytes2str, str2bytes
 
 
@@ -49,8 +48,12 @@ async def create_chat_completion(request: ChatCompletionRequest) -> JSONResponse
     messages = str2bytes(request.messages)
     model = request.model
     if model in ["gemini-pro-vision", "gemini-pro"]:
+        from agent_studio.llm.gemini import GeminiProvider
+
         message, info = GeminiProvider().generate_response(messages, model=model)
     elif model in ["gpt-4-vision-preview"]:
+        from agent_studio.llm.openai import OpenAIProvider
+
         message, info = OpenAIProvider().generate_response(messages, model=model)
     else:
         raise NotImplementedError

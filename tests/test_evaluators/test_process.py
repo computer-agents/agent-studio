@@ -22,7 +22,7 @@ TASK_CONFIGS = [
                             "cmd": ["code"],
                             "wait_for": "(?<!\\w)(?i:code)(?!\\w)",
                         },
-                    }
+                    },
                 ],
             }
         ]

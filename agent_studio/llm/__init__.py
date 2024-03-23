@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 def setup_model(provider_name: str) -> BaseModel:
+    model: BaseModel
     if provider_name in [
         "gpt-3.5-turbo-0125",
         "gpt-4-vision-preview",
