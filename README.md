@@ -25,6 +25,14 @@ We plan to expand the collection of environments, tasks, and data over time. Con
 
 ![](docs/source/assets/imgs/agent_space.jpg)
 
+## Before You Start
+
+You should note that the toolkit may do some **non-reversible actions**, such as deleting files, creating files, running commands, and deleting Google Calendar events.
+
+Please make sure you are hosting the toolkit in **a safe environment (E.g. virtual machine or docker) or have backups of your data.**
+
+Some tasks may require you to provide API keys. Before running the tasks, **please make sure the account doesn't have important data.**
+
 ## Evaluation on GUI Grounding Dataset
 
 Test one example from the dataset:
