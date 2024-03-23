@@ -27,7 +27,8 @@ def calculate_results(result_dict, task_configs):
             click_type_match += 1
         if result["location_match"]:
             location_match += 1
-        total_tokens += result["total_tokens"]
+        if result["total_tokens"] is not None:
+            total_tokens += result["total_tokens"]
         box_success_pairs.append((box_size[result["task_id"]], result["score"]))
 
     return {
@@ -46,11 +47,11 @@ def calculate_results(result_dict, task_configs):
 def main():
     folder_path = "data/grounding_results"
     results = {}
-    total_tasks = 0
 
     # iterate over the folders
     total_tokens = 0
     for model_folder in os.listdir(folder_path):
+        total_tasks = 0
         model_results = {}
         for os_folder in os.listdir(os.path.join(folder_path, model_folder)):
             os_results = {}
@@ -65,24 +66,24 @@ def main():
                     .replace("grounding_results", "grounding")
                     .replace(f"{model_folder}/", "")
                 )
-                results = calculate_results(
+                app_results = calculate_results(
                     read_jsonl(result_path), read_jsonl(action_path)
                 )
                 os_results[app_folder] = {
-                    "total_tasks": results["total_tasks"],
-                    "success": results["success"],
-                    "click_type_match": results["click_type_match"],
-                    "location_match": results["location_match"],
+                    "total_tasks": app_results["total_tasks"],
+                    "success": app_results["success"],
+                    "click_type_match": app_results["click_type_match"],
+                    "location_match": app_results["location_match"],
                 }
-                total_tasks += results["total_tasks"]
-                total_tokens += results["total_tokens"]
-                box_success_pairs = results["box_success_pairs"]
+                total_tasks += app_results["total_tasks"]
+                total_tokens += app_results["total_tokens"]
+                box_success_pairs = app_results["box_success_pairs"]
 
             model_results[os_folder] = os_results
+            model_results["total_tasks"] = total_tasks
         results[model_folder] = model_results
 
     print(json.dumps(results, indent=4))
-    print("Total tasks:", total_tasks)
     print("Total tokens:", total_tokens)
 
 
