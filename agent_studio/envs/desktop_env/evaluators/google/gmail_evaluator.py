@@ -265,7 +265,7 @@ class GmailEvaluator(Evaluator):
         label_name: str,
     ) -> None:
         all_labels = (
-            self.service.service.users()
+            self.service.users()
             .labels()
             .list(userId="me")
             .execute()
@@ -411,6 +411,38 @@ class GmailEvaluator(Evaluator):
 
         logger.debug(f"Sending the message {message_info}.")
         _send()
+
+    @reset_handler("mark_message_important")
+    def mark_message_important(
+        self,
+        is_important: bool,
+        subject_contains: str,
+    ) -> None:
+        """Marks the email with the given subject as important."""
+        messages = (
+            self.service.users()
+            .messages()
+            .list(userId="me", q=f"subject:{subject_contains}")
+            .execute()
+            .get("messages", [])
+        )
+        for message in messages:
+            message = (
+                self.service.users()
+                .messages()
+                .get(userId="me", id=message["id"], format="metadata")
+                .execute()
+            )
+            if is_important:
+                self.service.users().messages().modify(
+                    userId="me", id=message["id"], body={"addLabelIds": ["IMPORTANT"]}
+                ).execute()
+            else:
+                self.service.users().messages().modify(
+                    userId="me", id=message["id"], body={
+                        "removeLabelIds": ["IMPORTANT"]
+                    }
+                ).execute()
 
     def get_message(self, message_id: str) -> dict[str, Any]:
         """Retrieves the full message using the message ID."""
