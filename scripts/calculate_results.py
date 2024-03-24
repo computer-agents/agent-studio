@@ -1,7 +1,7 @@
 from agent_studio.utils.json_utils import read_jsonl
 
 providers = ["gpt-3.5-turbo-0125", "gpt-4-0125-preview", "gemini-pro"]
-apps = ["filesystem", "google"]
+apps = ["filesystem", "google", "GUI"]
 
 for provider in providers:
     print("# Provider:", provider)
@@ -10,10 +10,22 @@ for provider in providers:
         if app == "google":
             data = []
             data += read_jsonl(f"data/trajectories/{provider}/direct/gcalendar.jsonl")
-            # data += read_jsonl(f"data/trajectories/{provider}/direct/gmail.jsonl")
+            data += read_jsonl(f"data/trajectories/{provider}/direct/gmail.jsonl")
             data += read_jsonl(f"data/trajectories/{provider}/direct/gdocs.jsonl")
+        elif app == "filesystem":
+            data = read_jsonl(f"data/trajectories/{provider}/direct/filesystem.jsonl")
+        elif app == "GUI":
+            data = []
+            if provider == "gpt-4-0125-preview":
+                data += read_jsonl(f"data/trajectories/gpt-4-vision-preview/direct/desktop_hard.jsonl")
+                data += read_jsonl(f"data/trajectories/gpt-4-vision-preview/direct/vscode.jsonl")
+            elif provider == "gemini-pro":
+                data += read_jsonl(f"data/trajectories/gemini-pro-vision/direct/desktop_hard.jsonl")
+                data += read_jsonl(f"data/trajectories/gemini-pro-vision/direct/vscode.jsonl")
+            else:
+                continue
         else:
-            data = read_jsonl(f"data/trajectories/{provider}/direct/{app}.jsonl")
+            raise ValueError("Invalid app")
         scores = [entry["score"] for entry in data]
         self_eval_scores = [entry["self_eval"]["score"] for entry in data]
 

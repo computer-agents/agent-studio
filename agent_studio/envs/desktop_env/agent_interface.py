@@ -566,7 +566,7 @@ class AgentInterface(QMainWindow):
         # self.evaluation_display.setFixedHeight(60)
         # self.evaluation_display.setFixedWidth(self.layout_width)
 
-        self.next_button = QPushButton("Next task")
+        self.next_button = QPushButton("Reset")
         self.next_button.clicked.connect(self.reset)
         task_layout.addWidget(self.next_button)
 
