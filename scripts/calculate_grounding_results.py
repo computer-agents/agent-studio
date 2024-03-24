@@ -1,6 +1,10 @@
 import json
 import os
 
+import numpy as np
+import seaborn as sns
+from matplotlib import pyplot as plt
+
 from agent_studio.utils.json_utils import read_jsonl
 
 
@@ -47,6 +51,7 @@ def calculate_results(result_dict, task_configs):
 def main():
     folder_path = "data/grounding_results"
     results = {}
+    box_success_pairs = []
 
     # iterate over the folders
     total_tokens = 0
@@ -77,7 +82,7 @@ def main():
                 }
                 total_tasks += app_results["total_tasks"]
                 total_tokens += app_results["total_tokens"]
-                # box_success_pairs = app_results["box_success_pairs"]
+                box_success_pairs += app_results["box_success_pairs"]
 
             model_results[os_folder] = os_results
             model_results["total_tasks"] = total_tasks
@@ -85,6 +90,44 @@ def main():
 
     print(json.dumps(results, indent=4))
     print("Total tokens:", total_tokens)
+
+    # # Applying logarithm to x values, avoiding log(0) by adding a small
+    # # constant to x values before applying log
+    # x = [pair[0] for pair in box_success_pairs]
+    # y = [pair[1] for pair in box_success_pairs]
+    # log_x = np.log(np.array(x) + 1)
+
+    # # Creating the violin plot with log-transformed x values
+    # plt.figure(figsize=(8, 6))
+    # sns.violinplot(x=np.array(y), y=log_x)
+    # plt.title('Violin Plot of Binary Y Value vs. Log-transformed X Value')
+    # plt.xlabel('Binary Y Value')
+    # plt.ylabel('Log-transformed X Value')
+    # plt.xticks([0, 1], ['0', '1'])
+    # plt.tight_layout()
+    # plt.show()
+
+    # Splitting the data based on score
+    x1 = [size for size, score in box_success_pairs if score == 0]
+    x2 = [size for size, score in box_success_pairs if score == 1]
+    x1 = np.log(np.array(x1) + 1)
+    x2 = np.log(np.array(x2) + 1)
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(10, 8))
+
+    sns.histplot(x1, color="blue", label="Score = 0", kde=False, stat="density")
+    sns.histplot(x2, color="red", label="Score = 1", kde=False, stat="density")
+
+    ax.set_title("Distribution of Size by Score", fontsize=33, pad=20)
+    ax.set_xlabel("Box Size", fontsize=31)
+    ax.set_ylabel("Distribution", fontsize=31)
+    # ax.set_xscale('log')
+    ax.tick_params(axis="x", length=10, color="grey")
+    ax.tick_params(axis="y", length=10, color="grey")
+
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == "__main__":
