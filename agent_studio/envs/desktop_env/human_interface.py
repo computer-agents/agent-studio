@@ -76,6 +76,7 @@ class WorkerSignals(QObject):
     evaluation_display_signal = pyqtSignal(str)
     eval_button_signal = pyqtSignal(bool)
     annotator_panel_signal = pyqtSignal(bool)
+    popup_window_signal = pyqtSignal(str, str)
 
 
 class InputDialog(QDialog):
@@ -174,18 +175,21 @@ class ResetThread(QThread):
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = AgentStudioResultResponse(**response_raw.json())
-        # TODO: handle failed reset
-        assert (
+        if (
             response.status == "finished" and response.result == "success"
-        ), f"Fail to reset environment: {response_raw.text}"
+        ):
+            self.signals.status_bar_signal.emit("color: green;", "Task: Ready")
 
-        self.signals.status_bar_signal.emit("color: green;", "Task: Ready")
-
-        self.signals.next_action_editor_signal.emit(True)
-        self.signals.save_button_signal.emit(True)
-        self.signals.step_action_button_signal.emit(True)
-        self.signals.eval_button_signal.emit(True)
-        self.signals.annotator_panel_signal.emit(True)
+            self.signals.next_action_editor_signal.emit(True)
+            self.signals.save_button_signal.emit(True)
+            self.signals.step_action_button_signal.emit(True)
+            self.signals.eval_button_signal.emit(True)
+            self.signals.annotator_panel_signal.emit(True)
+        else:
+            self.signals.popup_window_signal.emit(
+                "Error",
+                f"Fail to reset environment: {response_raw.text}",
+            )
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -250,16 +254,21 @@ class EvalTaskThread(QThread):
         self._wait_finish()
         response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/result")
         response = AgentStudioResultResponse(**response_raw.json())
-        assert response.status == "finished" and isinstance(response.message, dict)
-        self.result_queue.put(response.message)
-        self.signals.evaluation_display_signal.emit(
-            "Auto-evaluation result:\n"
-            f"Score: {response.message['score']}\n"
-            f"Feedback: {response.message['feedback']}\n"
-        )
-        self.signals.status_bar_signal.emit("color: green;", "Task: Finished")
-        self.signals.save_button_signal.emit(True)
-        self.signals.annotator_panel_signal.emit(True)
+        if response.status == "finished" and isinstance(response.message, dict):
+            self.result_queue.put(response.message)
+            self.signals.evaluation_display_signal.emit(
+                "Auto-evaluation result:\n"
+                f"Score: {response.message['score']}\n"
+                f"Feedback: {response.message['feedback']}\n"
+            )
+            self.signals.status_bar_signal.emit("color: green;", "Task: Finished")
+            self.signals.save_button_signal.emit(True)
+            self.signals.annotator_panel_signal.emit(True)
+        else:
+            self.signals.popup_window_signal.emit(
+                "Error",
+                f"Fail to evaluate task: {response_raw.text}",
+            )
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -635,7 +644,7 @@ class HumanInterface(QMainWindow):
         self.json_preview_display.show()
         self.populate_instruction_selection_widget()
 
-    def show_popup(self, title: str, message: str) -> None:
+    def show_popup_dialog(self, title: str, message: str) -> None:
         """Shows a popup message."""
         dlg = QMessageBox(self)
         dlg.setWindowTitle(title)
@@ -651,7 +660,7 @@ class HumanInterface(QMainWindow):
             if not isinstance(evals, list):
                 raise ValueError("Evaluation Steps should be a list")
         except Exception as e:
-            self.show_popup(
+            self.show_popup_dialog(
                 "Invalid JSON format!", f"[Error] Check Evaluation Steps Editor:\n{e}"
             )
             return
@@ -700,6 +709,7 @@ class HumanInterface(QMainWindow):
         self.worker_signals.annotator_panel_signal.connect(
             self.annotator_container.setEnabled
         )
+        self.worker_signals.popup_window_signal.connect(self.show_popup_dialog)
         self.current_thread = ResetThread(
             agent=self.agent,
             signals=self.worker_signals,
@@ -725,7 +735,7 @@ class HumanInterface(QMainWindow):
                 not any([left, right, middle, double])
                 or sum([left, right, middle, double]) > 1
             ):
-                self.show_popup("Error", "Wrong mouse action combination!")
+                self.show_popup_dialog("Error", "Wrong mouse action combination!")
                 return
             if self.leftClickCheckbox.isChecked():
                 button = "left"
@@ -969,6 +979,7 @@ class HumanInterface(QMainWindow):
         signals.evaluation_display_signal.connect(self.evaluation_display.setPlainText)
         signals.show_dialog_signal.connect(self.show_input_dialog)
         signals.annotator_panel_signal.connect(self.annotator_container.setEnabled)
+        signals.popup_window_signal.connect(self.show_popup_dialog)
         self.current_thread_result = queue.Queue()
         self.current_thread = EvalTaskThread(
             signals=signals,
