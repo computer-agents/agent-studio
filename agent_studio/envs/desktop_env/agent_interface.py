@@ -197,7 +197,7 @@ class ResetTaskThread(QThread):
             response_raw.status_code == 200
         ), f"{response_raw.status_code} {response_raw.text}"
         response = AgentStudioStatusResponse(**response_raw.json())
-        assert response.status == "submitted"
+        assert response.status == "submitted", f"{response.content}"
         self._wait_finish()
         response_raw = requests.get(
             f"http://{REMOTE_SERVER_ADDR}/task/result",

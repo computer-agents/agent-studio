@@ -50,15 +50,19 @@ class Config(metaclass=ThreadSafeSingleton):
     # repeating_action_failure_th = 3
 
     # LM config
+    provider: str = "remote"
+    # provider: str = "openai"
+    # provider: str = "gemini"
     agent: str = "direct"
     max_retries: int = 3
-    # exec_model: str = "gpt-4-1106-vision-preview"
     # exec_model: str = "gpt-4-0125-preview"
     # exec_model: str = "gpt-3.5-turbo-0125"
+    # exec_model: str = "gpt-4-vision-preview"
     # exec_model: str = "gemini-pro"
-    exec_model: str = "claude-3-sonnet-20240229"
-    # exec_model: str = "claude-3-opus-20240229"
+    exec_model: str = "gemini-pro-vision"
     eval_model: str = exec_model
+    model_server: str = "http://127.0.0.1:65123"
+
     temperature: float = 0.0
     max_tokens: int = 4096
     gemini_api_key: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
@@ -68,7 +72,7 @@ class Config(metaclass=ThreadSafeSingleton):
     # Google API config
     google_credential_path: str = "agent_studio/config/credentials.json"
     google_calendar_id: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
-    gmail_recipient: str = ""
+    gmail_recipient: str = "test@outlook.com"
 
     # VSCode config
     vscode_workspace_path: str = "vscode_workspace"
