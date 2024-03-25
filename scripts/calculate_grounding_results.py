@@ -205,7 +205,8 @@ def main():
                 total_tokens += app_results["total_tokens"]
                 location_match += app_results["location_match"]
                 click_type_match += app_results["click_type_match"]
-                box_success_pairs += app_results["box_success_pairs"]
+                if model_folder == "claude-3-sonnet-20240229":
+                    box_success_pairs += app_results["box_success_pairs"]
 
             # model_results[os_folder] = os_results
             # model_results["total_tasks"] = total_tasks
@@ -216,7 +217,7 @@ def main():
     print(json.dumps(results, indent=4))
     print("Total tokens:", total_tokens)
     plot_box_success_pairs(box_success_pairs)
-    plot_match(results)
+    # plot_match(results)
 
 
 if __name__ == "__main__":
