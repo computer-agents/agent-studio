@@ -265,11 +265,7 @@ class GmailEvaluator(Evaluator):
         label_name: str,
     ) -> None:
         all_labels = (
-            self.service.users()
-            .labels()
-            .list(userId="me")
-            .execute()
-            .get("labels", [])
+            self.service.users().labels().list(userId="me").execute().get("labels", [])
         )
         label_id = next(
             (
@@ -439,9 +435,9 @@ class GmailEvaluator(Evaluator):
                 ).execute()
             else:
                 self.service.users().messages().modify(
-                    userId="me", id=message["id"], body={
-                        "removeLabelIds": ["IMPORTANT"]
-                    }
+                    userId="me",
+                    id=message["id"],
+                    body={"removeLabelIds": ["IMPORTANT"]},
                 ).execute()
 
     def get_message(self, message_id: str) -> dict[str, Any]:

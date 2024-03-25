@@ -186,8 +186,8 @@ TASK_CONFIGS = [
                             "in_trash": True,
                             "message_info": {
                                 "subject": "Automated travel plan",
-                                "body_contains": "automatically"
-                            }
+                                "body_contains": "automatically",
+                            },
                         }
                     }
                 ],
@@ -196,11 +196,11 @@ TASK_CONFIGS = [
                         "add_email_to_trash": {
                             "message_info": {
                                 "subject": "Automated travel plan",
-                                "body": "This is automatically sent message"
+                                "body": "This is automatically sent message",
                             }
                         }
                     }
-                ]
+                ],
             }
         ],
     },
@@ -241,6 +241,7 @@ def test_gmail(task_config):
     comb.reset()
     score, feedback = comb()
     assert score == 1.0, feedback
+
 
 test_gmail(TASK_CONFIGS[0])
 test_gmail(TASK_CONFIGS[1])
