@@ -23,7 +23,7 @@ This command will download the task suite and agent trajectories from `Huggingfa
 Setup API Keys
 --------------
 
-Please refer to the `doc <docs/source/getting_started/setup_api_keys.rst>`_ for detailed instructions.
+Please refer to the `doc <https://skyworkai.github.io/agent-studio/getting_started/setup_api_keys.html>`_ for detailed instructions.
 
 Setup Docker
 ------------

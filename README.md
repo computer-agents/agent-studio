@@ -68,7 +68,7 @@ git submodule update --init --remote --recursive
 
 ### Setup API Keys
 
-Please refer to the [doc](docs/source/getting_started/setup_api_keys.rst) for detailed instructions.
+Please refer to the [doc](https://skyworkai.github.io/agent-studio/getting_started/setup_api_keys.html) for detailed instructions.
 
 ### Setup Docker
 
