@@ -78,7 +78,7 @@ def plot_box_success_pairs(box_success_pairs):
     # ax.set_xscale('log')
     ax.tick_params(axis="x", length=10, color="grey")
     ax.tick_params(axis="y", length=10, color="grey")
-    ax.legend(loc="upper right", fontsize=25)
+    ax.legend(loc="upper right", fontsize=21)
 
     locs = [0, 2, 4, 6, 8]
     plt.xticks(
@@ -108,28 +108,51 @@ def plot_match(data):
     alpha = 0.5
 
     # Extracting data for plotting
-    names = list(data.keys())
-    location_matches = [value["location_match"] for value in data.values()]
-    click_type_matches = [value["click_type_match"] for value in data.values()]
+    names = []
+    location_matches = []
+    click_type_matches = []
+    for k, v in data.items():
+        if k == "gpt-4-vision-preview":
+            names.append("GPT-4V")
+        elif k == "claude-3-sonnet-20240229":
+            names.append("Claude-3 Sonnet")
+        elif k == "Qwen-VL-Chat":
+            names.append("Qwen-VL")
+        elif k == "gemini-pro-vision":
+            names.append("Gemini-Pro")
+        else:
+            continue
+        click_type_matches.append(v["click_type_match"])
+        location_matches.append(v["location_match"])
 
     # Creating the plot
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(13, 8))
 
     index = np.arange(len(names))
-    bar_width = 0.35
+    bar_width = 0.24
 
-    bars1 = ax.bar(index, location_matches, bar_width, label="Location Match")
-    bars2 = ax.bar(
-        index + bar_width, click_type_matches, bar_width, label="Click Type Match"
+    ax.bar(index - bar_width / 2, location_matches, bar_width, label="Location Match", color=sns_colors[1], alpha=alpha)
+    ax.bar(
+        index + bar_width / 2, click_type_matches, bar_width, label="Click Type Match", color=sns_colors[3], alpha=alpha
     )
 
     ax.set_xlabel("Model", fontsize=31)
     ax.set_ylabel("Scores", fontsize=31)
     ax.set_title("Location and Click Type Match Scores by Model", fontsize=33, pad=20)
     ax.set_xticks(index + bar_width / 2)
-    ax.set_xticklabels(names, rotation=30, ha="right")
-    ax.legend(loc="upper right", fontsize=25)
+    ax.set_xticklabels(names, ha="right")
+    ax.tick_params(axis="x", length=10, color="grey")
+    ax.tick_params(axis="y", length=10, color="grey")
+    ax.legend(loc="upper right", fontsize=21)
 
+    locs = [0, 1, 2, 3]
+    plt.xticks(
+        locs,
+        names,
+        ha="center",
+        fontsize=26,
+        fontweight="bold",
+    )
     locs = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
     plt.yticks(
         locs,
@@ -192,7 +215,7 @@ def main():
 
     print(json.dumps(results, indent=4))
     print("Total tokens:", total_tokens)
-    # plot_box_success_pairs(box_success_pairs)
+    plot_box_success_pairs(box_success_pairs)
     plot_match(results)
 
 
