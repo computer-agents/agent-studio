@@ -56,7 +56,7 @@ Install requirements:
 apt-get install gnome-screenshot xclip xdotool  # If using Ubuntu 22.04
 conda create --name agent-studio python=3.11 -y
 conda activate agent-studio
-pip install -r requirements_{YOUR_SYSTEM_TYPE}.txt
+pip install -r requirements.txt
 pip install -e .
 ```
 

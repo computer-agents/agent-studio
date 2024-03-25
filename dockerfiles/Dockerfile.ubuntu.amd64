@@ -26,13 +26,13 @@ RUN mkdir -p /home/ubuntu/agent_studio
 COPY agent_studio /home/ubuntu/agent_studio/agent_studio
 ADD scripts/agent_server.py /home/ubuntu/agent_studio/scripts/agent_server.py
 ADD pyproject.toml /home/ubuntu/agent_studio/pyproject.toml
-ADD requirements_linux.txt /home/ubuntu/agent_studio/requirements_linux.txt
+ADD requirements.txt /home/ubuntu/agent_studio/requirements.txt
 ADD scripts/docker_startup.sh /home/ubuntu/agent_studio/scripts/docker_startup.sh
 RUN chown -R ubuntu:ubuntu /home/ubuntu
 
 WORKDIR /home/ubuntu/agent_studio
 RUN python3.11 -m pip install -e .
-RUN python3.11 -m pip install -r requirements_linux.txt
+RUN python3.11 -m pip install -r requirements.txt
 RUN chmod +x /home/ubuntu/agent_studio/scripts/docker_startup.sh
 USER root
 ENTRYPOINT ["/home/ubuntu/agent_studio/scripts/docker_startup.sh"]
