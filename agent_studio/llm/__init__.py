@@ -1,7 +1,7 @@
 import ast
+import importlib
 import logging
 import os
-import importlib
 
 from agent_studio.llm.base_model import BaseModel
 
@@ -27,9 +27,7 @@ def register_models(
             # Check each class definition in the file
             for node in ast.walk(tree):
                 module_name = (
-                    os.path.relpath(file_path, ".")
-                    .replace(os.sep, ".")
-                    .rstrip(".py")
+                    os.path.relpath(file_path, ".").replace(os.sep, ".").rstrip(".py")
                 )
                 if isinstance(node, ast.ClassDef):
                     for base in node.bases:

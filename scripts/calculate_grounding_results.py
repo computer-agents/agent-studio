@@ -131,9 +131,21 @@ def plot_match(data):
     index = np.arange(len(names))
     bar_width = 0.24
 
-    ax.bar(index - bar_width / 2, location_matches, bar_width, label="Location Match", color=sns_colors[1], alpha=alpha)
     ax.bar(
-        index + bar_width / 2, click_type_matches, bar_width, label="Click Type Match", color=sns_colors[3], alpha=alpha
+        index - bar_width / 2,
+        location_matches,
+        bar_width,
+        label="Location Match",
+        color=sns_colors[1],
+        alpha=alpha,
+    )
+    ax.bar(
+        index + bar_width / 2,
+        click_type_matches,
+        bar_width,
+        label="Click Type Match",
+        color=sns_colors[3],
+        alpha=alpha,
     )
 
     ax.set_xlabel("Model", fontsize=31)

@@ -175,9 +175,7 @@ class ResetThread(QThread):
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = AgentStudioResultResponse(**response_raw.json())
-        if (
-            response.status == "finished" and response.result == "success"
-        ):
+        if response.status == "finished" and response.result == "success":
             self.signals.status_bar_signal.emit("color: green;", "Task: Ready")
 
             self.signals.next_action_editor_signal.emit(True)

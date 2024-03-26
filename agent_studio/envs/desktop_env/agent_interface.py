@@ -205,9 +205,7 @@ class ResetTaskThread(QThread):
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = AgentStudioResultResponse(**response_raw.json())
-        if (
-            response.status == "finished" and response.result == "success"
-        ):
+        if response.status == "finished" and response.result == "success":
             self.signals.generate_action_signal.emit()
         else:
             logger.error(f"Failed to reset task: {response.message}")
@@ -316,10 +314,10 @@ class EvalTaskThread(QThread):
         response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/result")
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = AgentStudioResultResponse(**response_raw.json())
-        if response.status == "finished" and isinstance(
-            response.message, dict
-        ):
-            self.signals.status_bar_signal.emit("color: green;", "Task: Self-Evaluating...")
+        if response.status == "finished" and isinstance(response.message, dict):
+            self.signals.status_bar_signal.emit(
+                "color: green;", "Task: Self-Evaluating..."
+            )
             self_eval_result = self.agent.eval(self.final_obs)
             self.result_queue.put(response.message)
             self.result_queue.put(self_eval_result)
@@ -338,8 +336,7 @@ class EvalTaskThread(QThread):
             self.signals.status_bar_signal.emit("color: green;", "Task: Finished")
         else:
             self.signals.popup_window_signal.emit(
-                "Error",
-                f"Failed to evaluate task: {response.message}"
+                "Error", f"Failed to evaluate task: {response.message}"
             )
 
     def receive_user_input(self, text: str):

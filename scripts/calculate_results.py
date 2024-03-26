@@ -17,11 +17,19 @@ for provider in providers:
         elif app == "GUI":
             data = []
             if provider == "gpt-4-0125-preview":
-                data += read_jsonl(f"data/trajectories/gpt-4-vision-preview/direct/desktop_hard.jsonl")
-                data += read_jsonl(f"data/trajectories/gpt-4-vision-preview/direct/vscode.jsonl")
+                data += read_jsonl(
+                    "data/trajectories/gpt-4-vision-preview/direct/desktop_hard.jsonl"
+                )
+                data += read_jsonl(
+                    "data/trajectories/gpt-4-vision-preview/direct/vscode.jsonl"
+                )
             elif provider == "gemini-pro":
-                data += read_jsonl(f"data/trajectories/gemini-pro-vision/direct/desktop_hard.jsonl")
-                data += read_jsonl(f"data/trajectories/gemini-pro-vision/direct/vscode.jsonl")
+                data += read_jsonl(
+                    "data/trajectories/gemini-pro-vision/direct/desktop_hard.jsonl"
+                )
+                data += read_jsonl(
+                    "data/trajectories/gemini-pro-vision/direct/vscode.jsonl"
+                )
             else:
                 continue
         else:

@@ -9,6 +9,7 @@ import psutil
 import requests
 from qasync import QApplication
 
+from agent_studio.agent import setup_agent
 from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.agent_interface import AgentInterface
@@ -20,7 +21,6 @@ from agent_studio.envs.desktop_env.recorder.screen_recorder import (
 )
 from agent_studio.envs.desktop_env.vnc_client import VNCStreamer
 from agent_studio.llm import setup_model
-from agent_studio.agent import setup_agent
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,

@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class BaseAgent:
     """Base class for agents."""
+
     name: str = "base"
 
     def __init__(self, model: BaseModel) -> None:
