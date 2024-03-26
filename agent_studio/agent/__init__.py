@@ -3,7 +3,7 @@ import logging
 import os
 import importlib
 
-from agent_studio.agent.base_agent import Agent
+from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.llm.base_model import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def register_agents(
     base_path: str = "agent_studio/agent",
-) -> dict[str, type[Agent]]:
+) -> dict[str, type[BaseAgent]]:
     registered_classes = {}
     for file in os.listdir(base_path):
         if file.endswith(".py"):
@@ -34,10 +34,10 @@ def register_agents(
                 )
                 if isinstance(node, ast.ClassDef):
                     for base in node.bases:
-                        if isinstance(base, ast.Name) and base.id == "Agent":
+                        if isinstance(base, ast.Name) and base.id == "BaseAgent":
                             try:
                                 module = importlib.import_module(module_name)
-                                new_class: type[Agent] | None = getattr(
+                                new_class: type[BaseAgent] | None = getattr(
                                     module, node.name, None
                                 )
                                 if (
@@ -56,8 +56,8 @@ def register_agents(
     return registered_classes
 
 
-def setup_agent(agent_name: str, model: BaseModel) -> Agent:
-    registered_agents: dict[str, type[Agent]] = register_agents()
+def setup_agent(agent_name: str, model: BaseModel) -> BaseAgent:
+    registered_agents: dict[str, type[BaseAgent]] = register_agents()
     logger.info(f"Registered agents: {registered_agents.keys()}")
     if agent_name not in registered_agents:
         logger.error(f"Agent [{agent_name}] is not registered")

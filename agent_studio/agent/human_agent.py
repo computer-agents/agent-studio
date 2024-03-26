@@ -5,7 +5,7 @@ from typing import Any
 import numpy as np
 import requests
 
-from agent_studio.agent.base_agent import Agent
+from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.config import Config
 from agent_studio.llm.base_model import BaseModel
@@ -14,7 +14,7 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
-class HumanAgent(Agent):
+class HumanAgent(BaseAgent):
     """Human agents for Human-recorder"""
     name = "human"
 

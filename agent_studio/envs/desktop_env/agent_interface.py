@@ -34,7 +34,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from agent_studio.agent.base_agent import Agent
+from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config.config import Config
 from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
@@ -145,7 +145,7 @@ class ResetRuntimeThread(QThread):
 class ResetTaskThread(QThread):
     def __init__(
         self,
-        agent: Agent,
+        agent: BaseAgent,
         signals: WorkerSignals,
         selected_task: dict,
     ):
@@ -228,7 +228,7 @@ class GenerateActionThread(QThread):
         signals: WorkerSignals,
         selected_task: dict,
         obs: np.ndarray | None,
-        agent: Agent,
+        agent: BaseAgent,
     ) -> None:
         super().__init__()
         self.signals = signals
@@ -258,7 +258,7 @@ class EvalTaskThread(QThread):
         signals: WorkerSignals,
         trajectory_display: QTextEdit,
         selected_task: dict,
-        agent: Agent,
+        agent: BaseAgent,
         result_queue: queue.Queue,
         final_obs: np.ndarray | None = None,
     ):
@@ -358,7 +358,7 @@ class StepActionThread(QThread):
         screen_recorder: ScreenRecorder | None,
         current_step_num: int,
         max_steps: int,
-        agent: Agent,
+        agent: BaseAgent,
     ):
         super().__init__()
         self.signals = signals
@@ -408,7 +408,7 @@ class AgentInterface(QMainWindow):
 
     def __init__(
         self,
-        agent: Agent,
+        agent: BaseAgent,
         task_configs: list,
         record_path: str = config.record_path,
     ):

@@ -1,8 +1,8 @@
-from agent_studio.agent.base_agent import Agent
+from agent_studio.agent.base_agent import BaseAgent
 
 
 def test_agent():
-    agent = Agent(record_path="data/trajectories/dummy")
+    agent = BaseAgent(record_path="data/trajectories/dummy")
     agent.reset(
         env="desktop",
         task_id="dummy",

@@ -9,7 +9,7 @@ import psutil
 import requests
 from qasync import QApplication
 
-from agent_studio.agent.base_agent import Agent
+from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.agent_interface import AgentInterface
 from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
@@ -106,7 +106,7 @@ def wait_finish(is_eval: bool):
 
 
 def eval_gui(
-    agent: Agent,
+    agent: BaseAgent,
     task_configs: list[dict],
     record_path: str,
 ) -> None:
@@ -156,7 +156,7 @@ def eval_gui(
 
 
 def eval_headless(
-    agent: Agent,
+    agent: BaseAgent,
     task_configs: list[dict],
     record_path: str,
 ) -> None:
