@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class HuggingFaceProvider(BaseModel):
+    name = "huggingface"
+
     def __init__(self, **kwargs) -> None:
         super().__init__()
         self.tokenizer = None

@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class RemoteProvider(BaseModel):
+    name = "remote"
+
     def __init__(self, **kwargs) -> None:
         super().__init__()
         self.model_server: str | None = getattr(config, "model_server", None)
