@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 class DirectAgent(Agent):
     """Zero-shot LLM agents."""
+    name: str = "direct"
 
     def reset(self, instruction: str) -> None:
         super().reset(instruction=instruction)

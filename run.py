@@ -20,6 +20,7 @@ from agent_studio.envs.desktop_env.recorder.screen_recorder import (
 )
 from agent_studio.envs.desktop_env.vnc_client import VNCStreamer
 from agent_studio.llm import setup_model
+from agent_studio.agent import setup_agent
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
@@ -43,7 +44,6 @@ class TestReq:
 
 def create_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--agent", type=str, default=config.agent)
     parser.add_argument(
         "--mode", type=str, choices=["record", "eval", "annotate"], default="eval"
     )
@@ -53,27 +53,10 @@ def create_parser():
     return parser
 
 
-def setup_agent(args):
+def get_agent(args):
     model = setup_model(config.provider)
-    match args.agent:
-        case "dummy":
-            from agent_studio.agent.base_agent import Agent
-
-            agent = Agent(model=model)
-            record_path = f"data/trajectories/{config.exec_model}/dummy"
-        case "direct":
-            from agent_studio.agent.direct_agent import DirectAgent
-
-            agent = DirectAgent(model=model)
-            record_path = f"data/trajectories/{config.exec_model}/direct"
-        case "synapse":
-            from agent_studio.agent.synapse_agent import SynapseAgent
-
-            agent = SynapseAgent(model=model)
-            record_path = f"data/trajectories/{config.exec_model}/synapse"
-        case _:
-            raise ValueError(f"Invalid agent: {args.agent}.")
-
+    agent = setup_agent(config.agent, model)
+    record_path = f"data/trajectories/{config.exec_model}/{config.agent}"
     Path(record_path).mkdir(parents=True, exist_ok=True)
 
     return agent, record_path
@@ -330,7 +313,7 @@ def eval_headless(
 def eval(args) -> None:
     """Evaluate the agent on the given tasks."""
 
-    agent, record_path = setup_agent(args)
+    agent, record_path = get_agent(args)
     task_configs = setup_tasks(args)
 
     match config.env_type:

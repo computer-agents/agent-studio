@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class HumanAgent(Agent):
     """Human agents for Human-recorder"""
+    name = "human"
 
     def __init__(self) -> None:
         self.instruction: str = ""

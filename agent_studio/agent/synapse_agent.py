@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class SynapseAgent(Agent):
+    name = "synapse"
+
     def reset(self, instruction: str) -> None:
         super().reset(instruction=instruction)
         with open(config.system_prompt_path, "r") as f:
