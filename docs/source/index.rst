@@ -47,6 +47,10 @@ We plan to expand the collection of environments, tasks, and data over time. Con
 
    getting_started/evaluate_agents
 
+   getting_started/create_agents
+
+   getting_started/connect_model
+
    getting_started/start_recording
 
    getting_started/annotation
