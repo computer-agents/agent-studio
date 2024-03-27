@@ -3,7 +3,7 @@ AgentStudio
 </h1>
 
 <p align="center">
-<a href="https://ltzheng.github.io/agent-studio/"><b>Documentation</b></a>
+<a href="https://SkyworkAI.github.io/agent-studio/"><b>Documentation</b></a>
 </p>
 
 <p align="center">
@@ -114,7 +114,7 @@ python run.py --mode eval
 
 ## Record Datasets, Add Tasks & More
 
-Please refer to the our [documentation](https://ltzheng.github.io/agent-studio/) for detailed instructions on environment setup, running experiments, recording dataset, adding new tasks, and troubleshooting.
+Please refer to the our [documentation](https://SkyworkAI.github.io/agent-studio/) for detailed instructions on environment setup, running experiments, recording dataset, adding new tasks, and troubleshooting.
 
 Here is an example of recording human demonstrations:
 

@@ -8,7 +8,7 @@ Welcome to AgentStudio!
 
 .. raw:: html
     <p align="center">
-    <a href="https://ltzheng.github.io/agent-studio/"><b>Documentation</b></a> | <a href="https://arxiv.org/abs/2403."><b>Paper</b></a>
+    <a href="https://SkyworkAI.github.io/agent-studio/"><b>Documentation</b></a> | <a href="https://arxiv.org/abs/2403."><b>Paper</b></a>
     </p>
 
 .. raw:: html
