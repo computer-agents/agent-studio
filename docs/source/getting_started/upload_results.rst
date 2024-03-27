@@ -7,6 +7,7 @@ Have run your agent on our platform and want to upload the results to Hugging Fa
 
 1. Pack the results of your agent in a zip file.
     You can find your results:
+
     a. For real-world tasks: under the ``data/trajectories/<MODEL_NAME>/<AGENT_NAME>/`` folder.
     b. For GUI grounding tasks: under the ``data/grounding_results/<MODEL_NAME>/`` folder.
 
