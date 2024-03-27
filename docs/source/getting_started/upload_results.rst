@@ -11,4 +11,4 @@ Have run your agent on our platform and want to upload the results to Hugging Fa
     a. For real-world tasks: under the ``data/trajectories/<MODEL_NAME>/<AGENT_NAME>/`` folder.
     b. For GUI grounding tasks: under the ``data/grounding_results/<MODEL_NAME>/`` folder.
 
-2. Visit our `leaderboard <https://huggingface.co/spaces/agent-studio/agent-studio-leaderboard>`_ and follow the instructions to upload your results.
+2. Visit our `leaderboard <https://huggingface.co/spaces/Skywork/agent-studio-leaderboard>`_ and follow the instructions to upload your results.

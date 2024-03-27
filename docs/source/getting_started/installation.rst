@@ -14,7 +14,7 @@ Install requirements::
     pip install -r requirements.txt
     pip install -e .
 
-This command will download the task suite and agent trajectories from `Huggingface <https://huggingface.co/datasets/agent-studio/agent-studio-data>`_ (you may need to `configure huggingface and git lfs <https://huggingface.co/docs/hub/en/repositories-getting-started#cloning-repositories>`_).
+This command will download the task suite and agent trajectories from `Huggingface <https://huggingface.co/datasets/Skywork/agent-studio-data>`_ (you may need to `configure huggingface and git lfs <https://huggingface.co/docs/hub/en/repositories-getting-started#cloning-repositories>`_).
 
 ::
 
