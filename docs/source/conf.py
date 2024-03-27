@@ -67,7 +67,7 @@ html_theme = "sphinx_book_theme"
 html_logo = "assets/logos/agent-studio-logo-text-light.png"
 html_theme_options = {
     "path_to_docs": "docs/source",
-    "repository_url": "https://github.com/ltzheng/agent-studio",
+    "repository_url": "https://github.com/SkyworkAI/agent-studio",
     "use_repository_button": True,
 }
 

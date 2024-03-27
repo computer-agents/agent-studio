@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAIProvider(BaseModel):
+    name = "openai"
+
     def __init__(self, **kwargs: Any) -> None:
         super().__init__()
         self.client = OpenAI(api_key=config.openai_api_key)

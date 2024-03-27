@@ -3,15 +3,17 @@ from typing import Any
 
 import numpy as np
 
-from agent_studio.agent.base_agent import Agent
+from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config import Config
 
 config = Config()
 logger = logging.getLogger(__name__)
 
 
-class DirectAgent(Agent):
+class DirectAgent(BaseAgent):
     """Zero-shot LLM agents."""
+
+    name: str = "direct"
 
     def reset(self, instruction: str) -> None:
         super().reset(instruction=instruction)

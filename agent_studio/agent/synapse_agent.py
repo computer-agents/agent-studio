@@ -3,14 +3,16 @@ from typing import Any
 
 import numpy as np
 
-from agent_studio.agent.base_agent import Agent
+from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config import Config
 
 config = Config()
 logger = logging.getLogger(__name__)
 
 
-class SynapseAgent(Agent):
+class SynapseAgent(BaseAgent):
+    name = "synapse"
+
     def reset(self, instruction: str) -> None:
         super().reset(instruction=instruction)
         with open(config.system_prompt_path, "r") as f:

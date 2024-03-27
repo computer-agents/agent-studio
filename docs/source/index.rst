@@ -8,7 +8,7 @@ Welcome to AgentStudio!
 
 .. raw:: html
     <p align="center">
-    <a href="https://ltzheng.github.io/agent-studio/"><b>Documentation</b></a> | <a href="https://arxiv.org/abs/2403."><b>Paper</b></a>
+    <a href="https://SkyworkAI.github.io/agent-studio/"><b>Documentation</b></a> | <a href="https://arxiv.org/abs/2403."><b>Paper</b></a>
     </p>
 
 .. raw:: html
@@ -46,6 +46,10 @@ We plan to expand the collection of environments, tasks, and data over time. Con
    getting_started/setup_api_keys
 
    getting_started/evaluate_agents
+
+   getting_started/create_agents
+
+   getting_started/connect_model
 
    getting_started/start_recording
 

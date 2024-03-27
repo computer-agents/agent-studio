@@ -1,7 +1,16 @@
 import json
 import os
 
+import matplotlib
+import numpy as np
+import seaborn as sns
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+
 from agent_studio.utils.json_utils import read_jsonl
+
+matplotlib.rcParams["font.family"] = "Helvetica"
+matplotlib.rcParams["mathtext.fontset"] = "cm"
 
 
 def calculate_results(result_dict, task_configs):
@@ -35,23 +44,152 @@ def calculate_results(result_dict, task_configs):
         "total_tasks": total_tasks,
         "success": f"{success} / {total_tasks} = "
         f"{round(success / total_tasks * 100, 1)}",
-        "click_type_match": f"{click_type_match} / {total_tasks} = "
-        f"{round(click_type_match / total_tasks * 100, 1)}",
-        "location_match": f"{location_match} / {total_tasks} = "
-        f"{round(location_match / total_tasks * 100, 1)}",
+        # "click_type_match": f"{click_type_match} / {total_tasks} = "
+        # f"{round(click_type_match / total_tasks * 100, 1)}",
+        # "location_match": f"{location_match} / {total_tasks} = "
+        # f"{round(location_match / total_tasks * 100, 1)}",
+        "click_type_match": click_type_match,
+        "location_match": location_match,
         "total_tokens": total_tokens,
         "box_success_pairs": box_success_pairs,
     }
 
 
+def plot_box_success_pairs(box_success_pairs):
+    pdf = PdfPages("success_vs_size.pdf")
+    sns_colors = sns.color_palette("Paired", 8)
+    alpha = 0.5
+
+    # Splitting the data based on score
+    x1 = [size for size, score in box_success_pairs if score == 0]
+    x2 = [size for size, score in box_success_pairs if score == 1]
+    x1 = np.log10(np.array(x1))
+    x2 = np.log10(np.array(x2))
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    sns.kdeplot(x1, color=sns_colors[1], label="Fail", fill=True, alpha=alpha)
+    sns.kdeplot(x2, color=sns_colors[3], label="Success", fill=True, alpha=alpha)
+
+    ax.set_title("Element Areas for Successful and Failed Clicks", fontsize=33, pad=20)
+    ax.set_xlabel("Element Area (pixels)", fontsize=31)
+    ax.set_ylabel("Frequency", fontsize=31)
+    # ax.set_xscale('log')
+    ax.tick_params(axis="x", length=10, color="grey")
+    ax.tick_params(axis="y", length=10, color="grey")
+    ax.legend(loc="upper right", fontsize=21)
+
+    locs = [0, 2, 4, 6, 8]
+    plt.xticks(
+        locs,
+        [r"$10^{%d}$" % loc for loc in locs],
+        ha="center",
+        fontsize=30,
+        fontweight="bold",
+    )
+    locs = [0.0, 0.2, 0.4, 0.6, 0.8]
+    plt.yticks(
+        locs,
+        [r"$%.1f$" % loc for loc in locs],
+        fontsize=30,
+        fontweight="bold",
+    )
+
+    plt.tight_layout()
+    plt.show()
+    pdf.savefig(fig)
+    pdf.close()
+
+
+def plot_match(data):
+    pdf = PdfPages("match.pdf")
+    sns_colors = sns.color_palette("Paired", 8)
+    alpha = 0.5
+
+    # Extracting data for plotting
+    names = []
+    location_matches = []
+    click_type_matches = []
+    for k, v in data.items():
+        if k == "gpt-4-vision-preview":
+            names.append("GPT-4V")
+        elif k == "claude-3-sonnet-20240229":
+            names.append("Claude-3 Sonnet")
+        elif k == "Qwen-VL-Chat":
+            names.append("Qwen-VL")
+        elif k == "gemini-pro-vision":
+            names.append("Gemini-Pro")
+        else:
+            continue
+        click_type_matches.append(v["click_type_match"])
+        location_matches.append(v["location_match"])
+
+    # Creating the plot
+    fig, ax = plt.subplots(figsize=(13, 8))
+
+    index = np.arange(len(names))
+    bar_width = 0.24
+
+    ax.bar(
+        index - bar_width / 2,
+        location_matches,
+        bar_width,
+        label="Location Match",
+        color=sns_colors[1],
+        alpha=alpha,
+    )
+    ax.bar(
+        index + bar_width / 2,
+        click_type_matches,
+        bar_width,
+        label="Click Type Match",
+        color=sns_colors[3],
+        alpha=alpha,
+    )
+
+    ax.set_xlabel("Model", fontsize=31)
+    ax.set_ylabel("Scores", fontsize=31)
+    ax.set_title("Location and Click Type Match Scores by Model", fontsize=33, pad=20)
+    ax.set_xticks(index + bar_width / 2)
+    ax.set_xticklabels(names, ha="right")
+    ax.tick_params(axis="x", length=10, color="grey")
+    ax.tick_params(axis="y", length=10, color="grey")
+    ax.legend(loc="upper right", fontsize=21)
+
+    locs = [0, 1, 2, 3]
+    plt.xticks(
+        locs,
+        names,
+        ha="center",
+        fontsize=26,
+        fontweight="bold",
+    )
+    locs = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    plt.yticks(
+        locs,
+        [r"$%.1f$" % loc for loc in locs],
+        fontsize=30,
+        fontweight="bold",
+    )
+
+    plt.tight_layout()
+    plt.show()
+    pdf.savefig(fig)
+    pdf.close()
+
+
 def main():
     folder_path = "data/grounding_results"
     results = {}
+    box_success_pairs = []
 
     # iterate over the folders
     total_tokens = 0
     for model_folder in os.listdir(folder_path):
         total_tasks = 0
+        location_match = 0
+        click_type_match = 0
         model_results = {}
         for os_folder in os.listdir(os.path.join(folder_path, model_folder)):
             os_results = {}
@@ -77,14 +215,21 @@ def main():
                 }
                 total_tasks += app_results["total_tasks"]
                 total_tokens += app_results["total_tokens"]
-                # box_success_pairs = app_results["box_success_pairs"]
+                location_match += app_results["location_match"]
+                click_type_match += app_results["click_type_match"]
+                if model_folder == "claude-3-sonnet-20240229":
+                    box_success_pairs += app_results["box_success_pairs"]
 
-            model_results[os_folder] = os_results
-            model_results["total_tasks"] = total_tasks
+            # model_results[os_folder] = os_results
+            # model_results["total_tasks"] = total_tasks
+            model_results["location_match"] = location_match / total_tasks
+            model_results["click_type_match"] = click_type_match / total_tasks
         results[model_folder] = model_results
 
     print(json.dumps(results, indent=4))
     print("Total tokens:", total_tokens)
+    plot_box_success_pairs(box_success_pairs)
+    # plot_match(results)
 
 
 if __name__ == "__main__":

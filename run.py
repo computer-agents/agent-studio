@@ -9,7 +9,8 @@ import psutil
 import requests
 from qasync import QApplication
 
-from agent_studio.agent.base_agent import Agent
+from agent_studio.agent import setup_agent
+from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.agent_interface import AgentInterface
 from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
@@ -43,7 +44,6 @@ class TestReq:
 
 def create_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--agent", type=str, default=config.agent)
     parser.add_argument(
         "--mode", type=str, choices=["record", "eval", "annotate"], default="eval"
     )
@@ -53,27 +53,10 @@ def create_parser():
     return parser
 
 
-def setup_agent(args):
-    model = setup_model(config.exec_model)
-    match args.agent:
-        case "dummy":
-            from agent_studio.agent.base_agent import Agent
-
-            agent = Agent(model=model)
-            record_path = f"data/trajectories/{config.exec_model}/dummy"
-        case "direct":
-            from agent_studio.agent.direct_agent import DirectAgent
-
-            agent = DirectAgent(model=model)
-            record_path = f"data/trajectories/{config.exec_model}/direct"
-        case "synapse":
-            from agent_studio.agent.synapse_agent import SynapseAgent
-
-            agent = SynapseAgent(model=model)
-            record_path = f"data/trajectories/{config.exec_model}/synapse"
-        case _:
-            raise ValueError(f"Invalid agent: {args.agent}.")
-
+def get_agent(args):
+    model = setup_model(config.provider)
+    agent = setup_agent(config.agent, model)
+    record_path = f"data/trajectories/{config.exec_model}/{config.agent}"
     Path(record_path).mkdir(parents=True, exist_ok=True)
 
     return agent, record_path
@@ -123,7 +106,7 @@ def wait_finish(is_eval: bool):
 
 
 def eval_gui(
-    agent: Agent,
+    agent: BaseAgent,
     task_configs: list[dict],
     record_path: str,
 ) -> None:
@@ -173,7 +156,7 @@ def eval_gui(
 
 
 def eval_headless(
-    agent: Agent,
+    agent: BaseAgent,
     task_configs: list[dict],
     record_path: str,
 ) -> None:
@@ -211,7 +194,8 @@ def eval_headless(
                     json=AgentStudioResetRequest(task_config=task_config).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
-                assert response.status == "submitted"
+                if response.status != "submitted":
+                    raise ValueError(f"Fail to reset task: {response.content}")
                 wait_finish(is_eval=False)
                 response_raw = requests.get(
                     f"{remote_server_addr}/task/result",
@@ -329,7 +313,7 @@ def eval_headless(
 def eval(args) -> None:
     """Evaluate the agent on the given tasks."""
 
-    agent, record_path = setup_agent(args)
+    agent, record_path = get_agent(args)
     task_configs = setup_tasks(args)
 
     match config.env_type:

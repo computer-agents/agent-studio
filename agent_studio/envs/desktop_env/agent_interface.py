@@ -34,7 +34,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from agent_studio.agent.base_agent import Agent
+from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config.config import Config
 from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
@@ -94,6 +94,7 @@ class WorkerSignals(QObject):
     finish_run_task_signal = pyqtSignal()
     trajectory_display_signal = pyqtSignal(str)
     generate_action_signal = pyqtSignal()
+    popup_window_signal = pyqtSignal(str, str)
 
 
 class InputDialog(QDialog):
@@ -144,7 +145,7 @@ class ResetRuntimeThread(QThread):
 class ResetTaskThread(QThread):
     def __init__(
         self,
-        agent: Agent,
+        agent: BaseAgent,
         signals: WorkerSignals,
         selected_task: dict,
     ):
@@ -197,17 +198,20 @@ class ResetTaskThread(QThread):
             response_raw.status_code == 200
         ), f"{response_raw.status_code} {response_raw.text}"
         response = AgentStudioStatusResponse(**response_raw.json())
-        assert response.status == "submitted"
+        assert response.status == "submitted", f"{response.content}"
         self._wait_finish()
         response_raw = requests.get(
             f"http://{REMOTE_SERVER_ADDR}/task/result",
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = AgentStudioResultResponse(**response_raw.json())
-        assert (
-            response.status == "finished" and response.result == "success"
-        ), f"Failed to reset task: {response.message}"
-        self.signals.generate_action_signal.emit()
+        if response.status == "finished" and response.result == "success":
+            self.signals.generate_action_signal.emit()
+        else:
+            logger.error(f"Failed to reset task: {response.message}")
+            self.signals.popup_window_signal.emit(
+                "Error", f"Failed to reset task: {response.message}"
+            )
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -222,7 +226,7 @@ class GenerateActionThread(QThread):
         signals: WorkerSignals,
         selected_task: dict,
         obs: np.ndarray | None,
-        agent: Agent,
+        agent: BaseAgent,
     ) -> None:
         super().__init__()
         self.signals = signals
@@ -252,7 +256,7 @@ class EvalTaskThread(QThread):
         signals: WorkerSignals,
         trajectory_display: QTextEdit,
         selected_task: dict,
-        agent: Agent,
+        agent: BaseAgent,
         result_queue: queue.Queue,
         final_obs: np.ndarray | None = None,
     ):
@@ -310,26 +314,30 @@ class EvalTaskThread(QThread):
         response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/result")
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = AgentStudioResultResponse(**response_raw.json())
-        assert response.status == "finished" and isinstance(
-            response.message, dict
-        ), f"Failed to evaluate task: {response.message}"
-        self.signals.status_bar_signal.emit("color: green;", "Task: Self-Evaluating...")
-        self_eval_result = self.agent.eval(self.final_obs)
-        self.result_queue.put(response.message)
-        self.result_queue.put(self_eval_result)
-        self.signals.evaluation_display_signal.emit(
-            "Auto-evaluation result:\n"
-            f"Score: {response.message['score']}\n"
-            f"Feedback: {response.message['feedback']}\n"
-            "\nSelf-evaluation result:\n"
-            f"Score: {self_eval_result['score']}\n"
-            f"Feedback: {self_eval_result['response']}"
-        )
-        self.signals.status_bar_signal.emit(
-            "color: green;", "Task: Saving trajectory..."
-        )
-        self.signals.save_trajectory_signal.emit()
-        self.signals.status_bar_signal.emit("color: green;", "Task: Finished")
+        if response.status == "finished" and isinstance(response.message, dict):
+            self.signals.status_bar_signal.emit(
+                "color: green;", "Task: Self-Evaluating..."
+            )
+            self_eval_result = self.agent.eval(self.final_obs)
+            self.result_queue.put(response.message)
+            self.result_queue.put(self_eval_result)
+            self.signals.evaluation_display_signal.emit(
+                "Auto-evaluation result:\n"
+                f"Score: {response.message['score']}\n"
+                f"Feedback: {response.message['feedback']}\n"
+                "\nSelf-evaluation result:\n"
+                f"Score: {self_eval_result['score']}\n"
+                f"Feedback: {self_eval_result['response']}"
+            )
+            self.signals.status_bar_signal.emit(
+                "color: green;", "Task: Saving trajectory..."
+            )
+            self.signals.save_trajectory_signal.emit()
+            self.signals.status_bar_signal.emit("color: green;", "Task: Finished")
+        else:
+            self.signals.popup_window_signal.emit(
+                "Error", f"Failed to evaluate task: {response.message}"
+            )
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -347,7 +355,7 @@ class StepActionThread(QThread):
         screen_recorder: ScreenRecorder | None,
         current_step_num: int,
         max_steps: int,
-        agent: Agent,
+        agent: BaseAgent,
     ):
         super().__init__()
         self.signals = signals
@@ -397,7 +405,7 @@ class AgentInterface(QMainWindow):
 
     def __init__(
         self,
-        agent: Agent,
+        agent: BaseAgent,
         task_configs: list,
         record_path: str = config.record_path,
     ):
@@ -566,9 +574,9 @@ class AgentInterface(QMainWindow):
         # self.evaluation_display.setFixedHeight(60)
         # self.evaluation_display.setFixedWidth(self.layout_width)
 
-        self.next_button = QPushButton("Next task")
-        self.next_button.clicked.connect(self.reset)
-        task_layout.addWidget(self.next_button)
+        self.reset_button = QPushButton("Reset")
+        self.reset_button.clicked.connect(self.reset)
+        task_layout.addWidget(self.reset_button)
 
         self.status_bar.showMessage("Ready")
 
@@ -646,6 +654,20 @@ class AgentInterface(QMainWindow):
         )
         self.current_thread.receive_user_input(user_input)
 
+    def show_error_popup_dialog(self, title: str, message: str) -> None:
+        """Shows a popup message."""
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle(title)
+        dlg.setText(message)
+        dlg.show()
+
+        self.eval_button.setEnabled(False)
+        self.start_button.setEnabled(False)
+        self.confirm_button.setEnabled(False)
+        self.decline_button.setEnabled(False)
+        self.instruction_selection.setEnabled(False)
+        self.reset_button.setEnabled(True)
+
     def reset(self):
         """Resets the task and waits for the environment to be ready."""
         self.set_task_status_bar_text("color: green;", "Task: Preparing...")
@@ -709,7 +731,7 @@ class AgentInterface(QMainWindow):
             video_meta=self.video_meta,
             jsonl_name=config.result_jsonl_file,
         )
-        self.next_button.setEnabled(True)
+        self.reset_button.setEnabled(True)
 
     def run_task(self):
         self.instruction_selection.setEnabled(False)
@@ -727,12 +749,13 @@ class AgentInterface(QMainWindow):
         self.eval_button.setEnabled(False)
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
-        self.next_button.setEnabled(False)
+        self.reset_button.setEnabled(False)
 
         signals = WorkerSignals()
         signals.status_bar_signal.connect(self.set_task_status_bar_text)
         signals.show_dialog_signal.connect(self.show_choice_dialog)
         signals.generate_action_signal.connect(self.generate_action)
+        signals.popup_window_signal.connect(self.show_error_popup_dialog)
         self.current_thread_result = queue.Queue()
         self.current_thread = ResetTaskThread(
             agent=self.agent, signals=signals, selected_task=self.selected_task
@@ -780,7 +803,7 @@ class AgentInterface(QMainWindow):
         self.eval_button.setEnabled(False)
         self.confirm_button.setEnabled(False)
         self.decline_button.setEnabled(False)
-        self.next_button.setEnabled(False)
+        self.reset_button.setEnabled(False)
         if self.selected_task is None:
             self.set_task_status_bar_text("color: red;", "Task: No task selected")
             return
@@ -792,6 +815,7 @@ class AgentInterface(QMainWindow):
         signals.evaluation_display_signal.connect(self.evaluation_display.setPlainText)
         signals.show_dialog_signal.connect(self.show_input_dialog)
         signals.save_trajectory_signal.connect(self.save_trajectory)
+        signals.popup_window_signal.connect(self.show_error_popup_dialog)
         self.current_thread_result = queue.Queue()
         self.current_thread = EvalTaskThread(
             signals=signals,

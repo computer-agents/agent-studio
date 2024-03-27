@@ -3,7 +3,7 @@ AgentStudio
 </h1>
 
 <p align="center">
-<a href="https://ltzheng.github.io/agent-studio/"><b>Documentation</b></a>
+<a href="https://SkyworkAI.github.io/agent-studio/"><b>Documentation</b></a>
 </p>
 
 <p align="center">
@@ -56,7 +56,7 @@ Install requirements:
 apt-get install gnome-screenshot xclip xdotool  # If using Ubuntu 22.04
 conda create --name agent-studio python=3.11 -y
 conda activate agent-studio
-pip install -r requirements_{YOUR_SYSTEM_TYPE}.txt
+pip install -r requirements.txt
 pip install -e .
 ```
 
@@ -68,7 +68,7 @@ git submodule update --init --remote --recursive
 
 ### Setup API Keys
 
-Please refer to the [doc](docs/source/getting_started/setup_api_keys.rst) for detailed instructions.
+Please refer to the [doc](https://skyworkai.github.io/agent-studio/getting_started/setup_api_keys.html) for detailed instructions.
 
 ### Setup Docker
 
@@ -103,7 +103,7 @@ Set `headless = False` and `remote = True`. This setup is suitable for evaluatin
 
 #### Run Docker (optional)
 ```bash
-docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/home/ubuntu/agent_studio/agent_studio/config/:ro -v ${PWD}/data:/home/ubuntu/agent_studio/data:ro agent-studio:latest
+docker run -d -e RESOLUTION=1024x768 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/home/ubuntu/agent_studio/agent_studio/config -v ${PWD}/data:/home/ubuntu/agent_studio/data:ro agent-studio:latest
 ```
 
 Start benchmarking:
@@ -114,7 +114,7 @@ python run.py --mode eval
 
 ## Record Datasets, Add Tasks & More
 
-Please refer to the our [documentation](https://ltzheng.github.io/agent-studio/) for detailed instructions on environment setup, running experiments, recording dataset, adding new tasks, and troubleshooting.
+Please refer to the our [documentation](https://SkyworkAI.github.io/agent-studio/) for detailed instructions on environment setup, running experiments, recording dataset, adding new tasks, and troubleshooting.
 
 Here is an example of recording human demonstrations:
 

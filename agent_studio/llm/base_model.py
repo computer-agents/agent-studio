@@ -4,6 +4,8 @@ from typing import Any
 class BaseModel:
     """Base class for models."""
 
+    name: str = "base"
+
     def compose_messages(
         self,
         intermediate_msg: list[dict[str, Any]],

@@ -51,11 +51,7 @@ TASK_CONFIGS = [
                                 "description": "Discuss project status",
                                 "start": {"dateTime": "2024-01-05T10:00:00Z"},
                                 "end": {"dateTime": "2024-01-05T11:00:00Z"},
-                                "colorId": "11",
-                                "reminders": {
-                                    "useDefault": False,
-                                    "overrides": [{"method": "email", "minutes": 60}],
-                                },
+                                "attendees": [{"email": "ceo@example.com"}],
                             },
                             "exists": True,
                         }
@@ -81,6 +77,7 @@ TASK_CONFIGS = [
                                     "useDefault": False,
                                     "overrides": [{"method": "email", "minutes": 60}],
                                 },
+                                "attendees": [{"email": "ceo@example.com"}],
                             }
                         }
                     },
@@ -101,11 +98,7 @@ TASK_CONFIGS = [
                                 "description": "Discuss project status",
                                 "start": {"dateTime": "2024-01-05T10:00:00Z"},
                                 "end": {"dateTime": "2024-01-05T11:00:00Z"},
-                                "colorId": "11",
-                                "reminders": {
-                                    "useDefault": False,
-                                    "overrides": [{"method": "email", "minutes": 60}],
-                                },
+                                "attendees": [{"email": "ceo@example.com"}],
                             },
                             "exists": False,
                         }
