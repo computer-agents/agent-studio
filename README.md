@@ -3,7 +3,7 @@ AgentStudio
 </h1>
 
 <p align="center">
-<a href="https://SkyworkAI.github.io/agent-studio/"><b>Documentation</b></a>
+<a href="https://arxiv.org/abs/2403.17918"><b>Paper</b></a> | <a href="https://skyworkai.github.io/agent-studio/"><b>Documentation</b></a> | <a href="https://huggingface.co/spaces/Skywork/agent-studio-leaderboard"><b>Leaderboard</b></a> | <a href="https://huggingface.co/datasets/Skywork/agent-studio-data"><b>Dataset & Benchmark</b></a>
 </p>
 
 <p align="center">
@@ -60,10 +60,16 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-This command will download the task suite and agent trajectories from [Huggingface](https://huggingface.co/datasets/agent-studio/agent-studio-data) (you may need to [configure huggingface and git lfs](https://huggingface.co/docs/hub/en/repositories-getting-started#cloning-repositories)).
+This command will download the task suite and agent trajectories from [Huggingface](https://huggingface.co/datasets/Skywork/agent-studio-data) (you may need to [configure huggingface and git lfs](https://huggingface.co/docs/hub/en/repositories-getting-started#cloning-repositories)).
 
 ```bash
 git submodule update --init --remote --recursive
+```
+
+Alternatively, you can directly clone the dataset repository:
+
+```bash
+git clone git@hf.co:datasets/Skywork/agent-studio-data data
 ```
 
 ### Setup API Keys
@@ -131,4 +137,18 @@ We would like to thank the following projects for their inspiration and contribu
 - [Open Interpreter](https://github.com/KillianLucas/open-interpreter)
 - [WebArena](https://github.com/web-arena-x/webarena)
 - [Cradle](https://baai-agents.github.io/Cradle/)
+- [Synapse](https://ltzheng.github.io/Synapse/)
 - [ScreenAgent](https://github.com/niuzaisheng/ScreenAgent)
+
+## Citation
+
+If you find AgentStudio usedul, please cite our [paper](https://arxiv.org/abs/2403.17918):
+
+```bibtex
+@article{zheng2024agentstudio,
+  title={AgentStudio: A Toolkit for Building General Virtual Agents},
+  author={Longtao Zheng and Zhiyuan Huang and Zhenghai Xue and Xinrun Wang and Bo An and Shuicheng Yan},
+  journal={arXiv preprint arXiv:2403.17918},
+  year={2024}
+}
+```
