@@ -1,24 +1,32 @@
 Welcome to AgentStudio!
 ======================================
 
-.. raw:: html
-    <h1 align="center">
-    AgentStudio
-    </h1>
+.. _Paper: https://arxiv.org/abs/2403.17918
+.. _Leaderboard: https://huggingface.co/spaces/Skywork/agent-studio-leaderboard
+.. _Dataset & Benchmark: https://huggingface.co/datasets/Skywork/agent-studio-data
 
-.. raw:: html
-    <p align="center">
-    <a href="https://SkyworkAI.github.io/agent-studio/"><b>Documentation</b></a> | <a href="https://arxiv.org/abs/2403."><b>Paper</b></a>
-    </p>
+`Paper`_ | `Leaderboard`_ | `Dataset & Benchmark`_
 
-.. raw:: html
-    <p align="center">
-    <a href="https://www.python.org/downloads/release/python-3117/"><img alt="Python 3.11" src="https://img.shields.io/badge/python-3.11-blue.svg"></a>
-    <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
-    <a href="https://mypy-lang.org/"><img src="https://www.mypy-lang.org/static/mypy_badge.svg" alt="Checked with mypy"></a>
-    <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" alt="License: AGPL v3"></a>
-    <a href="https://pre-commit.com/"><img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white" alt="pre-commit"></a>
-    </p>
+.. image:: https://img.shields.io/badge/python-3.11-blue.svg
+    :target: https://www.python.org/downloads/release/python-3117/
+    :alt: Python 3.11
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+    :alt: Code style: black
+
+.. image:: https://www.mypy-lang.org/static/mypy_badge.svg
+    :target: https://mypy-lang.org/
+    :alt: Checked with mypy
+
+.. image:: https://img.shields.io/badge/License-AGPL%20v3-blue.svg
+    :target: https://www.gnu.org/licenses/agpl-3.0
+    :alt: License: AGPL v3
+
+.. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
+    :target: https://pre-commit.com/
+    :alt: pre-commit
+
 
 AgentStudio is an open toolkit covering the entire lifespan of
 building virtual agents that can interact with everything on digital worlds. Here, we open-source the beta of environment implementations, benchmark suite, data collection pipeline, and graphical interfaces to promote research towards generalist virtual agents of the future.

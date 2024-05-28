@@ -85,7 +85,7 @@ matplotlib-inline==0.1.6
 mccabe==0.7.0
 MouseInfo==0.1.3
 mss==9.0.1
-multidict==6.0.4
+multidict==6.0.5
 nest-asyncio==1.5.8
 nodeenv==1.8.0
 numpy==1.26.3
