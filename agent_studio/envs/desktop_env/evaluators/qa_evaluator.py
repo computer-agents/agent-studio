@@ -31,7 +31,8 @@ class QAEvaluator(Evaluator):
     @evaluation_handler("string_match")
     def string_match(self, trajectory: list[TrajectorySeg], answer: str) -> None:
         logging.info(
-            f"[QA Evaluator] Evaluating string match with params: {trajectory}, {answer}"
+            f"[QA Evaluator] Evaluating string match with params: {trajectory},"
+            "{answer}"
         )
         if not trajectory:
             raise FeedbackException("The trajectory is empty.")
