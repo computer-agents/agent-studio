@@ -4,9 +4,9 @@ import uuid
 from typing import Any
 
 import cv2
+import jsonpickle
 import numpy as np
 from PIL import Image
-import jsonpickle
 
 from agent_studio.llm.utils import decode_image
 

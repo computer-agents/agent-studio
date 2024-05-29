@@ -196,7 +196,8 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
         comb: EvaluatorComb = evaluator_router(request.task_config)
         current_thread = threading.Thread(
             target=eval_task,
-            args=(comb,), kwargs={"trajectory": request.trajectory},
+            args=(comb,),
+            kwargs={"trajectory": request.trajectory},
         )
         current_thread.start()
         return AgentStudioStatusResponse(status="submitted")

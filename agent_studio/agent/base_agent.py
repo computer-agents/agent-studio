@@ -1,7 +1,7 @@
 import logging
 import time
-from typing import Any
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 import requests
