@@ -245,6 +245,7 @@ class EvalTaskThread(QThread):
             f"http://{REMOTE_SERVER_ADDR}/task/eval",
             json=AgentStudioEvalRequest(
                 task_config=self.selected_task,
+                trajectory=json.loads(self.trajectory_display.toPlainText()),
             ).model_dump(),
         )
         response = AgentStudioStatusResponse(**response_raw.json())
