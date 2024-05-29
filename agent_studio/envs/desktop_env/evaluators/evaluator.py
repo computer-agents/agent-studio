@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,22 @@ def reset_handler(name):
     return decorator
 
 
+class EvaluatorHandler:
+    def __init__(self, name: str, fun: Callable) -> None:
+        self.name = name
+        self.fun = fun
+        self.params = fun.__code__.co_varnames
+        print(f"Params: {self.params}")
+
+    def __call__(self, **kwargs) -> None:
+        target_params = {}
+        for param in self.params:
+            if param not in kwargs:
+                raise ValueError(f"Parameter {param} is missing in {kwargs}.")
+            target_params[param] = kwargs[param]
+        self.fun(**target_params)
+
+
 class Evaluator:
     """Base class for evaluation."""
 
@@ -48,7 +64,7 @@ class Evaluator:
     ) -> None:
         self.eval_procedure = eval_procedure
         self.reset_procedure = reset_procedure
-        self.evaluation_handlers: dict[str, Any] = {}
+        self.evaluation_handlers: dict[str, EvaluatorHandler] = {}
         self.reset_handlers: dict[str, Any] = {}
         self.auto_register_handlers()
 
@@ -89,12 +105,8 @@ class Evaluator:
         for step in self.eval_procedure:
             for action, params in step.items():
                 if action in self.evaluation_handlers:
-                    # for k, v in kwargs.items():
-                    #     assert k not in params, \
-                    # f"Duplicate parameter {k} in {params}."
-                    #     params[k] = v
                     try:
-                        self.evaluation_handlers[action](**params)
+                        self.evaluation_handlers[action](**params, **kwargs)
                     except FeedbackException as e:
                         score = 0.0
                         feedback += e.message + "\n"

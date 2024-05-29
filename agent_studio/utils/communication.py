@@ -36,3 +36,4 @@ class AgentStudioResetRequest(BaseModel):
 
 class AgentStudioEvalRequest(BaseModel):
     task_config: dict
+    trajectory: list[dict[str, Any]]

@@ -83,6 +83,9 @@ class Config(metaclass=ThreadSafeSingleton):
     telegram_api_id: int | str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
     telegram_api_hash: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
 
+    # QA config
+    qa_answer_pattern: str = r'\[\[\[(.*?)\]\]\]'
+
     project_root: Path = Path(__file__).resolve().parents[2]
     log_dir: Path = project_root / "logs/"
 
