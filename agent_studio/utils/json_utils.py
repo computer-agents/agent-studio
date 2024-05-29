@@ -6,6 +6,7 @@ from typing import Any
 import cv2
 import numpy as np
 from PIL import Image
+import jsonpickle
 
 from agent_studio.llm.utils import decode_image
 
@@ -45,8 +46,11 @@ def add_jsonl(data: list, file_path: str, mode="a"):
     """
     with open(file_path, mode) as file:
         for item in data:
-            json_str = json.dumps(item)
-            file.write(json_str + "\n")
+            json_str = jsonpickle.encode(item)
+            if json_str is not None:
+                file.write(json_str + "\n")
+            else:
+                raise ValueError("Error encoding json object")
 
 
 def read_json(file_path: str) -> dict:
@@ -59,7 +63,9 @@ def read_json(file_path: str) -> dict:
         dict: The dictionary read from the file
     """
     with open(file_path, "r") as file:
-        data = json.load(file)
+        data = jsonpickle.decode(file)
+    if not isinstance(data, dict):
+        raise ValueError("The file does not contain a dictionary")
     return data
 
 

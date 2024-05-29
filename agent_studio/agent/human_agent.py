@@ -5,8 +5,7 @@ from typing import Any
 import numpy as np
 import requests
 
-from agent_studio.agent.base_agent import BaseAgent
-from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
+from agent_studio.agent.base_agent import BaseAgent, TrajectorySeg
 from agent_studio.config import Config
 from agent_studio.llm.base_model import BaseModel
 
@@ -20,15 +19,7 @@ class HumanAgent(BaseAgent):
     name = "human"
 
     def __init__(self) -> None:
-        self.instruction: str = ""
-        self.trajectory: list[dict[str, Any]] = []
-        self.runtime: PythonRuntime | RemotePythonRuntime | None = None
-
-        self.cur_prompt: list[dict[str, Any]] | None = None
-        self.cur_response: str | None = None
-        self.cur_info: dict[str, Any] = {}
-        self.cur_raw_code: str = ""
-        self.model = BaseModel()  # Dummy model
+        super().__init__(model=BaseModel())
 
     def reset(self, instruction: str) -> None:
         super().reset(instruction=instruction)
@@ -69,17 +60,18 @@ class HumanAgent(BaseAgent):
             assert self.runtime is not None, "The agent needs to reset first."
             result = self.runtime(code)
 
+        assert self.cur_prompt is not None, "Invalid prompt"
         self.trajectory.append(
-            {
-                "obs": self.cur_obs,
-                "prompt": self.cur_prompt,
-                "response": self.cur_response,
-                "info": self.cur_info,
-                "act": self.cur_raw_code,
-                "annotation": annotation,
-                "res": result,
-                "timestamp": cur_time,
-            }
+            TrajectorySeg(
+                obs=self.cur_obs,
+                prompt=self.cur_prompt,
+                response=self.cur_response,
+                info=self.cur_info,
+                act=self.cur_raw_code,
+                annotation=annotation,
+                res=result,
+                timestamp=cur_time,
+            )
         )
         logger.info(f"Output: {result}")
 

@@ -8,6 +8,7 @@ from agent_studio.envs.desktop_env.evaluators.evaluator import (
     FeedbackException,
     evaluation_handler,
 )
+from agent_studio.agent.base_agent import TrajectorySeg
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +29,11 @@ class QAEvaluator(Evaluator):
         )
 
     @evaluation_handler("string_match")
-    def string_match(self, trajectory: list[dict[str, Any]], answer: str) -> None:
+    def string_match(self, trajectory: list[TrajectorySeg], answer: str) -> None:
+        logging.info(f"[QA Evaluator] Evaluating string match with params: {trajectory}, {answer}")
         if not trajectory:
             raise FeedbackException("The trajectory is empty.")
-        agent_response: str | None = None
-        for i in range(len(trajectory) - 1, -1, -1):
-            if trajectory[i]["role"] == "assistant" and isinstance(trajectory[i]["content"], str):
-                agent_response = trajectory[i]["content"]
-                break
+        agent_response: str | None = trajectory[-1].response
         if agent_response is None:
             raise FeedbackException(
                 f"Could not find the answer in the trajectory: {trajectory}.")

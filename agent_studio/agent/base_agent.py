@@ -1,9 +1,11 @@
 import logging
 import time
 from typing import Any
+from dataclasses import dataclass
 
 import numpy as np
 import requests
+from numpydantic import NDArray
 
 from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.config import Config
@@ -14,6 +16,18 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class TrajectorySeg:
+    obs: NDArray | None
+    prompt: list[dict[str, Any]]
+    response: str | None
+    info: dict[str, Any]
+    act: str
+    res: dict[str, Any]
+    timestamp: float
+    annotation: dict[str, Any] | None = None
+
+
 class BaseAgent:
     """Base class for agents."""
 
@@ -22,7 +36,7 @@ class BaseAgent:
     def __init__(self, model: BaseModel) -> None:
         self.model = model
         self.instruction: str = ""
-        self.trajectory: list[dict[str, Any]] = []
+        self.trajectory: list[TrajectorySeg] = []
         self.runtime: PythonRuntime | RemotePythonRuntime | None = None
 
         self.cur_prompt: list[dict[str, Any]] | None = None
@@ -93,16 +107,17 @@ class BaseAgent:
             result["content"] = "Cancelled by user."
             done = True
 
+        assert self.cur_prompt is not None, "Invalid prompt"
         self.trajectory.append(
-            {
-                "obs": self.cur_obs,
-                "prompt": self.cur_prompt,
-                "response": self.cur_response,
-                "info": self.cur_info,
-                "act": self.cur_raw_code,
-                "res": result,
-                "timestamp": cur_time,
-            }
+            TrajectorySeg(
+                obs=self.cur_obs,
+                prompt=self.cur_prompt,
+                response=self.cur_response,
+                info=self.cur_info,
+                act=self.cur_raw_code,
+                res=result,
+                timestamp=cur_time,
+            )
         )
         logger.info(f"Output: {result}")
 

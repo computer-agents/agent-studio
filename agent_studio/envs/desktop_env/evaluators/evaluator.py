@@ -47,6 +47,7 @@ class EvaluatorHandler:
         target_params = {}
         for param in self.params:
             if param not in kwargs:
+                logger.error(f"Parameter {param} is missing in {kwargs}.")
                 raise ValueError(f"Parameter {param} is missing in {kwargs}.")
             target_params[param] = kwargs[param]
         self.fun(**target_params)
