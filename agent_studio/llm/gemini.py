@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Any
 
 import backoff
@@ -46,6 +47,8 @@ class GeminiProvider(BaseModel):
 
             if isinstance(msg["content"], str):
                 pass
+            elif isinstance(msg["content"], Path):
+                msg["content"] = Image.open(msg["content"])
             elif isinstance(msg["content"], np.ndarray):
                 # convert from RGB NDArray to PIL RGB Image
                 msg["content"] = Image.fromarray(msg["content"])
@@ -66,10 +69,7 @@ class GeminiProvider(BaseModel):
             model = genai.GenerativeModel(model_name)
         else:
             raise ValueError("Model name is required for GeminiProvider.")
-        logger.info(
-            f"Creating chat completion with model {model_name}. "
-            f"Message:\n{model_message}"
-        )
+        logger.info(f"Creating chat completion with model {model_name}.")
 
         generation_config = GenerationConfig(
             temperature=kwargs.get("temperature", config.temperature),
