@@ -90,7 +90,6 @@ multidict==6.0.5
 nest-asyncio==1.5.8
 nodeenv==1.8.0
 numpy==1.26.3
-numpydantic==1.1.0
 oauthlib==3.2.2
 openai==1.6.1
 opencv-python==4.9.0.80

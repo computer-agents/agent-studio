@@ -4,6 +4,7 @@ import threading
 import time
 from pathlib import Path
 
+import jsonpickle
 import numpy as np
 import pyautogui
 import requests
@@ -288,7 +289,7 @@ class EvalTaskThread(QThread):
             f"http://{REMOTE_SERVER_ADDR}/task/eval",
             json=AgentStudioEvalRequest(
                 task_config=self.selected_task,
-                trajectory=self.agent.trajectory,
+                trajectory=str(jsonpickle.encode(self.agent.trajectory)),
             ).model_dump(),
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"

@@ -6,7 +6,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers.generation import GenerationConfig
 
 from agent_studio.config.config import Config
-from agent_studio.llm.base_model import BaseModel
+from agent_studio.llm.base_model import BaseModel, PromptSeg
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -23,22 +23,24 @@ class HuggingFaceProvider(BaseModel):
 
     def compose_messages(
         self,
-        intermedia_msg: list[dict[str, Any]],
+        intermedia_msg: list[PromptSeg],
     ) -> Any:
         model_message: list[dict[str, Any]] = []
         for msg in intermedia_msg:
-            if isinstance(msg["content"], str):
-                model_message.append({"text": msg["content"]})
-            elif isinstance(msg["content"], Path):
-                model_message.append({"image": msg["content"].as_posix()})
+            if isinstance(msg.content, str):
+                model_message.append({"text": msg.content})
+            elif isinstance(msg.content, Path):
+                model_message.append({"image": msg.content.as_posix()})
             else:
-                assert False, f"Unknown message type: {msg['content']}"
+                assert (
+                    False
+                ), f"Unknown message type: {type(msg.content)}, {msg.content}"
 
         return model_message
 
     def generate_response(
-        self, messages: list[dict[str, Any]], **kwargs
-    ) -> tuple[str, dict[str, int]]:
+        self, messages: list[PromptSeg], **kwargs
+    ) -> tuple[str, dict[str, Any]]:
         """Creates a chat completion using the Gemini API."""
         model_message = self.compose_messages(intermedia_msg=messages)
 
@@ -53,7 +55,7 @@ class HuggingFaceProvider(BaseModel):
             ).eval()
             assert self.model is not None, "Model is not loaded."
             self.model.generation_config = GenerationConfig.from_pretrained(
-                self.model_name, do_sample=False, trust_remote_code=True
+                self.model_name, do_sample=True, trust_remote_code=True
             )
             # self.processor = AutoProcessor.from_pretrained(self.model_name)
 
@@ -65,9 +67,13 @@ class HuggingFaceProvider(BaseModel):
         )
 
         # if "paligemma" in self.model_name:
-        #     inputs = self.processor(*list(model_message.values()), return_tensors="pt").to("cuda")  # noqa: E501
+        #     inputs = self.processor(
+        # *list(model_message.values()), return_tensors="pt"
+        # ).to("cuda")
         #     output = self.model.generate(**inputs, max_new_tokens=20)
-        #     print(self.processor.decode(output[0], skip_special_tokens=True)[len(prompt):])  # noqa: E501
+        #     print(
+        # self.processor.decode(output[0], skip_special_tokens=True)[len(prompt):]
+        # )
         query = self.tokenizer.from_list_format(model_message)
         response, _ = self.model.chat(self.tokenizer, query=query, history=None)
 

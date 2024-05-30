@@ -5,6 +5,7 @@ import sys
 import time
 from pathlib import Path
 
+import jsonpickle
 import psutil
 import requests
 from qasync import QApplication
@@ -247,7 +248,7 @@ def eval_headless(
                     f"{remote_server_addr}/task/eval",
                     json=AgentStudioEvalRequest(
                         task_config=task_config,
-                        trajectory=agent.trajectory,
+                        trajectory=str(jsonpickle.encode(agent.trajectory)),
                     ).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())

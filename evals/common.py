@@ -4,19 +4,16 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from io import BytesIO
 from multiprocessing.pool import ThreadPool
-from pathlib import Path
 from typing import Any
 
 import jinja2
-import matplotlib
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
-matplotlib.use("Agg")  # Use the 'Agg' backend for non-GUI environments
-
+from agent_studio.llm import BaseModel
 
 Message = dict[str, Any]  # keys role, content
 MessageList = list[Message]
@@ -29,8 +26,8 @@ class EvalResult:
     """
 
     score: float | None  # top-line metric
-    logs: list[dict]  # log to jsonl
-    htmls: list[str | None]  # strings of valid HTML
+    conversations: list[MessageList]
+    htmls: list[str]  # strings of valid HTML
     metrics: dict[str, float] | None  # other metrics
 
 
@@ -41,9 +38,9 @@ class SingleEvalResult:
     """
 
     score: float | None
-    log: dict = field(default_factory=dict)
+    conversation: MessageList | None = None
     html: str | None = None
-    metrics: dict[str, float | int] = field(default_factory=dict)
+    metrics: dict[str, float] = field(default_factory=dict)
 
 
 class Eval:
@@ -51,9 +48,7 @@ class Eval:
     Base class for defining an evaluation.
     """
 
-    def __call__(
-        self, model_name: str, tokenizer_name: str, num_workers: int = 1
-    ) -> EvalResult:
+    def __call__(self, model: BaseModel) -> EvalResult:
         raise NotImplementedError
 
 
@@ -78,14 +73,14 @@ def aggregate_results(
     """
     name2values = defaultdict(list)
     htmls = []
-    logs = []
+    conversations = []
     for single_eval_result in single_eval_results:
         for name, value in single_eval_result.metrics.items():
             name2values[name].append(value)
         if single_eval_result.score is not None:
             name2values["score"].append(single_eval_result.score)
         htmls.append(single_eval_result.html)
-        logs.append(single_eval_result.log)
+        conversations.append(single_eval_result.conversation)
     final_metrics = {}
     for name, values in name2values.items():
         stats = ("mean",)
@@ -96,7 +91,7 @@ def aggregate_results(
         score=final_metrics.pop("score", None),
         metrics=final_metrics,
         htmls=htmls,
-        logs=logs,
+        conversations=conversations,
     )
 
 
@@ -161,56 +156,46 @@ def render_image(prompt_messages: MessageList, bbox, pred_coord):
     """
     for message in prompt_messages:
         content = message["content"]
-        if isinstance(content, Path):
-            content = content.as_posix()
-        if isinstance(content, str):
-            if content.endswith((".png", ".jpg", ".jpeg")):
-                image = Image.open(content)
-            else:
-                continue
-        elif isinstance(content, Image.Image):
-            image = content
-        elif isinstance(content, np.ndarray):
-            image = Image.fromarray(content)
-        else:
-            raise ValueError(f"Unknown message type: {content}")
+        if content.endswith((".png", ".jpg", ".jpeg")):
+            # Load the image
+            image = Image.open(content)
+            # Generate a new image with bounding box and get its base64 representation
+            img_width, img_height = image.size
+            dpi = 40
+            figsize = img_width / float(dpi), img_height / float(dpi)
 
-        img_width, img_height = image.size
-        dpi = 40
-        figsize = img_width / float(dpi), img_height / float(dpi)
+            # Plot image
+            fig, ax = plt.subplots(1, figsize=figsize)
+            ax.imshow(image)
 
-        # Plot image
-        fig, ax = plt.subplots(1, figsize=figsize)
-        ax.imshow(image)
+            # Plot bounding box
+            left, top, right, bottom = bbox
+            rect = patches.Rectangle(
+                (left, top),
+                right - left,
+                bottom - top,
+                linewidth=2,
+                edgecolor="r",
+                facecolor="none",
+            )
+            ax.add_patch(rect)
 
-        # Plot bounding box
-        left, top, right, bottom = bbox
-        rect = patches.Rectangle(
-            (left, top),
-            right - left,
-            bottom - top,
-            linewidth=6,
-            edgecolor="r",
-            facecolor="none",
-        )
-        ax.add_patch(rect)
+            # Plot predicted coordinate
+            if pred_coord is not None:
+                x, y = pred_coord
+                ax.plot(x, y, "ro")  # red point
 
-        # Plot predicted coordinate
-        if pred_coord is not None:
-            x, y = pred_coord
-            ax.plot(x, y, "ro", markersize=10)
+            plt.axis("off")
 
-        plt.axis("off")
+            # Save the new image to a BytesIO object
+            buf = BytesIO()
+            plt.savefig(buf, format="png", bbox_inches="tight", pad_inches=0, dpi=dpi)
+            plt.close(fig)
 
-        # Save the new image to a BytesIO object
-        buf = BytesIO()
-        plt.savefig(buf, format="png", bbox_inches="tight", pad_inches=0, dpi=dpi)
-        plt.close(fig)
+            # Encode the image in base64
+            base64_image = base64.b64encode(buf.getvalue()).decode("utf-8")
 
-        # Encode the image in base64
-        base64_image = base64.b64encode(buf.getvalue()).decode("utf-8")
-
-        return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'  # noqa: E501
+            return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'  # noqa: E501
 
 
 jinja_env.globals["message_to_html"] = message_to_html

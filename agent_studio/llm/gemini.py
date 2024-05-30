@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from typing import Any
 
 import backoff
@@ -13,7 +12,7 @@ from google.generativeai.types import GenerationConfig
 from PIL import Image
 
 from agent_studio.config.config import Config
-from agent_studio.llm.base_model import BaseModel
+from agent_studio.llm.base_model import BaseModel, PromptSeg
 
 # Run this to pass mypy checker
 PIL.PngImagePlugin
@@ -32,7 +31,7 @@ class GeminiProvider(BaseModel):
 
     def compose_messages(
         self,
-        intermedia_msg: list[dict[str, Any]],
+        intermedia_msg: list[PromptSeg],
     ) -> Any:
         model_message: dict[str, Any] = {
             "role": "user",
@@ -40,27 +39,28 @@ class GeminiProvider(BaseModel):
         }
         past_role = None
         for msg in intermedia_msg:
-            current_role = msg["role"] if "role" != "system" else "user"
+            current_role = msg.role if "role" != "system" else "user"
             if past_role != current_role:
                 model_message["parts"].append(f"[{current_role.capitalize()}]: ")
                 past_role = current_role
 
-            if isinstance(msg["content"], str):
-                pass
-            elif isinstance(msg["content"], Path):
-                msg["content"] = Image.open(msg["content"])
-            elif isinstance(msg["content"], np.ndarray):
+            content: str | Image.Image
+            if isinstance(msg.content, str):
+                content = msg.content
+            elif isinstance(msg.content, np.ndarray):
                 # convert from RGB NDArray to PIL RGB Image
-                msg["content"] = Image.fromarray(msg["content"])
+                content = Image.fromarray(msg.content)
             else:
-                assert False, f"Unknown message type: {msg['content']}"
-            model_message["parts"].append(msg["content"])
+                assert (
+                    False
+                ), f"Unknown message type: {type(msg.content)}, {msg.content}"
+            model_message["parts"].append(content)
 
         return model_message
 
     def generate_response(
-        self, messages: list[dict[str, Any]], **kwargs
-    ) -> tuple[str, dict[str, int]]:
+        self, messages: list[PromptSeg], **kwargs
+    ) -> tuple[str, dict[str, Any]]:
         """Creates a chat completion using the Gemini API."""
         model_message = self.compose_messages(intermedia_msg=messages)
 

@@ -5,18 +5,14 @@ from common import make_report
 from gui_grounding_eval import GUIGroundingEval
 
 from agent_studio.llm import setup_model
-from agent_studio.utils.json_utils import add_jsonl
+from agent_studio.utils.json_utils import add_json
 
 
 def create_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--provider", type=str, choices=["openai", "gemini", "claude", "huggingface"]
-    )
-    parser.add_argument("--model", type=str)
-    parser.add_argument("--tokenizer", type=str, default=None)
-    parser.add_argument("--eval_type", type=str)
-    parser.add_argument("--data_path", type=str)
+    parser.add_argument("--provider", type=str, default=None)
+    parser.add_argument("--eval_type", type=str, default=None)
+    parser.add_argument("--data_path", type=str, default=None)
     parser.add_argument("--start_idx", type=int, default=0)
     parser.add_argument("--end_idx", type=int, default=None)
     parser.add_argument("--num_workers", type=int, default=1)
@@ -34,7 +30,7 @@ def main():
     match args.eval_type:
         case "gui_grounding":
             evaluator = GUIGroundingEval(
-                model=model,
+                provider=args.provider,
                 data_path=args.data_path,
                 start_idx=args.start_idx,
                 end_idx=args.end_idx,
@@ -42,20 +38,18 @@ def main():
         case _:
             raise Exception(f"Unrecoginized eval type: {args.eval_type}")
 
-    if args.tokenizer is None:
-        args.tokenizer = args.model
-    result = evaluator(args.model, args.tokenizer, args.num_workers)
+    result = evaluator(model, args.num_workers)
     metrics = result.metrics | {"score": result.score}
     print(metrics)
     save_path = Path("results")
     save_path.mkdir(parents=True, exist_ok=True)
-    file_stem = f"{save_path}/{args.eval_type}_{args.model.split('/')[-1]}"
+    file_stem = f"{save_path}/{args.eval_type}_{args.provider.split('/')[-1]}"
     report_filename = f"{file_stem}.html"
     print(f"Writing report to {report_filename}")
     with open(report_filename, "w") as fh:
         fh.write(make_report(result))
     result_filename = Path(f"{file_stem}.jsonl")
-    add_jsonl(result.logs, result_filename)
+    add_json(metrics, result_filename)
     print(f"Writing results to {result_filename}")
 
 

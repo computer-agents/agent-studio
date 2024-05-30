@@ -22,7 +22,7 @@ class RemoteProvider(BaseModel):
 
     def generate_response(
         self, messages: list[dict[str, Any]], **kwargs
-    ) -> tuple[str, dict[str, int]]:
+    ) -> tuple[str, dict[str, Any]]:
         """Creates a chat completion using the Gemini API."""
 
         model_name = kwargs.get("model", None)

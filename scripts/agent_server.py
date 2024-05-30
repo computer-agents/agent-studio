@@ -3,6 +3,7 @@ import threading
 from contextlib import asynccontextmanager
 from typing import Any
 
+import jsonpickle
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import Response
@@ -226,7 +227,7 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
         current_thread = threading.Thread(
             target=eval_task,
             args=(comb,),
-            kwargs={"trajectory": request.trajectory},
+            kwargs={"trajectory": jsonpickle.decode(request.trajectory)},
         )
         current_thread.start()
         return wait_for_state_shift(StateEnum.IN_PROGRESS)
