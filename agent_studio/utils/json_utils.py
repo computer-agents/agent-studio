@@ -1,10 +1,10 @@
+import dataclasses
 import json
 import os
 import uuid
 from typing import Any
 
 import cv2
-import jsonpickle
 import numpy as np
 from PIL import Image
 
@@ -46,23 +46,21 @@ def add_jsonl(data: list, file_path: str, mode="a"):
     """
     with open(file_path, mode) as file:
         for item in data:
-            json_str = jsonpickle.encode(item)
-            if json_str is not None:
-                file.write(json_str + "\n")
-            else:
-                raise ValueError("Error encoding json object")
+            json_str = json.dumps(item)
+            file.write(json_str + "\n")
 
 
-def read_json(file_path: str) -> dict | list:
-    """Reads a .json file.
+def read_json(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> dict:
+    """Reads a dictionary from a .json file.
 
     Args:
         file_path (str): Path to the .json file
     """
     with open(file_path, "r") as file:
-        data = jsonpickle.decode(file)
-    if not isinstance(data, dict):
-        raise ValueError("The file does not contain a dictionary")
+        if end_idx is None:
+            data = json.load(file)[start_idx:]
+        else:
+            data = json.load(file)[start_idx:end_idx]
     return data
 
 
@@ -75,7 +73,7 @@ def add_json(data: dict, file_path: str, mode="a"):
     """
     with open(file_path, mode) as file:
         json.dump(data, file)
-        file.write("\n")
+        file.write('\n')
 
 
 def format_json(data: dict, indent=4, sort_keys=False):
@@ -156,10 +154,16 @@ def parse_and_save_objects(obj: Any, folder_path: str) -> Any:
                 and value.startswith("data:image")
             ):
                 obj[key] = save_image_or_array(decode_image(value), folder_path)
+            elif dataclasses.is_dataclass(value) and not isinstance(value, type):
+                obj[key] = parse_and_save_objects(
+                    dataclasses.asdict(value), folder_path
+                )
     elif isinstance(obj, list):
         for i in range(len(obj)):
             if isinstance(obj[i], (Image.Image, np.ndarray)):
                 obj[i] = save_image_or_array(obj[i], folder_path)
             elif isinstance(obj[i], (dict, list)):
                 obj[i] = parse_and_save_objects(obj[i], folder_path)
+            elif dataclasses.is_dataclass(obj[i]):
+                obj[i] = parse_and_save_objects(dataclasses.asdict(obj[i]), folder_path)
     return obj

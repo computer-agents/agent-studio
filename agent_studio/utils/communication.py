@@ -4,8 +4,6 @@ from typing import Any, Callable
 
 from pydantic import BaseModel
 
-from agent_studio.agent.base_agent import TrajectorySeg
-
 bytes2str: Callable[..., str] = lambda x: base64.b64encode(pickle.dumps(obj=x)).decode(
     "utf-8"
 )
@@ -20,12 +18,7 @@ str2bytes: Callable[..., Any] = (
 class AgentStudioStatusResponse(BaseModel):
     status: str
     content: str = ""
-
-
-class AgentStudioResultResponse(BaseModel):
-    status: str
-    result: str
-    message: dict | str
+    message: dict | str = ""
 
 
 class AgentStudioTextRequest(BaseModel):
@@ -38,7 +31,4 @@ class AgentStudioResetRequest(BaseModel):
 
 class AgentStudioEvalRequest(BaseModel):
     task_config: dict
-    trajectory: list[TrajectorySeg]
-
-    class Config:
-        arbitrary_types_allowed = True
+    trajectory: str

@@ -60,6 +60,7 @@ def setup_model(provider_name: str) -> BaseModel:
         logger.error(f"Model provider [{provider_name}] is not registered")
         raise ValueError(f"Model provider [{provider_name}] is not registered")
     else:
+        logger.info(f"Setting up model provider: {provider_name}")
         model = registered_models[provider_name]()
 
     return model

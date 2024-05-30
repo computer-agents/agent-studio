@@ -7,7 +7,7 @@ import numpy as np
 from openai import APIError, APITimeoutError, OpenAI, RateLimitError
 
 from agent_studio.config.config import Config
-from agent_studio.llm.base_model import BaseModel
+from agent_studio.llm.base_model import BaseModel, PromptSeg
 from agent_studio.llm.utils import openai_encode_image
 
 config = Config()
@@ -23,7 +23,7 @@ class OpenAIProvider(BaseModel):
 
     def compose_messages(
         self,
-        intermedia_msg: list[dict[str, Any]],
+        intermedia_msg: list[PromptSeg],
     ) -> list[dict[str, Any]]:
         """
         Composes the messages to be sent to the model.
@@ -31,16 +31,14 @@ class OpenAIProvider(BaseModel):
         model_message: list[dict[str, Any]] = []
         past_role = None
         for msg in intermedia_msg:
-            if isinstance(msg["content"], np.ndarray) or isinstance(
-                msg["content"], Path
-            ):
+            if isinstance(msg.content, np.ndarray):
                 content: dict = {
                     "type": "image_url",
-                    "image_url": {"url": openai_encode_image(msg["content"])},
+                    "image_url": {"url": openai_encode_image(msg.content)},
                 }
-            elif isinstance(msg["content"], str):
-                content = {"type": "text", "text": msg["content"]}
-            current_role = msg["role"]
+            elif isinstance(msg.content, str):
+                content = {"type": "text", "text": msg.content}
+            current_role = msg.role
             if past_role != current_role:
                 model_message.append(
                     {
@@ -54,8 +52,8 @@ class OpenAIProvider(BaseModel):
         return model_message
 
     def generate_response(
-        self, messages: list[dict[str, Any]], **kwargs
-    ) -> tuple[str, dict[str, int]]:
+        self, messages: list[PromptSeg], **kwargs
+    ) -> tuple[str, dict[str, Any]]:
         """Creates a chat completion using the OpenAI API."""
 
         model = kwargs.get("model", None)

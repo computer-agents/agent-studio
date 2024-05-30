@@ -1,4 +1,26 @@
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Union
+from pathlib import Path
+
+import numpy as np
+
+
+@dataclass
+class PromptSeg:
+    role: str
+    content: Union[str, np.ndarray, Path]
+
+
+@dataclass
+class TrajectorySeg:
+    obs: np.ndarray | None
+    prompt: list[PromptSeg]
+    response: str | None
+    info: dict[str, Any]
+    act: str
+    res: dict[str, Any]
+    timestamp: float
+    annotation: dict[str, Any] | None = None
 
 
 class BaseModel:
@@ -8,12 +30,12 @@ class BaseModel:
 
     def compose_messages(
         self,
-        intermediate_msg: list[dict[str, Any]],
+        intermediate_msg: list[PromptSeg],
     ) -> Any:
         raise NotImplementedError
 
     def generate_response(
-        self, messages: list[dict[str, Any]], **kwargs
-    ) -> tuple[str, dict[str, int]]:
+        self, messages: list[PromptSeg], **kwargs
+    ) -> tuple[str, dict[str, Any]]:
         """Generate a response given messages."""
         raise NotImplementedError

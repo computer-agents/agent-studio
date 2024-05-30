@@ -61,6 +61,7 @@ def setup_agent(agent_name: str, model: BaseModel) -> BaseAgent:
         logger.error(f"Agent [{agent_name}] is not registered")
         raise ValueError(f"Agent [{agent_name}] is not registered")
     else:
+        logger.info(f"Setting up agent: {agent_name}")
         agent = registered_agents[agent_name](model)
 
     return agent
