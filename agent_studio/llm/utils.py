@@ -2,7 +2,7 @@ import base64
 import io
 import os
 import re
-
+from pathlib import Path
 import numpy as np
 from PIL import Image
 
@@ -26,15 +26,12 @@ def extract_from_response(response: str, backtick="```") -> str:
     return extracted_string
 
 
-def openai_encode_image(image: str | Image.Image | np.ndarray | None) -> str:
-    if isinstance(image, str):
-        if os.path.exists(image):
-            with open(image, "rb") as image_file:
-                encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
-            image_type = image.split(".")[-1].lower()
-            encoded_image = f"data:image/{image_type};base64,{encoded_image}"
-        else:
-            encoded_image = image
+def openai_encode_image(image: Path | Image.Image | np.ndarray) -> str:
+    if isinstance(image, Path):
+        with open(image, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
+        image_type = image.split(".")[-1].lower()
+        encoded_image = f"data:image/{image_type};base64,{encoded_image}"
     elif isinstance(image, Image.Image):  # PIL image
         buffered = io.BytesIO()
         image.save(buffered, format="JPEG")
