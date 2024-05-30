@@ -4,7 +4,6 @@ import logging
 import os
 import queue
 import threading
-import time
 import uuid
 from pathlib import Path
 
@@ -117,7 +116,9 @@ class ResetThread(QThread):
         self.task_config = task_config
         self.agent = agent
 
-    def _wait_finish(self, response: AgentStudioStatusResponse) -> AgentStudioStatusResponse:
+    def _wait_finish(
+        self, response: AgentStudioStatusResponse
+    ) -> AgentStudioStatusResponse:
         if response.status == "finished":
             self.signals.status_bar_signal.emit("color: green;", "Finished")
             return response
@@ -198,7 +199,9 @@ class EvalTaskThread(QThread):
         self.trajectory_display = trajectory_display
         self.result_queue = result_queue
 
-    def _wait_finish(self, response: AgentStudioStatusResponse) -> AgentStudioStatusResponse:
+    def _wait_finish(
+        self, response: AgentStudioStatusResponse
+    ) -> AgentStudioStatusResponse:
         if response.status == "finished":
             self.signals.status_bar_signal.emit("color: green;", "Finished")
             return response

@@ -189,7 +189,9 @@ def eval_headless(
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
                 response = wait_finish(is_eval=False, response=response)
-                if not (response.status == "finished" and response.content == "success"):
+                if not (
+                    response.status == "finished" and response.content == "success"
+                ):
                     raise ValueError(f"Fail to reset task: {response.message}")
 
                 instruction = task_config["instruction"]

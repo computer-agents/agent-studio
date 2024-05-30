@@ -39,7 +39,7 @@ class TaskStatus(metaclass=ThreadSafeSingleton):
             self.state_info = StateInfo(StateEnum.FINISHED)
 
     def wait_for_state_change(self, cur_state: StateEnum) -> StateInfo:
-        ''' Return when the state is different from the current state '''
+        """Return when the state is different from the current state"""
         with self.condition:
             while cur_state == self.state_info.state:
                 self.condition.wait()

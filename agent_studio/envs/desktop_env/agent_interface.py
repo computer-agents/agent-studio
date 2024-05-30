@@ -155,7 +155,9 @@ class ResetTaskThread(QThread):
         self.selected_task = selected_task
         self.agent = agent
 
-    def _wait_finish(self, response: AgentStudioStatusResponse) -> AgentStudioStatusResponse:
+    def _wait_finish(
+        self, response: AgentStudioStatusResponse
+    ) -> AgentStudioStatusResponse:
         if response.status == "finished":
             self.signals.status_bar_signal.emit("color: green;", "Finished")
             return response
@@ -256,7 +258,9 @@ class EvalTaskThread(QThread):
         self.result_queue = result_queue
         self.final_obs = final_obs
 
-    def _wait_finish(self, response: AgentStudioStatusResponse) -> AgentStudioStatusResponse:
+    def _wait_finish(
+        self, response: AgentStudioStatusResponse
+    ) -> AgentStudioStatusResponse:
         if response.status == "finished":
             self.signals.status_bar_signal.emit("color: green;", "Finished")
             return response
