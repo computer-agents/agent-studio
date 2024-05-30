@@ -25,7 +25,7 @@ class EvalResult:
     """
 
     score: float | None  # top-line metric
-    conversations: list[MessageList]
+    logs: list[dict]  # log to jsonl
     htmls: list[str]  # strings of valid HTML
     metrics: dict[str, float] | None  # other metrics
 
@@ -37,7 +37,7 @@ class SingleEvalResult:
     """
 
     score: float | None
-    conversation: MessageList | None = None
+    log: dict = field(default_factory=dict)
     html: str | None = None
     metrics: dict[str, float] = field(default_factory=dict)
 
@@ -47,7 +47,7 @@ class Eval:
     Base class for defining an evaluation.
     """
 
-    def __call__(self, model: BaseModel) -> EvalResult:
+    def __call__(self, model_name: str, tokenizer_name: str, num_workers: int = 1) -> EvalResult:
         raise NotImplementedError
 
 
@@ -72,14 +72,14 @@ def aggregate_results(
     """
     name2values = defaultdict(list)
     htmls = []
-    conversations = []
+    logs = []
     for single_eval_result in single_eval_results:
         for name, value in single_eval_result.metrics.items():
             name2values[name].append(value)
         if single_eval_result.score is not None:
             name2values["score"].append(single_eval_result.score)
         htmls.append(single_eval_result.html)
-        conversations.append(single_eval_result.conversation)
+        logs.append(single_eval_result.log)
     final_metrics = {}
     for name, values in name2values.items():
         stats = ("mean",)
@@ -87,7 +87,7 @@ def aggregate_results(
             key = name if stat == "mean" else f"{name}:{stat}"
             final_metrics[key] = float(_compute_stat(values, stat))
     return EvalResult(
-        score=final_metrics.pop("score", None), metrics=final_metrics, htmls=htmls, conversations=conversations
+        score=final_metrics.pop("score", None), metrics=final_metrics, htmls=htmls, logs=logs
     )
 
 
@@ -153,7 +153,6 @@ def render_image(prompt_messages: MessageList, bbox, pred_coord):
         if content.endswith((".png", ".jpg", ".jpeg")):
             # Load the image
             image = Image.open(content)
-            # Generate a new image with bounding box and get its base64 representation
             img_width, img_height = image.size
             dpi = 40
             figsize = img_width / float(dpi), img_height / float(dpi)
