@@ -7,6 +7,7 @@ from tqdm import tqdm
 import jinja2
 from dataclasses import dataclass, field
 import base64
+from pathlib import Path
 from PIL import Image
 from io import BytesIO
 import matplotlib.pyplot as plt
@@ -150,6 +151,8 @@ def render_image(prompt_messages: MessageList, bbox, pred_coord):
     """
     for message in prompt_messages:
         content = message["content"]
+        if isinstance(content, Path):
+            content = content.as_posix()
         if content.endswith((".png", ".jpg", ".jpeg")):
             # Load the image
             image = Image.open(content)

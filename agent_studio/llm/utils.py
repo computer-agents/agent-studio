@@ -30,7 +30,7 @@ def openai_encode_image(image: Path | Image.Image | np.ndarray) -> str:
     if isinstance(image, Path):
         with open(image, "rb") as image_file:
             encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
-        image_type = image.split(".")[-1].lower()
+        image_type = image.as_posix().split(".")[-1].lower()
         encoded_image = f"data:image/{image_type};base64,{encoded_image}"
     elif isinstance(image, Image.Image):  # PIL image
         buffered = io.BytesIO()

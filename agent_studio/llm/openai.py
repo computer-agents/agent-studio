@@ -62,10 +62,7 @@ class OpenAIProvider(BaseModel):
         temperature = kwargs.get("temperature", config.temperature)
         max_tokens = kwargs.get("max_tokens", config.max_tokens)
         model_message = self.compose_messages(intermedia_msg=messages)
-        logger.info(
-            f"Creating chat completion with model {model}. "
-            f"Message:\n{model_message}"
-        )
+        logger.info(f"Creating chat completion with model {model}.")
 
         @backoff.on_exception(
             backoff.constant,
