@@ -1,3 +1,4 @@
+import inspect
 import logging
 from typing import Any, Callable
 
@@ -36,20 +37,22 @@ def reset_handler(name):
     return decorator
 
 
-class EvaluatorHandler:
+class Handler:
     def __init__(self, name: str, fun: Callable) -> None:
-        self.name = name
-        self.fun = fun
-        self.params = fun.__code__.co_varnames
-        print(f"Params: {self.params}")
+        self.name: str = name
+        self.fun: Callable = fun
+        self.params: dict[str, inspect.Parameter] = dict(
+            inspect.signature(fun).parameters
+        )
+        logging.info(f"[{self.name}] Params: {self.params}")
 
     def __call__(self, **kwargs) -> None:
         target_params = {}
-        for param in self.params:
-            if param not in kwargs:
-                logger.error(f"Parameter {param} is missing in {kwargs}.")
-                raise ValueError(f"Parameter {param} is missing in {kwargs}.")
-            target_params[param] = kwargs[param]
+        for name, param in self.params.items():
+            if name not in kwargs and param.default == inspect.Parameter.empty:
+                logger.error(f"Parameter {name} is missing in {name}.")
+                raise ValueError(f"Parameter {name} is missing in {name}.")
+            target_params[name] = kwargs[name] if name in kwargs else param.default
         self.fun(**target_params)
 
 
@@ -65,8 +68,8 @@ class Evaluator:
     ) -> None:
         self.eval_procedure = eval_procedure
         self.reset_procedure = reset_procedure
-        self.evaluation_handlers: dict[str, EvaluatorHandler] = {}
-        self.reset_handlers: dict[str, Any] = {}
+        self.evaluation_handlers: dict[str, Handler] = {}
+        self.reset_handlers: dict[str, Handler] = {}
         self.auto_register_handlers()
 
     def auto_register_handlers(self) -> None:
@@ -81,14 +84,14 @@ class Evaluator:
                             f"Registration for handler {name} failed."
                             f"Current handlers: {self.evaluation_handlers}"
                         )
-                    self.evaluation_handlers[name] = f
+                    self.evaluation_handlers[name] = Handler(name, f)
                 if getattr(f, "reset_handler", False) is True:
                     if name is None or name in self.reset_handlers:
                         raise ValueError(
                             f"Registration for handler {name} failed."
                             f"Current handlers: {self.evaluation_handlers}"
                         )
-                    self.reset_handlers[name] = f
+                    self.reset_handlers[name] = Handler(name, f)
 
     def reset(self) -> None:
         """Reset the environment before task execution."""

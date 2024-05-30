@@ -20,12 +20,7 @@ str2bytes: Callable[..., Any] = (
 class AgentStudioStatusResponse(BaseModel):
     status: str
     content: str = ""
-
-
-class AgentStudioResultResponse(BaseModel):
-    status: str
-    result: str
-    message: dict | str
+    message: dict | str = ""
 
 
 class AgentStudioTextRequest(BaseModel):
