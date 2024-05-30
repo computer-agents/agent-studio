@@ -10,6 +10,8 @@ import base64
 from pathlib import Path
 from PIL import Image
 from io import BytesIO
+import matplotlib
+matplotlib.use('Agg')  # Use the 'Agg' backend for non-GUI environments
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
