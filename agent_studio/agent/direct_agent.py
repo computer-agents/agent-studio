@@ -47,7 +47,7 @@ class DirectAgent(BaseAgent):
             messages.append(
                 {
                     "role": "assistant",
-                    "content": f"[Action]: ```python\n{step['act']}\n```",
+                    "content": f"[Action]: ```python\n{step.act}\n```",
                 }
             )
 
@@ -62,16 +62,16 @@ class DirectAgent(BaseAgent):
             {"role": "user", "content": f"The task instruction: {self.instruction}"}
         )
         for step in self.trajectory:
-            if step["obs"] is not None:
+            if step.obs is not None:
                 messages.append({"role": "user", "content": "[Observation]: \n"})
-                messages.append({"role": "user", "content": step["obs"]})
+                messages.append({"role": "user", "content": step.obs})
             messages.append(
                 {
                     "role": "assistant",
-                    "content": f"[Action]: \n```python\n{step['act']}\n```",
+                    "content": f"[Action]: \n```python\n{step.act}\n```",
                 }
             )
-            messages.append({"role": "user", "content": f"[Result]: \n{step['res']}"})
+            messages.append({"role": "user", "content": f"[Result]: \n{step.res}"})
 
         if final_obs is not None:
             messages.append({"role": "user", "content": "[Observation]: \n"})

@@ -19,11 +19,11 @@ TASK_CONFIGS = [
 def test_qa(task_config):
     comb = evaluator_router(task_config)
     comb.reset()
+    trajectory = [
+        {"role": "system", "content": "System prompt"},
+        {"role": "assistant", "content": "[[[Document]]]"},
+    ]
     score, feedback = comb(
-        **{
-            "response": task_config["evals"][0]["eval_procedure"][0]["string_match"][
-                "answer"
-            ]
-        }
+        trajectory=trajectory,
     )
     assert score == 1.0, feedback

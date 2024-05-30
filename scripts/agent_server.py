@@ -1,6 +1,7 @@
 import logging
 import threading
 from contextlib import asynccontextmanager
+from typing import Any
 
 import uvicorn
 from fastapi import FastAPI
@@ -69,10 +70,10 @@ def reset_task(comb: EvaluatorComb):
         )
 
 
-def eval_task(comb: EvaluatorComb):
+def eval_task(comb: EvaluatorComb, **kwargs: Any):
     try:
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
-        score, feedback = comb()
+        score, feedback = comb(**kwargs)
         task_status.set_task_state(
             StateInfo(
                 state=StateEnum.FINISHED,
@@ -196,6 +197,7 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
         current_thread = threading.Thread(
             target=eval_task,
             args=(comb,),
+            kwargs={"trajectory": request.trajectory},
         )
         current_thread.start()
         return AgentStudioStatusResponse(status="submitted")
