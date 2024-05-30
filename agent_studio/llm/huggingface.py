@@ -19,6 +19,7 @@ class HuggingFaceProvider(BaseModel):
         super().__init__()
         self.tokenizer = None
         self.model = None
+        # self.processor = None
 
     def compose_messages(
         self,
@@ -43,10 +44,7 @@ class HuggingFaceProvider(BaseModel):
 
         if self.model is None:
             self.model_name = kwargs.get("model", None)
-            if self.model_name == "cckevinn/SeeClick":
-                tokenizer_name = "Qwen/Qwen-VL-Chat"
-            else:
-                tokenizer_name = self.model_name
+            tokenizer_name = kwargs.get("tokenizer", self.model_name)
             self.tokenizer = AutoTokenizer.from_pretrained(
                 tokenizer_name, trust_remote_code=True
             )
@@ -57,6 +55,8 @@ class HuggingFaceProvider(BaseModel):
             self.model.generation_config = GenerationConfig.from_pretrained(
                 self.model_name, do_sample=False, trust_remote_code=True
             )
+            # self.processor = AutoProcessor.from_pretrained(self.model_name)
+
         assert self.model is not None, "Model is not loaded."
 
         logger.info(
@@ -64,6 +64,10 @@ class HuggingFaceProvider(BaseModel):
             f"Message:\n{model_message}"
         )
 
+        # if "paligemma" in self.model_name:
+        #     inputs = self.processor(*list(model_message.values()), return_tensors="pt").to("cuda")  # noqa: E501
+        #     output = self.model.generate(**inputs, max_new_tokens=20)
+        #     print(self.processor.decode(output[0], skip_special_tokens=True)[len(prompt):])  # noqa: E501
         query = self.tokenizer.from_list_format(model_message)
         response, _ = self.model.chat(self.tokenizer, query=query, history=None)
 

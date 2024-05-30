@@ -53,20 +53,29 @@ def add_jsonl(data: list, file_path: str, mode="a"):
                 raise ValueError("Error encoding json object")
 
 
-def read_json(file_path: str) -> dict:
-    """Reads a dictionary from a .json file.
+def read_json(file_path: str) -> dict | list:
+    """Reads a .json file.
 
     Args:
         file_path (str): Path to the .json file
-
-    Returns:
-        dict: The dictionary read from the file
     """
     with open(file_path, "r") as file:
         data = jsonpickle.decode(file)
     if not isinstance(data, dict):
         raise ValueError("The file does not contain a dictionary")
     return data
+
+
+def add_json(data: dict, file_path: str, mode="a"):
+    """Adds a dictionary to a .json file.
+
+    Args:
+        data (dict): The dictionary to add to the file
+        file_path (str): Path to the .json file
+    """
+    with open(file_path, mode) as file:
+        json.dump(data, file)
+        file.write("\n")
 
 
 def format_json(data: dict, indent=4, sort_keys=False):
