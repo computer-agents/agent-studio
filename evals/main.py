@@ -1,8 +1,8 @@
 import argparse
 from pathlib import Path
 
-from gui_grounding_eval import GUIGroundingEval
 from common import make_report
+from gui_grounding_eval import GUIGroundingEval
 
 from agent_studio.llm import setup_model
 from agent_studio.utils.json_utils import add_jsonl
@@ -10,7 +10,9 @@ from agent_studio.utils.json_utils import add_jsonl
 
 def create_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--provider", type=str, choices=["openai", "gemini", "claude", "huggingface"])
+    parser.add_argument(
+        "--provider", type=str, choices=["openai", "gemini", "claude", "huggingface"]
+    )
     parser.add_argument("--model", type=str)
     parser.add_argument("--tokenizer", type=str, default=None)
     parser.add_argument("--eval_type", type=str)

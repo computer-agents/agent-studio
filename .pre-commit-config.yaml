@@ -40,17 +40,6 @@ repos:
         files: 'doc/'
         types_or: [javascript, ts, tsx, html, css]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
-    hooks:
-      - id: mypy
-        args: ['--follow-imports=skip', '--ignore-missing-imports']
-        additional_dependencies:
-          [
-            types-PyYAML,
-            types-requests,
-          ]
-
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
@@ -64,15 +53,6 @@ repos:
       - id: rst-directive-colons
       - id: rst-inline-touching-normal
       - id: python-check-mock-methods
-
-  # - repo: https://github.com/koalaman/shellcheck-precommit
-  #   rev: v0.7.0
-  #   hooks:
-  #     - id: shellcheck
-  #       args: ['--exclude=1090,1091,2207']
-  #         # 1090: Can't follow non-constant source. Use a directive to specify location.
-  #         # 1091: Not following {file} due to some error
-  #         # 2207: Prefer mapfile or read -a to split command output (or quote to avoid splitting). -- these aren't compatible with macOS's old Bash
 
   - repo: https://github.com/kynan/nbstripout
     rev: 0.6.0

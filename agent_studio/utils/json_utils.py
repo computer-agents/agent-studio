@@ -69,7 +69,7 @@ def add_json(data: dict, file_path: str, mode="a"):
     """
     with open(file_path, mode) as file:
         json.dump(data, file)
-        file.write('\n')
+        file.write("\n")
 
 
 def format_json(data: dict, indent=4, sort_keys=False):

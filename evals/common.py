@@ -1,21 +1,22 @@
+import base64
 import os
 from collections import defaultdict
-from multiprocessing.pool import ThreadPool
-from typing import Any
-import numpy as np
-from tqdm import tqdm
-import jinja2
 from dataclasses import dataclass, field
-import base64
-from pathlib import Path
-from PIL import Image
 from io import BytesIO
-import matplotlib
-matplotlib.use('Agg')  # Use the 'Agg' backend for non-GUI environments
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from multiprocessing.pool import ThreadPool
+from pathlib import Path
+from typing import Any
 
-from agent_studio.llm import BaseModel
+import jinja2
+import matplotlib
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+from tqdm import tqdm
+
+matplotlib.use("Agg")  # Use the 'Agg' backend for non-GUI environments
+
 
 Message = dict[str, Any]  # keys role, content
 MessageList = list[Message]
@@ -29,7 +30,7 @@ class EvalResult:
 
     score: float | None  # top-line metric
     logs: list[dict]  # log to jsonl
-    htmls: list[str]  # strings of valid HTML
+    htmls: list[str | None]  # strings of valid HTML
     metrics: dict[str, float] | None  # other metrics
 
 
@@ -42,7 +43,7 @@ class SingleEvalResult:
     score: float | None
     log: dict = field(default_factory=dict)
     html: str | None = None
-    metrics: dict[str, float] = field(default_factory=dict)
+    metrics: dict[str, float | int] = field(default_factory=dict)
 
 
 class Eval:
@@ -50,7 +51,9 @@ class Eval:
     Base class for defining an evaluation.
     """
 
-    def __call__(self, model_name: str, tokenizer_name: str, num_workers: int = 1) -> EvalResult:
+    def __call__(
+        self, model_name: str, tokenizer_name: str, num_workers: int = 1
+    ) -> EvalResult:
         raise NotImplementedError
 
 
@@ -90,7 +93,10 @@ def aggregate_results(
             key = name if stat == "mean" else f"{name}:{stat}"
             final_metrics[key] = float(_compute_stat(values, stat))
     return EvalResult(
-        score=final_metrics.pop("score", None), metrics=final_metrics, htmls=htmls, logs=logs
+        score=final_metrics.pop("score", None),
+        metrics=final_metrics,
+        htmls=htmls,
+        logs=logs,
     )
 
 
@@ -128,7 +134,7 @@ jinja_env = jinja2.Environment(
 _message_template = """
 <div class="message {{ role }}">
     <div class="role">
-    {{ role }} 
+    {{ role }}
     {% if variant %}<span class="variant">({{ variant }})</span>{% endif %}
     </div>
     <div class="content">
@@ -143,7 +149,9 @@ def message_to_html(message: Message) -> str:
     Generate HTML snippet (inside a <div>) for a message.
     """
     return jinja_env.from_string(_message_template).render(
-        role=message["role"], content=message["content"], variant=message.get("variant", None)
+        role=message["role"],
+        content=message["content"],
+        variant=message.get("variant", None),
     )
 
 
@@ -177,25 +185,32 @@ def render_image(prompt_messages: MessageList, bbox, pred_coord):
 
         # Plot bounding box
         left, top, right, bottom = bbox
-        rect = patches.Rectangle((left, top), right-left, bottom-top, linewidth=6, edgecolor='r', facecolor='none')
+        rect = patches.Rectangle(
+            (left, top),
+            right - left,
+            bottom - top,
+            linewidth=6,
+            edgecolor="r",
+            facecolor="none",
+        )
         ax.add_patch(rect)
 
         # Plot predicted coordinate
         if pred_coord is not None:
             x, y = pred_coord
-            ax.plot(x, y, 'ro', markersize=10)
+            ax.plot(x, y, "ro", markersize=10)
 
-        plt.axis('off')
+        plt.axis("off")
 
         # Save the new image to a BytesIO object
         buf = BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0, dpi=dpi)
+        plt.savefig(buf, format="png", bbox_inches="tight", pad_inches=0, dpi=dpi)
         plt.close(fig)
 
         # Encode the image in base64
-        base64_image = base64.b64encode(buf.getvalue()).decode('utf-8')
+        base64_image = base64.b64encode(buf.getvalue()).decode("utf-8")
 
-        return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'
+        return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'  # noqa: E501
 
 
 jinja_env.globals["message_to_html"] = message_to_html
@@ -283,4 +298,6 @@ def make_report_from_example_htmls(htmls: list[str]):
     """
     Create a standalone HTML report from a list of example htmls
     """
-    return jinja_env.from_string(_report_template).render(score=None, metrics={}, htmls=htmls)
+    return jinja_env.from_string(_report_template).render(
+        score=None, metrics={}, htmls=htmls
+    )

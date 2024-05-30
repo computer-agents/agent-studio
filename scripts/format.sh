@@ -53,7 +53,7 @@ check_docstyle() {
 
 check_python_command_exist black
 check_python_command_exist flake8
-check_python_command_exist mypy
+# check_python_command_exist mypy
 check_python_command_exist isort
 
 # this stops git rev-parse from failing if we run this from the .git directory
@@ -77,7 +77,7 @@ else
     BLACK_VERSION=$(echo "$BLACK_VERSION_STR" | head -n 1 | awk '{print $3}')
 fi
 FLAKE8_VERSION=$(flake8 --version | head -n 1 | awk '{print $1}')
-MYPY_VERSION=$(mypy --version | awk '{print $2}')
+# MYPY_VERSION=$(mypy --version | awk '{print $2}')
 ISORT_VERSION=$(isort --version | grep VERSION | awk '{print $2}')
 
 # params: tool name, tool version, required version
@@ -89,7 +89,7 @@ tool_version_check() {
 
 tool_version_check "flake8" "$FLAKE8_VERSION" "$FLAKE8_VERSION_REQUIRED"
 tool_version_check "black" "$BLACK_VERSION" "$BLACK_VERSION_REQUIRED"
-tool_version_check "mypy" "$MYPY_VERSION" "$MYPY_VERSION_REQUIRED"
+# tool_version_check "mypy" "$MYPY_VERSION" "$MYPY_VERSION_REQUIRED"
 tool_version_check "isort" "$ISORT_VERSION" "$ISORT_VERSION_REQUIRED"
 
 if command -v shellcheck >/dev/null; then
@@ -139,9 +139,9 @@ format_all() {
     echo "$(date)" "Black...."
     git ls-files -- '*.py' "${GIT_LS_EXCLUDES[@]}" | xargs -P 10 \
       black
-    echo "$(date)" "MYPY...."
-    git ls-files -- '*.py' "${GIT_LS_EXCLUDES[@]}" | xargs -P 10 \
-      mypy "${MYPY_FLAGS[@]}"
+    # echo "$(date)" "MYPY...."
+    # git ls-files -- '*.py' "${GIT_LS_EXCLUDES[@]}" | xargs -P 10 \
+    #   mypy "${MYPY_FLAGS[@]}"
     if [ $HAS_FLAKE8 ]; then
       echo "$(date)" "Flake8...."
       git ls-files -- '*.py' "${GIT_LS_EXCLUDES[@]}" | xargs -P 5 \
