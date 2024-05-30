@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from transformers import AutoModelForCausalLM, AutoTokenizer, AutoProcessor
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers.generation import GenerationConfig
 
 from agent_studio.config.config import Config
@@ -32,7 +32,9 @@ class HuggingFaceProvider(BaseModel):
             elif isinstance(msg.content, Path):
                 model_message.append({"image": msg.content.as_posix()})
             else:
-                assert False, f"Unknown message type: {type(msg.content)}, {msg.content}"
+                assert (
+                    False
+                ), f"Unknown message type: {type(msg.content)}, {msg.content}"
 
         return model_message
 

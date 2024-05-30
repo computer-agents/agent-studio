@@ -14,7 +14,6 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
-
 class BaseAgent:
     """Base class for agents."""
 

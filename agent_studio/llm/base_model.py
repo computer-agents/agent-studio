@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from typing import Any, Union
 from pathlib import Path
+from typing import Any, Union
 
 import numpy as np
 

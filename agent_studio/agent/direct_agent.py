@@ -70,11 +70,7 @@ class DirectAgent(BaseAgent):
                     role="assistant", content=f"[Action]: \n```python\n{step.act}\n```"
                 )
             )
-            messages.append(
-                PromptSeg(
-                    role="user", content=f"[Result]: \n{step.res}"
-                )
-            )
+            messages.append(PromptSeg(role="user", content=f"[Result]: \n{step.res}"))
 
         if final_obs is not None:
             messages.append(PromptSeg(role="user", content="[Observation]: \n"))

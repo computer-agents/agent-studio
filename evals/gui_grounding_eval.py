@@ -3,12 +3,18 @@ import re
 from pathlib import Path
 
 import numpy as np
-
-from common import map_with_progress, aggregate_results, Eval, EvalResult, SingleEvalResult, HTML_JINJA, jinja_env
+from common import (
+    HTML_JINJA,
+    Eval,
+    EvalResult,
+    SingleEvalResult,
+    aggregate_results,
+    jinja_env,
+    map_with_progress,
+)
 
 from agent_studio.llm import BaseModel
 from agent_studio.utils.json_utils import read_json
-
 
 QUERY_TEMPLATE = """
 Please output the coordinates based on the given single-step instruction and screenshot. The last line of your response should be of the following format: 'Answer: ($X, $Y)' (without quotes) where X, Y is the relative coordinates ranging from 0 to 1. Think step by step before answering.
@@ -63,7 +69,12 @@ class GUIGroundingEval(Eval):
                 score = 0.0
             else:
                 pred_x, pred_y = action
-                if pred_x > left and pred_x < right and pred_y > top and pred_y < bottom:
+                if (
+                    pred_x > left
+                    and pred_x < right
+                    and pred_y > top
+                    and pred_y < bottom
+                ):
                     score = 1.0
                 else:
                     score = 0.0

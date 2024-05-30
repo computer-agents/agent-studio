@@ -1,16 +1,17 @@
+import base64
 import os
 from collections import defaultdict
+from dataclasses import dataclass, field
+from io import BytesIO
 from multiprocessing.pool import ThreadPool
 from typing import Any
-import numpy as np
-from tqdm import tqdm
+
 import jinja2
-from dataclasses import dataclass, field
-import base64
-from PIL import Image
-from io import BytesIO
-import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+from tqdm import tqdm
 
 from agent_studio.llm import BaseModel
 
@@ -87,7 +88,10 @@ def aggregate_results(
             key = name if stat == "mean" else f"{name}:{stat}"
             final_metrics[key] = float(_compute_stat(values, stat))
     return EvalResult(
-        score=final_metrics.pop("score", None), metrics=final_metrics, htmls=htmls, conversations=conversations
+        score=final_metrics.pop("score", None),
+        metrics=final_metrics,
+        htmls=htmls,
+        conversations=conversations,
     )
 
 
@@ -140,7 +144,9 @@ def message_to_html(message: Message) -> str:
     Generate HTML snippet (inside a <div>) for a message.
     """
     return jinja_env.from_string(_message_template).render(
-        role=message["role"], content=message["content"], variant=message.get("variant", None)
+        role=message["role"],
+        content=message["content"],
+        variant=message.get("variant", None),
     )
 
 
@@ -164,23 +170,30 @@ def render_image(prompt_messages: MessageList, bbox, pred_coord):
 
             # Plot bounding box
             left, top, right, bottom = bbox
-            rect = patches.Rectangle((left, top), right-left, bottom-top, linewidth=2, edgecolor='r', facecolor='none')
+            rect = patches.Rectangle(
+                (left, top),
+                right - left,
+                bottom - top,
+                linewidth=2,
+                edgecolor="r",
+                facecolor="none",
+            )
             ax.add_patch(rect)
 
             # Plot predicted coordinate
             if pred_coord is not None:
                 x, y = pred_coord
-                ax.plot(x, y, 'ro')  # red point
+                ax.plot(x, y, "ro")  # red point
 
-            plt.axis('off')
+            plt.axis("off")
 
             # Save the new image to a BytesIO object
             buf = BytesIO()
-            plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0, dpi=dpi)
+            plt.savefig(buf, format="png", bbox_inches="tight", pad_inches=0, dpi=dpi)
             plt.close(fig)
 
             # Encode the image in base64
-            base64_image = base64.b64encode(buf.getvalue()).decode('utf-8')
+            base64_image = base64.b64encode(buf.getvalue()).decode("utf-8")
 
             return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'
 
@@ -270,4 +283,6 @@ def make_report_from_example_htmls(htmls: list[str]):
     """
     Create a standalone HTML report from a list of example htmls
     """
-    return jinja_env.from_string(_report_template).render(score=None, metrics={}, htmls=htmls)
+    return jinja_env.from_string(_report_template).render(
+        score=None, metrics={}, htmls=htmls
+    )

@@ -3,10 +3,10 @@ import threading
 from contextlib import asynccontextmanager
 from typing import Any
 
+import jsonpickle
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import Response
-import jsonpickle
 
 from agent_studio.agent.runtime import PythonRuntime
 from agent_studio.config import Config
