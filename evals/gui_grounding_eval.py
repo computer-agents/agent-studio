@@ -1,13 +1,13 @@
 import os
 import re
-import json
 from pathlib import Path
 
 import numpy as np
 
-from common import map_with_progress, aggregate_results, Eval, EvalResult, SingleEvalResult
+from common import map_with_progress, aggregate_results, Eval, EvalResult, SingleEvalResult, HTML_JINJA, jinja_env
 
 from agent_studio.llm import BaseModel
+from agent_studio.utils.json_utils import read_json
 
 
 QUERY_TEMPLATE = """
@@ -45,11 +45,7 @@ class GUIGroundingEval(Eval):
         start_idx: int = 0,
         end_idx: int | None = None,
     ):
-        with open(data_path, 'r') as file:
-            if end_idx is None:
-                self.data = json.load(file)[start_idx:]
-            else:
-                self.data = json.load(file)[start_idx:end_idx]
+        self.data = read_json(data_path, start_idx, end_idx)
         self.data_dir = Path(data_path).parent
         self.provider = provider
 
@@ -57,7 +53,7 @@ class GUIGroundingEval(Eval):
         def fn(row: dict):
             screenshot = os.path.join(self.data_dir, row["img_filename"])
             instruction = row["instruction"]
-            x, y, width, height = row["bbox"]
+            left, top, right, bottom = row["bbox"]
 
             # Query the model and evaluate the response
             prompt = format_gui_grounding_prompt(instruction, screenshot)
@@ -67,19 +63,26 @@ class GUIGroundingEval(Eval):
                 score = 0.0
             else:
                 pred_x, pred_y = action
-                if pred_x > x and pred_x < x + width and pred_y > y and pred_y < y + height:
+                if pred_x > left and pred_x < right and pred_y > top and pred_y < bottom:
                     score = 1.0
                 else:
                     score = 0.0
 
             # Log results
+            html = jinja_env.from_string(HTML_JINJA).render(
+                prompt_messages=prompt,
+                next_message=dict(content=response, role="assistant"),
+                score=score,
+                correct_bbox=(left, top, right, bottom),
+                pred_coord=action,
+            )
             conversation = prompt + [dict(content=response, role="assistant")]
             metrics = {
                 "input_tokens": info.get("prompt_tokens", 0),
                 "output_tokens": info.get("completion_tokens", 0),
             }
             return SingleEvalResult(
-                score=score, conversation=conversation, metrics=metrics
+                html=html, score=score, conversation=conversation, metrics=metrics
             )
 
         results = map_with_progress(fn, self.data, num_workers)

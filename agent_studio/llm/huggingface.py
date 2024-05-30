@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoProcessor
 from transformers.generation import GenerationConfig
 
 from agent_studio.config.config import Config
@@ -19,6 +19,7 @@ class HuggingFaceProvider(BaseModel):
         super().__init__()
         self.tokenizer = None
         self.model = None
+        # self.processor = None
 
     def compose_messages(
         self,
@@ -55,8 +56,10 @@ class HuggingFaceProvider(BaseModel):
             ).eval()
             assert self.model is not None, "Model is not loaded."
             self.model.generation_config = GenerationConfig.from_pretrained(
-                self.model_name, do_sample=False, trust_remote_code=True
+                self.model_name, do_sample=True, trust_remote_code=True
             )
+            # self.processor = AutoProcessor.from_pretrained(self.model_name)
+
         assert self.model is not None, "Model is not loaded."
 
         logger.info(
@@ -64,6 +67,10 @@ class HuggingFaceProvider(BaseModel):
             f"Message:\n{model_message}"
         )
 
+        # if "paligemma" in self.model_name:
+        #     inputs = self.processor(*list(model_message.values()), return_tensors="pt").to("cuda")
+        #     output = self.model.generate(**inputs, max_new_tokens=20)
+        #     print(self.processor.decode(output[0], skip_special_tokens=True)[len(prompt):])
         query = self.tokenizer.from_list_format(model_message)
         response, _ = self.model.chat(self.tokenizer, query=query, history=None)
 

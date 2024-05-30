@@ -49,7 +49,7 @@ def add_jsonl(data: list, file_path: str, mode="a"):
             file.write(json_str + "\n")
 
 
-def read_json(file_path: str) -> dict:
+def read_json(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> dict:
     """Reads a dictionary from a .json file.
 
     Args:
@@ -59,8 +59,23 @@ def read_json(file_path: str) -> dict:
         dict: The dictionary read from the file
     """
     with open(file_path, "r") as file:
-        data = json.load(file)
+        if end_idx is None:
+            data = json.load(file)[start_idx:]
+        else:
+            data = json.load(file)[start_idx:end_idx]
     return data
+
+
+def add_json(data: dict, file_path: str, mode="a"):
+    """Adds a dictionary to a .json file.
+
+    Args:
+        data (dict): The dictionary to add to the file
+        file_path (str): Path to the .json file
+    """
+    with open(file_path, mode) as file:
+        json.dump(data, file)
+        file.write('\n')
 
 
 def format_json(data: dict, indent=4, sort_keys=False):
