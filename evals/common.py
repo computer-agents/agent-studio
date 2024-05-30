@@ -129,7 +129,7 @@ jinja_env = jinja2.Environment(
 _message_template = """
 <div class="message {{ role }}">
     <div class="role">
-    {{ role }} 
+    {{ role }}
     {% if variant %}<span class="variant">({{ variant }})</span>{% endif %}
     </div>
     <div class="content">
@@ -195,7 +195,7 @@ def render_image(prompt_messages: MessageList, bbox, pred_coord):
             # Encode the image in base64
             base64_image = base64.b64encode(buf.getvalue()).decode("utf-8")
 
-            return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'
+            return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'  # noqa: E501
 
 
 jinja_env.globals["message_to_html"] = message_to_html

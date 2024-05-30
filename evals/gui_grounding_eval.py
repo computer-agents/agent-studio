@@ -20,7 +20,7 @@ QUERY_TEMPLATE = """
 Please output the coordinates based on the given single-step instruction and screenshot. The last line of your response should be of the following format: 'Answer: ($X, $Y)' (without quotes) where X, Y is the relative coordinates ranging from 0 to 1. Think step by step before answering.
 
 Instruction: {instruction}
-""".strip()
+""".strip()  # noqa: E501
 
 
 ANSWER_PATTERN = r"(?i)Answer\s*:\s*\(\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*\)"
