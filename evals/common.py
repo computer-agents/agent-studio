@@ -155,38 +155,47 @@ def render_image(prompt_messages: MessageList, bbox, pred_coord):
         content = message["content"]
         if isinstance(content, Path):
             content = content.as_posix()
-        if content.endswith((".png", ".jpg", ".jpeg")):
-            # Load the image
-            image = Image.open(content)
-            img_width, img_height = image.size
-            dpi = 40
-            figsize = img_width / float(dpi), img_height / float(dpi)
+        if isinstance(content, str):
+            if content.endswith((".png", ".jpg", ".jpeg")):
+                image = Image.open(content)
+            else:
+                continue
+        elif isinstance(content, Image.Image):
+            image = content
+        elif isinstance(content, np.ndarray):
+            image = Image.fromarray(content)
+        else:
+            raise ValueError(f"Unknown message type: {content}")
 
-            # Plot image
-            fig, ax = plt.subplots(1, figsize=figsize)
-            ax.imshow(image)
+        img_width, img_height = image.size
+        dpi = 40
+        figsize = img_width / float(dpi), img_height / float(dpi)
 
-            # Plot bounding box
-            left, top, right, bottom = bbox
-            rect = patches.Rectangle((left, top), right-left, bottom-top, linewidth=2, edgecolor='r', facecolor='none')
-            ax.add_patch(rect)
+        # Plot image
+        fig, ax = plt.subplots(1, figsize=figsize)
+        ax.imshow(image)
 
-            # Plot predicted coordinate
-            if pred_coord is not None:
-                x, y = pred_coord
-                ax.plot(x, y, 'ro')  # red point
+        # Plot bounding box
+        left, top, right, bottom = bbox
+        rect = patches.Rectangle((left, top), right-left, bottom-top, linewidth=6, edgecolor='r', facecolor='none')
+        ax.add_patch(rect)
 
-            plt.axis('off')
+        # Plot predicted coordinate
+        if pred_coord is not None:
+            x, y = pred_coord
+            ax.plot(x, y, 'ro', markersize=10)
 
-            # Save the new image to a BytesIO object
-            buf = BytesIO()
-            plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0, dpi=dpi)
-            plt.close(fig)
+        plt.axis('off')
 
-            # Encode the image in base64
-            base64_image = base64.b64encode(buf.getvalue()).decode('utf-8')
+        # Save the new image to a BytesIO object
+        buf = BytesIO()
+        plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0, dpi=dpi)
+        plt.close(fig)
 
-            return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'
+        # Encode the image in base64
+        base64_image = base64.b64encode(buf.getvalue()).decode('utf-8')
+
+        return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'
 
 
 jinja_env.globals["message_to_html"] = message_to_html

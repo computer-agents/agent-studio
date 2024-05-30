@@ -52,13 +52,10 @@ def openai_encode_image(image: Path | Image.Image | np.ndarray) -> str:
     return encoded_image
 
 
-def anthropic_encode_image(image: str | Image.Image | np.ndarray | None) -> str:
-    if isinstance(image, str):
-        if os.path.exists(image):
-            with open(image, "rb") as image_file:
-                encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
-        else:
-            encoded_image = image
+def anthropic_encode_image(image: Path | Image.Image | np.ndarray) -> str:
+    if isinstance(image, Path):
+        with open(image, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
     elif isinstance(image, Image.Image):  # PIL image
         buffered = io.BytesIO()
         image.save(buffered, format="JPEG")

@@ -1,5 +1,6 @@
 import logging
 from typing import Any
+from pathlib import Path
 
 import backoff
 import numpy as np
@@ -34,7 +35,7 @@ class AnthropicProvider(BaseModel):
             if msg["role"] == "system":
                 self.system_prompt = msg["content"]
                 continue
-            if isinstance(msg["content"], np.ndarray):
+            if isinstance(msg["content"], np.ndarray) or isinstance(msg["content"], Path):
                 content: dict = {
                     "type": "image",
                     "source": {
@@ -69,10 +70,7 @@ class AnthropicProvider(BaseModel):
         temperature = kwargs.get("temperature", config.temperature)
         max_tokens = kwargs.get("max_tokens", config.max_tokens)
         model_message = self.compose_messages(intermedia_msg=messages)
-        logger.info(
-            f"Creating chat completion with model {model}. "
-            f"Message:\n{model_message}"
-        )
+        logger.info(f"Creating chat completion with model {model}.")
 
         @backoff.on_exception(
             backoff.constant,
