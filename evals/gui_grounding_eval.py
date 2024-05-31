@@ -1,6 +1,7 @@
 import os
 import re
 from pathlib import Path
+from typing import Tuple
 
 import numpy as np
 from common import (
@@ -38,7 +39,7 @@ def format_gui_grounding_prompt(
     return messages
 
 
-def parse_gui_grounding_response(response: str) -> tuple(float, float) | None:
+def parse_gui_grounding_response(response: str) -> Tuple[float, float] | None:
     match = re.search(ANSWER_PATTERN, response.splitlines()[-1])
     return (float(match.group(1)), float(match.group(2))) if match else None
 
@@ -76,6 +77,7 @@ class GUIGroundingEval(Eval):
                 pred_x, pred_y = action
                 pred_x *= img_width
                 pred_y *= img_height
+                action = (pred_x, pred_y)
                 if (
                     pred_x > left
                     and pred_x < right
@@ -92,7 +94,7 @@ class GUIGroundingEval(Eval):
                 next_message=dict(content=response, role="assistant"),
                 score=score,
                 correct_bbox=(left, top, right, bottom),
-                pred_coord=(pred_x, pred_y),
+                pred_coord=action,
             )
             log = {
                 "image": row["image"],
