@@ -44,7 +44,7 @@ class Config(metaclass=ThreadSafeSingleton):
     stop_hotkeys: str = "<ctrl>+<shift>+h"
 
     # sleep_after_execution: float = 2.0
-    system_prompt_path: str = "agent_studio/agent/prompts/system_prompt.txt"
+    prompt_folder: str = "agent_studio/agent/prompts"
     init_code_path: str = "agent_studio/agent/prompts/init_code.txt"
     # parsing_failure_th: int = 3
     # repeating_action_failure_th = 3

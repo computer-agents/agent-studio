@@ -37,6 +37,9 @@ from PyQt6.QtWidgets import (
 
 from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config.config import Config
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import (
+    register_evaluators,
+)
 from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
     VNCRecorder,
@@ -183,7 +186,9 @@ class ResetTaskThread(QThread):
     def run(self):
         assert self.selected_task is not None
         self.signals.status_bar_signal.emit("color: green;", "Task: Resetting Agent...")
-        self.agent.reset(instruction=self.selected_task["instruction"])
+        self.agent.reset(
+            task_config=self.selected_task, registered_evaluators=register_evaluators()
+        )
         self.signals.status_bar_signal.emit("color: green;", "Task: Resetting Task...")
         response_raw = requests.post(
             f"http://{REMOTE_SERVER_ADDR}/task/reset",

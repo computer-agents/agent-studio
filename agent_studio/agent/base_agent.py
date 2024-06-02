@@ -7,6 +7,7 @@ import requests
 
 from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.config import Config
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import Evaluator
 from agent_studio.llm.base_model import BaseModel, PromptSeg, TrajectorySeg
 from agent_studio.llm.utils import extract_from_response
 
@@ -30,12 +31,17 @@ class BaseAgent:
         self.cur_info: dict[str, Any] = {}
         self.cur_raw_code: str = ""
         self.total_tokens: int = 0
+        self.task_config = {}
+        self.registered_evaluators = {}
 
     def reset(
         self,
-        instruction: str,
+        task_config: dict[str, Any],
+        registered_evaluators: dict[str, type[Evaluator]],
     ) -> None:
-        self.instruction = instruction
+        self.task_config = task_config
+        self.registered_evaluators = registered_evaluators
+        self.instruction = task_config["instruction"]
         self.trajectory = []
         self.cur_prompt = None
         self.cur_response = None

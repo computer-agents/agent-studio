@@ -1,14 +1,9 @@
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 
-
-@dataclass
-class PromptSeg:
-    role: str
-    content: Union[str, np.ndarray, Path]
+from agent_studio.utils.prompt import PromptSeg
 
 
 @dataclass

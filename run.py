@@ -14,7 +14,10 @@ from agent_studio.agent import setup_agent
 from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.agent_interface import AgentInterface
-from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import (
+    evaluator_router,
+    register_evaluators,
+)
 from agent_studio.envs.desktop_env.human_interface import HumanInterface
 from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
@@ -211,7 +214,9 @@ def eval_headless(
                 instruction = task_config["instruction"]
                 logger.info(f"Task instruction: {instruction}")
 
-            agent.reset(instruction=instruction)
+            agent.reset(
+                task_config=task_config, registered_evaluators=register_evaluators()
+            )
             # Loop until the task is done or the max step is reached.
             for t in range(task_config["max_steps"]):
                 logger.info(f"Step {t}")
