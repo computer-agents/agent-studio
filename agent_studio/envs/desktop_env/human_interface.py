@@ -151,7 +151,7 @@ class ResetThread(QThread):
         assert (
             response.status == "success"
         ), f"Fail to reset runtime: {response_raw.text}"
-        self.agent.reset(instruction=self.task_config["instruction"])
+        self.agent.reset(task_config=self.task_config, registered_evaluators={})
         self.signals.status_bar_signal.emit(
             "color: green;", "Task: Preparing the environment..."
         )

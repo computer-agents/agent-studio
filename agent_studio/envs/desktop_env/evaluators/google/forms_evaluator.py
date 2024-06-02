@@ -3,11 +3,11 @@ from typing import Any
 
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
-    Evaluator,
     FeedbackException,
     evaluation_handler,
     reset_handler,
 )
+from agent_studio.envs.desktop_env.evaluators.google.evaluator_base import GoogleEvaluatorBase
 from agent_studio.envs.desktop_env.evaluators.google.drive_evaluator import (
     GoogleDriveService,
 )
@@ -110,7 +110,7 @@ class GoogleFormsService(GoogleService):
             )
 
 
-class GoogleFormsEvaluator(Evaluator):
+class GoogleFormsEvaluator(GoogleEvaluatorBase):
     name: str = "google_forms"
 
     def __init__(

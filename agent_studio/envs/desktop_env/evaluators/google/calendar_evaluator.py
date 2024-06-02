@@ -4,11 +4,11 @@ from typing import Any
 
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
-    Evaluator,
     FeedbackException,
     evaluation_handler,
     reset_handler,
 )
+from agent_studio.envs.desktop_env.evaluators.google.evaluator_base import GoogleEvaluatorBase
 from agent_studio.envs.desktop_env.evaluators.google.gservice import GoogleService
 from agent_studio.utils.human_utils import confirm_action
 
@@ -72,8 +72,9 @@ def reminders_match(reminder1: dict, reminder2: dict) -> bool:
     return overrides1 == overrides2
 
 
-class GoogleCalendarEvaluator(Evaluator):
+class GoogleCalendarEvaluator(GoogleEvaluatorBase):
     name: str = "google_calendar"
+    prompt: str = "evaluators/google/calendar_prompt"
 
     def __init__(
         self,

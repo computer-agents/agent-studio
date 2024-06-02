@@ -49,6 +49,7 @@ from agent_studio.utils.communication import (
     AgentStudioTextRequest,
 )
 from agent_studio.utils.json_utils import export_trajectories, format_json, read_jsonl
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import register_evaluators
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -183,7 +184,7 @@ class ResetTaskThread(QThread):
     def run(self):
         assert self.selected_task is not None
         self.signals.status_bar_signal.emit("color: green;", "Task: Resetting Agent...")
-        self.agent.reset(instruction=self.selected_task["instruction"])
+        self.agent.reset(task_config=self.selected_task, registered_evaluators=register_evaluators())
         self.signals.status_bar_signal.emit("color: green;", "Task: Resetting Task...")
         response_raw = requests.post(
             f"http://{REMOTE_SERVER_ADDR}/task/reset",

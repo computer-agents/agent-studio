@@ -9,6 +9,7 @@ from agent_studio.agent.base_agent import BaseAgent, TrajectorySeg
 from agent_studio.config import Config
 from agent_studio.llm.base_model import BaseModel
 
+
 config = Config()
 logger = logging.getLogger(__name__)
 
@@ -21,8 +22,8 @@ class HumanAgent(BaseAgent):
     def __init__(self) -> None:
         super().__init__(model=BaseModel())
 
-    def reset(self, instruction: str) -> None:
-        super().reset(instruction=instruction)
+    def reset(self, task_config: dict[str, Any], registered_evaluators: dict[str, Any]) -> None:
+        super().reset(task_config=task_config, registered_evaluators={})
         with open(config.init_code_path, "r") as f:
             init_code = f.read()
             assert self.runtime is not None
