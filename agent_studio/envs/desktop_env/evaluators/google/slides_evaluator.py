@@ -8,7 +8,9 @@ from agent_studio.envs.desktop_env.evaluators.evaluator import (
 from agent_studio.envs.desktop_env.evaluators.google.drive_evaluator import (
     GoogleDriveService,
 )
-from agent_studio.envs.desktop_env.evaluators.google.evaluator_base import GoogleEvaluatorBase
+from agent_studio.envs.desktop_env.evaluators.google.evaluator_base import (
+    GoogleEvaluatorBase,
+)
 from agent_studio.envs.desktop_env.evaluators.google.gservice import GoogleService
 
 logger = logging.getLogger(__name__)

@@ -1,12 +1,11 @@
+import logging
 from dataclasses import dataclass
 from enum import Enum
-import logging
 from pathlib import Path
 from typing import Union
 
 import numpy as np
 import toml
-
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +20,7 @@ class PromptTag(Enum):
     """
     Prompt tags. Defines the type of prompt.
     """
+
     NONE = "none"
     SYSTEM = "system"
     EVALUATOR = "evaluator"
@@ -41,8 +41,8 @@ class Prompt:
         name: str,
         prompt: str,
         tag: PromptTag,
-        params: dict[str, str] = {},
-        parent: str | None = None
+        params: dict[str, str],
+        parent: str | None = None,
     ) -> None:
         self.name = name
         self.prompt = prompt
@@ -68,7 +68,6 @@ class Prompt:
 
 
 class SysPromptComposer:
-
     def __init__(self, prompt_path_base: str = "agent_studio/agent/prompts") -> None:
         self.prompts: dict[str, Prompt] = {}
         self.prompt_path_base: str = prompt_path_base
@@ -80,8 +79,9 @@ class SysPromptComposer:
         """
         if prompt_name in self.prompts:
             return self.prompts[prompt_name]
-        file_path = Path.joinpath(Path(self.prompt_path_base),
-                                  Path(prompt_name)).with_suffix(".toml")
+        file_path = Path.joinpath(
+            Path(self.prompt_path_base), Path(prompt_name)
+        ).with_suffix(".toml")
         if not file_path.exists():
             raise ValueError(f"Prompt {prompt_name} does not exist")
         with open(file_path, "r") as f:
@@ -92,6 +92,7 @@ class SysPromptComposer:
             prompt = Prompt(
                 name=prompt_name,
                 prompt=prompt_text,
+                params={},
                 tag=PromptTag.NONE,
                 parent=data.get("prompt", {}).get("parent", None),
             )

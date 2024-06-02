@@ -7,10 +7,9 @@ import requests
 
 from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.config import Config
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import Evaluator
 from agent_studio.llm.base_model import BaseModel, PromptSeg, TrajectorySeg
 from agent_studio.llm.utils import extract_from_response
-from agent_studio.envs.desktop_env.evaluators.evaluator_helper import Evaluator
-
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -38,7 +37,7 @@ class BaseAgent:
     def reset(
         self,
         task_config: dict[str, Any],
-        registered_evaluators: dict[str, type[Evaluator]]
+        registered_evaluators: dict[str, type[Evaluator]],
     ) -> None:
         self.task_config = task_config
         self.registered_evaluators = registered_evaluators

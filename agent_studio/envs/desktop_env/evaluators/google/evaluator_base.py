@@ -1,6 +1,4 @@
-from agent_studio.envs.desktop_env.evaluators.evaluator import (
-    Evaluator,
-)
+from agent_studio.envs.desktop_env.evaluators.evaluator import Evaluator
 
 
 class GoogleEvaluatorBase(Evaluator):

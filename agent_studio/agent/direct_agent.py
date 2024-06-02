@@ -5,8 +5,8 @@ import numpy as np
 
 from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config import Config
-from agent_studio.utils.prompt import PromptSeg, SysPromptComposer
 from agent_studio.envs.desktop_env.evaluators.evaluator_helper import Evaluator
+from agent_studio.utils.prompt import PromptSeg, SysPromptComposer
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -20,9 +20,11 @@ class DirectAgent(BaseAgent):
     def reset(
         self,
         task_config: dict[str, Any],
-        registered_evaluators: dict[str, type[Evaluator]]
+        registered_evaluators: dict[str, type[Evaluator]],
     ) -> None:
-        super().reset(task_config=task_config, registered_evaluators=registered_evaluators)
+        super().reset(
+            task_config=task_config, registered_evaluators=registered_evaluators
+        )
         composer = SysPromptComposer(config.system_prompt_path)
         for eval in task_config["evals"]:
             if "eval_procedure" in eval and len(eval["eval_procedure"]) > 0:
