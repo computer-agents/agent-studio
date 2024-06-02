@@ -11,4 +11,6 @@ Also, you should assume the timezone is UTC+0 if there's no further specificatio
 
 tag = "evaluator"
 
+evaluator_name = "google_calendar"
+
 parent = "evaluators/google/base_prompt"

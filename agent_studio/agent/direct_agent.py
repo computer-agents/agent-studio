@@ -25,7 +25,7 @@ class DirectAgent(BaseAgent):
         super().reset(
             task_config=task_config, registered_evaluators=registered_evaluators
         )
-        composer = SysPromptComposer(config.system_prompt_path)
+        composer = SysPromptComposer(config.prompt_folder)
         for eval in task_config["evals"]:
             if "eval_procedure" in eval and len(eval["eval_procedure"]) > 0:
                 evaluator = registered_evaluators[eval["eval_type"]]
