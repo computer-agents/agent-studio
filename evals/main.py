@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from gui_grounding_eval import GUIGroundingEval
+from eval_gui_grounding import GUIGroundingEval
 
 from agent_studio.llm import setup_model
 

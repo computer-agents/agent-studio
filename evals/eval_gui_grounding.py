@@ -36,6 +36,28 @@ def parse_gui_grounding_response(response: str) -> Tuple[float, float] | None:
     return [float(match.group(1)), float(match.group(2))] if match else None
 
 
+def eval_coord_output(action, bbox, img_size):
+    if action is None:
+        return 0.0, None
+
+    pred_x, pred_y = action
+    left, top, right, bottom = bbox
+    img_width, img_height = img_size
+    pred_x *= img_width
+    pred_y *= img_height
+    if (
+        pred_x > left
+        and pred_x < right
+        and pred_y > top
+        and pred_y < bottom
+    ):
+        score = 1.0
+    else:
+        score = 0.0
+    
+    return score, [pred_x, pred_y]
+
+
 class GUIGroundingEval:
     def __init__(
         self,
@@ -58,8 +80,6 @@ class GUIGroundingEval:
         def fn(row: dict):
             image_path = os.path.join(self.data_dir, row["image"])
             instruction = row["instruction"]
-            left, top, right, bottom = row["bbox"]
-            img_width, img_height = row["resolution"]
 
             # Query the model and evaluate the response
             prompt = format_gui_grounding_prompt(instruction, image_path)
@@ -67,33 +87,17 @@ class GUIGroundingEval:
                 prompt, model=model_name, tokenizer=tokenizer_name
             )
             action = parse_gui_grounding_response(response)
-            if action is None:
-                score = 0.0
-            else:
-                pred_x, pred_y = action
-                pred_x *= img_width
-                pred_y *= img_height
-                action = (pred_x, pred_y)
-                if (
-                    pred_x > left
-                    and pred_x < right
-                    and pred_y > top
-                    and pred_y < bottom
-                ):
-                    score = 1.0
-                else:
-                    score = 0.0
+            score, action = eval_coord_output(action, row["bbox"], row["resolution"])
 
             result = {
                 "image": row["image"],
                 "score": score,
                 "source": row["source"],
                 "platform": row["platform"],
-                "bbox": [left, top, right, bottom],
+                "bbox": row["bbox"],
                 "resolution": row["resolution"],
                 "instruction": instruction,
-                "image_path": image_path,
-                "response": dict(content=response, role="assistant"),
+                "response": response,
                 "parsed_action": action,
                 "input_tokens": info.get("prompt_tokens", 0),
                 "output_tokens": info.get("completion_tokens", 0),

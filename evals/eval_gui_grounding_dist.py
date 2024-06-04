@@ -11,39 +11,34 @@ from torchvision.ops.boxes import box_area
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from eval_gui_grounding import parse_gui_grounding_response, eval_coord_output
+from agent_studio.utils.json_utils import read_jsonl, add_jsonl
 
-def box_iou(boxes1, boxes2):
-    area1 = box_area(boxes1)
-    area2 = box_area(boxes2)
 
-    lt = torch.max(boxes1[:, None, :2], boxes2[:, :2])  # [N,M,2]
-    rb = torch.min(boxes1[:, None, 2:], boxes2[:, 2:])  # [N,M,2]
+QWEN_PROMPT_TEMPLATE = """
+<img>{image}</img>Please output the coordinate for the next action based on the instruction and screenshot. The last line of your response should be of the following format: '(X, Y)' (without quotes) where X, Y is the coordinates ranging from 0 to 1. Think step by step before answering.
 
-    wh = (rb - lt).clamp(min=0)  # [N,M,2]
-    inter = wh[:, :, 0] * wh[:, :, 1]  # [N,M]
-
-    union = area1[:, None] + area2 - inter
-
-    iou = inter / union
-    return iou, union
+Instruction: {instruction}
+""".strip()  # noqa: E501
 
 
 def collate_fn(batches, tokenizer):
+    inputs = [example["input"] for example in batches]
+    input_ids = tokenizer(inputs, return_tensors='pt', padding='longest')
 
-    texts = [_['text'] for _ in batches]
-    bboxes = [_['bbox'] for _ in batches]
-    hws = [_['hw'] for _ in batches]
+    images = [example["image"] for example in batches]
+    sources = [example["source"] for example in batches]
+    platforms = [example["platform"] for example in batches]
+    bboxes = [example["bbox"] for example in batches]
+    resolutions = [example["resolution"] for example in batches]
+    instructions = [example["instruction"] for example in batches]
 
-    input_ids = tokenizer(texts, return_tensors='pt', padding='longest')
-
-    return input_ids.input_ids, input_ids.attention_mask, bboxes, hws
+    return input_ids.input_ids, input_ids.attention_mask, images, sources, platforms, bboxes, resolutions, instructions
 
 
 class GroundGUIDataset(torch.utils.data.Dataset):
-
-    def __init__(self, dataset, tokenizer, prompt):
-        with open(dataset) as f:
-            self.data = f.readlines()
+    def __init__(self, dataset, tokenizer, prompt, start_idx, end_idx):
+        self.data = read_jsonl(dataset, start_idx, end_idx)
         self.data_dir = os.path.join(Path(dataset).parent, "images")
         self.tokenizer = tokenizer
         self.prompt = prompt
@@ -52,21 +47,22 @@ class GroundGUIDataset(torch.utils.data.Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        row = json.loads(self.data[idx].strip())
+        row = self.data[idx]
         image = os.path.join(self.data_dir, row["image"])
         instruction = row["instruction"]
-        bbox = row['bbox']
-        w, h = row["resolution"]
 
         return {
-            'text': self.prompt.format(image, instruction),
-            'bbox': bbox,
-            'hw': (h, w),
+            "input": self.prompt.format(**{"image": image, "instruction": instruction}),
+            "image": row["image"],
+            "source": row["source"],
+            "platform": row["platform"],
+            "bbox": row["bbox"],
+            "resolution": row["resolution"],
+            "instruction": instruction,
         }
 
 
 class InferenceSampler(torch.utils.data.sampler.Sampler):
-
     def __init__(self, size):
         self._size = int(size)
         assert size > 0
@@ -92,12 +88,14 @@ class InferenceSampler(torch.utils.data.sampler.Sampler):
 
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('--checkpoint', type=str, default='')
-    parser.add_argument('--dataset', type=str, default='')
-    parser.add_argument('--batch-size', type=int, default=1)
-    parser.add_argument('--num-workers', type=int, default=1)
+    parser.add_argument('--model', type=str)
+    parser.add_argument('--dataset', type=str)
+    parser.add_argument('--eval_format', type=str, default="coord", choices=["coord", "bbox"])
+    parser.add_argument('--batch_size', type=int, default=1)
+    parser.add_argument("--start_idx", type=int, default=0)
+    parser.add_argument("--end_idx", type=int, default=None)
+    parser.add_argument('--num_workers', type=int, default=1)
     args = parser.parse_args()
 
     torch.distributed.init_process_group(
@@ -108,34 +106,35 @@ if __name__ == '__main__':
 
     torch.cuda.set_device(int(os.getenv('LOCAL_RANK', 0)))
 
-    model = AutoModelForCausalLM.from_pretrained(args.checkpoint, device_map='cuda', trust_remote_code=True).eval()
+    model = AutoModelForCausalLM.from_pretrained(args.model, device_map='cuda', trust_remote_code=True).eval()
 
-    tokenizer = AutoTokenizer.from_pretrained(args.checkpoint, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
     tokenizer.padding_side = 'left'
     tokenizer.pad_token_id = tokenizer.eod_id
 
-    prompt = '<img>{}</img><ref>{}</ref><box>'
+    prompt = QWEN_PROMPT_TEMPLATE
 
     dataset = GroundGUIDataset(
         args.dataset,
         tokenizer=tokenizer,
         prompt=prompt,
+        start_idx=args.start_idx,
+        end_idx=args.end_idx,
     )
-
     dataloader = torch.utils.data.DataLoader(
         dataset=dataset,
         sampler=InferenceSampler(len(dataset)),
         batch_size=args.batch_size,
         num_workers=args.num_workers,
         pin_memory=True,
-        drop_last=True,
+        drop_last=False,
         collate_fn=partial(collate_fn, tokenizer=tokenizer),
     )
 
-    outputs = []
+    results = []
     progress_bar = tqdm(total=len(dataset))
-    for _, (input_ids, attention_mask, bboxes, hws) in enumerate(dataloader):
-        pred = model.generate(
+    for input_ids, attention_mask, images, sources, platforms, bboxes, resolutions, instructions in dataloader:
+        outputs = model.generate(
             input_ids=input_ids.cuda(),
             attention_mask=attention_mask.cuda(),
             do_sample=False,
@@ -148,14 +147,21 @@ if __name__ == '__main__':
             pad_token_id=tokenizer.eod_id,
             eos_token_id=tokenizer.eod_id,
         )
-        answers = [
-            tokenizer.decode(_[input_ids.size(1):].cpu(), skip_special_tokens=True) for _ in pred]
+        input_tokens = input_ids.size(1)
+        output_tokens = outputs.size(1) - input_ids.size(1)
+        responses = [tokenizer.decode(o[input_tokens:].cpu(), skip_special_tokens=True) for o in outputs]
 
-        for bbox, hw, answer in zip(bboxes, hws, answers):
-            outputs.append({
-                'answer': answer,
-                'gt_bbox': bbox,
-                'hw': hw,
+        for image, source, platform, bbox, resolution, instruction, response in zip(images, sources, platforms, bboxes, resolutions, instructions, responses):
+            results.append({
+                "image": image,
+                "source": source,
+                "platform": platform,
+                "bbox": bbox,
+                "resolution": resolution,
+                "instruction": instruction,
+                "response": response,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
             })
         progress_bar.update(len(bboxes))
     
@@ -163,42 +169,31 @@ if __name__ == '__main__':
     torch.distributed.barrier()
 
     world_size = torch.distributed.get_world_size()
-    merged_outputs = [None for _ in range(world_size)]
-    torch.distributed.all_gather_object(merged_outputs, outputs)
+    merged_results = [None for _ in range(world_size)]
+    torch.distributed.all_gather_object(merged_results, results)
 
-    merged_outputs = [_ for _ in itertools.chain.from_iterable(merged_outputs)]
-    PATTERN = re.compile(r'\((.*?)\),\((.*?)\)')
+    merged_results = [_ for _ in itertools.chain.from_iterable(merged_results)]
 
     if torch.distributed.get_rank() == 0:
-        correct = total_cnt = 0
-        for i, output in enumerate(merged_outputs):
-            predict_bbox = re.findall(PATTERN, output['answer'])
-            try:
-                if ',' not in predict_bbox[0][0] or ',' not in predict_bbox[0][
-                        1]:
-                    predict_bbox = (0., 0., 0., 0.)
-                else:
-                    x1, y1 = [
-                        float(tmp) for tmp in predict_bbox[0][0].split(',')
-                    ]
-                    x2, y2 = [
-                        float(tmp) for tmp in predict_bbox[0][1].split(',')
-                    ]
-                    predict_bbox = (x1, y1, x2, y2)
-            except:
-                predict_bbox = (0., 0., 0., 0.)
-            target_bbox = torch.tensor(output['gt_bbox'],
-                                       dtype=torch.float32).view(-1, 4)
-            predict_bbox = torch.tensor(predict_bbox,
-                                        dtype=torch.float32).view(-1, 4) / 999
-            predict_bbox[:, 0::2] *= output['hw'][1]
-            predict_bbox[:, 1::2] *= output['hw'][0]
-            iou, _ = box_iou(predict_bbox, target_bbox)
-            iou = iou.item()
-            total_cnt += 1
-            if iou >= 0.5:
-                correct += 1
+        save_path = Path("results")
+        save_path.mkdir(parents=True, exist_ok=True)
+        file_stem = f"{save_path}/gui_grounding_{args.model.split('/')[-1]}"
+        result_filename = Path(f"{file_stem}.jsonl")
+        if args.eval_format == "coord":
+            correct = total_cnt = 0
+            for i, r in enumerate(merged_results):
+                action = parse_gui_grounding_response(r['response'])
+                score, action = eval_coord_output(action, r["bbox"], r["resolution"])
+                merged_results[i].update({
+                    "score": score,
+                    "parsed_action": action,
+                })
 
-        print(f"Evaluating {args.dataset} ...")
-        print(f'Precision @ 1: {correct / total_cnt} \n')
+                add_jsonl([merged_results[i]], result_filename)
+            print(f"Writing results to {result_filename}")
+        # elif args.eval_format == "bbox":
+        #     eval_bbox_output(merged_results)
+        else:
+            raise ValueError(f"Unknown eval format: {args.eval_format}")
+
     torch.distributed.barrier()
