@@ -1,7 +1,6 @@
 import argparse
 from pathlib import Path
 
-from common import make_report
 from gui_grounding_eval import GUIGroundingEval
 
 from agent_studio.llm import setup_model
@@ -30,6 +29,10 @@ def main():
     print(f"Running with args: {args}")
 
     model = setup_model(args.provider)
+    save_path = Path("results")
+    save_path.mkdir(parents=True, exist_ok=True)
+    file_stem = f"{save_path}/{args.eval_type}_{args.model.split('/')[-1]}"
+    result_filename = Path(f"{file_stem}.jsonl")
 
     match args.eval_type:
         case "gui_grounding":
@@ -44,18 +47,8 @@ def main():
 
     if args.tokenizer is None:
         args.tokenizer = args.model
-    result = evaluator(args.model, args.tokenizer, args.num_workers)
-    metrics = result.metrics | {"score": result.score}
-    print(metrics)
-    save_path = Path("results")
-    save_path.mkdir(parents=True, exist_ok=True)
-    file_stem = f"{save_path}/{args.eval_type}_{args.model.split('/')[-1]}"
-    report_filename = f"{file_stem}.html"
-    print(f"Writing report to {report_filename}")
-    with open(report_filename, "w") as fh:
-        fh.write(make_report(result))
-    result_filename = Path(f"{file_stem}.jsonl")
-    add_jsonl(result.logs, result_filename)
+    results = evaluator(args.model, args.tokenizer, args.num_workers)
+    add_jsonl(results, result_filename)
     print(f"Writing results to {result_filename}")
 
 

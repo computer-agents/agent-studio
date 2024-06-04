@@ -1,18 +1,10 @@
 import os
 import re
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Any
 
 import numpy as np
-from common import (
-    HTML_JINJA,
-    Eval,
-    EvalResult,
-    SingleEvalResult,
-    aggregate_results,
-    jinja_env,
-    map_with_progress,
-)
+from common import map_with_progress
 
 from agent_studio.llm import BaseModel
 from agent_studio.utils.json_utils import read_jsonl
@@ -44,7 +36,7 @@ def parse_gui_grounding_response(response: str) -> Tuple[float, float] | None:
     return (float(match.group(1)), float(match.group(2))) if match else None
 
 
-class GUIGroundingEval(Eval):
+class GUIGroundingEval:
     def __init__(
         self,
         model: BaseModel,
@@ -58,7 +50,7 @@ class GUIGroundingEval(Eval):
 
     def __call__(
         self, model_name: str, tokenizer_name: str, num_workers: int = 1
-    ) -> EvalResult:
+    ) -> list[dict[str, Any]]:
         def fn(row: dict):
             image_path = os.path.join(self.data_dir, row["image"])
             instruction = row["instruction"]
@@ -88,27 +80,20 @@ class GUIGroundingEval(Eval):
                 else:
                     score = 0.0
 
-            # Log results
-            html = jinja_env.from_string(HTML_JINJA).render(
-                prompt_messages=prompt,
-                next_message=dict(content=response, role="assistant"),
-                score=score,
-                correct_bbox=(left, top, right, bottom),
-                pred_coord=action,
-            )
-            log = {
+            result = {
                 "image": row["image"],
                 "score": score,
                 "source": row["source"],
                 "platform": row["platform"],
                 "bbox": (left, top, right, bottom),
                 "resolution": row["resolution"],
-            }
-            metrics = {
+                "prompt": prompt,
+                "response": dict(content=response, role="assistant"),
+                "parsed_action": action,
                 "input_tokens": info.get("prompt_tokens", 0),
                 "output_tokens": info.get("completion_tokens", 0),
             }
-            return SingleEvalResult(html=html, score=score, metrics=metrics, log=log)
+            return result
 
         results = map_with_progress(fn, self.data, num_workers)
-        return aggregate_results(results)
+        return results
