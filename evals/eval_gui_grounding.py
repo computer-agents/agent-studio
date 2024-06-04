@@ -33,7 +33,7 @@ def format_gui_grounding_prompt(
 
 def parse_gui_grounding_response(response: str) -> Tuple[float, float] | None:
     match = re.search(ANSWER_PATTERN, response.splitlines()[-1])
-    return (float(match.group(1)), float(match.group(2))) if match else None
+    return [float(match.group(1)), float(match.group(2))] if match else None
 
 
 class GUIGroundingEval:
