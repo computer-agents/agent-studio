@@ -4,7 +4,6 @@ from pathlib import Path
 from gui_grounding_eval import GUIGroundingEval
 
 from agent_studio.llm import setup_model
-from agent_studio.utils.json_utils import add_jsonl
 
 
 def create_parser():
@@ -39,17 +38,18 @@ def main():
             evaluator = GUIGroundingEval(
                 model=model,
                 data_path=args.data_path,
+                result_filename=result_filename,
                 start_idx=args.start_idx,
                 end_idx=args.end_idx,
+                num_workers=args.num_workers,
             )
         case _:
             raise Exception(f"Unrecoginized eval type: {args.eval_type}")
 
     if args.tokenizer is None:
         args.tokenizer = args.model
-    results = evaluator(args.model, args.tokenizer, args.num_workers)
-    add_jsonl(results, result_filename)
-    print(f"Writing results to {result_filename}")
+    
+    evaluator(args.model, args.tokenizer)
 
 
 if __name__ == "__main__":
