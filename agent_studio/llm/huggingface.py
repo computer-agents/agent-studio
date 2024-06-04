@@ -33,8 +33,6 @@ class HuggingFaceProvider(BaseModel):
                 model_message.append({"text": msg["content"]})
             elif isinstance(msg["content"], Path):
                 model_message.append({"image": msg["content"].as_posix()})
-            elif isinstance(msg["content"], Image.Image):
-                model_message.append({"image": msg["content"].convert('RGB')})
             else:
                 assert False, f"Unknown message type: {msg['content']}"
 
@@ -77,10 +75,9 @@ class HuggingFaceProvider(BaseModel):
         )
 
         if "cogvlm" in self.model_name:
-            assert len(model_message) == 2 and "text" in model_message[0] and "image" in model_message[1], "Expected only 1 text and 1 image for cogvlm."
-            query = model_message[0]["text"]
-            image = model_message[1]["image"]
-            assert isinstance(image, Image.Image), "Expected image to be of type PIL.Image."
+            assert len(model_message) == 2 and "text" in model_message[1] and "image" in model_message[0], "Expected only 1 image and 1 text for cogvlm."
+            query = model_message[1]["text"]
+            image = Image.open(model_message[0]["image"]).convert("RGB")
             input_by_model = self.model.build_conversation_input_ids(
                 self.tokenizer,
                 query=query,
@@ -107,10 +104,9 @@ class HuggingFaceProvider(BaseModel):
                 response = response.split("<|end_of_text|>")[0]
         
         elif "cogagent" in self.model_name:
-            assert len(model_message) == 2 and "text" in model_message[0] and "image" in model_message[1], "Expected only 1 text and 1 image for cogagent."
-            query = model_message[0]["text"]
-            image = model_message[1]["image"]
-            assert isinstance(image, Image.Image), "Expected image to be of type PIL.Image."
+            assert len(model_message) == 2 and "text" in model_message[1] and "image" in model_message[0], "Expected only 1 image and 1 text for cogagent."
+            query = model_message[1]["text"]
+            image = Image.open(model_message[0]["image"]).convert("RGB")
             input_by_model = self.model.build_conversation_input_ids(
                 self.tokenizer,
                 query=query,
@@ -139,10 +135,9 @@ class HuggingFaceProvider(BaseModel):
                 response = response.split("</s>")[0]
 
         elif "paligemma" in self.model_name:
-            assert len(model_message) == 2 and "text" in model_message[0] and "image" in model_message[1], "Expected only 1 text and 1 image for paligemma."
-            query = model_message[0]["text"]
-            image = model_message[1]["image"]
-            assert isinstance(image, Image.Image), "Expected image to be of type PIL.Image."
+            assert len(model_message) == 2 and "text" in model_message[1] and "image" in model_message[0], "Expected only 1 image and 1 text for paligemma."
+            query = model_message[1]["text"]
+            image = Image.open(model_message[0]["image"]).convert("RGB")
             inputs = self.processor(query, image, return_tensors="pt").to("cuda")
             gen_kwargs = {
                 "max_new_tokens": 2048,
@@ -158,12 +153,11 @@ class HuggingFaceProvider(BaseModel):
             response, _ = self.model.chat(self.tokenizer, query=query, history=None)
 
         elif "MiniCPM" in self.model_name:
-            assert len(model_message) == 2 and "text" in model_message[0] and "image" in model_message[1], "Expected only 1 text and 1 image for paligemma."
-            image = model_message[1]["image"]
-            assert isinstance(image, Image.Image), "Expected image to be of type PIL.Image."
+            assert len(model_message) == 2 and "text" in model_message[1] and "image" in model_message[0], "Expected only 1 image and 1 text for paligemma."
+            image = Image.open(model_message[0]["image"]).convert("RGB")
             response = self.model.chat(
                 image=image,
-                msgs=[{'role': 'user', 'content': model_message[0]['text']}],
+                msgs=[{'role': 'user', 'content': model_message[1]['text']}],
                 tokenizer=self.tokenizer,
                 sampling=False,  # if sampling=False, beam_search will be used by default
                 # temperature=0.7,
