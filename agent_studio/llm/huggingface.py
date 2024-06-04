@@ -157,6 +157,19 @@ class HuggingFaceProvider(BaseModel):
             query = self.tokenizer.from_list_format(model_message)
             response, _ = self.model.chat(self.tokenizer, query=query, history=None)
 
+        elif "MiniCPM" in self.model_name:
+            assert len(model_message) == 2 and "text" in model_message[0] and "image" in model_message[1], "Expected only 1 text and 1 image for paligemma."
+            image = model_message[1]["image"]
+            assert isinstance(image, Image.Image), "Expected image to be of type PIL.Image."
+            response = self.model.chat(
+                image=image,
+                msgs=[{'role': 'user', 'content': model_message[0]['text']}],
+                tokenizer=self.tokenizer,
+                sampling=False,  # if sampling=False, beam_search will be used by default
+                # temperature=0.7,
+                # system_prompt='' # pass system_prompt if needed
+            )
+
         else:
             raise ValueError(f"Model {self.model_name} is not supported.")
 

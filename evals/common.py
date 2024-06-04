@@ -210,6 +210,8 @@ def render_image(prompt_messages: MessageList, bbox, pred_coord):
         # Encode the image in base64
         base64_image = base64.b64encode(buf.getvalue()).decode("utf-8")
 
+        image.close()
+
         return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'  # noqa: E501
 
 

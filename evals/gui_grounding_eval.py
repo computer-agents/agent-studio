@@ -18,7 +18,7 @@ from agent_studio.llm import BaseModel
 from agent_studio.utils.json_utils import read_jsonl
 
 QUERY_TEMPLATE = """
-Please output the coordinate for the next move based on the instruction and screenshot. The last line of your response should be of the following format: '(X, Y)' (without quotes) where X, Y is the coordinates ranging from 0 to 1. Think step by step before answering.
+Please output the coordinate for the next action based on the instruction and screenshot. The last line of your response should be of the following format: '(X, Y)' (without quotes) where X, Y is the coordinates ranging from 0 to 1. Think step by step before answering.
 
 Instruction: {instruction}
 """.strip()  # noqa: E501
@@ -54,7 +54,7 @@ class GUIGroundingEval(Eval):
     ):
         self.model = model
         self.data = read_jsonl(data_path, start_idx, end_idx)
-        self.data_dir = Path(data_path).parent
+        self.data_dir = os.path.join(Path(data_path).parent, "images")
 
     def __call__(
         self, model_name: str, tokenizer_name: str, num_workers: int = 1
@@ -101,6 +101,7 @@ class GUIGroundingEval(Eval):
                 "score": score,
                 "source": row["source"],
                 "platform": row["platform"],
+                "bbox": (left, top, right, bottom),
                 "resolution": row["resolution"],
             }
             metrics = {
