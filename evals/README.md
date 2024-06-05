@@ -9,7 +9,12 @@ python evals/re_caption_gui_grounding_data.py
 ## Evaluation on GUI Grounding
 
 ```bash
+python evals/main.py --provider openai --model gpt-4o-2024-05-13 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
+```
+
+```bash
 python evals/main.py --provider openai --model gpt-4o-2024-05-13 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
+python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding_gpt-4o-2024-05-13_raw_instruction.jsonl
 ```
 
 ```bash

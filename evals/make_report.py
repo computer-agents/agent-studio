@@ -31,13 +31,23 @@ def main():
     results = read_jsonl(args.result_path)
     metrics = {
         "score": [],
+        "web_score": [],
+        "desktop_score": [],
+        "mobile_score": [],
         "input_tokens": [],
         "output_tokens": [],
     }
     htmls = []
     for result in tqdm(results):
-        for k in metrics:
+        for k in ["score", "input_tokens", "output_tokens"]:
             metrics[k].append(result[k])
+        if result["platform"] == "web":
+            metrics["web_score"].append(result["score"])
+        elif result["platform"] == "desktop":
+            metrics["desktop_score"].append(result["score"])
+        elif result["platform"] == "mobile":
+            metrics["mobile_score"].append(result["score"])
+
         if len(htmls) < 3:
             prompt = format_gui_grounding_prompt(
                 result["instruction"], os.path.join(args.image_path, result["image"])
