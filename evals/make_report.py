@@ -1,14 +1,10 @@
 import argparse
 import os
-import numpy as np
-from tqdm import tqdm
 
-from common import (
-    HTML_JINJA,
-    jinja_env,
-    make_report,
-)
+import numpy as np
+from common import HTML_JINJA, jinja_env, make_report
 from eval_gui_grounding import format_gui_grounding_prompt
+from tqdm import tqdm
 
 from agent_studio.utils.json_utils import read_jsonl
 
@@ -43,7 +39,9 @@ def main():
         for k in metrics:
             metrics[k].append(result[k])
         if len(htmls) < 3:
-            prompt = format_gui_grounding_prompt(result["instruction"], os.path.join(args.image_path, result["image"]))
+            prompt = format_gui_grounding_prompt(
+                result["instruction"], os.path.join(args.image_path, result["image"])
+            )
             html = jinja_env.from_string(HTML_JINJA).render(
                 prompt_messages=prompt,
                 next_message=dict(content=result["response"], role="assistant"),
@@ -63,11 +61,13 @@ def main():
     report_filename = args.result_path.replace(".jsonl", ".html")
     print(f"Writing report to {report_filename}")
     with open(report_filename, "w") as fh:
-        fh.write(make_report(
-            score=final_metrics.pop("score", None),
-            metrics=final_metrics,
-            htmls=htmls,
-        ))
+        fh.write(
+            make_report(
+                score=final_metrics.pop("score", None),
+                metrics=final_metrics,
+                htmls=htmls,
+            )
+        )
 
 
 if __name__ == "__main__":

@@ -1,13 +1,13 @@
 import os
 import re
 from pathlib import Path
-from typing import Tuple, Any
+from typing import Any, Tuple
 
 import numpy as np
 from common import map_with_progress
 
 from agent_studio.llm import BaseModel
-from agent_studio.utils.json_utils import read_jsonl, add_jsonl
+from agent_studio.utils.json_utils import add_jsonl, read_jsonl
 
 QUERY_TEMPLATE = """
 Please output the coordinate for the next action based on the instruction and screenshot. Your answer should be of the following format: '(X, Y)' (without quotes) where X, Y is the coordinates ranging from 0 to 1.
@@ -34,7 +34,7 @@ def format_gui_grounding_prompt(
 def parse_gui_grounding_response(response: str) -> Tuple[float, float] | None:
     try:
         match = re.search(ANSWER_PATTERN, response.splitlines()[-1])
-    except:
+    except AttributeError:
         match = None
     return [float(match.group(1)), float(match.group(2))] if match else None
 
@@ -48,16 +48,11 @@ def eval_coord_output(action, bbox, img_size):
     img_width, img_height = img_size
     pred_x *= img_width
     pred_y *= img_height
-    if (
-        pred_x > left
-        and pred_x < right
-        and pred_y > top
-        and pred_y < bottom
-    ):
+    if pred_x > left and pred_x < right and pred_y > top and pred_y < bottom:
         score = 1.0
     else:
         score = 0.0
-    
+
     return score, [pred_x, pred_y]
 
 
@@ -78,7 +73,9 @@ class GUIGroundingEval:
         self.num_workers = num_workers
 
     def __call__(
-        self, model_name: str, tokenizer_name: str,
+        self,
+        model_name: str,
+        tokenizer_name: str,
     ) -> list[dict[str, Any]]:
         def fn(row: dict):
             image_path = os.path.join(self.data_dir, row["image"])
@@ -87,8 +84,12 @@ class GUIGroundingEval:
             # Query the model and evaluate the response
             prompt = format_gui_grounding_prompt(instruction, image_path)
             response, info = self.model.generate_response(
-                prompt, model=model_name, tokenizer=tokenizer_name,
-                do_sample=False, max_new_tokens=32, num_return_sequences=1,
+                prompt,
+                model=model_name,
+                tokenizer=tokenizer_name,
+                do_sample=False,
+                max_new_tokens=32,
+                num_return_sequences=1,
             )
             action = parse_gui_grounding_response(response)
             score, action = eval_coord_output(action, row["bbox"], row["resolution"])

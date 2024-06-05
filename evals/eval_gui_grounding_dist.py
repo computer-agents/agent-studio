@@ -1,19 +1,19 @@
 import argparse
 import itertools
-import json
 import os
-import re
+
+# import re
 from functools import partial
 from pathlib import Path
 
 import torch
+from eval_gui_grounding import eval_coord_output, parse_gui_grounding_response
+
 # from torchvision.ops.boxes import box_area
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from eval_gui_grounding import parse_gui_grounding_response, eval_coord_output
-from agent_studio.utils.json_utils import read_jsonl, add_jsonl
-
+from agent_studio.utils.json_utils import add_jsonl, read_jsonl
 
 QWEN_PROMPT_TEMPLATE = """
 <img>{image}</img>Please output the coordinate for the next action based on the instruction and screenshot. Your answer should be of the following format: '(X, Y)' (without quotes) where X, Y is the coordinates ranging from 0 to 1.
@@ -24,7 +24,7 @@ Answer:
 
 def collate_fn(batches, tokenizer):
     inputs = [example["input"] for example in batches]
-    input_ids = tokenizer(inputs, return_tensors='pt', padding='longest')
+    input_ids = tokenizer(inputs, return_tensors="pt", padding="longest")
 
     images = [example["image"] for example in batches]
     sources = [example["source"] for example in batches]
@@ -33,7 +33,16 @@ def collate_fn(batches, tokenizer):
     resolutions = [example["resolution"] for example in batches]
     instructions = [example["instruction"] for example in batches]
 
-    return input_ids.input_ids, input_ids.attention_mask, images, sources, platforms, bboxes, resolutions, instructions
+    return (
+        input_ids.input_ids,
+        input_ids.attention_mask,
+        images,
+        sources,
+        platforms,
+        bboxes,
+        resolutions,
+        instructions,
+    )
 
 
 class GroundGUIDataset(torch.utils.data.Dataset):
@@ -68,7 +77,9 @@ class InferenceSampler(torch.utils.data.sampler.Sampler):
         assert size > 0
         self._rank = torch.distributed.get_rank()
         self._world_size = torch.distributed.get_world_size()
-        self._local_indices = self._get_local_indices(size, self._world_size, self._rank)
+        self._local_indices = self._get_local_indices(
+            size, self._world_size, self._rank
+        )
 
     @staticmethod
     def _get_local_indices(total_size, world_size, rank):
@@ -77,7 +88,7 @@ class InferenceSampler(torch.utils.data.sampler.Sampler):
         shard_sizes = [shard_size + int(r < left) for r in range(world_size)]
 
         begin = sum(shard_sizes[:rank])
-        end = min(sum(shard_sizes[:rank + 1]), total_size)
+        end = min(sum(shard_sizes[: rank + 1]), total_size)
         return range(begin, end)
 
     def __iter__(self):
@@ -87,33 +98,37 @@ class InferenceSampler(torch.utils.data.sampler.Sampler):
         return len(self._local_indices)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str)
-    parser.add_argument('--tokenizer', type=str, default=None)
-    parser.add_argument('--dataset', type=str)
-    parser.add_argument('--eval_format', type=str, default="coord", choices=["coord", "bbox"])
-    parser.add_argument('--batch_size', type=int, default=1)
+    parser.add_argument("--model", type=str)
+    parser.add_argument("--tokenizer", type=str, default=None)
+    parser.add_argument("--dataset", type=str)
+    parser.add_argument(
+        "--eval_format", type=str, default="coord", choices=["coord", "bbox"]
+    )
+    parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--start_idx", type=int, default=0)
     parser.add_argument("--end_idx", type=int, default=None)
-    parser.add_argument('--num_workers', type=int, default=1)
+    parser.add_argument("--num_workers", type=int, default=1)
     args = parser.parse_args()
 
     torch.manual_seed(0)
     torch.distributed.init_process_group(
-        backend='nccl',
-        world_size=int(os.getenv('WORLD_SIZE', '1')),
-        rank=int(os.getenv('RANK', '0')),
+        backend="nccl",
+        world_size=int(os.getenv("WORLD_SIZE", "1")),
+        rank=int(os.getenv("RANK", "0")),
     )
 
-    torch.cuda.set_device(int(os.getenv('LOCAL_RANK', 0)))
+    torch.cuda.set_device(int(os.getenv("LOCAL_RANK", 0)))
 
-    model = AutoModelForCausalLM.from_pretrained(args.model, device_map='cuda', trust_remote_code=True).eval()
+    model = AutoModelForCausalLM.from_pretrained(
+        args.model, device_map="cuda", trust_remote_code=True
+    ).eval()
 
     if args.tokenizer is None:
         args.tokenizer = args.model
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer, trust_remote_code=True)
-    tokenizer.padding_side = 'left'
+    tokenizer.padding_side = "left"
     tokenizer.pad_token_id = tokenizer.eod_id
 
     prompt = QWEN_PROMPT_TEMPLATE
@@ -138,7 +153,16 @@ if __name__ == '__main__':
     results = []
     world_size = torch.distributed.get_world_size()
     progress_bar = tqdm(total=len(dataset))
-    for input_ids, attention_mask, images, sources, platforms, bboxes, resolutions, instructions in dataloader:
+    for (
+        input_ids,
+        attention_mask,
+        images,
+        sources,
+        platforms,
+        bboxes,
+        resolutions,
+        instructions,
+    ) in dataloader:
         outputs = model.generate(
             input_ids=input_ids.cuda(),
             attention_mask=attention_mask.cuda(),
@@ -149,22 +173,29 @@ if __name__ == '__main__':
         )
         input_tokens = input_ids.shape[-1]
         output_tokens = outputs.shape[-1] - input_tokens
-        responses = [tokenizer.decode(o[input_tokens:].cpu(), skip_special_tokens=True) for o in outputs]
+        responses = [
+            tokenizer.decode(o[input_tokens:].cpu(), skip_special_tokens=True)
+            for o in outputs
+        ]
 
-        for image, source, platform, bbox, resolution, instruction, response in zip(images, sources, platforms, bboxes, resolutions, instructions, responses):
-            results.append({
-                "image": image,
-                "source": source,
-                "platform": platform,
-                "bbox": bbox,
-                "resolution": resolution,
-                "instruction": instruction,
-                "response": response,
-                "input_tokens": input_tokens,
-                "output_tokens": output_tokens,
-            })
+        for image, source, platform, bbox, resolution, instruction, response in zip(
+            images, sources, platforms, bboxes, resolutions, instructions, responses
+        ):
+            results.append(
+                {
+                    "image": image,
+                    "source": source,
+                    "platform": platform,
+                    "bbox": bbox,
+                    "resolution": resolution,
+                    "instruction": instruction,
+                    "response": response,
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                }
+            )
         progress_bar.update(len(bboxes) * world_size)
-    
+
     progress_bar.close()
 
     torch.distributed.barrier()
@@ -182,12 +213,14 @@ if __name__ == '__main__':
         if args.eval_format == "coord":
             correct = total_cnt = 0
             for i, r in enumerate(merged_results):
-                action = parse_gui_grounding_response(r['response'])
+                action = parse_gui_grounding_response(r["response"])
                 score, action = eval_coord_output(action, r["bbox"], r["resolution"])
-                merged_results[i].update({
-                    "score": score,
-                    "parsed_action": action,
-                })
+                merged_results[i].update(
+                    {
+                        "score": score,
+                        "parsed_action": action,
+                    }
+                )
 
                 add_jsonl([merged_results[i]], result_filename)
             print(f"Writing results to {result_filename}")

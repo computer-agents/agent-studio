@@ -1,16 +1,32 @@
 # AgentStudio Benchmark Suites
 
+## Re-Caption
+
+```bash
+python evals/re_caption_gui_grounding_data.py
+```
+
 ## Evaluation on GUI Grounding
 
 ```bash
-python evals/process_gui_grounding.py
+python evals/main.py --provider openai --model gpt-4o-2024-05-13 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
 ```
 
 ```bash
-python evals/caption_gui_grounding.py
+python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/SeeClick --tokenizer /mnt/data/public/ckpt/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
+
+python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/cogvlm2-llama3-chat-19B --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
 ```
 
-```bash
+
+
+python evals/main.py --provider gemini --model gemini-pro-vision --eval_type gui_grounding --data_path raw_data/screenspot/metadata.jsonl --end_idx 1
+``
+
+
+
+
+
 CUDA_VISIBLE_DEVICES=0 python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/cogvlm2-llama3-chat-19B --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata.jsonl
 
 
@@ -34,10 +50,8 @@ python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/Qwen-V
 
 
 
-python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/SeeClick --tokenizer /mnt/data/public/ckpt/Qwen-VL-Chat --eval_type gui_grounding --data_path raw_data/screenspot/metadata.jsonl
-python evals/main.py --provider openai --model gpt-4o-2024-05-13 --eval_type gui_grounding --data_path raw_data/screenspot/metadata.jsonl --end_idx 1
+
 python evals/main.py --provider claude --model claude-3-sonnet-20240229 --eval_type gui_grounding --data_path raw_data/screenspot/metadata.jsonl --end_idx 1
-python evals/main.py --provider gemini --model gemini-pro-vision --eval_type gui_grounding --data_path raw_data/screenspot/metadata.jsonl --end_idx 1
 
 python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/Qwen-VL-Chat --eval_type gui_grounding --data_path raw_data/mind2web/mind2web_images/metadata.jsonl --end_idx 10
 python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/SeeClick --tokenizer /mnt/data/public/ckpt/Qwen-VL-Chat --eval_type gui_grounding --data_path raw_data/mind2web/mind2web_images/metadata.jsonl --end_idx 10

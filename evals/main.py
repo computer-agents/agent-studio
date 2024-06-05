@@ -48,7 +48,7 @@ def main():
 
     if args.tokenizer is None:
         args.tokenizer = args.model
-    
+
     evaluator(args.model, args.tokenizer)
 
 
