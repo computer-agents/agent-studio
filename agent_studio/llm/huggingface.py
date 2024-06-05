@@ -63,9 +63,8 @@ class HuggingFaceProvider(BaseModel):
                     torch_dtype=self.dtype,
                     trust_remote_code=True,
                 ).to("cuda").eval()
-                self.model.generation_config = GenerationConfig.from_pretrained(
-                    self.model_name, do_sample=False, trust_remote_code=True, max_new_tokens=32
-                )
+        kwargs.pop("model")
+        kwargs.pop("tokenizer")
 
         assert self.model is not None, "Model is not loaded."
 
@@ -149,8 +148,76 @@ class HuggingFaceProvider(BaseModel):
             )[len(query):]
 
         elif "Qwen" in self.model_name or "SeeClick" in self.model_name:
-            query = self.tokenizer.from_list_format(model_message)
-            response, _ = self.model.chat(self.tokenizer, query=query, max_new_tokens=32, history=None)
+            system = "You are a helpful assistant."
+
+            # format input
+            text = ''
+            num_images = 0
+            for ele in model_message:
+                if 'image' in ele:
+                    num_images += 1
+                    text += f'Picture {num_images}: '
+                    text += '<img>' + ele['image'] + '</img>'
+                    text += '\n'
+                elif 'text' in ele:
+                    text += ele['text']
+                elif 'box' in ele:
+                    if 'ref' in ele:
+                        text += '<ref>' + ele['ref'] + '</ref>'
+                    for box in ele['box']:
+                        text += '<box>' + '(%d,%d),(%d,%d)' % (box[0], box[1], box[2], box[3]) + '</box>'
+                else:
+                    raise ValueError("Unsupport element: " + str(ele))
+            query = text
+
+            # tokenize input
+            im_start, im_end = "<|im_start|>", "<|im_end|>"
+            im_start_tokens = [self.tokenizer.im_start_id]
+            im_end_tokens = [self.tokenizer.im_end_id]
+            nl_tokens = self.tokenizer.encode("\n")
+
+            def _tokenize_str(role, content):
+                return f"{role}\n{content}", self.tokenizer.encode(
+                    role, allowed_special=set(self.tokenizer.IMAGE_ST)
+                ) + nl_tokens + self.tokenizer.encode(content, allowed_special=set(self.tokenizer.IMAGE_ST))
+
+            system_text, system_tokens_part = _tokenize_str("system", system)
+            context_tokens = im_start_tokens + system_tokens_part + im_end_tokens
+            raw_text = f"{im_start}{system_text}{im_end}"
+            context_tokens += (
+                nl_tokens
+                + im_start_tokens
+                + _tokenize_str("user", query)[1]
+                + im_end_tokens
+                + nl_tokens
+                + im_start_tokens
+                + self.tokenizer.encode("assistant")
+                + nl_tokens
+            )
+            raw_text += f"\n{im_start}user\n{query}{im_end}\n{im_start}assistant\n"
+
+            # generate response
+            stop_words_ids = [[self.tokenizer.im_end_id], [self.tokenizer.im_start_id]]
+            input_ids = torch.tensor([context_tokens]).to("cuda")
+            outputs = self.model.generate(
+                input_ids,
+                stop_words_ids=stop_words_ids,
+                return_dict_in_generate=False,
+                **kwargs,
+            )
+
+            # decode tokens
+            tokens = outputs[0]
+            if torch.is_tensor(tokens):
+                tokens = tokens.cpu().numpy().tolist()
+            eod_token_ids = [self.tokenizer.im_start_id, self.tokenizer.im_end_id]
+            context_length = len(context_tokens)
+            eod_token_idx = context_length
+            for eod_token_idx in range(context_length, len(tokens)):
+                if tokens[eod_token_idx] in eod_token_ids:
+                    break
+            trim_decode_tokens = self.tokenizer.decode(tokens[:eod_token_idx], errors='replace')[len(raw_text):].strip()
+            response = trim_decode_tokens
 
         elif "MiniCPM" in self.model_name:
             assert len(model_message) == 2 and "text" in model_message[1] and "image" in model_message[0], "Expected only 1 image and 1 text for paligemma."
