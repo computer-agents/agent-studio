@@ -88,7 +88,7 @@ class GUIGroundingEval:
             prompt = format_gui_grounding_prompt(instruction, image_path)
             response, info = self.model.generate_response(
                 prompt, model=model_name, tokenizer=tokenizer_name,
-                do_sample=False, max_length=32, num_return_sequences=1,
+                do_sample=False, max_new_tokens=32, num_return_sequences=1,
             )
             action = parse_gui_grounding_response(response)
             score, action = eval_coord_output(action, row["bbox"], row["resolution"])
