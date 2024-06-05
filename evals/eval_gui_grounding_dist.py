@@ -136,8 +136,7 @@ if __name__ == '__main__':
     )
 
     results = []
-    progress_bar = tqdm(total=len(dataset))
-    for input_ids, attention_mask, images, sources, platforms, bboxes, resolutions, instructions in dataloader:
+    for input_ids, attention_mask, images, sources, platforms, bboxes, resolutions, instructions in tqdm(dataloader, total=len(dataset)):
         outputs = model.generate(
             input_ids=input_ids.cuda(),
             attention_mask=attention_mask.cuda(),
@@ -162,9 +161,7 @@ if __name__ == '__main__':
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
             })
-        progress_bar.update(len(bboxes))
-    
-    progress_bar.close()
+
     torch.distributed.barrier()
 
     world_size = torch.distributed.get_world_size()
