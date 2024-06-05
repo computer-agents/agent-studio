@@ -18,6 +18,8 @@ def compute_stat(values: list, stat: str):
         return np.min(values)
     elif stat == "max":
         return np.max(values)
+    elif stat == "sum":
+        return np.sum(values)
     else:
         raise ValueError(f"Unknown {stat =}")
 
@@ -63,7 +65,7 @@ def main():
 
     final_metrics = {}
     for k, v in metrics.items():
-        stats = ("mean",)
+        stats = ("mean",) if "token" not in k else ("sum",)
         for stat in stats:
             key = k if stat == "mean" else f"{k}:{stat}"
             final_metrics[key] = float(compute_stat(v, stat))
