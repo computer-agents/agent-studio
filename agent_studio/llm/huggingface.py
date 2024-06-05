@@ -64,7 +64,7 @@ class HuggingFaceProvider(BaseModel):
                     trust_remote_code=True,
                 ).to("cuda").eval()
                 self.model.generation_config = GenerationConfig.from_pretrained(
-                    self.model_name, do_sample=False, trust_remote_code=True
+                    self.model_name, do_sample=False, trust_remote_code=True, max_new_tokens=32
                 )
 
         assert self.model is not None, "Model is not loaded."
@@ -94,7 +94,7 @@ class HuggingFaceProvider(BaseModel):
                 else None,
             }
             gen_kwargs = {
-                "max_new_tokens": 2048,
+                "max_new_tokens": 32,
                 "pad_token_id": 128002,
             }
             with torch.no_grad():
@@ -125,7 +125,7 @@ class HuggingFaceProvider(BaseModel):
             if 'cross_images' in input_by_model and input_by_model['cross_images']:
                 inputs['cross_images'] = [[input_by_model['cross_images'][0].to("cuda").to(self.dtype)]]
             gen_kwargs = {
-                "max_new_tokens": 2048,
+                "max_new_tokens": 32,
                 "do_sample": False,
             }
             with torch.no_grad():
@@ -140,7 +140,7 @@ class HuggingFaceProvider(BaseModel):
             image = Image.open(model_message[0]["image"]).convert("RGB")
             inputs = self.processor(query, image, return_tensors="pt").to("cuda")
             gen_kwargs = {
-                "max_new_tokens": 2048,
+                "max_new_tokens": 32,
                 "do_sample": False,
             }
             output = self.model.generate(**inputs, **gen_kwargs)
@@ -150,7 +150,7 @@ class HuggingFaceProvider(BaseModel):
 
         elif "Qwen" in self.model_name or "SeeClick" in self.model_name:
             query = self.tokenizer.from_list_format(model_message)
-            response, _ = self.model.chat(self.tokenizer, query=query, history=None)
+            response, _ = self.model.chat(self.tokenizer, query=query, max_new_tokens=32, history=None)
 
         elif "MiniCPM" in self.model_name:
             assert len(model_message) == 2 and "text" in model_message[1] and "image" in model_message[0], "Expected only 1 image and 1 text for paligemma."
@@ -159,6 +159,7 @@ class HuggingFaceProvider(BaseModel):
                 image=image,
                 msgs=[{'role': 'user', 'content': model_message[1]['text']}],
                 tokenizer=self.tokenizer,
+                max_new_tokens=32,
                 sampling=False,  # if sampling=False, beam_search will be used by default
                 # temperature=0.7,
                 # system_prompt='' # pass system_prompt if needed

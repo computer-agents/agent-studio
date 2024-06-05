@@ -7,7 +7,7 @@ from functools import partial
 from pathlib import Path
 
 import torch
-from torchvision.ops.boxes import box_area
+# from torchvision.ops.boxes import box_area
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -16,9 +16,9 @@ from agent_studio.utils.json_utils import read_jsonl, add_jsonl
 
 
 QWEN_PROMPT_TEMPLATE = """
-<img>{image}</img>Please output the coordinate for the next action based on the instruction and screenshot. The last line of your response should be of the following format: '(X, Y)' (without quotes) where X, Y is the coordinates ranging from 0 to 1. Think step by step before answering.
-
+<img>{image}</img>Please output the coordinate for the next action based on the instruction and screenshot. Your answer should be of the following format: '(X, Y)' (without quotes) where X, Y is the coordinates ranging from 0 to 1.
 Instruction: {instruction}
+Answer:
 """.strip()  # noqa: E501
 
 
@@ -90,6 +90,7 @@ class InferenceSampler(torch.utils.data.sampler.Sampler):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str)
+    parser.add_argument('--tokenizer', type=str, default=None)
     parser.add_argument('--dataset', type=str)
     parser.add_argument('--eval_format', type=str, default="coord", choices=["coord", "bbox"])
     parser.add_argument('--batch_size', type=int, default=1)
@@ -98,6 +99,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', type=int, default=1)
     args = parser.parse_args()
 
+    torch.manual_seed(0)
     torch.distributed.init_process_group(
         backend='nccl',
         world_size=int(os.getenv('WORLD_SIZE', '1')),
@@ -108,7 +110,9 @@ if __name__ == '__main__':
 
     model = AutoModelForCausalLM.from_pretrained(args.model, device_map='cuda', trust_remote_code=True).eval()
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
+    if args.tokenizer is None:
+        args.tokenizer = args.model
+    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer, trust_remote_code=True)
     tokenizer.padding_side = 'left'
     tokenizer.pad_token_id = tokenizer.eod_id
 
@@ -138,17 +142,12 @@ if __name__ == '__main__':
             input_ids=input_ids.cuda(),
             attention_mask=attention_mask.cuda(),
             do_sample=False,
-            num_beams=1,
-            max_new_tokens=28,
-            min_new_tokens=10,
-            length_penalty=1,
-            num_return_sequences=1,
-            use_cache=True,
+            max_new_tokens=32,
             pad_token_id=tokenizer.eod_id,
             eos_token_id=tokenizer.eod_id,
         )
-        input_tokens = input_ids.size(1)
-        output_tokens = outputs.size(1) - input_ids.size(1)
+        input_tokens = input_ids.shape[-1]
+        output_tokens = outputs.shape[-1] - input_tokens
         responses = [tokenizer.decode(o[input_tokens:].cpu(), skip_special_tokens=True) for o in outputs]
 
         for image, source, platform, bbox, resolution, instruction, response in zip(images, sources, platforms, bboxes, resolutions, instructions, responses):

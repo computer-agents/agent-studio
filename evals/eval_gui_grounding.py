@@ -10,9 +10,9 @@ from agent_studio.llm import BaseModel
 from agent_studio.utils.json_utils import read_jsonl, add_jsonl
 
 QUERY_TEMPLATE = """
-Please output the coordinate for the next action based on the instruction and screenshot. The last line of your response should be of the following format: '(X, Y)' (without quotes) where X, Y is the coordinates ranging from 0 to 1. Think step by step before answering.
-
+Please output the coordinate for the next action based on the instruction and screenshot. Your answer should be of the following format: '(X, Y)' (without quotes) where X, Y is the coordinates ranging from 0 to 1.
 Instruction: {instruction}
+Answer:
 """.strip()  # noqa: E501
 
 
