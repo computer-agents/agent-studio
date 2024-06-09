@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from typing import Any
+import numpy as np
 
 import torch
 from PIL import Image
@@ -37,6 +38,8 @@ class HuggingFaceProvider(BaseModel):
                 model_message.append({"text": msg["content"]})
             elif isinstance(msg["content"], Path):
                 model_message.append({"image": msg["content"].as_posix()})
+            elif isinstance(msg["content"], np.ndarray):
+                model_message.append({"image": msg["content"]})
             else:
                 assert False, f"Unknown message type: {msg['content']}"
 
@@ -49,8 +52,8 @@ class HuggingFaceProvider(BaseModel):
         model_message = self.compose_messages(intermedia_msg=messages)
 
         if self.model is None:
-            self.model_name = kwargs.get("model", None)
-            tokenizer_name = kwargs.get("tokenizer", self.model_name)
+            self.model_name = kwargs.pop("model", None)
+            tokenizer_name = kwargs.pop("tokenizer", self.model_name)
             self.dtype = torch.bfloat16
             if "paligemma" in self.model_name:
                 self.model = (
@@ -75,15 +78,13 @@ class HuggingFaceProvider(BaseModel):
                     .to("cuda")
                     .eval()
                 )
-        kwargs.pop("model")
-        kwargs.pop("tokenizer")
+        else:
+            kwargs.pop("model", None)
+            kwargs.pop("tokenizer", None)
 
         assert self.model is not None, "Model is not loaded."
 
-        logger.info(
-            f"Creating chat completion with model {self.model_name}. "
-            f"Message:\n{model_message}"
-        )
+        logger.info(f"Creating chat completion with model {self.model_name}.")
 
         if "cogvlm" in self.model_name:
             assert (
@@ -92,7 +93,10 @@ class HuggingFaceProvider(BaseModel):
                 and "image" in model_message[0]
             ), "Expected only 1 image and 1 text for cogvlm."
             query = model_message[1]["text"]
-            image = Image.open(model_message[0]["image"]).convert("RGB")
+            if isinstance(model_message[0]["image"], str):
+                image = Image.open(model_message[0]["image"]).convert("RGB")
+            else:   # is numpy array
+                image = Image.fromarray(model_message[0]["image"]).convert("RGB")
             input_by_model = self.model.build_conversation_input_ids(
                 self.tokenizer,
                 query=query,
@@ -125,7 +129,10 @@ class HuggingFaceProvider(BaseModel):
                 and "image" in model_message[0]
             ), "Expected only 1 image and 1 text for cogagent."
             query = model_message[1]["text"]
-            image = Image.open(model_message[0]["image"]).convert("RGB")
+            if isinstance(model_message[0]["image"], str):
+                image = Image.open(model_message[0]["image"]).convert("RGB")
+            else:   # is numpy array
+                image = Image.fromarray(model_message[0]["image"]).convert("RGB")
             input_by_model = self.model.build_conversation_input_ids(
                 self.tokenizer,
                 query=query,
@@ -162,7 +169,10 @@ class HuggingFaceProvider(BaseModel):
                 and "image" in model_message[0]
             ), "Expected only 1 image and 1 text for paligemma."
             query = model_message[1]["text"]
-            image = Image.open(model_message[0]["image"]).convert("RGB")
+            if isinstance(model_message[0]["image"], str):
+                image = Image.open(model_message[0]["image"]).convert("RGB")
+            else:   # is numpy array
+                image = Image.fromarray(model_message[0]["image"]).convert("RGB")
             inputs = self.processor(query, image, return_tensors="pt").to("cuda")
             output = self.model.generate(**inputs, **kwargs)
             response = self.processor.decode(output[0], skip_special_tokens=True)[
@@ -181,7 +191,10 @@ class HuggingFaceProvider(BaseModel):
                 and "text" in model_message[1]
                 and "image" in model_message[0]
             ), "Expected only 1 image and 1 text for paligemma."
-            image = Image.open(model_message[0]["image"]).convert("RGB")
+            if isinstance(model_message[0]["image"], str):
+                image = Image.open(model_message[0]["image"]).convert("RGB")
+            else:   # is numpy array
+                image = Image.fromarray(model_message[0]["image"]).convert("RGB")
             response = self.model.chat(
                 image=image,
                 msgs=[{"role": "user", "content": model_message[1]["text"]}],
