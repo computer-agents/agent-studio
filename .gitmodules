@@ -1,3 +1,0 @@
-[submodule "data"]
-	path = data
-	url = git@hf.co:datasets/Skywork/agent-studio-data
