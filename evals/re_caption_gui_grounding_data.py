@@ -1,11 +1,12 @@
+import argparse
 import os
 from io import BytesIO
-
+from pathlib import Path
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
-from common import map_with_progress
 from PIL import Image
+from tqdm import tqdm
 
 from agent_studio.llm import setup_model
 from agent_studio.utils.json_utils import add_jsonl, read_jsonl
@@ -52,35 +53,49 @@ def draw_bbox(image_path, bbox):
     return img_arr
 
 
+def create_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--provider", type=str, choices=["openai", "gemini", "claude", "huggingface"]
+    )
+    parser.add_argument("--model", type=str)
+    parser.add_argument("--data_path", type=str)
+    parser.add_argument("--start_idx", type=int, default=0)
+    parser.add_argument("--end_idx", type=int, default=None)
+
+    return parser
+
+
 def main():
-    model = setup_model("openai")
-    model_name = "gpt-4o-2024-05-13"
-    num_workers = 1
+    parser = create_parser()
+    args = parser.parse_args()
 
-    data_path = "evals/datasets/gui_grounding/metadata_raw_1k.jsonl"
-    data = read_jsonl(data_path)
+    model = setup_model(args.provider)
+    data = read_jsonl(args.data_path, args.start_idx, args.end_idx)
+    if args.provider == "huggingface":
+        kwargs = {"max_new_tokens": 64}
 
-    image_dir = "evals/datasets/gui_grounding/images"
-    save_path = data_path.replace("metadata_raw_1k.jsonl", "metadata_1k.jsonl")
+    image_dir = Path(args.data_path).parent / "images"
+    save_path = args.data_path.replace("_raw", "")
 
-    def fn(row: dict):
+    info_list = []
+    for row in tqdm(data):
         image_path = os.path.join(image_dir, row["image"])
         messages = [
             {"role": "user", "content": draw_bbox(image_path, row["bbox"])},
             {"role": "user", "content": PROMPT},
         ]
-        response, info = model.generate_response(messages, model=model_name)
+        response, info = model.generate_response(messages, model=args.model, **kwargs)
         row["raw_instruction"] = row["instruction"]
         row["instruction"] = response
 
         add_jsonl([row], save_path)
         print(f"Writing results to {save_path}")
 
-        return info
+        info_list.append(info)
 
-    info_list = map_with_progress(fn, data, num_workers)
-    input_tokens = sum([info["prompt_tokens"] for info in info_list])
-    output_tokens = sum([info["completion_tokens"] for info in info_list])
+    input_tokens = sum([info.get("prompt_tokens", 0) for info in info_list])
+    output_tokens = sum([info.get("completion_tokens", 0) for info in info_list])
     print(f"Total input tokens: {input_tokens}")
     print(f"Total output tokens: {output_tokens}")
 

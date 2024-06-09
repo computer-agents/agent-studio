@@ -1,9 +1,27 @@
 # AgentStudio Benchmark Suites
 
-## Re-Caption
+## Env setup
 
 ```bash
-python evals/re_caption_gui_grounding_data.py
+conda create -n agent_studio_evals python=3.11
+conda activate agent_studio_evals
+pip install transformers torch einops torchvision xformers matplotlib opencv-python jsonpickle 
+pip install -e .
+mv agent_studio/config/api_key_template.json agent_studio/config/api_key.json
+```
+
+## Re-Caption
+
+If use GPT-4o:
+
+```bash
+python evals/re_caption_gui_grounding_data.py --provider openai --model gpt-4o-2024-05-13 --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
+```
+
+If use CogVLM2:
+
+```bash
+python evals/re_caption_gui_grounding_data.py --provider huggingface --model ../checkpoints/cogvlm2-llama3-chat-19B --data_path evals/datasets/gui_grounding/metadata_raw.jsonl
 ```
 
 ## Evaluation on GUI Grounding
