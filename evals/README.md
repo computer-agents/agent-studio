@@ -21,7 +21,8 @@ python evals/re_caption_gui_grounding_data.py --provider openai --model gpt-4o-2
 If use CogVLM2:
 
 ```bash
-python evals/re_caption_gui_grounding_data.py --provider huggingface --model ../checkpoints/cogvlm2-llama3-chat-19B --data_path evals/datasets/gui_grounding/metadata_raw.jsonl
+python evals/re_caption_gui_grounding_data.py --provider huggingface --model ../checkpoints/cogvlm2-llama3-chat-19B --data_path evals/datasets/gui_grounding/metadata_raw.jsonl --end_idx 10000
+CUDA_VISIBLE_DEVICES=1 python evals/re_caption_gui_grounding_data.py --provider huggingface --model ../checkpoints/cogvlm2-llama3-chat-19B --data_path evals/datasets/gui_grounding/metadata_raw.jsonl --start_idx 10000
 ```
 
 ## Evaluation on GUI Grounding
@@ -33,11 +34,11 @@ python evals/main.py --provider openai --model gpt-4o-2024-05-13 --eval_type gui
 mv results/gui_grounding_gpt-4o-2024-05-13.jsonl results/gui_grounding_gpt-4o-2024-05-13_raw_instruction.jsonl
 python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding_gpt-4o-2024-05-13_raw_instruction.jsonl
 
-python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/SeeClick --tokenizer /mnt/data/public/ckpt/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
+python evals/main.py --provider huggingface --model ../checkpoints/SeeClick --tokenizer ../checkpoints/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
 mv results/gui_grounding_SeeClick.jsonl results/gui_grounding_SeeClick_raw_instruction.jsonl
 python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding_SeeClick_raw_instruction.jsonl
 
-python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/cogvlm2-llama3-chat-19B --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
+python evals/main.py --provider huggingface --model ../checkpoints/cogvlm2-llama3-chat-19B --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
 mv results/gui_grounding_cogvlm2-llama3-chat-19B.jsonl results/gui_grounding_cogvlm2-llama3-chat-19B_raw_instruction.jsonl
 python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding_cogvlm2-llama3-chat-19B_raw_instruction.jsonl
 ```
@@ -61,31 +62,37 @@ python evals/main.py --provider gemini --model gemini-1.5-flash --eval_type gui_
 python evals/main.py --provider claude --model claude-3-sonnet-20240229 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
 
 
-python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/SeeClick --tokenizer /mnt/data/public/ckpt/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
+python evals/main.py --provider huggingface --model ../checkpoints/SeeClick --tokenizer ../checkpoints/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
 python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding_SeeClick.jsonl
 
-python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/cogvlm2-llama3-chat-19B --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
+python evals/main.py --provider huggingface --model ../checkpoints/cogvlm2-llama3-chat-19B --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
 python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding_cogvlm2-llama3-chat-19B.jsonl
 
-python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
+python evals/main.py --provider huggingface --model ../checkpoints/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
 python evals/make_report.py --image_path /mnt/data/longtaozheng/agent-studio/evals/datasets/gui_grounding/images --result_path /mnt/data/longtaozheng/agent-studio/results/gui_grounding_Qwen-VL-Chat.jsonl
 
-python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/cogagent-chat-hf --tokenizer /mnt/data/public/ckpt/vicuna-7b-v1.5 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
+python evals/main.py --provider huggingface --model ../checkpoints/cogagent-chat-hf --tokenizer ../checkpoints/vicuna-7b-v1.5 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
 python evals/make_report.py --image_path /mnt/data/longtaozheng/agent-studio/evals/datasets/gui_grounding/images --result_path /mnt/data/longtaozheng/agent-studio/results/gui_grounding_cogagent-chat-hf.jsonl
 
-python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/paligemma-3b-mix-448 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
+python evals/main.py --provider huggingface --model ../checkpoints/paligemma-3b-mix-448 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
 python evals/make_report.py --image_path /mnt/data/longtaozheng/agent-studio/evals/datasets/gui_grounding/images --result_path /mnt/data/longtaozheng/agent-studio/results/gui_grounding_paligemma-3b-mix-448.jsonl
 
-python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/paligemma-3b-pt-896 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
+python evals/main.py --provider huggingface --model ../checkpoints/paligemma-3b-pt-896 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
 python evals/make_report.py --image_path /mnt/data/longtaozheng/agent-studio/evals/datasets/gui_grounding/images --result_path /mnt/data/longtaozheng/agent-studio/results/gui_grounding_paligemma-3b-pt-896.jsonl
 
-python evals/main.py --provider huggingface --model /mnt/data/public/ckpt/MiniCPM-Llama3-V-2_5 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
+python evals/main.py --provider huggingface --model ../checkpoints/MiniCPM-Llama3-V-2_5 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
 python evals/make_report.py --image_path /mnt/data/longtaozheng/agent-studio/evals/datasets/gui_grounding/images --result_path /mnt/data/longtaozheng/agent-studio/results/gui_grounding_MiniCPM-Llama3-V-2_5.jsonl
-
 ```
 
+Full evaluation:
 
 ```bash
+python evals/main.py --provider huggingface --model ../checkpoints/SeeClick --tokenizer ../checkpoints/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_raw.jsonl --end_idx 10000
+python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding_SeeClick_162302_end10000.jsonl
+
+CUDA_VISIBLE_DEVICES=1 python evals/main.py --provider huggingface --model ../checkpoints/SeeClick --tokenizer ../checkpoints/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata.jsonl --end_idx 10000
+python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding_SeeClick_162347_end10000.jsonl
+
 ```
 
 
@@ -100,7 +107,7 @@ torchrun --nproc_per_node=2 \
     --master_addr=${MASTER_ADDR:-127.0.0.1} \
     --master_port=${MASTER_PORT:-12345} \
     evals/eval_gui_grounding_dist.py \
-    --model /mnt/data/public/ckpt/Qwen-VL-Chat \
+    --model ../checkpoints/Qwen-VL-Chat \
     --dataset evals/datasets/gui_grounding/metadata.jsonl \
     --batch_size 16 \
     --num_workers 16

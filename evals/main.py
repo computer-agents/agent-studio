@@ -35,6 +35,10 @@ def main():
     save_path.mkdir(parents=True, exist_ok=True)
     # with time
     file_stem = f"{save_path}/{args.eval_type}_{args.model.split('/')[-1]}_{time.strftime('%H%M%S')}"
+    if args.start_idx != 0:
+        file_stem += f"_start{args.start_idx}"
+    if args.end_idx is not None:
+        file_stem += f"_end{args.end_idx}"
     result_filename = Path(f"{file_stem}.jsonl")
 
     match args.eval_type:

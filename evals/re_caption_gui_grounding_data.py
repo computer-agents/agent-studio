@@ -11,8 +11,13 @@ from tqdm import tqdm
 from agent_studio.llm import setup_model
 from agent_studio.utils.json_utils import add_jsonl, read_jsonl
 
-PROMPT = """
+GPT4O_PROMPT = """
 Caption the content within the red bounding box with an 'Click on' instruction. Make sure your description can be uniquely mapped into the content.
+""".strip()  # noqa: E501
+
+COGVLM2_PROMPT = """
+Caption the content within the red bounding box with an instruction starting with 'Click on'. The instruction should contain only description of the icon or elements. Make sure your description can be uniquely mapped into the content.
+Instruction:
 """.strip()  # noqa: E501
 
 
@@ -73,7 +78,10 @@ def main():
     model = setup_model(args.provider)
     data = read_jsonl(args.data_path, args.start_idx, args.end_idx)
     if args.provider == "huggingface":
+        prompt_template = COGVLM2_PROMPT
         kwargs = {"max_new_tokens": 64}
+    else:
+        prompt_template = GPT4O_PROMPT
 
     image_dir = Path(args.data_path).parent / "images"
     save_path = args.data_path.replace("_raw", "")
@@ -83,7 +91,7 @@ def main():
         image_path = os.path.join(image_dir, row["image"])
         messages = [
             {"role": "user", "content": draw_bbox(image_path, row["bbox"])},
-            {"role": "user", "content": PROMPT},
+            {"role": "user", "content": prompt_template},
         ]
         response, info = model.generate_response(messages, model=args.model, **kwargs)
         row["raw_instruction"] = row["instruction"]
