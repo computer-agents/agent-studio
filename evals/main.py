@@ -3,8 +3,8 @@ from pathlib import Path
 import time
 
 from eval_gui_grounding import GUIGroundingEval
-from eval_gui_trajectory import GUITrajectoryEval
-from eval_gui_inverse import GUIInverseEval
+from evals.eval_success_detection import SuccessDetectionEval
+from evals.eval_idm import IDMEval
 
 from agent_studio.llm import setup_model
 
@@ -51,8 +51,8 @@ def main():
                 end_idx=args.end_idx,
                 num_workers=args.num_workers,
             )
-        case "gui_trajectory":
-            evaluator = GUITrajectoryEval(
+        case "success_detection":
+            evaluator = SuccessDetectionEval(
                 model=model,
                 data_path=args.data_path,
                 result_filename=result_filename,
@@ -60,8 +60,8 @@ def main():
                 end_idx=args.end_idx,
                 num_workers=args.num_workers,
             )
-        case "gui_inverse":
-            evaluator = GUIInverseEval(
+        case "idm":  # evaluation on ability as inverse dynamics model
+            evaluator = IDMEval(
                 model=model,
                 data_path=args.data_path,
                 result_filename=result_filename,
