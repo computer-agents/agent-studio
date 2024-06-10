@@ -71,8 +71,7 @@ def main():
             click_point = bbox_2_point(item["bbox"])
 
             prompt = QUERY_TEMPLATE.format(instruction=goal)
-            conv_user = {"from": "user", "value": f"Picture 1: <img>{img_path}</img>\n"}
-            conv_user["value"] += prompt
+            conv_user = {"from": "user", "value": f"Picture 1: <img>{img_path}</img>\n{prompt}"}
             conv_ai = {"from": "assistant", "value": click_point}
             conversations = [conv_user, conv_ai]
 
@@ -108,19 +107,23 @@ def main():
             continue
         num_ele_valid += len(eles_valid)
 
-        for item in eles_valid:
+        prompt = QUERY_TEMPLATE
+        conversations = []
+        for j, item in enumerate(eles_valid):
             goal = item["instruction"]
             click_point = bbox_2_point(item["bbox"])
-
-            prompt = QUERY_TEMPLATE.format(instruction=goal)
-            conv_user = {"from": "user", "value": f"Picture 1: <img>{img_path}</img>\n"}
-            conv_user["value"] += prompt
+            if j == 0:
+                prompt = QUERY_TEMPLATE.format(instruction=goal)
+                conv_user = {"from": "user", "value": f"Picture 1: <img>{img_path}</img>\n{prompt}"}
+            else:
+                conv_user = {"from": "user", "value": f"Instruction: {goal}"}
             conv_ai = {"from": "assistant", "value": click_point}
-            conversations = [conv_user, conv_ai]
+            conversations.append(conv_user)
+            conversations.append(conv_ai)
 
-            data = {"id": f"seeclick_web_loca_point_{i}", "conversations": conversations, "source": "seeclick_web"}
-            num_web_data += 1
-            add_jsonl([data], output_dir / "sft_train.jsonl")
+        data = {"id": f"seeclick_web_loca_point_{i}", "conversations": conversations, "source": "seeclick_web"}
+        num_web_data += 1
+        add_jsonl([data], output_dir / "sft_train.jsonl")
 
     print(f"Num of valid elements: {num_ele_valid}")
     print(f"Num of web data: {num_web_data}")

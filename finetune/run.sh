@@ -21,18 +21,18 @@ DISTRIBUTED_ARGS="
 
 torchrun $DISTRIBUTED_ARGS finetune/finetune.py \
     --model_name_or_path /mnt/data/public/ckpt/Qwen-VL-Chat \
-    --data_path finetune/gui_grounding_train/sft_train.jsonl \
+    --data_path finetune/gui_grounding_train/sft_train_org.jsonl \
     --output_dir /mnt/data/public/ckpt/AgentStudio \
     --bf16 True \
     --fix_vit False \
     --run_name agent_studio_sft \
-    --num_train_epochs 3 \
-    --per_device_train_batch_size 8 \
-    --gradient_accumulation_steps 1 \
+    --num_train_epochs 1 \
+    --per_device_train_batch_size 2 \
+    --gradient_accumulation_steps 4 \
     --per_device_eval_batch_size 1 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
-    --save_steps 5000 \
+    --save_steps 2000 \
     --save_total_limit 30 \
     --learning_rate 3e-5 \
     --weight_decay 0.1 \
