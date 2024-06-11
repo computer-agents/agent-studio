@@ -3,8 +3,8 @@ from pathlib import Path
 import time
 
 from eval_gui_grounding import GUIGroundingEval
-from evals.eval_success_detection import SuccessDetectionEval
-from evals.eval_idm import IDMEval
+from eval_success_detection import SuccessDetectionEval
+from eval_idm import IDMEval
 
 from agent_studio.llm import setup_model
 
