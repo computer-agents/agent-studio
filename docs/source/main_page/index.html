@@ -81,10 +81,10 @@
                 <thead>
                   <tr>
                     <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">%Web</div></th>
-                    <th><div class="sticky-header-content">%Desktop</div></th>
-                    <th><div class="sticky-header-content">%Mobile</div></th>
-                    <th><div class="sticky-header-content">%Total</div></th>
+                    <th><div class="sticky-header-content">Web</div></th>
+                    <th><div class="sticky-header-content">Desktop</div></th>
+                    <th><div class="sticky-header-content">Mobile</div></th>
+                    <th><div class="sticky-header-content">Total</div></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -185,10 +185,10 @@
                 <thead>
                   <tr>
                     <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">%Web</div></th>
-                    <th><div class="sticky-header-content">%Desktop</div></th>
-                    <th><div class="sticky-header-content">%Mobile</div></th>
-                    <th><div class="sticky-header-content">%Total</div></th>
+                    <th><div class="sticky-header-content">Web</div></th>
+                    <th><div class="sticky-header-content">Desktop</div></th>
+                    <th><div class="sticky-header-content">Mobile</div></th>
+                    <th><div class="sticky-header-content">Total</div></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -225,6 +225,89 @@
             <p class="text-content">
               Accuracy on Success Detection (<strong>%</strong>)
             </p>
+          </div>
+        </div><div class="content-wrapper">
+          <div class="content-box">
+            <h2 class="text-title">Accuracy on Inverse Action Labeling (<strong>%</strong>)</h2>
+            <div class="tabcontent tabcontentall" style="display: block">
+              <h3 class="text-subtitle">Single</h3>
+              <table class="table scrollable">
+                <thead>
+                  <tr>
+                    <th><div class="sticky-header-content">Model</div></th>
+                    <th><div class="sticky-header-content">Mind2Web</div></th>
+                    <th><div class="sticky-header-content">AITW</div></th>
+                    <th><div class="sticky-header-content">VWA</div></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><p class="model-type">Claude-3 Haiku</p></td>
+                    <td><p class="number">31.0</p></td>
+                    <td><p class="number"><strong>24.0</strong></p></td>
+                    <td><p class="number"><strong>29.0</strong></p></td>
+                  </tr>
+                  <tr>
+                    <td><p class="model-type">GPT-4o</p></td>
+                    <td><p class="number"><strong>57.0</strong></p></td>
+                    <td><p class="number">13.0</p></td>
+                    <td><p class="number">24.0</p></td>
+                  </tr>
+                  <tr>
+                    <td><p class="model-type">Qwen-VL-Chat</p></td>
+                    <td><p class="number">21.0</p></td>
+                    <td><p class="number">13.0</p></td>
+                    <td><p class="number">18.0</p></td>
+                  </tr>
+                  <tr>
+                    <td><p class="model-type">Gemini-1.0 Pro</p></td>
+                    <td><p class="number">47.0</p></td>
+                    <td><p class="number">20.0</p></td>
+                    <td><p class="number">17.0</p></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <br/>
+            <div class="tabcontent tabcontentall" style="display: block">
+              <h3 class="text-subtitle">Multiple</h3>
+              <table class="table scrollable">
+                <thead>
+                  <tr>
+                    <th><div class="sticky-header-content">Model</div></th>
+                    <th><div class="sticky-header-content">Mind2Web</div></th>
+                    <th><div class="sticky-header-content">AITW</div></th>
+                    <th><div class="sticky-header-content">VWA</div></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><p class="model-type">GPT-4o</p></td>
+                    <td><p class="number"><strong>49.1</strong></p></td>
+                    <td><p class="number"><strong>46.0</strong></p></td>
+                    <td><p class="number"><strong>35.3</strong></p></td>
+                  </tr>
+                  <tr>
+                    <td><p class="model-type">Gemini-1.0 Pro</p></td>
+                    <td><p class="number">35.6</p></td>
+                    <td><p class="number">24.1</p></td>
+                    <td><p class="number">24.0</p></td>
+                  </tr>
+                  <tr>
+                    <td><p class="model-type">Claude-3 Haiku</p></td>
+                    <td><p class="number">17.7</p></td>
+                    <td><p class="number">26.8</p></td>
+                    <td><p class="number">17.7</p></td>
+                  </tr>
+                  <tr>
+                    <td><p class="model-type">Qwen-VL-Chat</p></td>
+                    <td><p class="number">3.1</p></td>
+                    <td><p class="number">15.2</p></td>
+                    <td><p class="number">13.3</p></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
         <div class="content-wrapper">
