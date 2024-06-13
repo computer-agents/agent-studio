@@ -45,15 +45,15 @@ def compute_f1(results):
             else:
                 tn += 1
     accuracy = (tp + tn) / (tp + tn + fp + fn)
-    precision = tp / (tp + fp)
-    recall = tp / (tp + fn)
-    f1 = 2 * precision * recall / (precision + recall)
+    # precision = tp / (tp + fp)
+    # recall = tp / (tp + fn)
+    # f1 = 2 * precision * recall / (precision + recall)
 
     return {
         "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1": f1,
+        # "precision": precision,
+        # "recall": recall,
+        # "f1": f1,
     }
 
 
@@ -122,17 +122,19 @@ def main():
                 aitw_results.append(result)
             elif "vwa" in result["source"]:
                 vwa_results.append(result)
-            elif "agent_studio" in result["source"]:
+            elif "agent-studio" in result["source"]:
                 agent_studio_results.append(result)
-            
-        # for res in [web_results, desktop_results, mobile_results]:
-        for res in [web_results, mobile_results]:
+
+        stats = compute_f1(results)
+        for k, v in stats.items():
+            metrics[k].append(v)
+
+        for res in [web_results, desktop_results, mobile_results]:
             stats = compute_f1(res)
             for k, v in stats.items():
                 metrics[f"{res[0]['platform']}_{k}"].append(v)
         
-        # for res in [mind2web_results, aitw_results, vwa_results, agent_studio_results]:
-        for res in [mind2web_results, aitw_results, vwa_results]:
+        for res in [mind2web_results, aitw_results, vwa_results, agent_studio_results]:
             stats = compute_f1(res)
             if "mind2web" in res[0]["source"]:
                 source = "mind2web"
@@ -140,7 +142,7 @@ def main():
                 source = "aitw"
             elif "vwa" in res[0]["source"]:
                 source = "vwa"
-            elif "agent_studio" in res[0]["source"]:
+            elif "agent-studio" in res[0]["source"]:
                 source = "agent_studio"
             for k, v in stats.items():
                 metrics[f"{source}_{k}"].append(v)

@@ -44,6 +44,9 @@ python evals/make_report.py --image_path evals/datasets/gui_grounding/images --r
 python evals/main.py --provider gemini --model gemini-1.5-flash --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
 python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding/gemini-1.5-flash.jsonl
 
+python evals/main.py --provider claude --model claude-3-haiku-20240307 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
+python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding/claude-3-haiku-20240307.jsonl
+
 python evals/main.py --provider claude --model claude-3-sonnet-20240229 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
 python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding/claude-3-sonnet-20240229.jsonl
 
@@ -82,7 +85,7 @@ python evals/main.py --provider huggingface --model /PATH/TO/Qwen-VL-Chat --eval
 python evals/make_report.py --image_path evals/datasets/trajectory_100/images --result_path results/success_detection/Qwen-VL-Chat.jsonl
 
 python evals/main.py --provider openai --model gpt-4o-2024-05-13 --eval_type success_detection --data_path evals/datasets/trajectory_100/metadata_success_detection.jsonl
-python evals/make_report.py --image_path evals/datasets/trajectory_100/images --result_path results/success_detection/gpt-4o.jsonl
+python evals/make_report.py --image_path evals/datasets/trajectory_100/images --result_path results/success_detection/gpt-4o-2024-05-13.jsonl
 
 python evals/main.py --provider gemini --model gemini-pro-vision --eval_type success_detection --data_path evals/datasets/trajectory_100/metadata_success_detection.jsonl
 python evals/make_report.py --image_path evals/datasets/trajectory_100/images --result_path results/success_detection/gemini-pro-vision.jsonl
@@ -105,6 +108,9 @@ python evals/make_report.py --image_path evals/datasets/trajectory_100/images --
 python evals/main.py --provider gemini --model gemini-pro-vision --eval_type idm --data_path evals/datasets/trajectory_100/metadata_idm.jsonl
 python evals/make_report.py --image_path evals/datasets/trajectory_100/images --result_path results/idm/gemini-pro-vision.jsonl
 
+python evals/main.py --provider claude --model claude-3-haiku-20240307 --eval_type idm --data_path evals/datasets/trajectory_100/metadata_idm.jsonl
+python evals/make_report.py --image_path evals/datasets/trajectory_100/images --result_path results/idm/claude-3-haiku-20240307.jsonl
+
 python evals/main.py --provider claude --model claude-3-sonnet-20240229 --eval_type idm --data_path evals/datasets/trajectory_100/metadata_idm.jsonl
 python evals/make_report.py --image_path evals/datasets/trajectory_100/images --result_path results/idm/claude-3-sonnet-20240229.jsonl
 ```
@@ -120,6 +126,9 @@ python evals/make_report.py --image_path evals/datasets/trajectory_100/images --
 
 python evals/main.py --provider gemini --model gemini-pro-vision --eval_type idmn2n --data_path evals/datasets/trajectory_100/metadata_idmn2n.jsonl
 python evals/make_report.py --image_path evals/datasets/trajectory_100/images --result_path results/idmn2n/gemini-pro-vision.jsonl
+
+python evals/main.py --provider claude --model claude-3-haiku-20240307 --eval_type idmn2n --data_path evals/datasets/trajectory_100/metadata_idmn2n.jsonl
+python evals/make_report.py --image_path evals/datasets/trajectory_100/images --result_path results/idmn2n/claude-3-haiku-20240307.jsonl
 
 python evals/main.py --provider claude --model claude-3-sonnet-20240229 --eval_type idmn2n --data_path evals/datasets/trajectory_100/metadata_idmn2n.jsonl
 python evals/make_report.py --image_path evals/datasets/trajectory_100/images --result_path results/idmn2n/claude-3-sonnet-20240229.jsonl
