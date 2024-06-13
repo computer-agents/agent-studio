@@ -8,7 +8,7 @@ from common import map_with_progress
 
 from agent_studio.llm import BaseModel
 from agent_studio.utils.json_utils import read_jsonl, add_jsonl
-from types import Episode
+from schema import Episode
 
 logger = logging.getLogger("eval_logger")
 

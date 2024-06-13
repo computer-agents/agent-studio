@@ -174,7 +174,7 @@ def main():
         stats = ("mean",) if "token" not in k else ("sum",)
         for stat in stats:
             key = k if stat == "mean" else f"{k}:{stat}"
-            final_metrics[key] = float(compute_stat(v, stat))
+            final_metrics[key] = round(float(compute_stat(v, stat)), 3)
     print(f"Metrics: {final_metrics}")
 
     if len(htmls) > 0:

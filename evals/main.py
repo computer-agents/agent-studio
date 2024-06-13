@@ -70,7 +70,7 @@ def main():
                 end_idx=args.end_idx,
                 num_workers=args.num_workers,
             )
-        case "idm_n2n":  # evaluation on inverse dynamics model that predict a sequence of actions from trajectories
+        case "idmn2n":  # evaluation on inverse dynamics model that predict a sequence of actions from trajectories
             evaluator = IDMN2NEval(
                 model=model,
                 data_path=args.data_path,
