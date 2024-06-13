@@ -79,49 +79,44 @@ class IDMN2NEval:
         self.data = read_jsonl(data_path, start_idx, end_idx)
         self.data_dir = os.path.join(Path(data_path).parent, "images")
         self.result_filename = result_filename
-        self.error_filename = result_filename.with_suffix(".error.jsonl")
         self.num_workers = num_workers
 
     def __call__(
         self, model_name: str, tokenizer_name: str,
     ) -> list[dict[str, Any]]:
         def fn(row: dict):
-            try:
-                episode: Episode = Episode.model_validate(row)
-                # only use at most the last 5 actions
-                if episode.actions[-1].obs_after is not None:
-                    episode.actions = episode.actions[-5:] if len(episode.actions) > 5 else episode.actions
-                else:
-                    episode.actions = episode.actions[-6:-1] if len(episode.actions) > 6 else episode.actions[:-1]
+            episode: Episode = Episode.model_validate(row)
+            # only use at most the last 5 actions
+            if episode.actions[-1].obs_after is not None:
+                episode.actions = episode.actions[-5:] if len(episode.actions) > 5 else episode.actions
+            else:
+                episode.actions = episode.actions[-6:-1] if len(episode.actions) > 6 else episode.actions[:-1]
 
-                # Query the model and evaluate the response
-                selected_actions: list[Action]
-                prompt, selected_actions, ref_answer = format_idm_prompt(self.data_dir, episode.instruction, episode.actions, episode.action_space)
-                response, info = self.model.generate_response(
-                    prompt, model=model_name, tokenizer=tokenizer_name,
-                    do_sample=False, max_length=32, num_return_sequences=1,
-                )
+            # Query the model and evaluate the response
+            selected_actions: list[Action]
+            prompt, selected_actions, ref_answer = format_idm_prompt(self.data_dir, episode.instruction, episode.actions, episode.action_space)
+            response, info = self.model.generate_response(
+                prompt, model=model_name, tokenizer=tokenizer_name,
+                do_sample=False, max_length=32, num_return_sequences=1,
+            )
 
-                score = eval_idm_response(response, ref_answer)
+            score = eval_idm_response(response, ref_answer)
 
-                result = {
-                    "actions": [action.action_id for action in selected_actions],
-                    "action_space": episode.action_space,
-                    "score": score,
-                    "source": episode.source,
-                    "platform": episode.platform,
-                    "annotation_id": episode.annotation_id,
-                    "instruction": episode.instruction,
-                    "response": response,
-                    "ref_answer": ref_answer,
-                    # "parsed_action": action,
-                    "input_tokens": info.get("prompt_tokens", 0),
-                    "output_tokens": info.get("completion_tokens", 0),
-                }
-                add_jsonl([result], self.result_filename)
-                logger.info(f"Writing results {episode.annotation_id} to {self.result_filename}")
-            except Exception as e:
-                logger.error(f"[Error processing episode: {episode.annotation_id}]: {e}")
-                add_jsonl([row], self.error_filename)
+            result = {
+                "actions": [action.action_id for action in selected_actions],
+                "action_space": episode.action_space,
+                "score": score,
+                "source": episode.source,
+                "platform": episode.platform,
+                "annotation_id": episode.annotation_id,
+                "instruction": episode.instruction,
+                "response": response,
+                "ref_answer": ref_answer,
+                # "parsed_action": action,
+                "input_tokens": info.get("prompt_tokens", 0),
+                "output_tokens": info.get("completion_tokens", 0),
+            }
+            add_jsonl([result], self.result_filename)
+            logger.info(f"Writing results {episode.annotation_id} to {self.result_filename}")
 
         map_with_progress(fn, self.data, self.num_workers)

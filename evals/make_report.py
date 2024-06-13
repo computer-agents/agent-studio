@@ -163,11 +163,17 @@ def main():
 
             for platform in ["web", "desktop", "mobile"]:
                 if result["platform"] == platform:
-                    metrics[f"{platform}_score"].append(result["score"])
+                    if "n2n" in args.result_path:
+                        metrics[f"{platform}_score"].append(result["score"] / len(result["ref_answer"]))
+                    else:
+                        metrics[f"{platform}_score"].append(result["score"])
 
             for source in ["mind2web", "aitw", "vwa"]:
                 if source in result["source"]:
-                    metrics[f"{source}_score"].append(result["score"])
+                    if "n2n" in args.result_path:
+                        metrics[f"{source}_score"].append(result["score"] / len(result["ref_answer"]))
+                    else:
+                        metrics[f"{source}_score"].append(result["score"])
 
     final_metrics = {}
     for k, v in metrics.items():

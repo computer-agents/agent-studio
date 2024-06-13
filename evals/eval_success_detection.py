@@ -62,47 +62,42 @@ class SuccessDetectionEval:
         self.data = read_jsonl(data_path, start_idx, end_idx)
         self.data_dir = os.path.join(Path(data_path).parent, "images")
         self.result_filename = result_filename
-        self.error_filename = result_filename.with_suffix(".error.jsonl")
         self.num_workers = num_workers
 
     def __call__(
         self, model_name: str, tokenizer_name: str,
     ) -> list[dict[str, Any]]:
         def fn(row: dict):
-            try:
-                episode: Episode = Episode.model_validate(row)
-                # only use the last 5 actions
-                episode.actions = episode.actions[-5:] if len(episode.actions) > 5 else episode.actions
+            episode: Episode = Episode.model_validate(row)
+            # only use the last 5 actions
+            episode.actions = episode.actions[-5:] if len(episode.actions) > 5 else episode.actions
 
-                # Query the model and evaluate the response
-                prompt = format_success_detection_prompt(self.data_dir, episode)
-                response, info = self.model.generate_response(
-                    prompt, model=model_name, tokenizer=tokenizer_name,
-                    do_sample=False, max_new_tokens=32, num_return_sequences=1,
-                )
-                logger.info(f"response: {response}")
-                score = parse_success_detection_response(response, episode.is_success)
+            # Query the model and evaluate the response
+            prompt = format_success_detection_prompt(self.data_dir, episode)
+            response, info = self.model.generate_response(
+                prompt, model=model_name, tokenizer=tokenizer_name,
+                do_sample=False, max_new_tokens=32, num_return_sequences=1,
+            )
+            logger.info(f"response: {response}")
+            score = parse_success_detection_response(response, episode.is_success)
 
-                result = {
-                    "trajectory_images": [action.obs_before for action in episode.actions] + ([episode.actions[-1].obs_after] if episode.actions[-1].obs_after else []),
-                    "trajectory_actions": [action.metadata["repr"] for action in episode.actions],
-                    "instruction": episode.instruction,
-                    "score": score,
-                    "source": episode.source,
-                    "platform": episode.platform,
-                    "annotation_id": episode.annotation_id,
-                    "ref_answer": episode.is_success,
-                    # "resolution": row["resolution"],
-                    "response": response,
-                    # "parsed_action": action,
-                    "input_tokens": info.get("prompt_tokens", 0),
-                    "output_tokens": info.get("completion_tokens", 0),
-                }
+            result = {
+                "trajectory_images": [action.obs_before for action in episode.actions] + ([episode.actions[-1].obs_after] if episode.actions[-1].obs_after else []),
+                "trajectory_actions": [action.metadata["repr"] for action in episode.actions],
+                "instruction": episode.instruction,
+                "score": score,
+                "source": episode.source,
+                "platform": episode.platform,
+                "annotation_id": episode.annotation_id,
+                "ref_answer": episode.is_success,
+                # "resolution": row["resolution"],
+                "response": response,
+                # "parsed_action": action,
+                "input_tokens": info.get("prompt_tokens", 0),
+                "output_tokens": info.get("completion_tokens", 0),
+            }
 
-                add_jsonl([result], self.result_filename)
-                logger.info(f"Writing results {episode.annotation_id} to {self.result_filename}")
-            except Exception as e:
-                logger.error(f"[Error processing episode: {episode.annotation_id}]: {e}")
-                add_jsonl([row], self.error_filename)
+            add_jsonl([result], self.result_filename)
+            logger.info(f"Writing results {episode.annotation_id} to {self.result_filename}")
 
         map_with_progress(fn, self.data, self.num_workers)

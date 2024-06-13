@@ -66,49 +66,44 @@ class IDMEval:
         self.data = read_jsonl(data_path, start_idx, end_idx)
         self.data_dir = os.path.join(Path(data_path).parent, "images")
         self.result_filename = result_filename
-        self.error_filename = result_filename.with_suffix(".error.jsonl")
         self.num_workers = num_workers
 
     def __call__(
         self, model_name: str, tokenizer_name: str,
     ) -> list[dict[str, Any]]:
         def fn(row: dict):
-            try:
-                action: InverseAction = InverseAction.model_validate(row)
-                if action.obs_before is None or action.obs_after is None:
-                    raise ValueError("obs_before and obs_after must be provided")
+            action: InverseAction = InverseAction.model_validate(row)
+            if action.obs_before is None or action.obs_after is None:
+                raise ValueError("obs_before and obs_after must be provided")
 
-                # Query the model and evaluate the response
-                prompt = format_idm_prompt(self.data_dir, action.instruction, action, action.action_space)
-                response, info = self.model.generate_response(
-                    prompt, model=model_name, tokenizer=tokenizer_name,
-                    do_sample=False, max_new_tokens=32, num_return_sequences=1,
-                )
-                # get the position in the set of action_space
-                index = action.action_space.index(action.operation)
-                ref_answer = chr(65 + index)
+            # Query the model and evaluate the response
+            prompt = format_idm_prompt(self.data_dir, action.instruction, action, action.action_space)
+            response, info = self.model.generate_response(
+                prompt, model=model_name, tokenizer=tokenizer_name,
+                do_sample=False, max_new_tokens=32, num_return_sequences=1,
+            )
+            # get the position in the set of action_space
+            index = action.action_space.index(action.operation)
+            ref_answer = chr(65 + index)
 
-                score = eval_idm_response(response, ref_answer)
+            score = eval_idm_response(response, ref_answer)
 
-                result = {
-                    "obs_before": action.obs_before,
-                    "obs_after": action.obs_after,
-                    "action_space": action.action_space,
-                    "score": score,
-                    "source": action.source,
-                    "platform": action.platform,
-                    "annotation_id": action.action_id,
-                    "instruction": action.instruction,
-                    "response": response,
-                    "ref_answer": action.operation,
-                    # "parsed_action": action,
-                    "input_tokens": info.get("prompt_tokens", 0),
-                    "output_tokens": info.get("completion_tokens", 0),
-                }
-                add_jsonl([result], self.result_filename)
-                logger.info(f"Writing results {action.action_id} to {self.result_filename}")
-            except Exception as e:
-                logger.error(f"[Error processing action: {action.action_id}]: {e}")
-                add_jsonl([row], self.error_filename)
+            result = {
+                "obs_before": action.obs_before,
+                "obs_after": action.obs_after,
+                "action_space": action.action_space,
+                "score": score,
+                "source": action.source,
+                "platform": action.platform,
+                "annotation_id": action.action_id,
+                "instruction": action.instruction,
+                "response": response,
+                "ref_answer": action.operation,
+                # "parsed_action": action,
+                "input_tokens": info.get("prompt_tokens", 0),
+                "output_tokens": info.get("completion_tokens", 0),
+            }
+            add_jsonl([result], self.result_filename)
+            logger.info(f"Writing results {action.action_id} to {self.result_filename}")
 
         map_with_progress(fn, self.data, self.num_workers)
