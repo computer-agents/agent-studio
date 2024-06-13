@@ -6,7 +6,6 @@ from agent_studio.utils.singleton import ThreadSafeSingleton
 
 
 class StateEnum(Enum):
-    PENDING = "pending"
     IN_PROGRESS = "in_progress"
     WAIT_FOR_INPUT = "wait_for_input"
     FINISHED = "finished"
@@ -22,7 +21,7 @@ class StateInfo:
 
 class TaskStatus(metaclass=ThreadSafeSingleton):
     def __init__(self) -> None:
-        self.state_info: StateInfo = StateInfo(StateEnum.PENDING)
+        self.state_info: StateInfo = StateInfo(StateEnum.FINISHED)
         self.condition: threading.Condition = threading.Condition()
         self.active_thread: threading.Thread | None = None
 
@@ -37,9 +36,10 @@ class TaskStatus(metaclass=ThreadSafeSingleton):
 
     def reset_state(self) -> None:
         with self.condition:
-            self.state_info = StateInfo(StateEnum.PENDING)
+            self.state_info = StateInfo(StateEnum.FINISHED)
 
     def wait_for_state_change(self, cur_state: StateEnum) -> StateInfo:
+        """Return when the state is different from the current state"""
         with self.condition:
             while cur_state == self.state_info.state:
                 self.condition.wait()

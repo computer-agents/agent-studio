@@ -1,31 +1,18 @@
 import logging
 import time
-from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
 import requests
-from numpydantic import NDArray
 
 from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.config import Config
-from agent_studio.llm.base_model import BaseModel
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import Evaluator
+from agent_studio.llm.base_model import BaseModel, PromptSeg, TrajectorySeg
 from agent_studio.llm.utils import extract_from_response
 
 config = Config()
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class TrajectorySeg:
-    obs: NDArray | None
-    prompt: list[dict[str, Any]]
-    response: str | None
-    info: dict[str, Any]
-    act: str
-    res: dict[str, Any]
-    timestamp: float
-    annotation: dict[str, Any] | None = None
 
 
 class BaseAgent:
@@ -39,17 +26,22 @@ class BaseAgent:
         self.trajectory: list[TrajectorySeg] = []
         self.runtime: PythonRuntime | RemotePythonRuntime | None = None
 
-        self.cur_prompt: list[dict[str, Any]] | None = None
+        self.cur_prompt: list[PromptSeg] | None = None
         self.cur_response: str | None = None
         self.cur_info: dict[str, Any] = {}
         self.cur_raw_code: str = ""
         self.total_tokens: int = 0
+        self.task_config = {}
+        self.registered_evaluators = {}
 
     def reset(
         self,
-        instruction: str,
+        task_config: dict[str, Any],
+        registered_evaluators: dict[str, type[Evaluator]],
     ) -> None:
-        self.instruction = instruction
+        self.task_config = task_config
+        self.registered_evaluators = registered_evaluators
+        self.instruction = task_config["instruction"]
         self.trajectory = []
         self.cur_prompt = None
         self.cur_response = None
@@ -130,5 +122,5 @@ class BaseAgent:
         if self.runtime is not None:
             self.runtime.close()
 
-    def trajectory2intermediate_msg(self) -> list[dict[str, Any]]:
+    def trajectory2intermediate_msg(self) -> list[PromptSeg]:
         raise NotImplementedError

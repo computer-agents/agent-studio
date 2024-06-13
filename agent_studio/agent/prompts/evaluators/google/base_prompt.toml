@@ -1,0 +1,23 @@
+[prompt]
+text= """
+If your task needs to access the Google service, you can use the `credentials.json` file in the `./agent_studio/config` directory. Also, there are six token files, `docs_token.json`, `drive_token.json`, `gmail_token.json`, `sheets_token.json`, `slides_token.json`, `calendar_token.json` and `forms_token.json`, in the `./agent_studio/config` directory, and you can use any of them to access the corresponding Google service.
+E.g. you can use the following code to access the Google Drive API:
+```python
+import json
+from google.oauth2 import credentials
+from googleapiclient.discovery import build
+
+token_path="agent_studio/config/docs_token.json"
+with open(token_path, "r") as f:
+  token = json.loads(f.read())
+creds = credentials.Credentials.from_authorized_user_info(token, [
+  "https://www.googleapis.com/auth/drive",
+])
+service = build("drive", "v3", credentials=creds)
+service.files().get_media(fileId=xxxxxxx)
+```
+"""
+
+tag = "evaluator"
+
+parent = "system_prompt"

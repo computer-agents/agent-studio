@@ -5,6 +5,7 @@ import sys
 import time
 from pathlib import Path
 
+import jsonpickle
 import psutil
 import requests
 from qasync import QApplication
@@ -13,7 +14,10 @@ from agent_studio.agent import setup_agent
 from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.agent_interface import AgentInterface
-from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import (
+    evaluator_router,
+    register_evaluators,
+)
 from agent_studio.envs.desktop_env.human_interface import HumanInterface
 from agent_studio.envs.desktop_env.recorder.screen_recorder import (
     ScreenRecorder,
@@ -24,7 +28,6 @@ from agent_studio.llm import setup_model
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
-    AgentStudioResultResponse,
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
 )
@@ -79,30 +82,25 @@ def setup_tasks(args):
     return task_configs
 
 
-def wait_finish(is_eval: bool):
+def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
     remote_server_addr = f"http://{config.env_server_addr}:{config.env_server_port}"
-    while True:
-        response_raw = requests.get(f"{remote_server_addr}/task/status")
-        response = AgentStudioStatusResponse(**response_raw.json())
-        if response.status == "finished":
-            break
-        elif response.status == "wait_for_input":
-            # Can't override in eval mode
-            if config.need_human_confirmation and not is_eval:
-                user_input = input(f"{response.content}")
-            else:
-                user_input = "y"
-            response_raw = requests.post(
-                url=f"{remote_server_addr}/task/confirm",  # noqa: E501
-                json=AgentStudioTextRequest(message=user_input).model_dump(),
-            )
-            response = AgentStudioStatusResponse(**response_raw.json())
-            assert response.status == "success"
-        elif response.status in ["pending", "in_progress"]:
-            pass
+    if response.status == "finished":
+        return response
+    elif response.status == "wait_for_input":
+        # Can't override in eval mode
+        if config.need_human_confirmation and not is_eval:
+            user_input = input(f"{response.content}")
         else:
-            raise ValueError(f"Unknown status: {response.status}")
-        time.sleep(1)
+            user_input = "y"
+        response_raw = requests.post(
+            url=f"{remote_server_addr}/task/confirm",
+            json=AgentStudioTextRequest(message=user_input).model_dump(),
+        )
+        assert response_raw.status_code == 200
+        response = AgentStudioStatusResponse(**response_raw.json())
+        return wait_finish(is_eval, response)
+    else:
+        raise ValueError(f"Unknown status: {response.status}, {response.content}")
 
 
 def eval_gui(
@@ -194,14 +192,10 @@ def eval_headless(
                     json=AgentStudioResetRequest(task_config=task_config).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
-                if response.status != "submitted":
-                    raise ValueError(f"Fail to reset task: {response.content}")
-                wait_finish(is_eval=False)
-                response_raw = requests.get(
-                    f"{remote_server_addr}/task/result",
-                )
-                response = AgentStudioResultResponse(**response_raw.json())
-                if not (response.status == "finished" and response.result == "success"):
+                response = wait_finish(is_eval=False, response=response)
+                if not (
+                    response.status == "finished" and response.content == "success"
+                ):
                     raise ValueError(f"Fail to reset task: {response.message}")
 
                 instruction = task_config["instruction"]
@@ -220,7 +214,9 @@ def eval_headless(
                 instruction = task_config["instruction"]
                 logger.info(f"Task instruction: {instruction}")
 
-            agent.reset(instruction=instruction)
+            agent.reset(
+                task_config=task_config, registered_evaluators=register_evaluators()
+            )
             # Loop until the task is done or the max step is reached.
             for t in range(task_config["max_steps"]):
                 logger.info(f"Step {t}")
@@ -257,13 +253,11 @@ def eval_headless(
                     f"{remote_server_addr}/task/eval",
                     json=AgentStudioEvalRequest(
                         task_config=task_config,
+                        trajectory=str(jsonpickle.encode(agent.trajectory)),
                     ).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
-                assert response.status == "submitted"
-                wait_finish(is_eval=True)
-                response_raw = requests.get(f"{remote_server_addr}/task/result")
-                response = AgentStudioResultResponse(**response_raw.json())
+                response = wait_finish(is_eval=True, response=response)
                 if not (
                     response.status == "finished" and isinstance(response.message, dict)
                 ):

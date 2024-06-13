@@ -4,7 +4,6 @@ import logging
 import os
 import queue
 import threading
-import time
 import uuid
 from pathlib import Path
 
@@ -51,7 +50,6 @@ from agent_studio.envs.desktop_env.vnc_client import (
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
-    AgentStudioResultResponse,
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
 )
@@ -118,34 +116,29 @@ class ResetThread(QThread):
         self.task_config = task_config
         self.agent = agent
 
-    def _wait_finish(self):
-        while True:
-            response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/status")
+    def _wait_finish(
+        self, response: AgentStudioStatusResponse
+    ) -> AgentStudioStatusResponse:
+        if response.status == "finished":
+            self.signals.status_bar_signal.emit("color: green;", "Finished")
+            return response
+        elif response.status == "wait_for_input":
+            self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
+            self.mutex.lock()
+            self.signals.show_dialog_signal.emit(response.content)
+            self.wait_condition.wait(self.mutex)
+            self.mutex.unlock()
+            user_input = self.user_input
+            response_raw = requests.post(
+                url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
+                json=AgentStudioTextRequest(message=user_input).model_dump(),
+            )
             assert response_raw.status_code == 200, f"{response_raw.status_code}"
+            self.signals.status_bar_signal.emit("color: green;", "In Progress")
             response = AgentStudioStatusResponse(**response_raw.json())
-            if response.status == "finished":
-                break
-            elif response.status == "wait_for_input":
-                self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
-                self.mutex.lock()
-                self.signals.show_dialog_signal.emit(response.content)
-                self.wait_condition.wait(self.mutex)
-                self.mutex.unlock()
-                user_input = self.user_input
-                response_raw = requests.post(
-                    url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
-                    json=AgentStudioTextRequest(message=user_input).model_dump(),
-                )
-                assert response_raw.status_code == 200, f"{response_raw.status_code}"
-                response = AgentStudioStatusResponse(**response_raw.json())
-                assert response.status == "success"
-            elif response.status == "pending":
-                self.signals.status_bar_signal.emit("color: green;", "Pending")
-            elif response.status == "in_progress":
-                pass
-            else:
-                raise ValueError(f"Unknown status: {response.status}")
-            time.sleep(1)
+            return self._wait_finish(response=response)
+        else:
+            raise ValueError(f"Unknown status: {response.status}, {response.content}")
 
     def run(self):
         # reset remote runtime
@@ -158,7 +151,7 @@ class ResetThread(QThread):
         assert (
             response.status == "success"
         ), f"Fail to reset runtime: {response_raw.text}"
-        self.agent.reset(instruction=self.task_config["instruction"])
+        self.agent.reset(task_config=self.task_config, registered_evaluators={})
         self.signals.status_bar_signal.emit(
             "color: green;", "Task: Preparing the environment..."
         )
@@ -168,14 +161,8 @@ class ResetThread(QThread):
         )
         assert response_raw.status_code == 200, f"{response_raw.status_code}"
         response = AgentStudioStatusResponse(**response_raw.json())
-        assert response.status == "submitted"
-        self._wait_finish()
-        response_raw = requests.get(
-            f"http://{REMOTE_SERVER_ADDR}/task/result",
-        )
-        assert response_raw.status_code == 200, f"{response_raw.status_code}"
-        response = AgentStudioResultResponse(**response_raw.json())
-        if response.status == "finished" and response.result == "success":
+        response = self._wait_finish(response)
+        if response.status == "finished" and response.content == "success":
             self.signals.status_bar_signal.emit("color: green;", "Task: Ready")
 
             self.signals.next_action_editor_signal.emit(True)
@@ -212,32 +199,29 @@ class EvalTaskThread(QThread):
         self.trajectory_display = trajectory_display
         self.result_queue = result_queue
 
-    def _wait_finish(self):
-        while True:
-            response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/status")
+    def _wait_finish(
+        self, response: AgentStudioStatusResponse
+    ) -> AgentStudioStatusResponse:
+        if response.status == "finished":
+            self.signals.status_bar_signal.emit("color: green;", "Finished")
+            return response
+        elif response.status == "wait_for_input":
+            self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
+            self.mutex.lock()
+            self.signals.show_dialog_signal.emit(response.content)
+            self.wait_condition.wait(self.mutex)
+            self.mutex.unlock()
+            user_input = self.user_input
+            response_raw = requests.post(
+                url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
+                json=AgentStudioTextRequest(message=user_input).model_dump(),
+            )
+            assert response_raw.status_code == 200, f"{response_raw.status_code}"
+            self.signals.status_bar_signal.emit("color: green;", "In Progress")
             response = AgentStudioStatusResponse(**response_raw.json())
-            if response.status == "finished":
-                break
-            elif response.status == "wait_for_input":
-                self.signals.status_bar_signal.emit("color: blue;", "Waiting for input")
-                self.mutex.lock()
-                self.signals.show_dialog_signal.emit(response.content)
-                self.wait_condition.wait(self.mutex)
-                self.mutex.unlock()
-                user_input = self.user_input
-                response_raw = requests.post(
-                    url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
-                    json=AgentStudioTextRequest(message=user_input).model_dump(),
-                )
-                response = AgentStudioStatusResponse(**response_raw.json())
-                assert response.status == "success"
-            elif response.status == "pending":
-                self.signals.status_bar_signal.emit("color: green;", "Pending")
-            elif response.status == "in_progress":
-                self.signals.status_bar_signal.emit("color: green;", "In Progress")
-            else:
-                raise ValueError(f"Unknown status: {response.status}")
-            time.sleep(1)
+            return self._wait_finish(response=response)
+        else:
+            raise ValueError(f"Unknown status: {response.status}, {response.content}")
 
     def run(self):
         self.signals.status_bar_signal.emit("color: green;", "Task: Auto-Evaluating...")
@@ -249,10 +233,7 @@ class EvalTaskThread(QThread):
             ).model_dump(),
         )
         response = AgentStudioStatusResponse(**response_raw.json())
-        assert response.status == "submitted"
-        self._wait_finish()
-        response_raw = requests.get(f"http://{REMOTE_SERVER_ADDR}/task/result")
-        response = AgentStudioResultResponse(**response_raw.json())
+        response = self._wait_finish(response)
         if response.status == "finished" and isinstance(response.message, dict):
             self.result_queue.put(response.message)
             self.signals.evaluation_display_signal.emit(

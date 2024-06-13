@@ -3,6 +3,7 @@ import threading
 from contextlib import asynccontextmanager
 from typing import Any
 
+import jsonpickle
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import Response
@@ -13,7 +14,6 @@ from agent_studio.envs.desktop_env.evaluators.evaluator_helper import EvaluatorC
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
-    AgentStudioResultResponse,
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
 )
@@ -57,7 +57,6 @@ def setup_evaluator(
 
 def reset_task(comb: EvaluatorComb):
     try:
-        task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
         comb.reset()
         task_status.set_task_state(
             StateInfo(state=StateEnum.FINISHED, message="", result="success")
@@ -72,7 +71,6 @@ def reset_task(comb: EvaluatorComb):
 
 def eval_task(comb: EvaluatorComb, **kwargs: Any):
     try:
-        task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
         score, feedback = comb(**kwargs)
         task_status.set_task_state(
             StateInfo(
@@ -110,6 +108,31 @@ async def reset_runtime() -> AgentStudioStatusResponse:
     return AgentStudioStatusResponse(status="success")
 
 
+def wait_for_state_shift(last_state: StateEnum) -> AgentStudioStatusResponse:
+    cur_status = task_status.wait_for_state_change(last_state)
+    if cur_status.state == StateEnum.WAIT_FOR_INPUT:
+        assert isinstance(
+            cur_status.message, str
+        ), f"Invalid message: {cur_status.message}"
+        return AgentStudioStatusResponse(
+            status=cur_status.state.value,
+            content=cur_status.message,
+        )
+    elif cur_status.state == StateEnum.FINISHED:
+        global current_thread
+        if current_thread is None:
+            raise ValueError("Invalid current_thread")
+        current_thread.join()
+        current_thread = None
+        return AgentStudioStatusResponse(
+            status=cur_status.state.value,
+            content=cur_status.result,
+            message=cur_status.message,
+        )
+    else:
+        raise ValueError(f"Invalid state: {cur_status}")
+
+
 @app.post("/task/confirm")
 async def confirm(request: AgentStudioTextRequest) -> AgentStudioStatusResponse:
     """
@@ -120,7 +143,7 @@ async def confirm(request: AgentStudioTextRequest) -> AgentStudioStatusResponse:
             message: User input.
 
     Returns:
-        Always "success".
+        The status of the task.
     """
     global current_thread
     assert current_thread is not None, "Invalid current_thread"
@@ -129,7 +152,10 @@ async def confirm(request: AgentStudioTextRequest) -> AgentStudioStatusResponse:
     task_status.set_task_state(
         StateInfo(state=StateEnum.IN_PROGRESS, message=request.message)
     )
-    return AgentStudioStatusResponse(status="success")
+    try:
+        return wait_for_state_shift(StateEnum.IN_PROGRESS)
+    except Exception as e:
+        return AgentStudioStatusResponse(status="error", content=str(e))
 
 
 @app.post("/task/reset")
@@ -140,10 +166,13 @@ async def new_task(request: AgentStudioResetRequest) -> AgentStudioStatusRespons
     Args:
         request:
             task_config: The task configuration.
+
+    Returns:
+        The status of the task.
     """
     global current_thread
     cur_status = task_status.get_task_state()
-    if cur_status.state not in [StateEnum.PENDING, StateEnum.FINISHED]:
+    if cur_status.state != StateEnum.FINISHED:
         logger.info(
             f"Stopping current task: {cur_status.state}, on thread: {current_thread}"
         )
@@ -158,9 +187,10 @@ async def new_task(request: AgentStudioResetRequest) -> AgentStudioStatusRespons
             env=config.env_type,
         )
         comb = evaluator_router(request.task_config)
+        task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
         current_thread = threading.Thread(target=reset_task, args=(comb,))
         current_thread.start()
-        return AgentStudioStatusResponse(status="submitted")
+        return wait_for_state_shift(StateEnum.IN_PROGRESS)
     except Exception as e:
         return AgentStudioStatusResponse(status="error", content=str(e))
 
@@ -179,70 +209,30 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
         The evaluation result.
             If successful, the result contains the score and feedback.
             If failed, the result contains the error message.
+
+    Returns:
+        The status of the task.
     """
-    global current_thread
-    assert current_thread is not None, "Invalid current_thread"
-    cur_status = task_status.get_task_state()
-    assert cur_status.state in [
-        StateEnum.PENDING,
-        StateEnum.FINISHED,
-    ], f"Invalid status: {cur_status}"
 
     try:
+        global current_thread
+        if current_thread is not None:
+            raise ValueError("Another task is in progress.")
         evaluator_router = setup_evaluator(
             env=config.env_type,
         )
         logger.info(f"Start evaluating task: {request.task_config}")
-        comb: EvaluatorComb = evaluator_router(request.task_config)
+        comb: EvaluatorComb = evaluator_router(task_configs=request.task_config)
+        task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
         current_thread = threading.Thread(
             target=eval_task,
             args=(comb,),
-            kwargs={"trajectory": request.trajectory},
+            kwargs={"trajectory": jsonpickle.decode(request.trajectory)},
         )
         current_thread.start()
-        return AgentStudioStatusResponse(status="submitted")
+        return wait_for_state_shift(StateEnum.IN_PROGRESS)
     except Exception as e:
         return AgentStudioStatusResponse(status="error", content=str(e))
-
-
-@app.get("/task/status")
-async def get_status() -> AgentStudioStatusResponse:
-    """
-    Get the status of the current task.
-    """
-    cur_status = task_status.get_task_state()
-    logger.debug(f"Get current status: {cur_status}")
-    if cur_status.state == StateEnum.PENDING:
-        return AgentStudioStatusResponse(status="pending")
-    elif cur_status.state == StateEnum.IN_PROGRESS:
-        return AgentStudioStatusResponse(status="in_progress")
-    elif cur_status.state == StateEnum.WAIT_FOR_INPUT:
-        assert isinstance(
-            cur_status.message, str
-        ), f"Invalid message: {cur_status.message}"
-        return AgentStudioStatusResponse(
-            status="wait_for_input", content=cur_status.message
-        )
-    elif cur_status.state == StateEnum.FINISHED:
-        return AgentStudioStatusResponse(status="finished")
-    elif cur_status.state == StateEnum.TERMINATE:
-        return AgentStudioStatusResponse(status="terminate")
-    else:
-        raise ValueError(f"Invalid state: {cur_status}")
-
-
-@app.get("/task/result")
-async def get_result() -> AgentStudioResultResponse:
-    """
-    Get the result of the current task.
-    """
-    cur_status = task_status.get_task_state()
-    assert cur_status.state == StateEnum.FINISHED, f"Invalid status: {cur_status}"
-    return AgentStudioResultResponse(
-        status=cur_status.state.value,
-        result=cur_status.result,
-        message=cur_status.message,
-    )
 
 
 if __name__ == "__main__":
