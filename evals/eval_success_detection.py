@@ -78,7 +78,7 @@ class SuccessDetectionEval:
                 prompt = format_success_detection_prompt(self.data_dir, episode)
                 response, info = self.model.generate_response(
                     prompt, model=model_name, tokenizer=tokenizer_name,
-                    do_sample=False, max_length=32, num_return_sequences=1,
+                    do_sample=False, max_new_tokens=32, num_return_sequences=1,
                 )
                 logger.info(f"response: {response}")
                 score = parse_success_detection_response(response, episode.is_success)

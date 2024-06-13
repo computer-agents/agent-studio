@@ -82,7 +82,7 @@ class IDMEval:
                 prompt = format_idm_prompt(self.data_dir, action.instruction, action, action.action_space)
                 response, info = self.model.generate_response(
                     prompt, model=model_name, tokenizer=tokenizer_name,
-                    do_sample=False, max_length=32, num_return_sequences=1,
+                    do_sample=False, max_new_tokens=32, num_return_sequences=1,
                 )
                 # get the position in the set of action_space
                 index = action.action_space.index(action.operation)
