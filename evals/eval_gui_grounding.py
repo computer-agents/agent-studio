@@ -39,15 +39,16 @@ def parse_gui_grounding_response(response: str) -> Tuple[float, float] | None:
     return [float(match.group(1)), float(match.group(2))] if match else None
 
 
-def eval_coord_output(action, bbox, img_size):
+def eval_coord_output(action, bbox, img_size, do_scale=True):
     if action is None:
         return 0.0, None
 
     pred_x, pred_y = action
     left, top, right, bottom = bbox
     img_width, img_height = img_size
-    pred_x *= img_width
-    pred_y *= img_height
+    if do_scale:
+        pred_x *= img_width
+        pred_y *= img_height
     if pred_x > left and pred_x < right and pred_y > top and pred_y < bottom:
         score = 1.0
     else:
@@ -92,7 +93,12 @@ class GUIGroundingEval:
                 num_return_sequences=1,
             )
             action = parse_gui_grounding_response(response)
-            score, action = eval_coord_output(action, row["bbox"], row["resolution"])
+            score, action = eval_coord_output(
+                action,
+                row["bbox"],
+                row["resolution"],
+                do_scale=model_name != "gemini-1.5-flash",
+            )
 
             result = {
                 "image": row["image"],
