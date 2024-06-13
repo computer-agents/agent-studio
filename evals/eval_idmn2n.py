@@ -1,14 +1,14 @@
+import logging
 import os
 import re
 from pathlib import Path
 from typing import Any
-import logging
 
 from common import map_with_progress
+from schema import Action, Episode
 
 from agent_studio.llm import BaseModel
-from agent_studio.utils.json_utils import read_jsonl, add_jsonl
-from schema import Action, Episode
+from agent_studio.utils.json_utils import add_jsonl, read_jsonl
 
 logger = logging.getLogger("eval_logger")
 
@@ -30,39 +30,54 @@ def format_idm_prompt(
     actions: list[Action],
     action_space: list[str],
 ) -> tuple[list, list, list]:
-    messages = [
-        # {"role": "user", "content": QUERY_TEMPLATE.format(instruction=episode.instruction, action_space=", ".join(list(get_action_space())))},
-    ]
+    messages = []
     selected_actions: list[Action] = []
     for action in actions:
         if action.obs_before is None or action.obs_after is None:
             raise ValueError(f"{action} does not have obs_before or obs_after.")
         else:
-            messages.append({"role": "user", "content": Path(data_dir, action.obs_before)})
+            messages.append(
+                {"role": "user", "content": Path(data_dir, action.obs_before)}
+            )
             selected_actions.append(action)
-    choicestr = "\n".join([f"{chr(65 + i)}. {selected_actions}" for i, selected_actions in enumerate(list(action_space))])
-    choices = ''.join([chr(65 + i) for i in range(len(action_space))])
-    messages.append({"role": "user", "content": QUERY_TEMPLATE.format(instruction=instruction, choices_str=choicestr, choices=choices)})
+    choicestr = "\n".join(
+        [
+            f"{chr(65 + i)}. {selected_actions}"
+            for i, selected_actions in enumerate(list(action_space))
+        ]
+    )
+    choices = "".join([chr(65 + i) for i in range(len(action_space))])
+    messages.append(
+        {
+            "role": "user",
+            "content": QUERY_TEMPLATE.format(
+                instruction=instruction, choices_str=choicestr, choices=choices
+            ),
+        }
+    )
 
-    ref_answer = [chr(65 + action_space.index(action.operation)) for action in selected_actions]
+    ref_answer = [
+        chr(65 + action_space.index(action.operation)) for action in selected_actions
+    ]
 
     return messages, selected_actions, ref_answer
 
 
 def eval_idm_response(response: str, reference: list) -> float:
     try:
-        section_match: re.Match[str] | None = re.search(r'Answer\s*:\s*(.*)', response.splitlines()[-1])
+        section_match: re.Match[str] | None = re.search(
+            r"Answer\s*:\s*(.*)", response.splitlines()[-1]
+        )
         matched_section = section_match.group(1)
-        letter_pattern = r'([A-Za-z])'
+        letter_pattern = r"([A-Za-z])"
         match = re.findall(letter_pattern, matched_section)
-    except:
+    except Exception:
         match = []
     score = 0.0
     for i in range(min(len(match), len(reference))):
         if match[i] == reference[i]:
             score += 1
     return score
-    
 
 
 class IDMN2NEval:
@@ -82,22 +97,41 @@ class IDMN2NEval:
         self.num_workers = num_workers
 
     def __call__(
-        self, model_name: str, tokenizer_name: str,
+        self,
+        model_name: str,
+        tokenizer_name: str,
     ) -> list[dict[str, Any]]:
         def fn(row: dict):
             episode: Episode = Episode.model_validate(row)
             # only use at most the last 5 actions
             if episode.actions[-1].obs_after is not None:
-                episode.actions = episode.actions[-5:] if len(episode.actions) > 5 else episode.actions
+                episode.actions = (
+                    episode.actions[-5:]
+                    if len(episode.actions) > 5
+                    else episode.actions
+                )
             else:
-                episode.actions = episode.actions[-6:-1] if len(episode.actions) > 6 else episode.actions[:-1]
+                episode.actions = (
+                    episode.actions[-6:-1]
+                    if len(episode.actions) > 6
+                    else episode.actions[:-1]
+                )
 
             # Query the model and evaluate the response
             selected_actions: list[Action]
-            prompt, selected_actions, ref_answer = format_idm_prompt(self.data_dir, episode.instruction, episode.actions, episode.action_space)
+            prompt, selected_actions, ref_answer = format_idm_prompt(
+                self.data_dir,
+                episode.instruction,
+                episode.actions,
+                episode.action_space,
+            )
             response, info = self.model.generate_response(
-                prompt, model=model_name, tokenizer=tokenizer_name,
-                do_sample=False, max_length=32, num_return_sequences=1,
+                prompt,
+                model=model_name,
+                tokenizer=tokenizer_name,
+                do_sample=False,
+                max_length=32,
+                num_return_sequences=1,
             )
 
             score = eval_idm_response(response, ref_answer)
@@ -117,6 +151,8 @@ class IDMN2NEval:
                 "output_tokens": info.get("completion_tokens", 0),
             }
             add_jsonl([result], self.result_filename)
-            logger.info(f"Writing results {episode.annotation_id} to {self.result_filename}")
+            logger.info(
+                f"Writing results {episode.annotation_id} to {self.result_filename}"
+            )
 
         map_with_progress(fn, self.data, self.num_workers)

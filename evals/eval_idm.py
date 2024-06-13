@@ -1,21 +1,21 @@
+import logging
 import os
 import re
 from pathlib import Path
 from typing import Any
-import logging
 
 from common import map_with_progress
+from schema import Action, InverseAction
 
 from agent_studio.llm import BaseModel
-from agent_studio.utils.json_utils import read_jsonl, add_jsonl
-from schema import Action, InverseAction
+from agent_studio.utils.json_utils import add_jsonl, read_jsonl
 
 logger = logging.getLogger("eval_logger")
 
 QUERY_TEMPLATE = """
 Answer the following multiple choice question. The last line of your response should be of the following format: 'Answer: $LETTER' (without quotes) where LETTER is one of {choices}. Think step by step before answering. For example, if there'are three options "A: type\nB: click\nC: scroll", and you think the executed action is "click", then your response should be "Answer: B".
 
-You are given two sequential images which denotes the observation before and after an action respectively, and the action is one of the steps to finish the insuruction. Your task is to determine the executed action type between the two observations. 
+You are given two sequential images which denotes the observation before and after an action respectively, and the action is one of the steps to finish the insuruction. Your task is to determine the executed action type between the two observations.
 Instruction: {instruction}
 
 {choices_str}
@@ -31,15 +31,22 @@ def format_idm_prompt(
     action: Action,
     action_space: list[str],
 ) -> list:
-    messages = [
-        # {"role": "user", "content": QUERY_TEMPLATE.format(instruction=episode.instruction, action_space=", ".join(list(get_action_space())))},
-    ]
+    messages = []
     if action.obs_before is not None and action.obs_after is not None:
         messages.append({"role": "user", "content": Path(data_dir, action.obs_before)})
         messages.append({"role": "user", "content": Path(data_dir, action.obs_after)})
-    choicestr = "\n".join([f"{chr(65 + i)}. {action}" for i, action in enumerate(list(action_space))])
-    choices = ''.join([chr(65 + i) for i in range(len(action_space))])
-    messages.append({"role": "user", "content": QUERY_TEMPLATE.format(instruction=instruction, choices_str=choicestr, choices=choices)})
+    choicestr = "\n".join(
+        [f"{chr(65 + i)}. {action}" for i, action in enumerate(list(action_space))]
+    )
+    choices = "".join([chr(65 + i) for i in range(len(action_space))])
+    messages.append(
+        {
+            "role": "user",
+            "content": QUERY_TEMPLATE.format(
+                instruction=instruction, choices_str=choicestr, choices=choices
+            ),
+        }
+    )
 
     return messages
 
@@ -47,7 +54,7 @@ def format_idm_prompt(
 def eval_idm_response(response: str, reference: str) -> float:
     try:
         match = re.search(ANSWER_PATTERN, response.splitlines()[-1])
-    except:
+    except Exception:
         match = None
     return 1.0 if (match and match.group(1).strip().startswith(reference)) else 0.0
 
@@ -69,7 +76,9 @@ class IDMEval:
         self.num_workers = num_workers
 
     def __call__(
-        self, model_name: str, tokenizer_name: str,
+        self,
+        model_name: str,
+        tokenizer_name: str,
     ) -> list[dict[str, Any]]:
         def fn(row: dict):
             action: InverseAction = InverseAction.model_validate(row)
@@ -77,10 +86,16 @@ class IDMEval:
                 raise ValueError("obs_before and obs_after must be provided")
 
             # Query the model and evaluate the response
-            prompt = format_idm_prompt(self.data_dir, action.instruction, action, action.action_space)
+            prompt = format_idm_prompt(
+                self.data_dir, action.instruction, action, action.action_space
+            )
             response, info = self.model.generate_response(
-                prompt, model=model_name, tokenizer=tokenizer_name,
-                do_sample=False, max_new_tokens=32, num_return_sequences=1,
+                prompt,
+                model=model_name,
+                tokenizer=tokenizer_name,
+                do_sample=False,
+                max_new_tokens=32,
+                num_return_sequences=1,
             )
             # get the position in the set of action_space
             index = action.action_space.index(action.operation)

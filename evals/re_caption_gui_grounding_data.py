@@ -2,6 +2,7 @@ import argparse
 import os
 from io import BytesIO
 from pathlib import Path
+
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
@@ -96,7 +97,12 @@ def main():
         ]
         if args.provider == "huggingface":
             kwargs = {"max_new_tokens": 64}
-            messages.append({"role": "user", "content": COGVLM2_PROMPT.format(instruction=row["instruction"])})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": COGVLM2_PROMPT.format(instruction=row["instruction"]),
+                }
+            )
         else:
             messages.append({"role": "user", "content": GPT4O_PROMPT})
 

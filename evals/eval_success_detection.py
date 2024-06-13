@@ -1,14 +1,14 @@
+import logging
 import os
 import re
 from pathlib import Path
 from typing import Any
-import logging
 
 from common import map_with_progress
+from schema import Episode
 
 from agent_studio.llm import BaseModel
-from agent_studio.utils.json_utils import read_jsonl, add_jsonl
-from schema import Episode
+from agent_studio.utils.json_utils import add_jsonl, read_jsonl
 
 logger = logging.getLogger("eval_logger")
 
@@ -25,16 +25,28 @@ def format_success_detection_prompt(
     data_dir: str,
     episode: Episode,
 ) -> list:
-    messages = [
-    ]
+    messages = []
     for action in episode.actions:
         if action.obs_before is not None:
-            messages.append({"role": "user", "content": Path(os.path.join(data_dir, action.obs_before))})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": Path(os.path.join(data_dir, action.obs_before)),
+                }
+            )
         messages.append({"role": "user", "content": f'{action.metadata["repr"]}'})
     if action.obs_after is not None:
-        messages.append({"role": "user", "content": Path(os.path.join(data_dir, action.obs_after))})
+        messages.append(
+            {"role": "user", "content": Path(os.path.join(data_dir, action.obs_after))}
+        )
     messages.append(
-        {"role": "user", "content": QUERY_TEMPLATE.format(instruction=episode.instruction, action_space=", ".join(episode.action_space))},
+        {
+            "role": "user",
+            "content": QUERY_TEMPLATE.format(
+                instruction=episode.instruction,
+                action_space=", ".join(episode.action_space),
+            ),
+        },
     )
 
     return messages
@@ -43,7 +55,7 @@ def format_success_detection_prompt(
 def parse_success_detection_response(response: str, reference: bool) -> float:
     try:
         match = re.search(ANSWER_PATTERN, response.splitlines()[-1])
-    except:
+    except Exception:
         match = None
     return 1.0 if (match and ((match.group(1) == "succ")) == reference) else 0.0
 
@@ -65,25 +77,40 @@ class SuccessDetectionEval:
         self.num_workers = num_workers
 
     def __call__(
-        self, model_name: str, tokenizer_name: str,
+        self,
+        model_name: str,
+        tokenizer_name: str,
     ) -> list[dict[str, Any]]:
         def fn(row: dict):
             episode: Episode = Episode.model_validate(row)
             # only use the last 5 actions
-            episode.actions = episode.actions[-5:] if len(episode.actions) > 5 else episode.actions
+            episode.actions = (
+                episode.actions[-5:] if len(episode.actions) > 5 else episode.actions
+            )
 
             # Query the model and evaluate the response
             prompt = format_success_detection_prompt(self.data_dir, episode)
             response, info = self.model.generate_response(
-                prompt, model=model_name, tokenizer=tokenizer_name,
-                do_sample=False, max_new_tokens=32, num_return_sequences=1,
+                prompt,
+                model=model_name,
+                tokenizer=tokenizer_name,
+                do_sample=False,
+                max_new_tokens=32,
+                num_return_sequences=1,
             )
             logger.info(f"response: {response}")
             score = parse_success_detection_response(response, episode.is_success)
 
             result = {
-                "trajectory_images": [action.obs_before for action in episode.actions] + ([episode.actions[-1].obs_after] if episode.actions[-1].obs_after else []),
-                "trajectory_actions": [action.metadata["repr"] for action in episode.actions],
+                "trajectory_images": [action.obs_before for action in episode.actions]
+                + (
+                    [episode.actions[-1].obs_after]
+                    if episode.actions[-1].obs_after
+                    else []
+                ),
+                "trajectory_actions": [
+                    action.metadata["repr"] for action in episode.actions
+                ],
                 "instruction": episode.instruction,
                 "score": score,
                 "source": episode.source,
@@ -98,6 +125,8 @@ class SuccessDetectionEval:
             }
 
             add_jsonl([result], self.result_filename)
-            logger.info(f"Writing results {episode.annotation_id} to {self.result_filename}")
+            logger.info(
+                f"Writing results {episode.annotation_id} to {self.result_filename}"
+            )
 
         map_with_progress(fn, self.data, self.num_workers)

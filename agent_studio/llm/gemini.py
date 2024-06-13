@@ -90,7 +90,7 @@ class GeminiProvider(BaseModel):
                 response = model.generate_content(
                     contents=model_message, generation_config=generation_config
                 )
-            except:
+            except Exception:
                 raise genai.types.IncompleteIterationError
             token_count = model.count_tokens(model_message)
             info = {

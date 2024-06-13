@@ -1,8 +1,8 @@
 import logging
 from pathlib import Path
 from typing import Any
-import numpy as np
 
+import numpy as np
 import torch
 from PIL import Image
 from transformers import (
@@ -95,7 +95,7 @@ class HuggingFaceProvider(BaseModel):
             query = model_message[1]["text"]
             if isinstance(model_message[0]["image"], str):
                 image = Image.open(model_message[0]["image"]).convert("RGB")
-            else:   # is numpy array
+            else:  # is numpy array
                 image = Image.fromarray(model_message[0]["image"]).convert("RGB")
             input_by_model = self.model.build_conversation_input_ids(
                 self.tokenizer,
@@ -131,7 +131,7 @@ class HuggingFaceProvider(BaseModel):
             query = model_message[1]["text"]
             if isinstance(model_message[0]["image"], str):
                 image = Image.open(model_message[0]["image"]).convert("RGB")
-            else:   # is numpy array
+            else:  # is numpy array
                 image = Image.fromarray(model_message[0]["image"]).convert("RGB")
             input_by_model = self.model.build_conversation_input_ids(
                 self.tokenizer,
@@ -171,7 +171,7 @@ class HuggingFaceProvider(BaseModel):
             query = model_message[1]["text"]
             if isinstance(model_message[0]["image"], str):
                 image = Image.open(model_message[0]["image"]).convert("RGB")
-            else:   # is numpy array
+            else:  # is numpy array
                 image = Image.fromarray(model_message[0]["image"]).convert("RGB")
             inputs = self.processor(query, image, return_tensors="pt").to("cuda")
             output = self.model.generate(**inputs, **kwargs)
@@ -193,7 +193,7 @@ class HuggingFaceProvider(BaseModel):
             ), "Expected only 1 image and 1 text for paligemma."
             if isinstance(model_message[0]["image"], str):
                 image = Image.open(model_message[0]["image"]).convert("RGB")
-            else:   # is numpy array
+            else:  # is numpy array
                 image = Image.fromarray(model_message[0]["image"]).convert("RGB")
             response = self.model.chat(
                 image=image,
