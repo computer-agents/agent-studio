@@ -86,9 +86,12 @@ class GeminiProvider(BaseModel):
             interval=10,
         )
         def _generate_response_with_retry() -> tuple[str, dict[str, int]]:
-            response = model.generate_content(
-                contents=model_message, generation_config=generation_config
-            )
+            try:
+                response = model.generate_content(
+                    contents=model_message, generation_config=generation_config
+                )
+            except Exception:
+                raise genai.types.IncompleteIterationError
             token_count = model.count_tokens(model_message)
             info = {
                 "total_tokens": token_count.total_tokens,
@@ -96,13 +99,7 @@ class GeminiProvider(BaseModel):
             try:
                 message = response.text
             except ValueError:
-                print(response.__dict__)
-                # TODO: Remove this after debugging
-                for candidate in response.candidates:
-                    print("Finish Reason: ", candidate.finish_reason)
-                    message = [part.text for part in candidate.content.parts]
-                    print("Message: ", message)
-                raise genai.types.IncompleteIterationError
+                message = ""
 
             logger.info(f"\nReceived response:\n{message}\nInfo:\n{info}")
             return message, info

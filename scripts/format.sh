@@ -115,10 +115,10 @@ SHELLCHECK_FLAGS=(
 
 # TODO(dmitri): When more of the codebase is typed properly, the mypy flags
 # should be set to do a more stringent check.
-MYPY_FLAGS=(
-    '--follow-imports=skip'
-    '--ignore-missing-imports'
-)
+# MYPY_FLAGS=(
+#     '--follow-imports=skip'
+#     '--ignore-missing-imports'
+# )
 
 GIT_LS_EXCLUDES=(
   ':(exclude)docs/'

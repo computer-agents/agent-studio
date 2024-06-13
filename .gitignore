@@ -168,3 +168,8 @@ agent_studio/config/*
 !agent_studio/config/__init__.py
 !agent_studio/config/api_key_template.json
 vscode_workspace/
+
+raw_data
+*.png
+*.jpg
+results*

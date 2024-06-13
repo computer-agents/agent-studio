@@ -1,98 +1,23 @@
 import base64
 import os
-from collections import defaultdict
-from dataclasses import dataclass, field
 from io import BytesIO
 from multiprocessing.pool import ThreadPool
+from pathlib import Path
 from typing import Any
 
 import jinja2
+import matplotlib
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
-from agent_studio.llm import BaseModel
+matplotlib.use("Agg")  # Use the 'Agg' backend for non-GUI environments
+
 
 Message = dict[str, Any]  # keys role, content
 MessageList = list[Message]
-
-
-@dataclass
-class EvalResult:
-    """
-    Result of running an evaluation (usually consisting of many samples)
-    """
-
-    score: float | None  # top-line metric
-    conversations: list[MessageList]
-    htmls: list[str]  # strings of valid HTML
-    metrics: dict[str, float] | None  # other metrics
-
-
-@dataclass
-class SingleEvalResult:
-    """
-    Result of evaluating a single sample
-    """
-
-    score: float | None
-    conversation: MessageList | None = None
-    html: str | None = None
-    metrics: dict[str, float] = field(default_factory=dict)
-
-
-class Eval:
-    """
-    Base class for defining an evaluation.
-    """
-
-    def __call__(self, model: BaseModel) -> EvalResult:
-        raise NotImplementedError
-
-
-def _compute_stat(values: list, stat: str):
-    if stat == "mean":
-        return np.mean(values)
-    elif stat == "std":
-        return np.std(values)
-    elif stat == "min":
-        return np.min(values)
-    elif stat == "max":
-        return np.max(values)
-    else:
-        raise ValueError(f"Unknown {stat =}")
-
-
-def aggregate_results(
-    single_eval_results: list[SingleEvalResult],
-) -> EvalResult:
-    """
-    Aggregate results from multiple evaluations into a single EvalResult.
-    """
-    name2values = defaultdict(list)
-    htmls = []
-    conversations = []
-    for single_eval_result in single_eval_results:
-        for name, value in single_eval_result.metrics.items():
-            name2values[name].append(value)
-        if single_eval_result.score is not None:
-            name2values["score"].append(single_eval_result.score)
-        htmls.append(single_eval_result.html)
-        conversations.append(single_eval_result.conversation)
-    final_metrics = {}
-    for name, values in name2values.items():
-        stats = ("mean",)
-        for stat in stats:
-            key = name if stat == "mean" else f"{name}:{stat}"
-            final_metrics[key] = float(_compute_stat(values, stat))
-    return EvalResult(
-        score=final_metrics.pop("score", None),
-        metrics=final_metrics,
-        htmls=htmls,
-        conversations=conversations,
-    )
 
 
 def map_with_progress(f: callable, xs: list[Any], num_threads: int = 50):
@@ -156,46 +81,58 @@ def render_image(prompt_messages: MessageList, bbox, pred_coord):
     """
     for message in prompt_messages:
         content = message["content"]
-        if content.endswith((".png", ".jpg", ".jpeg")):
-            # Load the image
-            image = Image.open(content)
-            # Generate a new image with bounding box and get its base64 representation
-            img_width, img_height = image.size
-            dpi = 40
-            figsize = img_width / float(dpi), img_height / float(dpi)
+        if isinstance(content, Path):
+            content = content.as_posix()
+        if isinstance(content, str):
+            if content.endswith((".png", ".jpg", ".jpeg")):
+                image = Image.open(content)
+            else:
+                continue
+        elif isinstance(content, Image.Image):
+            image = content
+        elif isinstance(content, np.ndarray):
+            image = Image.fromarray(content)
+        else:
+            raise ValueError(f"Unknown message type: {content}")
 
-            # Plot image
-            fig, ax = plt.subplots(1, figsize=figsize)
-            ax.imshow(image)
+        img_width, img_height = image.size
+        dpi = 40
+        figsize = img_width / float(dpi), img_height / float(dpi)
 
-            # Plot bounding box
-            left, top, right, bottom = bbox
-            rect = patches.Rectangle(
-                (left, top),
-                right - left,
-                bottom - top,
-                linewidth=2,
-                edgecolor="r",
-                facecolor="none",
-            )
-            ax.add_patch(rect)
+        # Plot image
+        fig, ax = plt.subplots(1, figsize=figsize)
+        ax.imshow(image)
 
-            # Plot predicted coordinate
-            if pred_coord is not None:
-                x, y = pred_coord
-                ax.plot(x, y, "ro")  # red point
+        # Plot bounding box
+        left, top, right, bottom = bbox
+        rect = patches.Rectangle(
+            (left, top),
+            right - left,
+            bottom - top,
+            linewidth=6,
+            edgecolor="r",
+            facecolor="none",
+        )
+        ax.add_patch(rect)
 
-            plt.axis("off")
+        # Plot predicted coordinate
+        if pred_coord is not None:
+            x, y = pred_coord
+            ax.plot(x, y, "ro", markersize=10)
 
-            # Save the new image to a BytesIO object
-            buf = BytesIO()
-            plt.savefig(buf, format="png", bbox_inches="tight", pad_inches=0, dpi=dpi)
-            plt.close(fig)
+        plt.axis("off")
 
-            # Encode the image in base64
-            base64_image = base64.b64encode(buf.getvalue()).decode("utf-8")
+        # Save the new image to a BytesIO object
+        buf = BytesIO()
+        plt.savefig(buf, format="png", bbox_inches="tight", pad_inches=0, dpi=dpi)
+        plt.close(fig)
 
-            return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'  # noqa: E501
+        # Encode the image in base64
+        base64_image = base64.b64encode(buf.getvalue()).decode("utf-8")
+
+        image.close()
+
+        return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'  # noqa: E501
 
 
 jinja_env.globals["message_to_html"] = message_to_html
@@ -268,21 +205,12 @@ _report_template = """<!DOCTYPE html>
 """
 
 
-def make_report(eval_result: EvalResult) -> str:
+def make_report(score: float, metrics: dict[str, float], htmls: list[str]) -> str:
     """
     Create a standalone HTML report from an EvalResult.
     """
     return jinja_env.from_string(_report_template).render(
-        score=eval_result.score,
-        metrics=eval_result.metrics,
-        htmls=eval_result.htmls,
-    )
-
-
-def make_report_from_example_htmls(htmls: list[str]):
-    """
-    Create a standalone HTML report from a list of example htmls
-    """
-    return jinja_env.from_string(_report_template).render(
-        score=None, metrics={}, htmls=htmls
+        score=score,
+        metrics=metrics,
+        htmls=htmls,
     )
