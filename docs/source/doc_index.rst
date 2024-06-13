@@ -1,11 +1,7 @@
 Welcome to AgentStudio!
 ======================================
 
-.. _Paper: https://arxiv.org/abs/2403.17918
-.. _Leaderboard: https://huggingface.co/spaces/Skywork/agent-studio-leaderboard
-.. _Dataset & Benchmark: https://huggingface.co/datasets/Skywork/agent-studio-data
-
-`Paper`_ | `Leaderboard`_ | `Dataset & Benchmark`_
+.. _Project Page: https://skyworkai.github.io/agent-studio/
 
 .. image:: https://img.shields.io/badge/python-3.11-blue.svg
     :target: https://www.python.org/downloads/release/python-3117/
@@ -15,10 +11,6 @@ Welcome to AgentStudio!
     :target: https://github.com/psf/black
     :alt: Code style: black
 
-.. image:: https://www.mypy-lang.org/static/mypy_badge.svg
-    :target: https://mypy-lang.org/
-    :alt: Checked with mypy
-
 .. image:: https://img.shields.io/badge/License-AGPL%20v3-blue.svg
     :target: https://www.gnu.org/licenses/agpl-3.0
     :alt: License: AGPL v3
@@ -27,9 +19,11 @@ Welcome to AgentStudio!
     :target: https://pre-commit.com/
     :alt: pre-commit
 
+This is the documentation of AgentStudio environments and toolkits. For more info about the benchmark suites and the leaderboard, please see our `Project Page`_.
 
-AgentStudio is an open toolkit covering the entire lifespan of
-building virtual agents that can interact with everything on digital worlds. Here, we open-source the beta of environment implementations, benchmark suite, data collection pipeline, and graphical interfaces to promote research towards generalist virtual agents of the future.
+
+AgentStudio environments and toolkits cover the entire lifespan of
+building computer agents that can interact with everything on digital worlds. Here, we open-source the beta of environment implementations, benchmark suite, data collection pipeline, and graphical interfaces to promote research towards generalist computer agents of the future.
 
 .. image:: ./assets/imgs/overview.png
 
