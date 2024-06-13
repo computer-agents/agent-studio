@@ -44,9 +44,7 @@
           <h2>Integrating benchmarks, environments, and toolkits for general computer agents</h2>
           <!-- <h3 style="font-size: 20px; padding-top: 1.2em">NeurIPS 2024</h3> -->
           <p style="text-align: center;margin-top:1em;">
-            Longtao Zheng*, Zhiyuan Huang*, <br>
-            Zhenghai Xue, Xinrun Wang, <br>
-            Bo An, Shuicheng Yan
+            Longtao Zheng*, Zhiyuan Huang*, Zhenghai Xue, Xinrun Wang, Bo An, Shuicheng Yan
           </p>
           <div class="content-wrapper" style="margin-top: 2em">
             <a href="https://arxiv.org/abs/2403.17918">
@@ -61,7 +59,7 @@
             </a>
             <a href="./doc_index.html">
               <button class="outline">
-                <i class="fa-solid fa-file"></i> Documentation&nbsp;
+                <i class="fa-solid fa-file"></i> Docs&nbsp;
               </button>
             </a>
             <!-- <a href="https://huggingface.co/spaces/Skywork/agent-studio-leaderboard">
@@ -211,6 +209,8 @@
               </table>
             </div>
             <p class="text-content">
+              UI grounding with accurate coordinates is one of the main challenges for human-like computer agents, since not all interactable elements are not readily available. It has also been validated that current models can already generate correct high-level planning in text space, but struggle to ground them into accurate actions. However, there are few existing benchmark provide evaluation results on UI grounding capabilities across different applications and paltforms. In AgentStudio, we systematically re-organize existing datasets, plus self-collected data, into 18K diverse and realistic data with recaptioned clear instructions to benchmark UI grounding.
+              <br>
               We collected screenshots from test set of existing datasets across web, desktop, and mobile devices, and additional screenshots collected with AgentStudio toolkits. We augment the instructions into detailed and clear ones with the help of GPT-4o. These data add up to 18K UI grounding dataset. For efficient benchmarking, we conduct experiments on a subset, <strong></strong>GroundUI-1K</strong>, which contains 400, 300, and 300 samples for web, desktop, and mobile devices, respectively.
             </p>
           </div>
@@ -275,14 +275,17 @@
               </table>
             </div>
             <p class="text-content">
-              Accuracy on Success Detection (<strong>%</strong>)
+              The ability to self-evaluate and learn from environment interactions is one of the core abilities of agents. However, there are currently few benchmarks that focus on and measure the ability of computer agents to judge whether a trajectory is successful.
+              <br>
+              We collect trajectories from both existing environments such as AITW, Mind2Web, VisualWebArena, etc. and AgentStudio's real-world environments, resulting in diverse trajectories of both human and agents on web, desktop, and mobile environments. Since most human trajectories are successful, we balance the dataset by labeling partial trajectories as failure cases.
             </p>
           </div>
-        </div><div class="content-wrapper">
+        </div>
+        <div class="content-wrapper">
           <div class="content-box">
-            <h2 class="text-title">Accuracy on Inverse Action Labeling (<strong>%</strong>)</h2>
+            <h2 class="text-title">Inverse Action Labeling Leaderboard(<strong>%</strong>)</h2>
             <div class="tabcontent tabcontentall" style="display: block">
-              <h3 class="text-subtitle">Single</h3>
+              <h3 class="text-subtitle">Neighboring Frames to Single Action</h3>
               <table class="table scrollable">
                 <thead>
                   <tr>
@@ -340,7 +343,7 @@
             </div>
             <br/>
             <div class="tabcontent tabcontentall" style="display: block">
-              <h3 class="text-subtitle">Multiple</h3>
+              <h3 class="text-subtitle">Video to Multiple Actions</h3>
               <table class="table scrollable">
                 <thead>
                   <tr>
@@ -396,6 +399,9 @@
                 </tbody>
               </table>
             </div>
+            <p class="text-content">
+              Unlocking the ability to learn from videos is a key capability for next-generation computer agents to achieve generalization and lifelong learning. Therefore, we present the first dataset designed to measure the ability to learn how to act from videos. Specifically, we evaluate current multimodal models as inverse dynamics models, predicting actions from unlabeled videos in two separate settings. In the first scenario, we provide the model with two neighboring screenshots, one before and one after an action, and ask it to predict the action that occurred in between. In the second, which is a more general scenario, we provide the model with states for multiple actions (which can be viewed as video frames) and ask it to predict all the actions within the frames.
+            </p>
           </div>
         </div>
         <div class="content-wrapper">
@@ -419,7 +425,7 @@
                 <a style="width: 100%" href="https://drive.google.com/drive/folders/1XKDXwdWODCB2e80gflAgZiiBICqbgdeB?usp=sharing">
                   <div class="download">Google Drive</div>
                 </a>
-              </div>=
+              </div>
             </div>
           </div>
         </div>
@@ -441,7 +447,7 @@
             <br><br>
               Read more in our <a href="https://skyworkai.github.io/agent-studio/doc_index.html" ,="" target="_blank">documentation</a> for environments and toolkits!
             <br><br>
-              Citation: </p><pre id="citation"><code>@article{zheng2024agentstudio,
+              If you find the data or code useful, please consider cite us: </p><pre id="citation"><code>@article{zheng2024agentstudio,
   title={AgentStudio: A Toolkit for Building General Virtual Agents},
   author={Longtao Zheng and Zhiyuan Huang and Zhenghai Xue and Xinrun Wang and Bo An and Shuicheng Yan},
   journal={arXiv preprint arXiv:2403.17918},
