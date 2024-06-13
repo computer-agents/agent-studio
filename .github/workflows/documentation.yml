@@ -3,7 +3,7 @@ name: documentation
 on:
   push:
     branches:
-      - main
+      - new_main_page
 
 permissions:
   contents: write
