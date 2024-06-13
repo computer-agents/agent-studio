@@ -4,7 +4,6 @@ import os
 import numpy as np
 from common import HTML_JINJA, jinja_env, make_report
 from eval_gui_grounding import format_gui_grounding_prompt
-from tqdm import tqdm
 
 from agent_studio.utils.json_utils import read_jsonl
 
@@ -24,6 +23,40 @@ def compute_stat(values: list, stat: str):
         raise ValueError(f"Unknown {stat =}")
 
 
+def compute_f1(results):
+    pos = 0
+    neg = 0
+    tp = 0
+    fp = 0
+    tn = 0
+    fn = 0
+    for result in results:
+        assert(type(result["ref_answer"]) == bool)
+        if result["ref_answer"]:
+            pos += 1
+            if result["score"] == 1:
+                tp += 1
+            else:
+                fn += 1
+        else:
+            neg += 1
+            if result["score"] == 1:
+                fp += 1
+            else:
+                tn += 1
+    accuracy = (tp + tn) / (tp + tn + fp + fn)
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f1 = 2 * precision * recall / (precision + recall)
+
+    return {
+        "accuracy": accuracy,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--result_path", type=str)
@@ -31,37 +64,110 @@ def main():
     args = parser.parse_args()
 
     results = read_jsonl(args.result_path)
-    metrics = {
-        "score": [],
-        "web_score": [],
-        "desktop_score": [],
-        "mobile_score": [],
-        "input_tokens": [],
-        "output_tokens": [],
-    }
     htmls = []
-    for result in tqdm(results):
-        for k in ["score", "input_tokens", "output_tokens"]:
-            metrics[k].append(result[k])
-        if result["platform"] == "web":
-            metrics["web_score"].append(result["score"])
-        elif result["platform"] == "desktop":
-            metrics["desktop_score"].append(result["score"])
-        elif result["platform"] == "mobile":
-            metrics["mobile_score"].append(result["score"])
+    if "gui_grounding" in args.result_path:
+        metrics = {}
+        for prefix in ["", "web_", "desktop_", "mobile_"]:
+            metrics[f"{prefix}score"] = [] 
+        metrics["input_tokens"] = []
+        metrics["output_tokens"] = []
 
-        if len(htmls) < 3:
-            prompt = format_gui_grounding_prompt(
-                result["instruction"], os.path.join(args.image_path, result["image"])
-            )
-            html = jinja_env.from_string(HTML_JINJA).render(
-                prompt_messages=prompt,
-                next_message=dict(content=result["response"], role="assistant"),
-                score=result["score"],
-                correct_bbox=result["bbox"],
-                pred_coord=result["parsed_action"],
-            )
-            htmls.append(html)
+        for result in results:
+            for k in ["score", "input_tokens", "output_tokens"]:
+                metrics[k].append(result[k])
+            
+            for platform in ["web", "desktop", "mobile"]:
+                if result["platform"] == platform:
+                    metrics[f"{platform}_score"].append(result["score"])
+
+            if len(htmls) < 3:
+                prompt = format_gui_grounding_prompt(
+                    result["instruction"], os.path.join(args.image_path, result["image"])
+                )
+                html = jinja_env.from_string(HTML_JINJA).render(
+                    prompt_messages=prompt,
+                    next_message=dict(content=result["response"], role="assistant"),
+                    score=result["score"],
+                    correct_bbox=result["bbox"],
+                    pred_coord=result["parsed_action"],
+                )
+                htmls.append(html)
+
+    elif "success_detection" in args.result_path:
+        metrics = {}
+        for metric in ["accuracy", "precision", "recall", "f1"]:
+            for prefix in ["", "web_", "desktop_", "mobile_", "mind2web_", "aitw_", "vwa_", "agent_studio_"]:
+                metrics[f"{prefix}{metric}"] = []
+        metrics["input_tokens"] = []
+        metrics["output_tokens"] = []
+
+        web_results = []
+        desktop_results = []
+        mobile_results = []
+        mind2web_results = []
+        aitw_results = []
+        vwa_results = []
+        agent_studio_results = []
+        for result in results:
+            if result["platform"] == "web":
+                web_results.append(result)
+            elif result["platform"] == "desktop":
+                desktop_results.append(result)
+            elif result["platform"] == "mobile":
+                mobile_results.append(result)
+
+            if "mind2web" in result["source"]:
+                mind2web_results.append(result)
+            elif "aitw" in result["source"]:
+                aitw_results.append(result)
+            elif "vwa" in result["source"]:
+                vwa_results.append(result)
+            elif "agent_studio" in result["source"]:
+                agent_studio_results.append(result)
+            
+        # for res in [web_results, desktop_results, mobile_results]:
+        for res in [web_results, mobile_results]:
+            stats = compute_f1(res)
+            for k, v in stats.items():
+                metrics[f"{res[0]['platform']}_{k}"].append(v)
+        
+        # for res in [mind2web_results, aitw_results, vwa_results, agent_studio_results]:
+        for res in [mind2web_results, aitw_results, vwa_results]:
+            stats = compute_f1(res)
+            if "mind2web" in res[0]["source"]:
+                source = "mind2web"
+            elif "aitw" in res[0]["source"]:
+                source = "aitw"
+            elif "vwa" in res[0]["source"]:
+                source = "vwa"
+            elif "agent_studio" in res[0]["source"]:
+                source = "agent_studio"
+            for k, v in stats.items():
+                metrics[f"{source}_{k}"].append(v)
+
+    elif "idm" in args.result_path:
+        metrics = {}
+        for prefix in ["", "web_", "desktop_", "mobile_", "mind2web_", "aitw_", "vwa_"]:
+            metrics[f"{prefix}score"] = [] 
+        metrics["input_tokens"] = []
+        metrics["output_tokens"] = []
+
+        for result in results:
+            if "n2n" in args.result_path:
+                metrics["score"].append(result["score"] / len(result["ref_answer"]))
+            else:
+                metrics["score"].append(result["score"])
+
+            for k in ["input_tokens", "output_tokens"]:
+                metrics[k].append(result[k])
+
+            for platform in ["web", "desktop", "mobile"]:
+                if result["platform"] == platform:
+                    metrics[f"{platform}_score"].append(result["score"])
+
+            for source in ["mind2web", "aitw", "vwa"]:
+                if source in result["source"]:
+                    metrics[f"{source}_score"].append(result["score"])
 
     final_metrics = {}
     for k, v in metrics.items():
@@ -69,17 +175,19 @@ def main():
         for stat in stats:
             key = k if stat == "mean" else f"{k}:{stat}"
             final_metrics[key] = float(compute_stat(v, stat))
+    print(f"Metrics: {final_metrics}")
 
-    report_filename = args.result_path.replace(".jsonl", ".html")
-    print(f"Writing report to {report_filename}")
-    with open(report_filename, "w") as fh:
-        fh.write(
-            make_report(
-                score=final_metrics.pop("score", None),
-                metrics=final_metrics,
-                htmls=htmls,
+    if len(htmls) > 0:
+        report_filename = args.result_path.replace(".jsonl", ".html")
+        print(f"Writing report to {report_filename}")
+        with open(report_filename, "w") as fh:
+            fh.write(
+                make_report(
+                    score=final_metrics.pop("score", None),
+                    metrics=final_metrics,
+                    htmls=htmls,
+                )
             )
-        )
 
 
 if __name__ == "__main__":

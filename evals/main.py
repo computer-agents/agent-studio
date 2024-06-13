@@ -5,6 +5,7 @@ import time
 from eval_gui_grounding import GUIGroundingEval
 from eval_success_detection import SuccessDetectionEval
 from eval_idm import IDMEval
+from eval_idmn2n import IDMN2NEval
 
 from agent_studio.llm import setup_model
 
@@ -16,7 +17,7 @@ def create_parser():
     )
     parser.add_argument("--model", type=str)
     parser.add_argument("--tokenizer", type=str, default=None)
-    parser.add_argument("--eval_type", type=str)
+    parser.add_argument("--eval_type", type=str, choices=["gui_grounding", "success_detection", "idm", "idmn2n"])
     parser.add_argument("--data_path", type=str)
     parser.add_argument("--start_idx", type=int, default=0)
     parser.add_argument("--end_idx", type=int, default=None)
@@ -34,7 +35,7 @@ def main():
     save_path = Path("results")
     save_path.mkdir(parents=True, exist_ok=True)
     # with time
-    file_stem = f"{save_path}/{args.eval_type}_{args.model.split('/')[-1]}_{time.strftime('%H%M%S')}"
+    file_stem = f"{save_path}/{args.eval_type}/{args.model.split('/')[-1]}_{time.strftime('%H%M%S')}"
     if args.start_idx != 0:
         file_stem += f"_start{args.start_idx}"
     if args.end_idx is not None:
@@ -62,6 +63,15 @@ def main():
             )
         case "idm":  # evaluation on ability as inverse dynamics model
             evaluator = IDMEval(
+                model=model,
+                data_path=args.data_path,
+                result_filename=result_filename,
+                start_idx=args.start_idx,
+                end_idx=args.end_idx,
+                num_workers=args.num_workers,
+            )
+        case "idm_n2n":  # evaluation on inverse dynamics model that predict a sequence of actions from trajectories
+            evaluator = IDMN2NEval(
                 model=model,
                 data_path=args.data_path,
                 result_filename=result_filename,
