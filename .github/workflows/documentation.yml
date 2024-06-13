@@ -20,9 +20,12 @@ jobs:
       - name: Sphinx build
         run: |
           sphinx-build docs/source docs/build
+      - name: Copy Main Page
+        run: |
+          cp -r docs\source\main_page\main_page_resources docs\build && cp docs\source\main_page\index.html docs\build
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3.9.3
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' }}
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}

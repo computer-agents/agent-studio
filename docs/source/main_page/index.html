@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html class="gpt-theme-light" style="--bigger-text-multiplier: 1.0; --chatgpt-widget-top: 85px; --gpt-ruler-color: #0000004c; --gpt-gmail-compose-btn-display: flex; --gpt-twitter-compose-btn-display: flex; --gpt-outlook-compose-btn-display: inline-block; --gpt-linkedin-compose-btn-display: flex;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Agent Studio</title>
+    <meta name="description" content="Agent Studio: ntegrating benchmarks, environments, and toolkits for general computer agents">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta property="og:image" content="/logo.png">
+    <link rel="shortcut icon" href="./main_page_resources/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="./main_page_resources/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="./main_page_resources/normalize.css">
+    <link rel="stylesheet" href="./main_page_resources/fonts.css">
+    <link rel="stylesheet" href="./main_page_resources/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="..." crossorigin="anonymous">
+    <!-- Google tag (gtag.js) -->
+    <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-H9XFCMDPNS"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-H9XFCMDPNS");
+    </script>
+  <style title="4a77c6fb-1431-4fb0-ba0e-f8fd626bd07b"></style></head>
+  <body class="gpt-right-sidebar" data-new-gr-c-s-check-loaded="14.1181.0" data-gr-ext-installed="">
+    <div id="ext-sidebar">
+    <div class="close-chat lightMode-nav-close" style="--close2:url(chrome-extension://kdgdohgdbempjoicceeaaglaioadgfhe/../res/icons/ui/close2.png);--close:url(chrome-extension://kdgdohgdbempjoicceeaaglaioadgfhe/../res/icons/ui/close.png);"></div>
+    </div>
+  
+    <div style="padding-bottom: 50px">
+      <section style="background-color: var(--dark_accent_color)">
+        <div class="content-wrapper title-wrapper" style="flex-direction: column">
+          <div style="
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              padding-bottom: 15px;
+            ">
+            <h1 style="font-size: 60px; padding-top: 0.4em">Agent Studio</h1>
+            <img src="./main_page_resources/agent-studio-logo-text-light.png" style="height: 100px; padding-top: 0em; padding-left: 0.5em">
+          </div>
+          <h3>Integrating benchmarks, environments, and toolkits for general computer agents</h3>
+          <h3 style="font-size: 20px; padding-top: 1.2em">NeurIPS 2024</h3>
+          <p style="text-align: center;margin-top:1em;">
+            Longtao Zheng*, Zhiyuan Huang*, <br>
+            Zhenghai Xue, Xinrun Wang, <br>
+            Bo An, Shuicheng Yan
+          </p>
+          <div class="content-wrapper" style="margin-top: 2em">
+            <a href="https://arxiv.org/abs/2403.17918">
+              <button class="outline">
+                <i class="fa fa-paperclip"></i> Paper&nbsp;
+              </button>
+            </a>
+            <a href="https://github.com/SkyworkAI/agent-studio">
+              <button class="outline">
+                <i class="fab fa-github"></i> Code&nbsp;
+              </button>
+            </a>
+            <a href="./doc_index.html">
+              <button class="outline">
+                <i class="fa-solid fa-file"></i> Docs&nbsp;
+              </button>
+            </a>
+            <a href="https://huggingface.co/spaces/Skywork/agent-studio-leaderboard">
+              <button class="outline">
+                <i class="fa fa-upload"></i> Submit&nbsp;
+              </button>
+            </a>
+          </div>
+        </div>
+      </section>
+      <section class="main-container">
+        <div class="content-wrapper">
+          <div class="content-box">
+            <h2 class="text-title">Leaderboard GUI Grounding</h2>
+            <div class="tabcontent tabcontentall" style="display: block">
+              <table class="table scrollable">
+                <thead>
+                  <tr>
+                    <th><div class="sticky-header-content">Model</div></th>
+                    <th><div class="sticky-header-content">%Web</div></th>
+                    <th><div class="sticky-header-content">%Desktop</div></th>
+                    <th><div class="sticky-header-content">%Mobile</div></th>
+                    <th><div class="sticky-header-content">%Total</div></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p class="model-type">SeeClick</p>
+                    </td>
+                    <td><p class="number"><strong>64.3</strong></p></td>
+                    <td><p class="number"><strong>44.3</strong></p></td>
+                    <td><p class="number"><strong>73.7</strong></p></td>
+                    <td><p class="number"><strong>61.1</strong></p></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">CogAgent</p>
+                    </td>
+                    <td><p class="number">25.3</p></td>
+                    <td><p class="number">15.7</p></td>
+                    <td><p class="number">35.7</p></td>
+                    <td><p class="number">25.5</p></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">GPT-4o (0513)</p>
+                    </td>
+                    <td><p class="number"><strong>7.5</strong></p></td>
+                    <td><p class="number">8.3</p></td>
+                    <td><p class="number"><strong>26.3</strong></p></td>
+                    <td><p class="number"><strong>13.4</strong></p></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">GPT-4 Turbo (0409)</p>
+                    </td>
+                    <td><p class="number">5.3</p></td>
+                    <td><p class="number"><strong>11.0</strong></p></td>
+                    <td><p class="number">23.0</p></td>
+                    <td><p class="number">12.3</p></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini-1.5 Flash</p>
+                    </td>
+                    <td><p class="number">0.5</p></td>
+                    <td><p class="number">4.3</p></td>
+                    <td><p class="number"><strong>26.3</strong></p></td>
+                    <td><p class="number">9.4</p></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">CogVLM2-Llama3-chat-19B</p>
+                    </td>
+                    <td><p class="number">2.5</p></td>
+                    <td><p class="number">2.7</p></td>
+                    <td><p class="number">5.3</p></td>
+                    <td><p class="number">3.4</p></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini-1.0 Pro</p>
+                    </td>
+                    <td><p class="number">0.5</p></td>
+                    <td><p class="number">0.3</p></td>
+                    <td><p class="number">5.0</p></td>
+                    <td><p class="number">1.8</p></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">MiniCPM-Llama3-V 2.5</p>
+                    </td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.3</p></td>
+                    <td><p class="number">2.7</p></td>
+                    <td><p class="number">0.9</p></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Qwen-VL-Chat</p>
+                    </td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-content">
+              Single-step grounding accuracy on GroundUI-1K (<strong>%</strong>)
+            </p>
+          </div>
+        </div>
+        <div class="content-wrapper">
+          <div class="content-box">
+            <h2 class="text-title">Leaderboard Success Detection</h2>
+            <div class="tabcontent tabcontentall" style="display: block">
+              <table class="table scrollable">
+                <thead>
+                  <tr>
+                    <th><div class="sticky-header-content">Model</div></th>
+                    <th><div class="sticky-header-content">%Web</div></th>
+                    <th><div class="sticky-header-content">%Desktop</div></th>
+                    <th><div class="sticky-header-content">%Mobile</div></th>
+                    <th><div class="sticky-header-content">%Total</div></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini-1.0 Pro</p>
+                    </td>
+                    <td><p class="number"><strong>63.0</strong></p></td>
+                    <td><p class="number"><strong>90.0</strong></p></td>
+                    <td><p class="number">60.0</p></td>
+                    <td><p class="number"><strong>63.7</strong></p></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Qwen-VL-Chat</p>
+                    </td>
+                    <td><p class="number">58.0</p></td>
+                    <td><p class="number"><strong>90.0</strong></p></td>
+                    <td><p class="number"><strong>64.0</strong></p></td>
+                    <td><p class="number">61.9</p></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">GPT-4o</p>
+                    </td>
+                    <td><p class="number">57.0</p></td>
+                    <td><p class="number">85.0</p></td>
+                    <td><p class="number">32.0</p></td>
+                    <td><p class="number">50.9</p></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-content">
+              Accuracy on Success Detection (<strong>%</strong>)
+            </p>
+          </div>
+        </div>
+        <div class="content-wrapper">
+          <div class="content-box">
+            <h2 class="text-title">Resources</h2>
+            <p class="text-content" style="margin-top:1em;">
+              Agent Studio Data is available for download from HuggingFace.
+            </p>
+            <div class="content-wrapper" style="width: 100%">
+              <div class="content-box column">
+                <a style="width: 100%" href="https://huggingface.co/datasets/Skywork/agent-studio-data">
+                  <div class="download">🤗 Agent Studio Data</div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="content-wrapper">
+          <div class="content-box">
+            <h2 class="text-title">About</h2>
+            <img src="./main_page_resources/agent_space.jpg" style="width:80%;margin:auto;display:block;">
+            <p class="text-content">
+              AgentStudio is an open toolkit covering the entire lifespan of building virtual agents that can interact with everything on digital worlds. Here, we open-source the beta of environment implementations, benchmark suite, data collection pipeline, and graphical interfaces to promote research towards generalist virtual agents of the future.
+              Read more about Agent Studio in our <a href="https://arxiv.org/abs/2403.17918" ,="" target="_blank">paper</a>!
+            <br><br>
+              Citation: </p><pre id="citation"><code>@article{zheng2024agentstudio,
+  title={AgentStudio: A Toolkit for Building General Virtual Agents},
+  author={Longtao Zheng and Zhiyuan Huang and Zhenghai Xue and Xinrun Wang and Bo An and Shuicheng Yan},
+  journal={arXiv preprint arXiv:2403.17918},
+  year={2024}
+}</code></pre>
+          <br>
+              <b>Disclaimer:</b> Agent Studio is for research purposes only. Models
+              trained and evaluated on Agent Studio can produce unexpected results.
+              We are not responsible for any damages caused by the use of
+              Agent Studio, including but not limited to, any loss of profit, data,
+              or use of data.
+            <p></p>
+          </div>
+        </section></div>
+      
+    
+    <footer class="footer-container">
+      <div class="content-wrapper">
+        <div class="footer-text">
+        </div>
+      </div>
+    </footer>
+  
+    <div class="appended-element chat-weight" style="--gpt-widget-icon:url(chrome-extension://kdgdohgdbempjoicceeaaglaioadgfhe/../res/icons/ui/left.png);--gpt-white-widget-icon:url(chrome-extension://kdgdohgdbempjoicceeaaglaioadgfhe/../res/icons/ui/white_left.png);">
+      <div id="chat-gpt-widget" class="chat-gpt-widget" style="--chatgpt-widget-display: flex;">
+        <div class="main-icon widget-icon"></div>
+      </div>
+   
+        
+    <div>
+  </div></div></body><grammarly-desktop-integration data-grammarly-shadow-root="true"><template shadowrootmode="open"><style>
+      div.grammarly-desktop-integration {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select:none;
+        user-select:none;
+      }
+
+      div.grammarly-desktop-integration:before {
+        content: attr(data-content);
+      }
+    </style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>
