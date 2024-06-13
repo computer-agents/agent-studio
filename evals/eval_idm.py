@@ -1,20 +1,19 @@
 import os
 import re
 from pathlib import Path
-from typing import Tuple, Any
-import json
+from typing import Any
 import logging
 
-import numpy as np
 from common import map_with_progress
-from pydantic_core import from_json
 
 from agent_studio.llm import BaseModel
 from agent_studio.utils.json_utils import read_jsonl, add_jsonl
-from hzy.schema import Action, Episode
+from schema import Action, InverseAction
+
+logger = logging.getLogger("eval_logger")
 
 QUERY_TEMPLATE = """
-Answer the following multiple choice question. The last line of your response should be of the following format: 'Answer: $LETTER' (without quotes) where LETTER is one of {choices}. Think step by step before answering.
+Answer the following multiple choice question. The last line of your response should be of the following format: 'Answer: $LETTER' (without quotes) where LETTER is one of {choices}. Think step by step before answering. For example, if there'are three options "A: type\nB: click\nC: scroll", and you think the executed action is "click", then your response should be "Answer: B".
 
 You are given two sequential images which denotes the observation before and after an action respectively, and the action is one of the steps to finish the insuruction. Your task is to determine the executed action type between the two observations. 
 Instruction: {instruction}
@@ -58,60 +57,53 @@ class IDMEval:
         self,
         model: BaseModel,
         data_path: str,
-        result_filename: str,
+        result_filename: Path,
         start_idx: int = 0,
         end_idx: int | None = None,
         num_workers: int = 1,
     ):
         self.model = model
         self.data = read_jsonl(data_path, start_idx, end_idx)
-        self.data_dir = os.path.join(Path(data_path).parent.parent, "image100")
+        self.data_dir = os.path.join(Path(data_path).parent, "images")
         self.result_filename = result_filename
         self.num_workers = num_workers
 
     def __call__(
         self, model_name: str, tokenizer_name: str,
     ) -> list[dict[str, Any]]:
-        results = []
         def fn(row: dict):
-            episode: Episode = Episode.model_validate(row)
+            action: InverseAction = InverseAction.model_validate(row)
+            if action.obs_before is None or action.obs_after is None:
+                raise ValueError("obs_before and obs_after must be provided")
 
-            i = (len(episode.actions)-2)
-            if i < 0 or episode.actions[i].obs_before is None or episode.actions[i].obs_after is None:
-                logging.error(f"obs_before or obs_after is None")
-                return
             # Query the model and evaluate the response
-            prompt = format_idm_prompt(self.data_dir, episode.instruction, episode.actions[i], episode.action_space)
+            prompt = format_idm_prompt(self.data_dir, action.instruction, action, action.action_space)
             response, info = self.model.generate_response(
                 prompt, model=model_name, tokenizer=tokenizer_name,
-                do_sample=False, max_length=32, num_return_sequences=1,
+                do_sample=False, max_new_tokens=32, num_return_sequences=1,
             )
             # get the position in the set of action_space
-            ref_answer = None
-            for j, a in enumerate(episode.action_space):
-                if a == episode.actions[i].operation:
-                    ref_answer = chr(65 + j)
-                    break
-            if ref_answer is None:
-                logging.error(f"action not found {episode.actions[i].operation}")
+            index = action.action_space.index(action.operation)
+            ref_answer = chr(65 + index)
 
             score = eval_idm_response(response, ref_answer)
 
             result = {
-                "obs_before": episode.actions[i].obs_before,
-                "obs_after": episode.actions[i].obs_after,
+                "obs_before": action.obs_before,
+                "obs_after": action.obs_after,
+                "action_space": action.action_space,
                 "score": score,
-                "source": episode.source,
-                "annotation_id": episode.annotation_id,
-                # "prompt": prompt,
-                "instruction": episode.instruction,
+                "source": action.source,
+                "platform": action.platform,
+                "annotation_id": action.action_id,
+                "instruction": action.instruction,
                 "response": response,
-                "ref_answer": episode.actions[i].operation,
+                "ref_answer": action.operation,
                 # "parsed_action": action,
                 "input_tokens": info.get("prompt_tokens", 0),
                 "output_tokens": info.get("completion_tokens", 0),
             }
-            results.append(result)
+            add_jsonl([result], self.result_filename)
+            logger.info(f"Writing results {action.action_id} to {self.result_filename}")
 
         map_with_progress(fn, self.data, self.num_workers)
-        add_jsonl(results, self.result_filename)

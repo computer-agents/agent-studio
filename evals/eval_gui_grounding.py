@@ -34,7 +34,7 @@ def format_gui_grounding_prompt(
 def parse_gui_grounding_response(response: str) -> Tuple[float, float] | None:
     try:
         match = re.search(ANSWER_PATTERN, response.splitlines()[-1])
-    except AttributeError:
+    except:
         match = None
     return [float(match.group(1)), float(match.group(2))] if match else None
 
