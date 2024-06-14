@@ -3,10 +3,6 @@ AgentStudio
 </h1>
 
 <p align="center">
-<a href="https://arxiv.org/abs/2403.17918"><b>Paper</b></a> | <a href="https://skyworkai.github.io/agent-studio/"><b>Documentation</b></a> | <a href="https://huggingface.co/spaces/Skywork/agent-studio-leaderboard"><b>Leaderboard</b></a> | <a href="https://huggingface.co/datasets/Skywork/agent-studio-data"><b>Dataset & Benchmark</b></a>
-</p>
-
-<p align="center">
 <a href="https://www.python.org/downloads/release/python-3117/"><img alt="Python 3.11" src="https://img.shields.io/badge/python-3.11-blue.svg"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 <!-- <a href="https://mypy-lang.org/"><img src="https://www.mypy-lang.org/static/mypy_badge.svg" alt="Checked with mypy"></a> -->
@@ -14,40 +10,25 @@ AgentStudio
 <a href="https://pre-commit.com/"><img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white" alt="pre-commit"></a>
 </p>
 
-AgentStudio is an open toolkit covering the entire lifespan of
-building virtual agents that can interact with everything on digital worlds. Here, we open-source the beta of environment implementations, benchmark suite, data collection pipeline, and graphical interfaces to promote research towards generalist virtual agents of the future.
-
-## Contributing
-
-We plan to expand the collection of environments, tasks, and data over time. Contributions and feedback from everyone on how to make this into a better tool are more than welcome, no matter the scale. Please check out [CONTRIBUTING.md](CONTRIBUTING.md) for how to get involved.
+AgentStudio is an integrated solution featuring in-depth benchmark suites, realistic environments, and comprehensive toolkits. Here, we open-source everything to promote research towards generalist computer agents of the future. The paper, leaderboard, benchmark suites, and documentation for environments and toolkits can be found in our <a href="https://skyworkai.github.io/agent-studio/"><b>project page</b></a>.
 
 ![](docs/source/assets/imgs/overview.png)
 
+## Evaluate Core Agent Abilities on Benchmark Suites
+
+Please see the detailed [instruction](evals/README.md) for scripts that produce the benchmark results in our paper.
+
+## Quickstart of Environments and Toolkits
+
 ![](docs/source/assets/imgs/agent_space.jpg)
 
-## Before You Start
+### Before You Start
 
 You should note that the toolkit may do some **non-reversible actions**, such as deleting files, creating files, running commands, and deleting Google Calendar events.
 
 Please make sure you are hosting the toolkit in **a safe environment (E.g. virtual machine or docker) or have backups of your data.**
 
 Some tasks may require you to provide API keys. Before running the tasks, **please make sure the account doesn't have important data.**
-
-## Evaluation on GUI Grounding Dataset
-
-Test one example from the dataset:
-
-```bash
-python eval_dataset.py --start_idx 0 --end_idx 1 --data_path data/grounding/windows/powerpoint/actions.jsonl --provider gpt-4-vision-preview
-```
-
-Run complete experiments over the dataset:
-
-```bash
-python eval_dataset.py --data_path data/grounding/windows/powerpoint/actions.jsonl --provider gpt-4-vision-preview
-```
-
-## Quickstart
 
 ### Setup Environment
 
@@ -58,18 +39,6 @@ conda create --name agent-studio python=3.11 -y
 conda activate agent-studio
 pip install -r requirements.txt
 pip install -e .
-```
-
-This command will download the task suite and agent trajectories from [Huggingface](https://huggingface.co/datasets/Skywork/agent-studio-data) (you may need to [configure huggingface and git lfs](https://huggingface.co/docs/hub/en/repositories-getting-started#cloning-repositories)).
-
-```bash
-git submodule update --init --remote --recursive
-```
-
-Alternatively, you can directly clone the dataset repository:
-
-```bash
-git clone git@hf.co:datasets/Skywork/agent-studio-data data
 ```
 
 ### Setup API Keys
@@ -85,7 +54,7 @@ Build Docker image:
 docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t agent-studio:latest
 ```
 
-## Evaluate Agents
+## Evaluate Agents on Custom Tasks
 
 You may modify [config.py](agent_studio/config/config.py) to configure the environment.
 
@@ -138,7 +107,12 @@ We would like to thank the following projects for their inspiration and contribu
 - [WebArena](https://github.com/web-arena-x/webarena)
 - [Cradle](https://baai-agents.github.io/Cradle/)
 - [Synapse](https://ltzheng.github.io/Synapse/)
+- [SeeClick](https://github.com/njucckevin/SeeClick)
 - [ScreenAgent](https://github.com/niuzaisheng/ScreenAgent)
+
+## Contributing
+
+We plan to expand the collection of environments, tasks, and data over time. Contributions and feedback from everyone on how to make this into a better tool are more than welcome, no matter the scale. Please check out [CONTRIBUTING.md](CONTRIBUTING.md) for how to get involved.
 
 ## Citation
 
