@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (
 from agent_studio.envs.desktop_env.vnc_client import LocalStreamer, VNCFrame
 
 
-class HumanInterface(QMainWindow):
+class GUIGroundingAnnotator(QMainWindow):
     """Main class for the GUI grounding annotator."""
 
     def __init__(
@@ -230,6 +230,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--remote", action="store_true", help="Run in remote mode")
     parser.add_argument(
+        "--record_path",
+        type=str,
+        default="recordings",
+        help="Path to save the recordings",
+    )
+    parser.add_argument(
         "--window_width", type=int, default=800, help="Width of the window"
     )
     parser.add_argument(
@@ -256,13 +262,12 @@ def main():
         raise RuntimeError("A second screen is required for local annotation.")
 
     # Main entry point for the application.
-    record_path = "recordings"
-    os.makedirs(record_path, exist_ok=True)
-    os.makedirs(os.path.join(record_path, "screenshots"), exist_ok=True)
+    os.makedirs(args.record_path, exist_ok=True)
+    os.makedirs(os.path.join(args.record_path, "screenshots"), exist_ok=True)
 
     # Create the main interface.
-    interface = HumanInterface(
-        record_path=record_path,
+    interface = GUIGroundingAnnotator(
+        record_path=args.record_path,
         remote=args.remote,
         window_width=args.window_width,
         window_height=args.window_height,
