@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
+from agent_studio.agent.base_agent import TrajectoryInfo
 from agent_studio.llm.utils import decode_image
 
 
@@ -86,9 +87,8 @@ def format_json(data: dict, indent=4, sort_keys=False):
 
 
 def export_trajectories(
-    self_eval_results: dict | None,
     task_config: dict,
-    trajectory: list,
+    trajectory: TrajectoryInfo,
     record_path: str,
     score: float | None,
     feedback: str | None,
@@ -111,12 +111,6 @@ def export_trajectories(
         results["score"] = score
     if feedback is not None:
         results["feedback"] = feedback
-    if self_eval_results is not None:
-        results["self_eval"] = {
-            "score": self_eval_results["score"],
-            "feedback": self_eval_results["feedback"],
-            "response": self_eval_results["response"],
-        }
     parse_and_save_objects(results, media_path)
     add_jsonl(
         data=[results],

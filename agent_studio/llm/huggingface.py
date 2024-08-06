@@ -13,7 +13,8 @@ from transformers import (
 )
 
 from agent_studio.config.config import Config
-from agent_studio.llm.base_model import BaseModel, PromptSeg
+from agent_studio.llm.base_model import BaseModel
+from agent_studio.utils.types import MessageList
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -28,12 +29,12 @@ class HuggingFaceProvider(BaseModel):
         self.model = None
         self.processor = None
 
-    def compose_messages(
+    def format_messages(
         self,
-        intermedia_msg: list[PromptSeg],
+        raw_messages: MessageList,
     ) -> Any:
         model_message: list[dict[str, Any]] = []
-        for msg in intermedia_msg:
+        for msg in raw_messages:
             if isinstance(msg["content"], str):
                 model_message.append({"text": msg["content"]})
             elif isinstance(msg["content"], Path):
@@ -48,10 +49,10 @@ class HuggingFaceProvider(BaseModel):
         return model_message
 
     def generate_response(
-        self, messages: list[PromptSeg], **kwargs
+        self, messages: MessageList, **kwargs
     ) -> tuple[str, dict[str, Any]]:
         """Creates a chat completion using the Gemini API."""
-        model_message = self.compose_messages(intermedia_msg=messages)
+        model_message = self.format_messages(raw_messages=messages)
 
         if self.model is None:
             self.model_name = kwargs.pop("model", None)

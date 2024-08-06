@@ -53,12 +53,20 @@ def register_models(
     return registered_classes
 
 
-def setup_model(provider_name: str) -> BaseModel:
+MODEL_PROVIDER_MAPPING = {
+    "gpt-4o": "openai",
+    "gemini-pro": "gemini",
+    "gemini-pro-vision": "gemini",
+}
+
+
+def setup_model(model_name: str) -> BaseModel:
+    provider_name = MODEL_PROVIDER_MAPPING[model_name]
     registered_models: dict[str, type[BaseModel]] = register_models()
     logger.info(f"Registered models: {registered_models.keys()}")
     if provider_name not in registered_models:
-        logger.error(f"Model provider [{provider_name}] is not registered")
-        raise ValueError(f"Model provider [{provider_name}] is not registered")
+        logger.error(f"Model provider '{provider_name}' is not registered")
+        raise ValueError(f"Model provider '{provider_name}' is not registered")
     else:
         logger.info(f"Setting up model provider: {provider_name}")
         model = registered_models[provider_name]()

@@ -12,7 +12,8 @@ from google.generativeai.types import GenerationConfig
 from PIL import Image
 
 from agent_studio.config.config import Config
-from agent_studio.llm.base_model import BaseModel, PromptSeg
+from agent_studio.llm.base_model import BaseModel
+from agent_studio.utils.types import MessageList
 
 # Run this to pass mypy checker
 PIL.PngImagePlugin
@@ -29,16 +30,16 @@ class GeminiProvider(BaseModel):
         super().__init__()
         genai.configure(api_key=config.gemini_api_key)
 
-    def compose_messages(
+    def format_messages(
         self,
-        intermedia_msg: list[PromptSeg],
+        raw_messages: MessageList,
     ) -> Any:
         model_message: dict[str, Any] = {
             "role": "user",
             "parts": [],
         }
         past_role = None
-        for msg in intermedia_msg:
+        for msg in raw_messages:
             current_role = msg.role if "role" != "system" else "user"
             if past_role != current_role:
                 model_message["parts"].append(f"[{current_role.capitalize()}]: ")
@@ -59,10 +60,10 @@ class GeminiProvider(BaseModel):
         return model_message
 
     def generate_response(
-        self, messages: list[PromptSeg], **kwargs
+        self, messages: MessageList, **kwargs
     ) -> tuple[str, dict[str, Any]]:
         """Creates a chat completion using the Gemini API."""
-        model_message = self.compose_messages(intermedia_msg=messages)
+        model_message = self.format_messages(raw_messages=messages)
 
         model_name = kwargs.get("model", None)
         if model_name is not None:

@@ -6,8 +6,9 @@ import numpy as np
 from openai import APIError, APITimeoutError, OpenAI, RateLimitError
 
 from agent_studio.config.config import Config
-from agent_studio.llm.base_model import BaseModel, PromptSeg
+from agent_studio.llm.base_model import BaseModel
 from agent_studio.llm.utils import openai_encode_image
+from agent_studio.utils.types import MessageList
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -20,16 +21,16 @@ class OpenAIProvider(BaseModel):
         super().__init__()
         self.client = OpenAI(api_key=config.openai_api_key)
 
-    def compose_messages(
+    def format_messages(
         self,
-        intermedia_msg: list[PromptSeg],
+        raw_messages: MessageList,
     ) -> list[dict[str, Any]]:
         """
         Composes the messages to be sent to the model.
         """
         model_message: list[dict[str, Any]] = []
         past_role = None
-        for msg in intermedia_msg:
+        for msg in raw_messages:
             if isinstance(msg.content, np.ndarray):
                 content: dict = {
                     "type": "image_url",
@@ -51,7 +52,7 @@ class OpenAIProvider(BaseModel):
         return model_message
 
     def generate_response(
-        self, messages: list[PromptSeg], **kwargs
+        self, messages: MessageList, **kwargs
     ) -> tuple[str, dict[str, Any]]:
         """Creates a chat completion using the OpenAI API."""
 
@@ -60,7 +61,7 @@ class OpenAIProvider(BaseModel):
             raise ValueError("Model name is not set")
         temperature = kwargs.get("temperature", config.temperature)
         max_tokens = kwargs.get("max_tokens", config.max_tokens)
-        model_message = self.compose_messages(intermedia_msg=messages)
+        model_message = self.format_messages(raw_messages=messages)
         logger.info(f"Creating chat completion with model {model}.")
 
         @backoff.on_exception(

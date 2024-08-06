@@ -1,5 +1,0 @@
-from agent_studio.envs.desktop_env import Keyboard, Mouse
-
-
-keyboard = Keyboard()
-mouse = Mouse()

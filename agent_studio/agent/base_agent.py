@@ -1,18 +1,40 @@
 import logging
 import time
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
 import requests
 
 from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
-from agent_studio.config import Config
-from agent_studio.envs.desktop_env.evaluators.evaluator_helper import Evaluator
-from agent_studio.llm.base_model import BaseModel, PromptSeg, TrajectorySeg
+from agent_studio.llm import setup_model
 from agent_studio.llm.utils import extract_from_response
+from agent_studio.utils.types import MessageList
 
-config = Config()
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class StepInfo:
+    obs: np.ndarray | None
+    prompt: MessageList | None
+    response: str | None
+    action: str
+    info: dict[str, Any]
+    result: dict[str, Any]
+    timestamp: float
+
+
+TrajectoryInfo = list[StepInfo]
+
+
+RUNTIME_INIT_CODE = """
+from agent_studio.envs.desktop_env import Keyboard, Mouse
+
+
+keyboard = Keyboard()
+mouse = Mouse()
+"""
 
 
 class BaseAgent:
@@ -20,75 +42,97 @@ class BaseAgent:
 
     name: str = "base"
 
-    def __init__(self, model: BaseModel) -> None:
-        self.model = model
-        self.instruction: str = ""
-        self.trajectory: list[TrajectorySeg] = []
-        self.runtime: PythonRuntime | RemotePythonRuntime | None = None
-
-        self.cur_prompt: list[PromptSeg] | None = None
-        self.cur_response: str | None = None
-        self.cur_info: dict[str, Any] = {}
-        self.cur_raw_code: str = ""
-        self.total_tokens: int = 0
-        self.task_config = {}
-        self.registered_evaluators = {}
-
-    def reset(
+    def __init__(
         self,
-        task_config: dict[str, Any],
-        registered_evaluators: dict[str, type[Evaluator]],
+        model: str,
+        remote: bool,
+        runtime_server_addr: str,
+        runtime_server_port: int,
     ) -> None:
+        """Initialize with model, prompt template, and initilization code."""
+        self.model = setup_model(model)
+        self.remote = remote
+        self.runtime_server_addr = runtime_server_addr
+        self.runtime_server_port = runtime_server_port
+        self.runtime: PythonRuntime | RemotePythonRuntime | None = None
+        self.runtime_init_code: str = RUNTIME_INIT_CODE.strip()
+
+        self.task_config = {}
+        self.instruction: str = ""
+        self.trajectory: TrajectoryInfo = []
+        self.step_info = StepInfo(
+            obs=None,
+            prompt=None,
+            response=None,
+            action="",
+            info={},
+            result={},
+            timestamp=0.0,
+        )
+        self.total_tokens: int = 0
+
+    def reset(self, task_config: dict[str, Any]) -> None:
+        """Reset the agent's state with a new task configuration."""
         self.task_config = task_config
-        self.registered_evaluators = registered_evaluators
         self.instruction = task_config["instruction"]
         self.trajectory = []
-        self.cur_prompt = None
-        self.cur_response = None
-        self.cur_info = {}
-        self.cur_raw_code = ""
+        self.step_info = StepInfo(
+            obs=None,
+            prompt=None,
+            response=None,
+            action="",
+            info={},
+            result={},
+            timestamp=0.0,
+        )
         self.total_tokens = 0
 
         if self.runtime is not None:
             self.runtime.close()
-        if config.remote:
+        if self.remote:
             self.runtime = RemotePythonRuntime()
         else:
             self.runtime = PythonRuntime()
 
-    def get_token_count(self) -> int:
-        return self.total_tokens
+        assert self.runtime is not None, "Failed to initialize runtime."
+        if self.runtime_init_code is not None:
+            self.runtime(self.runtime_init_code)
 
-    def generate_action(self, obs: np.ndarray | None) -> tuple[str, str]:
-        self.cur_obs = obs
-        self.cur_prompt = self.trajectory2intermediate_msg()
-        logger.debug(f"Prompt: {self.cur_prompt}")
-        self.cur_response, self.cur_info = self.model.generate_response(
-            messages=self.cur_prompt, model=config.exec_model
-        )
-        logger.debug(f"Response: {self.cur_response}")
-        assert self.cur_response is not None, "Failed to generate response."
-        self.total_tokens += self.cur_info.get("total_tokens", 0)
-        self.cur_raw_code = extract_from_response(self.cur_response)
+    def generate_action(
+        self, obs: np.ndarray | None, model_name: str
+    ) -> tuple[str, str]:
+        """Generate an action based on the observation."""
+        self.step_info.obs = obs
+        prompt = self.action_prompt
+        assert prompt is not None, "Invalid prompt"
+        self.step_info.prompt = prompt
+        logger.debug(f"Prompt: {prompt}")
+        response, info = self.model.generate_response(messages=prompt, model=model_name)
+        self.step_info.response = response
+        self.step_info.info = info
+        logger.debug(f"Response: {response}")
+        assert response is not None, "Failed to generate response."
+        self.total_tokens += info.get("total_tokens", 0)
+        action = extract_from_response(response).strip()
+        self.step_info.action = action
 
-        return self.cur_response, self.cur_raw_code
+        return response, action
 
-    def step_action(self, confirmed: bool, **kwargs) -> tuple[dict, bool]:
-        """Executes the code and record the result."""
+    def step_action(self, confirmed: bool) -> tuple[dict, bool]:
+        """Execute the code if confirmed and record the result."""
         result = {}
-        cur_time = time.time()
         if confirmed:
-            code_clean = self.cur_raw_code.strip()
-            done = code_clean.endswith(config.stop_code)
+            code_clean = self.step_info.action
+            done = code_clean.endswith("exit()")
             if done:
-                code = code_clean[: -len(config.stop_code)].strip()
+                code = code_clean[: -len("exit()")].strip()
             else:
                 code = code_clean
 
             logger.debug(f"Code to execute:\n{code}\n")
-            if config.remote:
+            if self.remote:
                 response = requests.post(
-                    f"http://{config.env_server_addr}:{config.env_server_port}/execute",
+                    f"http://{self.runtime_server_addr}:{self.runtime_server_port}/execute",  # noqa: E501
                     json={"message": code},
                 )
                 result = response.json()
@@ -99,28 +143,32 @@ class BaseAgent:
             result["content"] = "Cancelled by user."
             done = True
 
-        assert self.cur_prompt is not None, "Invalid prompt"
-        self.trajectory.append(
-            TrajectorySeg(
-                obs=self.cur_obs,
-                prompt=self.cur_prompt,
-                response=self.cur_response,
-                info=self.cur_info,
-                act=self.cur_raw_code,
-                res=result,
-                timestamp=cur_time,
-            )
-        )
+        self.step_info.result = result
+        self.step_info.timestamp = time.time()
+        self.trajectory.append(self.step_info)
         logger.info(f"Output: {result}")
+        self.step_info = StepInfo(
+            obs=None,
+            prompt=None,
+            response=None,
+            action="",
+            info={},
+            result={},
+            timestamp=0.0,
+        )
 
         return result, done
 
-    def eval(self, final_obs: np.ndarray | None = None) -> dict[str, Any]:
+    @property
+    def action_prompt(self) -> MessageList:
+        """Construct the action prompt."""
         raise NotImplementedError
+
+    def get_token_count(self) -> int:
+        """Return the total number of tokens used."""
+        return self.total_tokens
 
     def close(self) -> None:
+        """Close the runtime if it is open."""
         if self.runtime is not None:
             self.runtime.close()
-
-    def trajectory2intermediate_msg(self) -> list[PromptSeg]:
-        raise NotImplementedError

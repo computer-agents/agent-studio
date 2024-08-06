@@ -2,7 +2,7 @@ import logging
 import re
 from typing import Any
 
-from agent_studio.agent.base_agent import TrajectorySeg
+from agent_studio.agent.base_agent import TrajectoryInfo
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
@@ -29,7 +29,7 @@ class QAEvaluator(Evaluator):
         )
 
     @evaluation_handler("string_match")
-    def string_match(self, trajectory: list[TrajectorySeg], answer: str) -> None:
+    def string_match(self, trajectory: TrajectoryInfo, answer: str) -> None:
         logging.info(
             f"[QA Evaluator] Evaluating string match with params: {trajectory},"
             "{answer}"

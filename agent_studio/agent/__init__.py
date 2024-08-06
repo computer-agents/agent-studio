@@ -4,7 +4,6 @@ import logging
 import os
 
 from agent_studio.agent.base_agent import BaseAgent
-from agent_studio.llm.base_model import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -54,15 +53,15 @@ def register_agents(
     return registered_classes
 
 
-def setup_agent(agent_name: str, model: BaseModel) -> BaseAgent:
+def setup_agent(agent_name: str, **kwargs) -> BaseAgent:
     registered_agents: dict[str, type[BaseAgent]] = register_agents()
     logger.info(f"Registered agents: {registered_agents.keys()}")
     if agent_name not in registered_agents:
-        logger.error(f"Agent [{agent_name}] is not registered")
-        raise ValueError(f"Agent [{agent_name}] is not registered")
+        logger.error(f"Agent '{agent_name}' is not registered")
+        raise ValueError(f"Agent '{agent_name}' is not registered")
     else:
         logger.info(f"Setting up agent: {agent_name}")
-        agent = registered_agents[agent_name](model)
+        agent = registered_agents[agent_name](**kwargs)
 
     return agent
 
