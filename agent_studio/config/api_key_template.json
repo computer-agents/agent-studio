@@ -2,7 +2,9 @@
     "openai_api_key": "",
     "gemini_api_key": "",
     "anthropic_api_key": "",
-    "google_calendar_id": "",
+    "google_credential_path": "agent_studio/config/credentials.json",
+    "google_calendar_id": "primary",
+    "gmail_recipient": "ltzheng01@gmail.com",
     "telegram_api_id": "",
     "telegram_api_hash": ""
 }
