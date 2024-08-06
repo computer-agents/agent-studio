@@ -1,0 +1,889 @@
+[
+  {
+    "task_id": "9e3072d3-9c77-4e93-926a-5c599b7689b8",
+    "instruction": "Create an empty file named 'new_file.txt' in the 'tmp/' directory.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp": true,
+                "tmp/new_file.txt": true
+              }
+            },
+            "type_check": {
+              "file_to_check": {
+                "tmp/new_file.txt": "file",
+                "tmp": "folder"
+              }
+            },
+            "content_check": {
+              "file_to_check": {
+                "tmp/new_file.txt": ""
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "1e205d38-7d7a-4087-b966-886237ada07b",
+    "instruction": "Create a file named 'notes.txt' in the 'tmp/' directory with the content 'Meeting at 10am'.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/notes.txt": true
+              }
+            }
+          },
+          {
+            "type_check": {
+              "file_to_check": {
+                "tmp/notes.txt": "file"
+              }
+            }
+          },
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/notes.txt": "Meeting at 10am"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "f44814b5-b978-41bd-9ffe-a57191588dab",
+    "instruction": "Create a directory named 'projects' inside the 'tmp/' directory.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/projects": true
+              }
+            }
+          },
+          {
+            "type_check": {
+              "file_to_check": {
+                "tmp/projects": "folder"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/projects"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "31c509db-8a88-4112-940c-5db78819dfec",
+    "instruction": "Create two files in 'tmp/data/' directory: 'report1.txt' with content 'Report 1 data' and 'report2.txt' with content 'Report 2 data'.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/data/report1.txt": true,
+                "tmp/data/report2.txt": true
+              }
+            }
+          },
+          {
+            "type_check": {
+              "file_to_check": {
+                "tmp/data/report1.txt": "file",
+                "tmp/data/report2.txt": "file"
+              }
+            }
+          },
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/data/report1.txt": "Report 1 data",
+                "tmp/data/report2.txt": "Report 2 data"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/data"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/data"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "ed52765c-494c-403a-95f3-dd862241fbed",
+    "instruction": "Rename 'old_report.txt' to 'new_report.txt' in 'tmp/reports/'.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/reports/new_report.txt": true
+              }
+            }
+          },
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/reports/old_report.txt": false
+              }
+            }
+          },
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/reports/new_report.txt": "This is the only copy of the report"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/reports"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/reports"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/reports/old_report.txt",
+              "content": "This is the only copy of the report"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "1e2f5ea6-c448-48e9-a2d1-be6f5639b4b2",
+    "instruction": "Delete the file 'temporary.docx' in the 'tmp/docs/' directory.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/docs/temporary.docx": false
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/docs"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/docs"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/docs/temporary.docx"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "cc3553b2-93da-4a3d-a461-459a2cc030cb",
+    "instruction": "Move 'draft.txt' from 'tmp/' to 'tmp/archive/'.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/archive/draft.txt": true
+              }
+            }
+          },
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/draft.txt": false
+              }
+            }
+          },
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/archive/draft.txt": "This is the only copy of the file"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/archive"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/draft.txt",
+              "content": "This is the only copy of the file"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "b9503909-5457-425c-b6c8-b66d78bc8a13",
+    "instruction": "Copy 'config.json' from 'tmp/settings/' to 'tmp/backup/'.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/settings/config.json": true,
+                "tmp/backup/config.json": true
+              }
+            }
+          },
+          {
+            "type_check": {
+              "file_to_check": {
+                "tmp/settings/config.json": "file",
+                "tmp/backup/config.json": "file"
+              }
+            }
+          },
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/settings/config.json": "This is the configuration file",
+                "tmp/backup/config.json": "This is the configuration file"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/backup"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/backup"
+            }
+          },
+          {
+            "rmdir": {
+              "path": "tmp/settings"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/settings"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/settings/config.json",
+              "content": "This is the configuration file"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "0d5f7fef-3e79-4f86-87a8-d3435de04d9e",
+    "instruction": "Create a 1024 byte-size file 'summary.txt' in 'tmp/reports/'.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "metadata_check": {
+              "file_to_check": {
+                "tmp/reports/summary.txt": {
+                  "size": 1024
+                }
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/reports"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/reports"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "4a260b67-0673-4b31-a861-c0c6d84127cd",
+    "instruction": "Create a nested directory structure 'tmp/projects/2024/Q1'.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/projects/2024/Q1": true
+              }
+            }
+          },
+          {
+            "type_check": {
+              "file_to_check": {
+                "tmp/projects/2024/Q1": "folder"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/projects"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "9d5d3188-7c3c-4cc6-8968-7fcb55daa5bd",
+    "instruction": "Update the content of 'agenda.txt' in 'tmp/meetings/' to 'Updated Meeting Agenda'.z",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/meetings/agenda.txt": "Updated Meeting Agenda"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/meetings"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/meetings"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/meetings/agenda.txt",
+              "content": "Initial Meeting Agenda"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "1485713f-f55e-4a3b-95b2-84c5df6d5a31",
+    "instruction": "Increment the number in 'count.txt' in 'tmp/data/' by 1.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/data/count.txt": "2"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/data"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/data"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/data/count.txt",
+              "content": "1"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "51fa0739-1bc2-460a-ac64-b1dda60df47b",
+    "instruction": "Increment the number in 'count.txt' in 'tmp/data/' by 1.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/data/count.txt": "15676"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/data"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/data"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/data/count.txt",
+              "content": "15675"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "314cad7b-f4d1-43c4-a332-605cbc948592",
+    "instruction": "There are three data files stored in 'tmp/data/'. Calculate the average of numbers in 'data1.txt', 'data2.txt', and 'data3.txt' and store it in 'average.txt' in 'tmp/data/'. The average should be rounded to the nearest whole number. Each data file contains a set of numbers separated by a newline character.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/data/average.txt": "196"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/data"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/data"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/data/data1.txt",
+              "content": "265\n733"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/data/data2.txt",
+              "content": "2\n82\n41"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/data/data3.txt",
+              "content": "55"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "c45544f8-947e-409e-82f8-c0459b8486c8",
+    "instruction": "There are three data files stored in 'tmp/data/'. Calculate the average of numbers in them and store it in 'average.txt' in 'tmp/data/'. The average should be rounded to the nearest whole number. Each data file contains a set of numbers separated by a newline character.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/data/average.txt": "30857"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/data"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/data"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/data/data1.txt",
+              "content": "74\n38"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/data/data2.txt",
+              "content": "271\n153848"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/data/data3.txt",
+              "content": "55"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "4e95c9af-ed12-473f-901a-3100d61c80d4",
+    "instruction": "In the 'tmp/config/' directory, find the 'settings.ini' file and update the value of 'max_connections' under the '[Database]' section to '150'.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "verify_ini": {
+              "target_path": "tmp/config/settings.ini",
+              "ref_path": "data/tasks/files/4e95c9af-ed12-473f-901a-3100d61c80d4/settings_ref.ini"
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/config"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/config"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/config/settings.ini",
+              "content": "[Database]\nmax_connections=100\n[User]\nname=admin"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "7ea3ae8d-b7a4-4f41-8860-9c395d4539fd",
+    "instruction": "In the 'tmp/logs/' directory, find all '.log' files and replace any instance of 'ERROR' with 'WARN'.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/logs/server.log": "INFO: Server started\nWARN: Connection failed\nWARN: Connection failed\nINFO: Shutdown",
+                "tmp/logs/access.log": "WARN: Unauthorized access attempt\nWARN: Unauthorized access attempt\nINFO: Session closed"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp/logs"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/logs"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/logs/server.log",
+              "content": "INFO: Server started\nERROR: Connection failed\nWARN: Connection failed\nINFO: Shutdown"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/logs/access.log",
+              "content": "ERROR: Unauthorized access attempt\nERROR: Unauthorized access attempt\nINFO: Session closed"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "41b79d45-e7f8-4203-8d61-34260f93fbff",
+    "instruction": "In the 'tmp/downloads/' directory, move all '.jpg' files to 'tmp/downloads/images/' and all '.txt' files to 'tmp/downloads/texts/'.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/downloads/images/photo1.jpg": true,
+                "tmp/downloads/images/photo2.jpg": true,
+                "tmp/downloads/texts/document1.txt": true,
+                "tmp/downloads/texts/document2.txt": true,
+                "tmp/downloads/photo1.jpg": false,
+                "tmp/downloads/photo2.jpg": false,
+                "tmp/downloads/document1.txt": false,
+                "tmp/downloads/document2.txt": false
+              }
+            }
+          },
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/downloads/images/photo1.jpg": "",
+                "tmp/downloads/images/photo2.jpg": "",
+                "tmp/downloads/texts/document1.txt": "Text content 1",
+                "tmp/downloads/texts/document2.txt": "Text content 2"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/downloads"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/downloads/images/"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/downloads/texts/"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/downloads/photo1.jpg",
+              "content": ""
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/downloads/photo2.jpg",
+              "content": ""
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/downloads/document1.txt",
+              "content": "Text content 1"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/downloads/document2.txt",
+              "content": "Text content 2"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  },
+  {
+    "task_id": "814353b2-504e-46b3-8f98-34043a21e406",
+    "instruction": "Merge the contents of all '.txt' files located in 'tmp/notes/' into a new file named 'combined_notes.txt' in the 'tmp/' directory. You should merge files in order of their file name. You should not add any extra characters to the merged file.",
+    "evals": [
+      {
+        "eval_type": "filesystem",
+        "eval_procedure": [
+          {
+            "exists": {
+              "file_to_check": {
+                "tmp/combined_notes.txt": true
+              }
+            }
+          },
+          {
+            "content_check": {
+              "file_to_check": {
+                "tmp/combined_notes.txt": "First note content.\nSecond note content.\n"
+              }
+            }
+          }
+        ],
+        "reset_procedure": [
+          {
+            "rmdir": {
+              "path": "tmp"
+            }
+          },
+          {
+            "mkdir": {
+              "path": "tmp/notes"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/notes/note1.txt",
+              "content": "First note content.\n"
+            }
+          },
+          {
+            "create_file": {
+              "path": "tmp/notes/note2.txt",
+              "content": "Second note content.\n"
+            }
+          }
+        ]
+      }
+    ],
+    "visual": false,
+    "max_steps": 1
+  }
+]

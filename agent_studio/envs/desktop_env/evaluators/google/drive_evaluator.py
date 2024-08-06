@@ -5,12 +5,10 @@ import logging
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
+    Evaluator,
     FeedbackException,
     evaluation_handler,
     reset_handler,
-)
-from agent_studio.envs.desktop_env.evaluators.google.evaluator_base import (
-    GoogleEvaluatorBase,
 )
 from agent_studio.envs.desktop_env.evaluators.google.gservice import GoogleService
 from agent_studio.utils.human_utils import confirm_action
@@ -175,7 +173,7 @@ class GoogleDriveService(GoogleService):
         ).execute()
 
 
-class GoogleDriveEvaluator(GoogleEvaluatorBase):
+class GoogleDriveEvaluator(Evaluator):
     name: str = "google_drive"
 
     def __init__(

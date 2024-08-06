@@ -6,12 +6,10 @@ from typing import Any
 
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
+    Evaluator,
     FeedbackException,
     evaluation_handler,
     reset_handler,
-)
-from agent_studio.envs.desktop_env.evaluators.google.evaluator_base import (
-    GoogleEvaluatorBase,
 )
 from agent_studio.envs.desktop_env.evaluators.google.gservice import GoogleService
 from agent_studio.utils.human_utils import confirm_action
@@ -120,7 +118,7 @@ def get_message_from_raw(raw_message: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-class GmailEvaluator(GoogleEvaluatorBase):
+class GmailEvaluator(Evaluator):
     name: str = "gmail"
 
     def __init__(

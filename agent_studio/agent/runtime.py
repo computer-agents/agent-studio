@@ -1,12 +1,7 @@
 import os
 from queue import Empty
 
-import requests
 from jupyter_client.manager import KernelManager
-
-from agent_studio.config.config import Config
-
-config = Config()
 
 # Supresses a weird debugging error
 os.environ["PYDEVD_DISABLE_FILE_VALIDATION"] = "1"
@@ -15,7 +10,8 @@ os.environ["ANSI_COLORS_DISABLED"] = "1"
 
 
 class PythonRuntime:
-    def __init__(self):
+    def __init__(self, python_timeout=20):
+        self.python_timeout = python_timeout
         self.km = KernelManager(kernel_name="python3")
         self.km.start_kernel()
         self.kc = self.km.client()
@@ -28,7 +24,7 @@ class PythonRuntime:
         # Continuously read messages from the IOPub channel
         try:
             while True:
-                msg = self.kc.get_iopub_msg(timeout=config.python_timeout)
+                msg = self.kc.get_iopub_msg(timeout=self.python_timeout)
                 content = msg["content"]
                 if (
                     msg["header"]["msg_type"] == "status"
@@ -56,15 +52,3 @@ class PythonRuntime:
         self.km.shutdown_kernel()
         del self.km
         del self.kc
-
-
-class RemotePythonRuntime:
-    def __call__(self, code: str) -> dict:
-        response = requests.post(
-            f"http://{config.env_server_addr}:{config.env_server_port}/execute",
-            json={"message": code},
-        )
-        return response.json()
-
-    def close(self) -> None:
-        pass

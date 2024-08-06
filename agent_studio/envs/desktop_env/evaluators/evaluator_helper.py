@@ -45,7 +45,7 @@ def register_evaluators(
                 try:
                     tree = ast.parse(file_contents)
                 except SyntaxError:
-                    logger.error(f"Error parsing {file_path} skipping...")
+                    logger.error(f"Error parsing {file_path}. Skipping...")
                     continue
                 # Check each class definition in the file
                 for node in ast.walk(tree):
@@ -72,7 +72,7 @@ def register_evaluators(
                                 except Exception as e:
                                     logger.error(
                                         f"Error importing {module_name} {node.name}. "
-                                        f"Due to {e} skipping..."
+                                        f"Due to {e}. Skipping..."
                                     )
                                 break
     return registered_classes
@@ -97,6 +97,9 @@ def evaluator_router(
                 )
             )
         else:
-            raise ValueError(f"eval_type {eval_type} is not supported")
+            raise ValueError(
+                f"The eval_type '{eval_type}' is not registered. "
+                f"This probably indicates a bug in the code."
+            )
 
     return EvaluatorComb(evaluators)

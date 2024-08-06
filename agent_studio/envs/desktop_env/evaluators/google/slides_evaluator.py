@@ -1,6 +1,7 @@
 import logging
 
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
+    Evaluator,
     FeedbackException,
     evaluation_handler,
     reset_handler,
@@ -8,15 +9,12 @@ from agent_studio.envs.desktop_env.evaluators.evaluator import (
 from agent_studio.envs.desktop_env.evaluators.google.drive_evaluator import (
     GoogleDriveService,
 )
-from agent_studio.envs.desktop_env.evaluators.google.evaluator_base import (
-    GoogleEvaluatorBase,
-)
 from agent_studio.envs.desktop_env.evaluators.google.gservice import GoogleService
 
 logger = logging.getLogger(__name__)
 
 
-class GoogleSlidesEvaluator(GoogleEvaluatorBase):
+class GoogleSlidesEvaluator(Evaluator):
     name: str = "google_slides"
 
     def __init__(

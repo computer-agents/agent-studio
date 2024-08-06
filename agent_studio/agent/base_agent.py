@@ -6,7 +6,7 @@ from typing import Any
 import numpy as np
 import requests
 
-from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
+from agent_studio.agent.runtime import PythonRuntime
 from agent_studio.llm import setup_model
 from agent_studio.llm.utils import extract_from_response
 from agent_studio.utils.types import MessageList
@@ -54,7 +54,7 @@ class BaseAgent:
         self.remote = remote
         self.runtime_server_addr = runtime_server_addr
         self.runtime_server_port = runtime_server_port
-        self.runtime: PythonRuntime | RemotePythonRuntime | None = None
+        self.runtime: PythonRuntime | None = None
         self.runtime_init_code: str = RUNTIME_INIT_CODE.strip()
 
         self.task_config = {}
@@ -90,17 +90,18 @@ class BaseAgent:
         if self.runtime is not None:
             self.runtime.close()
         if self.remote:
-            self.runtime = RemotePythonRuntime()
+            if self.runtime_init_code is not None:
+                requests.post(
+                    f"http://{self.runtime_server_addr}:{self.runtime_server_port}/execute",  # noqa: E501
+                    json={"message": self.runtime_init_code},
+                )
         else:
-            self.runtime = PythonRuntime()
+            self.runtime = PythonRuntime(python_timeout=20)
+            assert self.runtime is not None, "Failed to initialize runtime."
+            if self.runtime_init_code is not None:
+                self.runtime(self.runtime_init_code)
 
-        assert self.runtime is not None, "Failed to initialize runtime."
-        if self.runtime_init_code is not None:
-            self.runtime(self.runtime_init_code)
-
-    def generate_action(
-        self, obs: np.ndarray | None, model_name: str
-    ) -> tuple[str, str]:
+    def generate_action(self, obs: np.ndarray | None, model_name: str) -> str:
         """Generate an action based on the observation."""
         self.step_info.obs = obs
         prompt = self.action_prompt
@@ -116,7 +117,7 @@ class BaseAgent:
         action = extract_from_response(response).strip()
         self.step_info.action = action
 
-        return response, action
+        return action
 
     def step_action(self, confirmed: bool) -> tuple[dict, bool]:
         """Execute the code if confirmed and record the result."""

@@ -60,7 +60,6 @@ class Evaluator:
     """Base class for evaluation."""
 
     name: str = "evaluator"
-    prompt: str = "system_prompt"
 
     def __init__(
         self,

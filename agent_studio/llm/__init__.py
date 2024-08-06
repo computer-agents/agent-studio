@@ -22,7 +22,7 @@ def register_models(
             try:
                 tree = ast.parse(file_contents)
             except SyntaxError:
-                logger.error(f"Error parsing {file_path} skipping...")
+                logger.error(f"Error parsing {file_path}. Skipping...")
                 continue
             # Check each class definition in the file
             for node in ast.walk(tree):
@@ -47,7 +47,7 @@ def register_models(
                             except Exception as e:
                                 logger.error(
                                     f"Error importing {module_name} {node.name}. "
-                                    f"Due to {e} skipping..."
+                                    f"Due to {e}. Skipping..."
                                 )
                             break
     return registered_classes
