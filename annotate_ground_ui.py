@@ -40,7 +40,7 @@ class GUIGroundingAnnotator(QMainWindow):
         local_monitor_idx: int,
         vnc_server_addr: str,
         vnc_server_port: int,
-        vnc_passwprd: str,
+        vnc_password: str,
     ) -> None:
         """Initializes the UI.
 
@@ -50,7 +50,7 @@ class GUIGroundingAnnotator(QMainWindow):
         super().__init__()
         self.vnc_server_addr = vnc_server_addr
         self.vnc_server_port = vnc_server_port
-        self.vnc_password = vnc_passwprd
+        self.vnc_password = vnc_password
 
         # Setup a QTimer to periodically update the screen.
         self.refresh_timer = QTimer(self)
@@ -62,7 +62,7 @@ class GUIGroundingAnnotator(QMainWindow):
         self.record_path = record_path
         if remote:
             self.capture_thread: VNCStreamer = VNCStreamer(
-                vnc_server_addr, vnc_server_port, vnc_passwprd
+                vnc_server_addr, vnc_server_port, vnc_password
             )
         else:
             self.capture_thread: LocalStreamer = LocalStreamer(local_monitor_idx)
@@ -147,9 +147,8 @@ class GUIGroundingAnnotator(QMainWindow):
         self.task_status_bar = QLabel()
         self.status_bar.addPermanentWidget(self.task_status_bar)
 
-        # Enable mouse tracking and maximize the window.
+        # Enable mouse tracking
         self.setMouseTracking(True)
-        # self.showMaximized()
 
         self.reset()
 
@@ -304,7 +303,7 @@ def main():
             local_monitor_idx=args.local_monitor_idx,
             vnc_server_addr=args.vnc_server_addr,
             vnc_server_port=args.vnc_server_port,
-            vnc_passwprd=args.vnc_password,
+            vnc_password=args.vnc_password,
         )
         interface.resize(args.window_width, args.window_height)
 
