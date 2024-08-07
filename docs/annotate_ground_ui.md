@@ -18,6 +18,8 @@ You can also annotate on another machine with VNC:
 python annotate_ground_ui.py --record_path recordings --remote --vnc_server_addr 127.0.0.1 --vnc_server_port 5900 --vnc_password 123456
 ```
 
+The address and port are set in the [docker setup](./install.md).
+
 ## Usage
 
 Follow the steps below to complete the annotation process as guided by the status bar. Although this interface cannot directly interact with the device, you can operate outside of this interface to navigate (on another screen (local), or through a VNC viewer (remote)).

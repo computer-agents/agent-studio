@@ -18,7 +18,7 @@ All confidential API keys should be stored in `agent_studio/config/api_key.json`
 
 ## Setup Docker (Optional)
 
-We provide a lightweight Dockerfile for reproducing GUI tasks in the online benchmarks.
+We provide a lightweight Dockerfile for reproducing GUI tasks in the online benchmarks or collecting data on a remote machine.
 
 ### Build Docker Image
 
@@ -32,4 +32,4 @@ docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t agent-studio:latest
 docker run -d -e RESOLUTION=1024x768 -p 6080:80 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/home/ubuntu/agent_studio/agent_studio/config -v ${PWD}/data:/home/ubuntu/agent_studio/data:ro agent-studio:latest
 ```
 
-You can browse [http://127.0.0.1:6080/⁠](http://127.0.0.1:6080/⁠) to interact with the remote machine through a browser.
+You can browse `http://127.0.0.1:6080` to interact with the remote machine through a browser.

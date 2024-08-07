@@ -170,5 +170,4 @@ agent_studio/config/*
 vscode_workspace/
 
 raw_data
-*.png
 results*

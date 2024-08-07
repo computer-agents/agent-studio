@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import json
 import os
 import sys
@@ -20,7 +21,11 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from agent_studio.envs.desktop_env.vnc_client import LocalStreamer, VNCFrame
+from agent_studio.envs.desktop_env.vnc_client import (
+    LocalStreamer,
+    VNCFrame,
+    VNCStreamer,
+)
 
 
 class GUIGroundingAnnotator(QMainWindow):
@@ -43,6 +48,9 @@ class GUIGroundingAnnotator(QMainWindow):
             record_path: Path to save the recordings.
         """
         super().__init__()
+        self.vnc_server_addr = vnc_server_addr
+        self.vnc_server_port = vnc_server_port
+        self.vnc_password = vnc_passwprd
 
         # Setup a QTimer to periodically update the screen.
         self.refresh_timer = QTimer(self)
@@ -53,7 +61,7 @@ class GUIGroundingAnnotator(QMainWindow):
 
         self.record_path = record_path
         if remote:
-            self.capture_thread: VNCFrame = VNCFrame(
+            self.capture_thread: VNCStreamer = VNCStreamer(
                 vnc_server_addr, vnc_server_port, vnc_passwprd
             )
         else:
@@ -94,6 +102,13 @@ class GUIGroundingAnnotator(QMainWindow):
         right_layout = QVBoxLayout()
         right_layout.setSpacing(10)
         right_layout.setContentsMargins(10, 10, 10, 10)
+
+        if remote:
+            self.reconnect_button = QPushButton("Re-connect")
+            self.reconnect_button.clicked.connect(self.reconnect)
+            self.reconnect_button.setFixedWidth(150)
+            self.reconnect_button.setFixedHeight(50)
+            right_layout.addWidget(self.reconnect_button)
 
         # Button to capture a screenshot.
         self.capture_button = QPushButton("Capture")
@@ -188,6 +203,20 @@ class GUIGroundingAnnotator(QMainWindow):
             "Annotation saved. Please click 'Reset' to continue."
         )
 
+    def reconnect(self):
+        self.status_bar.showMessage("Reconnecting")
+        self.now_screenshot = np.zeros(
+            (self.video_height, self.video_width, 4), dtype="uint8"
+        )
+        if self.capture_thread is not None:
+            self.capture_thread = VNCStreamer(
+                env_server_addr=self.vnc_server_addr,
+                vnc_port=self.vnc_server_port,
+                vnc_password=self.vnc_password,
+            )
+            self.capture_thread.start()
+        self.status_bar.showMessage("Connected. Please capture the screenshot.")
+
     def render(self):
         """Renders the screen by periodically updating the frame."""
         self.refresh_timer.stop()
@@ -265,26 +294,29 @@ def main():
     os.makedirs(args.record_path, exist_ok=True)
     os.makedirs(os.path.join(args.record_path, "screenshots"), exist_ok=True)
 
-    # Create the main interface.
-    interface = GUIGroundingAnnotator(
-        record_path=args.record_path,
-        remote=args.remote,
-        window_width=args.window_width,
-        window_height=args.window_height,
-        local_monitor_idx=args.local_monitor_idx,
-        vnc_server_addr=args.vnc_server_addr,
-        vnc_server_port=args.vnc_server_port,
-        vnc_passwprd=args.vnc_password,
-    )
-    interface.resize(args.window_width, args.window_height)
+    try:
+        # Create the main interface.
+        interface = GUIGroundingAnnotator(
+            record_path=args.record_path,
+            remote=args.remote,
+            window_width=args.window_width,
+            window_height=args.window_height,
+            local_monitor_idx=args.local_monitor_idx,
+            vnc_server_addr=args.vnc_server_addr,
+            vnc_server_port=args.vnc_server_port,
+            vnc_passwprd=args.vnc_password,
+        )
+        interface.resize(args.window_width, args.window_height)
 
-    # Move window to the second screen
-    second_screen = screens[1]
-    geometry = second_screen.geometry()
-    interface.move(geometry.topLeft())
-    interface.show()
+        # Move window to the second screen
+        second_screen = screens[1]
+        geometry = second_screen.geometry()
+        interface.move(geometry.topLeft())
+        interface.show()
 
-    sys.exit(app.exec())
+        sys.exit(app.exec())
+    except asyncio.exceptions.CancelledError:
+        sys.exit(0)
 
 
 if __name__ == "__main__":
