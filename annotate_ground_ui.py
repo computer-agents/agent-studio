@@ -287,7 +287,7 @@ def main():
     # Ensure a second screen is available.
     app = QApplication(sys.argv)
     screens = QApplication.screens()
-    if len(screens) < 2:
+    if not args.remote and len(screens) < 2:
         raise RuntimeError("A second screen is required for local annotation.")
 
     # Main entry point for the application.
@@ -308,10 +308,11 @@ def main():
         )
         interface.resize(args.window_width, args.window_height)
 
-        # Move window to the second screen
-        second_screen = screens[1]
-        geometry = second_screen.geometry()
-        interface.move(geometry.topLeft())
+        if not args.remote:
+            # Move window to the second screen
+            second_screen = screens[1]
+            geometry = second_screen.geometry()
+            interface.move(geometry.topLeft())
         interface.show()
 
         sys.exit(app.exec())
