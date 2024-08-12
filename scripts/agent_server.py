@@ -10,7 +10,10 @@ from fastapi.responses import Response
 
 from agent_studio.agent.runtime import PythonRuntime
 from agent_studio.config import Config
-from agent_studio.envs.desktop_env.evaluators.evaluator_helper import EvaluatorComb
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import (
+    EvaluatorComb,
+    evaluator_router,
+)
 from agent_studio.utils.communication import (
     AgentStudioEvalRequest,
     AgentStudioResetRequest,
@@ -39,20 +42,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
-
-def setup_evaluator(
-    env: str,
-):
-    match env:
-        case "desktop":
-            from agent_studio.envs.desktop_env.evaluators.evaluator_helper import (
-                evaluator_router,
-            )
-        case _:
-            raise ValueError(f"Invalid env: {env}.")
-
-    return evaluator_router
 
 
 def reset_task(comb: EvaluatorComb):
@@ -183,9 +172,6 @@ async def new_task(request: AgentStudioResetRequest) -> AgentStudioStatusRespons
 
     logger.info(f"Start resetting task: {request.task_config}")
     try:
-        evaluator_router = setup_evaluator(
-            env=config.env_type,
-        )
         comb = evaluator_router(request.task_config)
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
         current_thread = threading.Thread(target=reset_task, args=(comb,))
@@ -218,9 +204,6 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
         global current_thread
         if current_thread is not None:
             raise ValueError("Another task is in progress.")
-        evaluator_router = setup_evaluator(
-            env=config.env_type,
-        )
         logger.info(f"Start evaluating task: {request.task_config}")
         comb: EvaluatorComb = evaluator_router(task_configs=request.task_config)
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
