@@ -20,12 +20,12 @@ You should note that the toolkit may do some **non-reversible actions**, such as
 
 #### Non-GUI tasks
 
-For Level-1 tasks without Google API usage (e.g., os-related tasks), you can directly run:
+For Level-1 tasks without Google API usage (e.g., OS-related tasks), you can directly run:
 
 For example:
 
 ```bash
-python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_1/filesystem.json --model gemini-pro
+python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_1/filesystem.json --model gemini-1.0-pro-001
 ```
 
 You can set `need_human_confirmation` to True in `agent_studio/config/config.py` to do safety check before each action execution. You can add `--help` for more args.
@@ -37,9 +37,9 @@ For Level-2 tasks requiring Google API usage, kindly enable Google APIs, configu
 Start benchmarking:
 
 ```bash
-python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_2/gcalendar.json --model gemini-pro
-python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_2/gdocs.json --model gemini-pro
-python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_2/gmail.json --model gemini-pro
+python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_2/gcalendar.json --model gemini-1.0-pro-001
+python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_2/gdocs.json --model gemini-1.0-pro-001
+python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_2/gmail.json --model gemini-1.0-pro-001
 ```
 
 #### GUI tasks
@@ -47,8 +47,8 @@ python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/
 This setup is suitable for evaluating agents in visual tasks. For reproducibility, we use a Ubuntu docker container connected via VNC remote desktop.
 
 ```bash
-python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_3/desktop_hard.json --model gemini-pro-vision --remote ...
-python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_3/vscode.json --model gemini-pro-vision --remote ...
+python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_3/desktop_hard.json --model gemini-1.5-flash-001 --remote --end_idx 1 --render
+python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_3/vscode.json --model gemini-1.5-flash-001 --remote ...
 ```
 
 ## Add more tasks

@@ -55,8 +55,8 @@ def register_models(
 
 MODEL_PROVIDER_MAPPING = {
     "gpt-4o": "openai",
-    "gemini-pro": "gemini",
-    "gemini-pro-vision": "gemini",
+    "gemini-1.0-pro-001": "gemini",
+    "gemini-1.5-flash-001": "gemini",
 }
 
 
