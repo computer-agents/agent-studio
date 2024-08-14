@@ -10,7 +10,8 @@ from agent_studio.recorder.utils import Record, Event
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QFileDialog, QListWidget,
                              QSlider, QLabel, QLineEdit, QComboBox, QFormLayout,
-                             QCheckBox, QSpinBox, QDoubleSpinBox, QMenuBar, QMenu, QMessageBox)
+                             QCheckBox, QSpinBox, QDoubleSpinBox, QMenuBar, QMenu,
+                             QMessageBox, QScrollArea)
 from PyQt6.QtMultimedia import QMediaPlayer
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtCore import Qt, QUrl
@@ -43,13 +44,28 @@ class VideoPlayer(QMainWindow):
         self.media_player.setVideoOutput(self.video_widget)
         video_layout.addWidget(self.video_widget)
 
+        # Create a horizontal layout for the controls
+        controls_layout = QHBoxLayout()
+
+        # Add play button to the controls layout
         self.play_button = QPushButton("Play")
         self.play_button.clicked.connect(self.play_pause)
-        video_layout.addWidget(self.play_button)
+        self.play_button.setFixedHeight(30)
+        controls_layout.addWidget(self.play_button)
 
+        # Add seek slider to the controls layout
         self.seek_slider = QSlider(Qt.Orientation.Horizontal)
         self.seek_slider.sliderMoved.connect(self.set_position)
-        video_layout.addWidget(self.seek_slider)
+        self.seek_slider.setFixedHeight(10)
+        controls_layout.addWidget(self.seek_slider)
+
+        # Add time label to the controls layout, format: mm:ss::ms
+        self.time_label = QLabel("00:00:000 / 00:00:000")
+        self.time_label.setFixedHeight(30)
+        controls_layout.addWidget(self.time_label)
+
+        # Add the controls layout to the video layout
+        video_layout.addLayout(controls_layout)
 
         video_container = QWidget()
         video_container.setLayout(video_layout)
@@ -61,14 +77,23 @@ class VideoPlayer(QMainWindow):
         # List widget (middle-right)
         self.list_widget = QListWidget()
         self.list_widget.setSelectionMode(QListWidget.SelectionMode.ExtendedSelection)
+        # single click to show event details
         self.list_widget.itemSelectionChanged.connect(self.update_event_details)
+        # double click to seek the video to the event time
+        self.list_widget.itemDoubleClicked.connect(self.seek_to_event)
         right_layout.addWidget(self.list_widget)
 
         # Event details widget (bottom-right)
         self.event_details_widget = QWidget()
         self.event_details_layout = QFormLayout()
         self.event_details_widget.setLayout(self.event_details_layout)
-        right_layout.addWidget(self.event_details_widget)
+
+        # Create a scroll area and set the event details widget as its widget
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidget(self.event_details_widget)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setFixedHeight(200)  # Adjust the size as needed
+        right_layout.addWidget(self.scroll_area)
 
         right_container = QWidget()
         right_container.setLayout(right_layout)
@@ -82,6 +107,8 @@ class VideoPlayer(QMainWindow):
         # Connect media player signals
         self.media_player.positionChanged.connect(self.position_changed)
         self.media_player.durationChanged.connect(self.duration_changed)
+
+        self._load_file("record.json")
 
     def create_menu_bar(self):
         menu_bar = QMenuBar(self)
@@ -106,6 +133,22 @@ class VideoPlayer(QMainWindow):
         save_as_action.triggered.connect(self.save_file_as)
         file_menu.addAction(save_as_action)
 
+    ### List Widget Slots ###
+
+    def seek_to_event(self, item):
+        selected_index = self.list_widget.row(item)
+        if self.record is not None:
+            self.media_player.setPosition(
+                int(self.record.events[selected_index].time * 1000))
+
+    def delete_event(self):
+        selected_items = self.list_widget.selectedItems()
+        if self.record is not None:
+            for item in selected_items:
+                selected_index = self.list_widget.row(item)
+                self.record.events.pop(selected_index)
+                self.list_widget.takeItem(selected_index)
+
     def update_event_details(self):
         # Clear previous details
         for i in reversed(range(self.event_details_layout.rowCount())):
@@ -116,16 +159,26 @@ class VideoPlayer(QMainWindow):
             self.current_event = None
             return
 
-        selected_index = self.list_widget.row(selected_items[0])
-        self.current_event = self.record.events[selected_index]
-
-        # Add static fields
-        self.event_details_layout.addRow(
-            "Event Type:", QLabel(self.current_event.event_type))
+        delete_button = QPushButton("Delete")
+        delete_button.clicked.connect(self.delete_event)
+        self.event_details_layout.addRow(delete_button)
 
         # Dynamically create UI elements based on event type
-        if len(self.list_widget.selectedItems()) == 1:
+        if len(selected_items) == 1:
+            selected_index = self.list_widget.row(selected_items[0])
+            self.current_event = self.record.events[selected_index]
+            # Add static fields
+            self.event_details_layout.addRow(
+                "Event Type:", QLabel(self.current_event.event_type))
             self.create_dynamic_ui(self.current_event)
+        # else:
+        #     # Multiple items selected, show advanced options
+        #     # all selected events should have the same type
+        #     event_types = set()
+        #     for item in selected_items:
+        #         selected_index = self.list_widget.row(item)
+        #         event_types.add(self.record.events[selected_index].event_type)
+        #     if len(event_types) == 1:
 
     def create_dynamic_ui(self, event: Event):
         for field_name, field in event.model_fields.items():
@@ -185,19 +238,12 @@ class VideoPlayer(QMainWindow):
 
     def update_list_item(self):
         selected_items = self.list_widget.selectedItems()
-        if len(selected_items) == 1:
-            selected_items[0].setText(str(self.current_event))
+        if len(selected_items) == 1 and self.current_event is not None:
+            selected_items[0].setText(self.current_event.format())
 
-    def play_pause(self):
-        if self.media_player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
-            self.media_player.pause()
-            self.play_button.setText("Play")
-        else:
-            self.media_player.play()
-            self.play_button.setText("Pause")
+    ### Menu Bar Slots ###
 
-    def open_file(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "Open Record Trajectory")
+    def _load_file(self, file_name):
         if file_name:
             self.current_file = file_name
             with open(file_name, 'r') as f:
@@ -207,9 +253,12 @@ class VideoPlayer(QMainWindow):
                         QUrl.fromLocalFile(self.record.video.path))
                 self.list_widget.clear()
                 for i, event in enumerate(self.record.events):
-                    self.list_widget.addItem(f"{event}")
+                    self.list_widget.addItem(event.format())
 
-    ### Menu Bar Slots ###
+    def open_file(self):
+        file_name, _ = QFileDialog.getOpenFileName(self, "Open Record Trajectory")
+        self._load_file(file_name)
+
     def save_file(self):
         if self.current_file:
             self.save_to_file(self.current_file)
@@ -237,12 +286,20 @@ class VideoPlayer(QMainWindow):
 
     ### Media Player Slots ###
 
+    def play_pause(self):
+        if self.media_player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
+            self.media_player.pause()
+            self.play_button.setText("Play")
+        else:
+            self.media_player.play()
+            self.play_button.setText("Pause")
+
     def handle_item_color(self):
         # find out the current event
         if self.record is not None:
             # position is in milliseconds
-            idx = bisect.bisect_left(self.record.events, Event(
-                time=self.media_player.position() / 1000.0, event_type=""))
+            idx = bisect.bisect_right(self.record.events, Event(
+                time=self.media_player.position() / 1000.0, event_type="")) - 1
             # change the corresponding item to green
             for i in range(self.list_widget.count()):
                 item = self.list_widget.item(i)
@@ -251,6 +308,8 @@ class VideoPlayer(QMainWindow):
                     continue
                 if i == idx:
                     item.setBackground(Qt.GlobalColor.green)
+                elif i == idx + 1:
+                    item.setBackground(Qt.GlobalColor.yellow)
                 else:
                     item.setBackground(Qt.GlobalColor.white)
 
@@ -260,6 +319,10 @@ class VideoPlayer(QMainWindow):
     def position_changed(self, position):
         self.seek_slider.setValue(position)
         self.handle_item_color()
+        # Update the time label, format the time as mm:ss::ms
+        self.time_label.setText(
+            f"{position // 60000:02}:{(position // 1000) % 60:02}:{position % 1000:03} / "
+            f"{self.media_player.duration() // 60000:02}:{(self.media_player.duration() // 1000) % 60:02}:{self.media_player.duration() % 1000:03}")
 
     def duration_changed(self, duration):
         self.seek_slider.setRange(0, duration)

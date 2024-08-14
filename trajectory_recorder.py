@@ -167,7 +167,7 @@ if __name__ == "__main__":
             "width": 2560,
             "height": 1600,
         },
-        video_fps=5,
+        video_fps=10,
         output_file='record.json',
         mouse_fps=5,   # valid if recording mouse movement
     )

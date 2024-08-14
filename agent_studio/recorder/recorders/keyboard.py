@@ -4,7 +4,7 @@ import logging
 
 from pynput import keyboard
 
-from utils import KeyboardEvent, KeyboardAction, Recorder
+from agent_studio.recorder.utils import KeyboardEvent, KeyboardAction, Recorder
 
 logger = logging.getLogger(__name__)
 

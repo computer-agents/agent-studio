@@ -8,7 +8,7 @@ import cv2
 import mss
 import numpy as np
 
-from utils import Recorder
+from agent_studio.recorder.utils import Recorder
 
 logger = logging.getLogger(__name__)
 
@@ -98,10 +98,10 @@ class VideoRecorder(Recorder):
         writer = cv2.VideoWriter(
             self.video_path, cv2.VideoWriter_fourcc(*'mp4v'), self.fps, self.frame_size
         )
-        print(f"Write video to {self.video_path}")
+        logging.info(f"Write video to {self.video_path}")
 
         frames = self.__get_frames(start_frame_id, end_frame_id)
-        print(f"Get {len(frames)} frames with fps {self.fps}")
+        logging.info(f"Get {len(frames)} frames with fps {self.fps}")
         for frame in frames:
             writer.write(frame[1])
         writer.release()

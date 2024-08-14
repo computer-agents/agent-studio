@@ -3,7 +3,7 @@ import logging
 
 from pynput import mouse
 
-from utils import MouseEvent, MouseAction, MouseOptions, Recorder
+from agent_studio.recorder.utils import MouseEvent, MouseAction, MouseOptions, Recorder
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class MouseRecorder(Recorder):
                 MouseEvent(
                     time=time(),
                     event_type="mouse",
-                    action=MouseAction.MOVE,
+                    action=MouseAction.POS,
                     x=x,
                     y=y
                 )
