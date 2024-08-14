@@ -3,8 +3,8 @@ import time
 from pathlib import Path
 
 from eval_gui_grounding import GUIGroundingEval
-from eval_idm import IDMEval
-from eval_idmn2n import IDMN2NEval
+from eval_idm import IDMSingleEval
+from eval_idmn2n import IDMMultipleEval
 from eval_success_detection import SuccessDetectionEval
 
 from agent_studio.llm import setup_model
@@ -12,9 +12,6 @@ from agent_studio.llm import setup_model
 
 def create_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--provider", type=str, choices=["openai", "gemini", "claude", "huggingface"]
-    )
     parser.add_argument("--model", type=str)
     parser.add_argument("--tokenizer", type=str, default=None)
     parser.add_argument(
@@ -35,11 +32,11 @@ def main():
     args = parser.parse_args()
     print(f"Running with args: {args}")
 
-    model = setup_model(args.provider)
-    save_path = Path("results")
+    model = setup_model(args.model)
+    save_path = Path(f"results/{args.eval_type}")
     save_path.mkdir(parents=True, exist_ok=True)
     # with time
-    file_stem = f"{save_path}/{args.eval_type}/{args.model.split('/')[-1]}_{time.strftime('%H%M%S')}"  # noqa: E501
+    file_stem = f"{save_path}/{args.model.split('/')[-1]}_{time.strftime('%H%M%S')}"  # noqa: E501
     if args.start_idx != 0:
         file_stem += f"_start{args.start_idx}"
     if args.end_idx is not None:
@@ -66,7 +63,7 @@ def main():
                 num_workers=args.num_workers,
             )
         case "idm":  # evaluation on ability as inverse dynamics model
-            evaluator = IDMEval(
+            evaluator = IDMSingleEval(
                 model=model,
                 data_path=args.data_path,
                 result_filename=result_filename,
@@ -75,7 +72,7 @@ def main():
                 num_workers=args.num_workers,
             )
         case "idmn2n":  # evaluation on inverse dynamics model that predict a sequence of actions from trajectories  # noqa: E501
-            evaluator = IDMN2NEval(
+            evaluator = IDMMultipleEval(
                 model=model,
                 data_path=args.data_path,
                 result_filename=result_filename,

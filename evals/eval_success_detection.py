@@ -4,11 +4,12 @@ import re
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 from common import map_with_progress
-from schema import Episode
+from eval_base import BaseEval
 
-from agent_studio.llm import BaseModel
-from agent_studio.utils.json_utils import add_jsonl, read_jsonl
+from agent_studio.utils.json_utils import add_jsonl
+from agent_studio.utils.types import Message, MessageList
 
 logger = logging.getLogger("eval_logger")
 
@@ -22,31 +23,39 @@ ANSWER_PATTERN = r"(?i)Answer\s*:\s*(succ|fail)"
 
 
 def format_success_detection_prompt(
-    data_dir: str,
-    episode: Episode,
+    instruction: str,
+    actions: list[dict],
+    action_space: list[str],
 ) -> list:
-    messages = []
-    for action in episode.actions:
-        if action.obs_before is not None:
-            messages.append(
-                {
-                    "role": "user",
-                    "content": Path(os.path.join(data_dir, action.obs_before)),
-                }
-            )
-        messages.append({"role": "user", "content": f'{action.metadata["repr"]}'})
-    if action.obs_after is not None:
+    messages: MessageList = []
+    for action in actions:
         messages.append(
-            {"role": "user", "content": Path(os.path.join(data_dir, action.obs_after))}
+            Message(
+                role="user",
+                content=action["obs_before"],
+            )
+        )
+        messages.append(
+            Message(
+                role="user",
+                content=action["metadata"]["repr"],
+            )
+        )
+    if actions[-1]["obs_after"] is not None:
+        messages.append(
+            Message(
+                role="user",
+                content=actions[-1]["obs_after"],
+            )
         )
     messages.append(
-        {
-            "role": "user",
-            "content": QUERY_TEMPLATE.format(
-                instruction=episode.instruction,
-                action_space=", ".join(episode.action_space),
+        Message(
+            role="user",
+            content=QUERY_TEMPLATE.format(
+                instruction=instruction,
+                action_space=", ".join(action_space),
             ),
-        },
+        ),
     )
 
     return messages
@@ -60,36 +69,55 @@ def parse_success_detection_response(response: str, reference: bool) -> float:
     return 1.0 if (match and ((match.group(1) == "succ")) == reference) else 0.0
 
 
-class SuccessDetectionEval:
-    def __init__(
-        self,
-        model: BaseModel,
-        data_path: str,
-        result_filename: Path,
-        start_idx: int = 0,
-        end_idx: int | None = None,
-        num_workers: int = 1,
-    ):
-        self.model = model
-        self.data = read_jsonl(data_path, start_idx, end_idx)
-        self.data_dir = os.path.join(Path(data_path).parent, "images")
-        self.result_filename = result_filename
-        self.num_workers = num_workers
-
+class SuccessDetectionEval(BaseEval):
     def __call__(
         self,
         model_name: str,
         tokenizer_name: str,
     ) -> list[dict[str, Any]]:
         def fn(row: dict):
-            episode: Episode = Episode.model_validate(row)
-            # only use the last 5 actions
-            episode.actions = (
-                episode.actions[-5:] if len(episode.actions) > 5 else episode.actions
-            )
+            if self.data_dir is not None:
+                actions = row["actions"]
+            else:
+                actions = [
+                    dict(zip(row["actions"].keys(), values))
+                    for values in zip(*row["actions"].values())
+                ]
+            instruction = row["instruction"]
+            is_success = row["is_success"]
+
+            # Only use the last 5 actions at most
+            actions = actions[-5:] if len(actions) > 5 else actions
+
+            for action in actions:
+                if self.data_dir is not None:
+                    action["obs_before"] = Path(
+                        os.path.join(self.data_dir, action["obs_before"])
+                    )
+                    if action["obs_after"] is not None:
+                        action["obs_after_path"] = action["obs_after"]
+                        action["obs_after"] = Path(
+                            os.path.join(self.data_dir, action["obs_after"])
+                        )
+                    else:
+                        action["obs_after"] = None
+                        action["obs_after_path"] = None
+                    action["obs_before_path"] = action["obs_before"]
+                else:
+                    action["obs_before"] = np.array(action["obs_before"].convert("RGB"))
+                    if action["obs_after"] is not None:
+                        action["obs_after"] = np.array(
+                            action["obs_after"].convert("RGB")
+                        )
+                    else:
+                        action["obs_after"] = None
+                    action["obs_before_path"] = action["obs_before_path"]
+                    action["obs_after_path"] = action["obs_after_path"]
 
             # Query the model and evaluate the response
-            prompt = format_success_detection_prompt(self.data_dir, episode)
+            prompt = format_success_detection_prompt(
+                instruction, actions, row["action_space"]
+            )
             response, info = self.model.generate_response(
                 prompt,
                 model=model_name,
@@ -99,34 +127,30 @@ class SuccessDetectionEval:
                 num_return_sequences=1,
             )
             logger.info(f"response: {response}")
-            score = parse_success_detection_response(response, episode.is_success)
+            score = parse_success_detection_response(response, is_success)
 
+            trajectory_images = [action["obs_before_path"] for action in actions]
+            if actions[-1]["obs_after_path"] is not None:
+                trajectory_images.append(actions[-1]["obs_after_path"])
             result = {
-                "trajectory_images": [action.obs_before for action in episode.actions]
-                + (
-                    [episode.actions[-1].obs_after]
-                    if episode.actions[-1].obs_after
-                    else []
-                ),
+                "trajectory_images": trajectory_images,
                 "trajectory_actions": [
-                    action.metadata["repr"] for action in episode.actions
+                    action["metadata"]["repr"] for action in actions
                 ],
-                "instruction": episode.instruction,
+                "instruction": instruction,
                 "score": score,
-                "source": episode.source,
-                "platform": episode.platform,
-                "annotation_id": episode.annotation_id,
-                "ref_answer": episode.is_success,
-                # "resolution": row["resolution"],
+                "source": row["source"],
+                "platform": row["platform"],
+                "annotation_id": row["annotation_id"],
+                "ref_answer": is_success,
                 "response": response,
-                # "parsed_action": action,
                 "input_tokens": info.get("prompt_tokens", 0),
                 "output_tokens": info.get("completion_tokens", 0),
             }
 
             add_jsonl([result], self.result_filename)
             logger.info(
-                f"Writing results {episode.annotation_id} to {self.result_filename}"
+                f"Writing results {row['annotation_id']} to {self.result_filename}"
             )
 
         map_with_progress(fn, self.data, self.num_workers)

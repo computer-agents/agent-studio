@@ -85,13 +85,13 @@ def render_image(prompt_messages: MessageList, bbox, pred_coord):
             content = content.as_posix()
         if isinstance(content, str):
             if content.endswith((".png", ".jpg", ".jpeg")):
-                image = Image.open(content)
+                image = Image.open(content).convert("RGB")
             else:
                 continue
         elif isinstance(content, Image.Image):
             image = content
         elif isinstance(content, np.ndarray):
-            image = Image.fromarray(content)
+            image = Image.fromarray(content).convert("RGB")
         else:
             raise ValueError(f"Unknown message type: {content}")
 

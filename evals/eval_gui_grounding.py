@@ -5,9 +5,10 @@ from typing import Any, Tuple
 
 import numpy as np
 from common import map_with_progress
+from eval_base import BaseEval
 
-from agent_studio.llm import BaseModel
-from agent_studio.utils.json_utils import add_jsonl, read_jsonl
+from agent_studio.utils.json_utils import add_jsonl
+from agent_studio.utils.types import Message, MessageList
 
 QUERY_TEMPLATE = """
 Please output the coordinate for the next action based on the instruction and screenshot. Your answer should be of the following format: '(X, Y)' (without quotes) where X, Y is the coordinates ranging from 0 to 1.
@@ -23,9 +24,9 @@ def format_gui_grounding_prompt(
     instruction: str,
     image_path: np.ndarray | Path,
 ) -> list:
-    messages = [
-        {"role": "user", "content": Path(image_path)},
-        {"role": "user", "content": QUERY_TEMPLATE.format(instruction=instruction)},
+    messages: MessageList = [
+        Message(role="user", content=image_path),
+        Message(role="user", content=QUERY_TEMPLATE.format(instruction=instruction)),
     ]
 
     return messages
@@ -57,33 +58,23 @@ def eval_coord_output(action, bbox, img_size, do_scale=True):
     return score, [pred_x, pred_y]
 
 
-class GUIGroundingEval:
-    def __init__(
-        self,
-        model: BaseModel,
-        data_path: str,
-        result_filename: str,
-        start_idx: int = 0,
-        end_idx: int | None = None,
-        num_workers: int = 1,
-    ):
-        self.model = model
-        self.data = read_jsonl(data_path, start_idx, end_idx)
-        self.data_dir = os.path.join(Path(data_path).parent, "images")
-        self.result_filename = result_filename
-        self.num_workers = num_workers
-
+class GUIGroundingEval(BaseEval):
     def __call__(
         self,
         model_name: str,
         tokenizer_name: str,
     ) -> list[dict[str, Any]]:
         def fn(row: dict):
-            image_path = os.path.join(self.data_dir, row["image"])
+            if self.data_dir is not None:
+                image = Path(os.path.join(self.data_dir, row["image"]))
+                image_path = row["image"]
+            else:
+                image = np.array(row["image"].convert("RGB"))
+                image_path = row["image_path"]
             instruction = row["instruction"]
 
             # Query the model and evaluate the response
-            prompt = format_gui_grounding_prompt(instruction, image_path)
+            prompt = format_gui_grounding_prompt(instruction, image)
             response, info = self.model.generate_response(
                 prompt,
                 model=model_name,
@@ -101,7 +92,7 @@ class GUIGroundingEval:
             )
 
             result = {
-                "image": row["image"],
+                "image": image_path,
                 "score": score,
                 "source": row["source"],
                 "platform": row["platform"],

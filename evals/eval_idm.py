@@ -4,11 +4,12 @@ import re
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 from common import map_with_progress
-from schema import Action, InverseAction
+from eval_base import BaseEval
 
-from agent_studio.llm import BaseModel
-from agent_studio.utils.json_utils import add_jsonl, read_jsonl
+from agent_studio.utils.json_utils import add_jsonl
+from agent_studio.utils.types import Message, MessageList
 
 logger = logging.getLogger("eval_logger")
 
@@ -26,26 +27,25 @@ ANSWER_PATTERN = r"(?i)Answer\s*:\s*([A-Z])"
 
 
 def format_idm_prompt(
-    data_dir: str,
+    obs_before: np.ndarray | Path,
+    obs_after: np.ndarray | Path,
     instruction: str,
-    action: Action,
     action_space: list[str],
 ) -> list:
-    messages = []
-    if action.obs_before is not None and action.obs_after is not None:
-        messages.append({"role": "user", "content": Path(data_dir, action.obs_before)})
-        messages.append({"role": "user", "content": Path(data_dir, action.obs_after)})
+    messages: MessageList = []
+    messages.append(Message(role="user", content=obs_before))
+    messages.append(Message(role="user", content=obs_after))
     choicestr = "\n".join(
         [f"{chr(65 + i)}. {action}" for i, action in enumerate(list(action_space))]
     )
     choices = "".join([chr(65 + i) for i in range(len(action_space))])
     messages.append(
-        {
-            "role": "user",
-            "content": QUERY_TEMPLATE.format(
+        Message(
+            role="user",
+            content=QUERY_TEMPLATE.format(
                 instruction=instruction, choices_str=choicestr, choices=choices
             ),
-        }
+        )
     )
 
     return messages
@@ -59,36 +59,29 @@ def eval_idm_response(response: str, reference: str) -> float:
     return 1.0 if (match and match.group(1).strip().startswith(reference)) else 0.0
 
 
-class IDMEval:
-    def __init__(
-        self,
-        model: BaseModel,
-        data_path: str,
-        result_filename: Path,
-        start_idx: int = 0,
-        end_idx: int | None = None,
-        num_workers: int = 1,
-    ):
-        self.model = model
-        self.data = read_jsonl(data_path, start_idx, end_idx)
-        self.data_dir = os.path.join(Path(data_path).parent, "images")
-        self.result_filename = result_filename
-        self.num_workers = num_workers
-
+class IDMSingleEval(BaseEval):
     def __call__(
         self,
         model_name: str,
         tokenizer_name: str,
     ) -> list[dict[str, Any]]:
         def fn(row: dict):
-            action: InverseAction = InverseAction.model_validate(row)
-            if action.obs_before is None or action.obs_after is None:
-                raise ValueError("obs_before and obs_after must be provided")
+            if self.data_dir is not None:
+                obs_before = Path(os.path.join(self.data_dir, row["obs_before"]))
+                obs_after = Path(os.path.join(self.data_dir, row["obs_after"]))
+                obs_before_path = row["obs_before"]
+                obs_after_path = row["obs_after"]
+            else:
+                obs_before = np.array(row["obs_before"].convert("RGB"))
+                obs_after = np.array(row["obs_after"].convert("RGB"))
+                obs_before_path = row["obs_before_path"]
+                obs_after_path = row["obs_after_path"]
+            instruction = row["instruction"]
+            action_space = row["action_space"]
+            operation = row["operation"]
 
             # Query the model and evaluate the response
-            prompt = format_idm_prompt(
-                self.data_dir, action.instruction, action, action.action_space
-            )
+            prompt = format_idm_prompt(obs_before, obs_after, instruction, action_space)
             response, info = self.model.generate_response(
                 prompt,
                 model=model_name,
@@ -98,27 +91,26 @@ class IDMEval:
                 num_return_sequences=1,
             )
             # get the position in the set of action_space
-            index = action.action_space.index(action.operation)
+            index = action_space.index(operation)
             ref_answer = chr(65 + index)
 
             score = eval_idm_response(response, ref_answer)
 
             result = {
-                "obs_before": action.obs_before,
-                "obs_after": action.obs_after,
-                "action_space": action.action_space,
+                "obs_before": obs_before_path,
+                "obs_after": obs_after_path,
+                "action_space": action_space,
                 "score": score,
-                "source": action.source,
-                "platform": action.platform,
-                "annotation_id": action.action_id,
-                "instruction": action.instruction,
+                "source": row["source"],
+                "platform": row["platform"],
+                "annotation_id": row["action_id"],
+                "instruction": instruction,
                 "response": response,
-                "ref_answer": action.operation,
-                # "parsed_action": action,
+                "ref_answer": operation,
                 "input_tokens": info.get("prompt_tokens", 0),
                 "output_tokens": info.get("completion_tokens", 0),
             }
             add_jsonl([result], self.result_filename)
-            logger.info(f"Writing results {action.action_id} to {self.result_filename}")
+            logger.info(f"Writing results {row['action_id']} to {self.result_filename}")
 
         map_with_progress(fn, self.data, self.num_workers)

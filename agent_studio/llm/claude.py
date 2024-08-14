@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Any
 
 import backoff
@@ -35,7 +36,7 @@ class AnthropicProvider(BaseModel):
             if msg.role == "system":
                 self.system_prompt = msg.content
                 continue
-            if isinstance(msg.content, np.ndarray):
+            if isinstance(msg.content, np.ndarray) or isinstance(msg.content, Path):
                 content: dict = {
                     "type": "image",
                     "source": {

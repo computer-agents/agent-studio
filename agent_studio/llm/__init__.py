@@ -54,14 +54,24 @@ def register_models(
 
 
 MODEL_PROVIDER_MAPPING = {
-    "gpt-4o": "openai",
+    "gpt-4o-2024-05-13": "openai",
+    "gpt-4-turbo-2024-04-09": "openai",
+    "gemini-pro-vision": "gemini",
     "gemini-1.0-pro-001": "gemini",
+    "gemini-1.5-pro": "gemini",
     "gemini-1.5-flash-001": "gemini",
+    "claude-3-haiku-20240307": "claude",
+    "claude-3-sonnet-20240229": "claude",
 }
 
 
 def setup_model(model_name: str) -> BaseModel:
-    provider_name = MODEL_PROVIDER_MAPPING[model_name]
+    if model_name not in MODEL_PROVIDER_MAPPING:
+        logger.info(
+            f"Model name '{model_name}' is not mapped to a provider, "
+            "defaulting to huggingface"
+        )
+    provider_name = MODEL_PROVIDER_MAPPING.get(model_name, "huggingface")
     registered_models: dict[str, type[BaseModel]] = register_models()
     logger.info(f"Registered models: {registered_models.keys()}")
     if provider_name not in registered_models:

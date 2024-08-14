@@ -32,7 +32,7 @@ Cleaned instruction:
 def draw_bbox(image_path, bbox):
     left, top, right, bottom = bbox
 
-    image = Image.open(image_path)
+    image = Image.open(image_path).convert("RGB")
     img_width, img_height = image.size
     dpi = 40
     figsize = img_width / float(dpi), img_height / float(dpi)

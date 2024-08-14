@@ -4,11 +4,12 @@ import re
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 from common import map_with_progress
-from schema import Action, Episode
+from eval_base import BaseEval
 
-from agent_studio.llm import BaseModel
-from agent_studio.utils.json_utils import add_jsonl, read_jsonl
+from agent_studio.utils.json_utils import add_jsonl
+from agent_studio.utils.types import Message, MessageList
 
 logger = logging.getLogger("eval_logger")
 
@@ -25,21 +26,25 @@ Instruction: {instruction}
 
 
 def format_idm_prompt(
-    data_dir: str,
     instruction: str,
-    actions: list[Action],
+    actions: list[dict],
     action_space: list[str],
 ) -> tuple[list, list, list]:
-    messages = []
-    selected_actions: list[Action] = []
+    messages: MessageList = []
     for action in actions:
-        if action.obs_before is None or action.obs_after is None:
-            raise ValueError(f"{action} does not have obs_before or obs_after.")
-        else:
-            messages.append(
-                {"role": "user", "content": Path(data_dir, action.obs_before)}
+        messages.append(
+            Message(
+                role="user",
+                content=action["obs_before"],
             )
-            selected_actions.append(action)
+        )
+    messages.append(
+        Message(
+            role="user",
+            content=actions[-1]["obs_after"],
+        )
+    )
+
     choicestr = "\n".join(
         [
             f"{chr(65 + i)}. {selected_actions}"
@@ -48,19 +53,15 @@ def format_idm_prompt(
     )
     choices = "".join([chr(65 + i) for i in range(len(action_space))])
     messages.append(
-        {
-            "role": "user",
-            "content": QUERY_TEMPLATE.format(
+        Message(
+            role="user",
+            content=QUERY_TEMPLATE.format(
                 instruction=instruction, choices_str=choicestr, choices=choices
             ),
-        }
+        )
     )
 
-    ref_answer = [
-        chr(65 + action_space.index(action.operation)) for action in selected_actions
-    ]
-
-    return messages, selected_actions, ref_answer
+    return messages
 
 
 def eval_idm_response(response: str, reference: list) -> float:
@@ -80,50 +81,53 @@ def eval_idm_response(response: str, reference: list) -> float:
     return score
 
 
-class IDMN2NEval:
-    def __init__(
-        self,
-        model: BaseModel,
-        data_path: str,
-        result_filename: Path,
-        start_idx: int = 0,
-        end_idx: int | None = None,
-        num_workers: int = 1,
-    ):
-        self.model = model
-        self.data = read_jsonl(data_path, start_idx, end_idx)
-        self.data_dir = os.path.join(Path(data_path).parent, "images")
-        self.result_filename = result_filename
-        self.num_workers = num_workers
-
+class IDMMultipleEval(BaseEval):
     def __call__(
         self,
         model_name: str,
         tokenizer_name: str,
     ) -> list[dict[str, Any]]:
         def fn(row: dict):
-            episode: Episode = Episode.model_validate(row)
-            # only use at most the last 5 actions
-            if episode.actions[-1].obs_after is not None:
-                episode.actions = (
-                    episode.actions[-5:]
-                    if len(episode.actions) > 5
-                    else episode.actions
-                )
+            if self.data_dir is not None:
+                actions = row["actions"]
             else:
-                episode.actions = (
-                    episode.actions[-6:-1]
-                    if len(episode.actions) > 6
-                    else episode.actions[:-1]
-                )
+                actions = [
+                    dict(zip(row["actions"].keys(), values))
+                    for values in zip(*row["actions"].values())
+                ]
+            instruction = row["instruction"]
+            action_space = row["action_space"]
+
+            # Only use the last 5 actions at most
+            if actions[-1]["obs_after"] is not None:
+                actions = actions[-5:] if len(actions) > 5 else actions
+            else:
+                # If the last action has no obs_after, use the last 6 actions
+                actions = actions[-6:-1] if len(actions) > 6 else actions[:-1]
+
+            ref_answer = []
+            for action in actions:
+                if self.data_dir is not None:
+                    action["obs_before"] = Path(
+                        os.path.join(self.data_dir, action["obs_before"])
+                    )
+                    action["obs_after"] = Path(
+                        os.path.join(self.data_dir, action["obs_after"])
+                    )
+                    action["obs_before_path"] = action["obs_before"]
+                    action["obs_after_path"] = action["obs_after"]
+                else:
+                    action["obs_before"] = np.array(action["obs_before"].convert("RGB"))
+                    action["obs_after"] = np.array(action["obs_after"].convert("RGB"))
+                    action["obs_before_path"] = action["obs_before_path"]
+                    action["obs_after_path"] = action["obs_after_path"]
+                ref_answer.append(chr(65 + action_space.index(action["operation"])))
 
             # Query the model and evaluate the response
-            selected_actions: list[Action]
-            prompt, selected_actions, ref_answer = format_idm_prompt(
-                self.data_dir,
-                episode.instruction,
-                episode.actions,
-                episode.action_space,
+            prompt = format_idm_prompt(
+                instruction,
+                actions,
+                action_space,
             )
             response, info = self.model.generate_response(
                 prompt,
@@ -136,23 +140,30 @@ class IDMN2NEval:
 
             score = eval_idm_response(response, ref_answer)
 
+            trajectory = [
+                {
+                    "obs_before": action["obs_before_path"],
+                    "action": action["operation"],
+                    "obs_after": action["obs_after_path"],
+                }
+                for action in actions
+            ]
             result = {
-                "actions": [action.action_id for action in selected_actions],
-                "action_space": episode.action_space,
+                "trajectory": trajectory,
+                "action_space": action_space,
                 "score": score,
-                "source": episode.source,
-                "platform": episode.platform,
-                "annotation_id": episode.annotation_id,
-                "instruction": episode.instruction,
+                "source": row["source"],
+                "platform": row["platform"],
+                "annotation_id": row["annotation_id"],
+                "instruction": instruction,
                 "response": response,
                 "ref_answer": ref_answer,
-                # "parsed_action": action,
                 "input_tokens": info.get("prompt_tokens", 0),
                 "output_tokens": info.get("completion_tokens", 0),
             }
             add_jsonl([result], self.result_filename)
             logger.info(
-                f"Writing results {episode.annotation_id} to {self.result_filename}"
+                f"Writing results {row['annotation_id']} to {self.result_filename}"
             )
 
         map_with_progress(fn, self.data, self.num_workers)

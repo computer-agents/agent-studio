@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Any
 
 import backoff
@@ -31,7 +32,7 @@ class OpenAIProvider(BaseModel):
         model_message: list[dict[str, Any]] = []
         past_role = None
         for msg in raw_messages:
-            if isinstance(msg.content, np.ndarray):
+            if isinstance(msg.content, np.ndarray) or isinstance(msg.content, Path):
                 content: dict = {
                     "type": "image_url",
                     "image_url": {"url": openai_encode_image(msg.content)},

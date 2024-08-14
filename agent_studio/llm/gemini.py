@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Any
 
 import backoff
@@ -50,7 +51,9 @@ class GeminiProvider(BaseModel):
                 content = msg.content
             elif isinstance(msg.content, np.ndarray):
                 # convert from RGB NDArray to PIL RGB Image
-                content = Image.fromarray(msg.content)
+                content = Image.fromarray(msg.content).convert("RGB")
+            elif isinstance(msg.content, Path):
+                content = Image.open(msg.content).convert("RGB")
             else:
                 assert (
                     False

@@ -38,7 +38,7 @@ def openai_encode_image(image: Path | Image.Image | np.ndarray) -> str:
         encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
         encoded_image = f"data:image/jpeg;base64,{encoded_image}"
     elif isinstance(image, np.ndarray):  # cv2 image array
-        image = Image.fromarray(image)
+        image = Image.fromarray(image).convert("RGB")
         buffered = io.BytesIO()
         image.save(buffered, format="JPEG")
         encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
@@ -58,7 +58,7 @@ def anthropic_encode_image(image: Path | Image.Image | np.ndarray) -> str:
     elif isinstance(image, Image.Image):
         pass
     elif isinstance(image, np.ndarray):
-        image = Image.fromarray(image)
+        image = Image.fromarray(image).convert("RGB")
     else:
         raise ValueError(
             "Invalid image type. Please provide a valid image path, PIL "
@@ -75,5 +75,5 @@ def decode_image(encoded_image: str) -> Image.Image:
     if encoded_image.startswith("data:image"):
         encoded_image = encoded_image.split(",")[-1]
     decoded_image = base64.b64decode(encoded_image)
-    image = Image.open(io.BytesIO(decoded_image))
+    image = Image.open(io.BytesIO(decoded_image)).convert("RGB")
     return image
