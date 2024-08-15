@@ -133,11 +133,11 @@ class VideoInfo(BaseModel):
 
 
 class Record(BaseModel):
-    task_type: str
+    instruction: str
     start_time: float
     stop_time: float
     events: list[MouseEvent | KeyboardEvent | KeyboardEventAdvanced]
-    video: VideoInfo | None = None
+    video: VideoInfo
 
 
 class Recorder(ABC):

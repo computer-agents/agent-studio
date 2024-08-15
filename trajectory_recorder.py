@@ -24,7 +24,7 @@ class AllinOneRecorder(Recorder):
     def __init__(
         self,
         mouse_options: MouseOptions,
-        with_video: bool,
+        instruction: str,
         video_path: str,
         video_screen_region: dict[str, int],
         video_fps: int,
@@ -32,7 +32,7 @@ class AllinOneRecorder(Recorder):
         mouse_fps: int = 10,
     ):
         self.video_path: str = video_path
-        self.video_available: bool = with_video
+        self.instruction: str = instruction
         self.video_screen_region: dict[str, int] = video_screen_region
         self.output_file: str = output_file
         self.events: list[Event] = []
@@ -101,8 +101,7 @@ class AllinOneRecorder(Recorder):
         return list(reversed(clean_events))
 
     def post_process(self) -> None:
-        if self.video_available:
-            self.video_recorder.get_video(start_frame_id=0)
+        self.video_recorder.get_video(start_frame_id=0)
         # if exit from coding mode, save the code
         keyboard_events = self.remove_bad_keys(
             self.keyboard_recorder.events
@@ -118,21 +117,16 @@ class AllinOneRecorder(Recorder):
             e for e in video_events if video_start_time <= e.time <= video_stop_time
         ]
         # convert to json
-        if self.video_available:
-            video_json: VideoInfo | None = VideoInfo(
-                region=self.video_screen_region,
-                fps=self.video_recorder.fps,
-                path=self.video_path
-            )
-        else:
-            video_json: VideoInfo | None = None
-        # determine task type
-        task_type: str = 'no_vision' if video_json is None else 'vision'
+        video_json: VideoInfo | None = VideoInfo(
+            region=self.video_screen_region,
+            fps=self.video_recorder.fps,
+            path=self.video_path
+        )
         start_time = video_start_time
         stop_time = video_stop_time
         offset = start_time
         record_json: Record = Record(
-            task_type=task_type,
+            instruction=self.instruction,
             start_time=start_time - offset,
             stop_time=stop_time - offset,
             events=[],
@@ -159,13 +153,15 @@ class AllinOneRecorder(Recorder):
 
 
 if __name__ == "__main__":
-    # create a folder with date and time
     folder_name = datetime.now().strftime("%Y%m%d_%H%M%S")
     os.makedirs(folder_name, exist_ok=True)
 
+    print("Please input the instruction:")
+    instruction = input()
+
     rec = AllinOneRecorder(
         mouse_options=MouseOptions.LOG_ALL,
-        with_video=True,
+        instruction=instruction,
         video_path=f'{folder_name}/video.mp4',
         video_screen_region={
             "left": 0,

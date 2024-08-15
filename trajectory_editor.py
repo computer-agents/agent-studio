@@ -67,7 +67,7 @@ def aggregate_events(events: list[KeyboardEvent | MouseEvent | KeyboardEventAdva
                 if event.ascii is None:
                     # modifier keys
                     assert event.note is not None
-                    modif_keys.remove(event.note)
+                    modif_keys.discard(event.note)
                 if len(modif_keys) != 0:
                     # ignore key up event if there are no modifier keys pressed
                     aggregated_events.append(event)
@@ -341,9 +341,8 @@ class VideoPlayer(QMainWindow):
         if self.record is None:
             return
         self.list_widget.clear()
-        if self.record.task_type == "vision" and self.record.video is not None:
-            self.media_player.setSource(
-                QUrl.fromLocalFile(self.record.video.path))
+        self.media_player.setSource(
+            QUrl.fromLocalFile(self.record.video.path))
         self.list_widget.clear()
         for i, event in enumerate(self.record.events):
             self.list_widget.addItem(event.format())
