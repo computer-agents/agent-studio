@@ -1,4 +1,5 @@
 import base64
+import io
 import os
 from io import BytesIO
 from multiprocessing.pool import ThreadPool
@@ -31,7 +32,7 @@ def map_with_progress(f: callable, xs: list[Any], num_threads: int = 50):
             return list(tqdm(pool.imap(f, xs), total=len(xs)))
 
 
-HTML_JINJA = """
+GROUND_UI_HTML_JINJA = """
 <h3>Prompt</h3>
 {% for message in prompt_messages %}
 {{ message_to_html(message) | safe }}
@@ -39,9 +40,23 @@ HTML_JINJA = """
 <h3>Response</h3>
 {{ message_to_html(next_message) | safe }}
 <h3>Results</h3>
-{{ render_image(prompt_messages, correct_bbox, pred_coord) | safe }}
+{{ render_image_bbox(prompt_messages, correct_bbox, pred_coord) | safe }}
 <p>Correct Bounding Box: {{ correct_bbox }}</p>
 <p>Predicted Coordinate: {{ pred_coord }}</p>
+<p>Score: {{ score }}</p>
+"""
+
+HTML_JINJA = """
+<h3>Prompt</h3>
+{% for message in prompt_messages %}
+{{ message_to_html(message) | safe }}
+{{ render_image(message) | safe }}
+{% endfor %}
+<h3>Response</h3>
+{{ message_to_html(next_message) | safe }}
+<h3>Results</h3>
+<p>Parsed Answer: {{ parsed_answer }}</p>
+<p>Correct Answer: {{ ref_answer }}</p>
 <p>Score: {{ score }}</p>
 """
 
@@ -75,7 +90,36 @@ def message_to_html(message: Message) -> str:
     )
 
 
-def render_image(prompt_messages: MessageList, bbox, pred_coord):
+def render_image(message: Message):
+    """
+    Generate an image and save it.
+    """
+    content = message["content"]
+    if isinstance(content, Path):
+        content = content.as_posix()
+    if isinstance(content, str):
+        if content.endswith((".png", ".jpg", ".jpeg")):
+            image = Image.open(content).convert("RGB")
+        else:
+            return ""
+    elif isinstance(content, Image.Image):
+        image = content
+    elif isinstance(content, np.ndarray):
+        image = Image.fromarray(content).convert("RGB")
+    else:
+        raise ValueError(f"Unknown message type: {content}")
+
+    # Encode the image in base64
+    buffered = io.BytesIO()
+    image.save(buffered, format="JPEG")
+    base64_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+    image.close()
+
+    return f'<div><img src="data:image/png;base64,{base64_image}" alt="Image with bounding box"></div>'  # noqa: E501
+
+
+def render_image_bbox(prompt_messages: MessageList, bbox, pred_coord):
     """
     Generate an image with bounding boxes and save it.
     """
@@ -136,6 +180,7 @@ def render_image(prompt_messages: MessageList, bbox, pred_coord):
 
 
 jinja_env.globals["message_to_html"] = message_to_html
+jinja_env.globals["render_image_bbox"] = render_image_bbox
 jinja_env.globals["render_image"] = render_image
 
 

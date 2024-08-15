@@ -11,52 +11,74 @@ from eval_base import BaseEval
 from agent_studio.utils.json_utils import add_jsonl
 from agent_studio.utils.types import Message, MessageList
 
-logger = logging.getLogger("eval_logger")
+logger = logging.getLogger("agent_studio")
 
 QUERY_TEMPLATE = """
-Answer the following multiple choice question. The last line of your response should be of the following format: 'Answer: $LETTER' (without quotes) where LETTER is one of {choices}. Think step by step before answering. For example, if there'are three options "A: type\nB: click\nC: scroll", and you think the executed action is "click", then your response should be "Answer: B".
-
-You are given two sequential images which denotes the observation before and after an action respectively, and the action is one of the steps to finish the insuruction. Your task is to determine the executed action type between the two observations.
-Instruction: {instruction}
-
+Analyze the two sequential images provided. These images represent observations before and after an action was taken. Your task is to identify which type of action was executed between these two observations.
+Available actions:
 {choices_str}
+After your analysis, conclude your response with the answer in this format:
+Answer: X
+Where X is the letter corresponding to the action you believe was taken, chosen from the options provided above.
+For example, if the options were:
+A: Type
+B: Click
+C: Scroll
+And you determined the action was "Click", your response would end with:
+Answer: B
 """.strip()  # noqa: E501
 
-# {''.join([chr(65 + i) for i in range(len(choices))])}
 ANSWER_PATTERN = r"(?i)Answer\s*:\s*([A-Z])"
 
 
 def format_idm_prompt(
     obs_before: np.ndarray | Path,
     obs_after: np.ndarray | Path,
-    instruction: str,
+    obs_before_path: str,
+    obs_after_path: str,
     action_space: list[str],
 ) -> list:
-    messages: MessageList = []
-    messages.append(Message(role="user", content=obs_before))
-    messages.append(Message(role="user", content=obs_after))
     choicestr = "\n".join(
         [f"{chr(65 + i)}. {action}" for i, action in enumerate(list(action_space))]
     )
-    choices = "".join([chr(65 + i) for i in range(len(action_space))])
-    messages.append(
+
+    messages: MessageList = [
+        Message(role="user", content=obs_before),
+        Message(role="user", content=obs_after),
         Message(
             role="user",
-            content=QUERY_TEMPLATE.format(
-                instruction=instruction, choices_str=choicestr, choices=choices
-            ),
-        )
-    )
+            content=QUERY_TEMPLATE.format(choices_str=choicestr),
+        ),
+    ]
 
-    return messages
+    messages_str = [
+        {
+            "role": "user",
+            "content": obs_before_path,
+        },
+        {
+            "role": "user",
+            "content": obs_after_path,
+        },
+        {
+            "role": "user",
+            "content": QUERY_TEMPLATE.format(choices_str=choicestr),
+        },
+    ]
+
+    return messages, messages_str
+
+
+def parse_idm_response(response: str) -> str:
+    try:
+        match = re.findall(ANSWER_PATTERN, response)[-1]
+    except Exception:
+        match = None
+    return match
 
 
 def eval_idm_response(response: str, reference: str) -> float:
-    try:
-        match = re.search(ANSWER_PATTERN, response.splitlines()[-1])
-    except Exception:
-        match = None
-    return 1.0 if (match and match.group(1).strip().startswith(reference)) else 0.0
+    return 1.0 if response == reference else 0.0
 
 
 class IDMSingleEval(BaseEval):
@@ -76,12 +98,17 @@ class IDMSingleEval(BaseEval):
                 obs_after = np.array(row["obs_after"].convert("RGB"))
                 obs_before_path = row["obs_before_path"]
                 obs_after_path = row["obs_after_path"]
-            instruction = row["instruction"]
             action_space = row["action_space"]
             operation = row["operation"]
 
             # Query the model and evaluate the response
-            prompt = format_idm_prompt(obs_before, obs_after, instruction, action_space)
+            prompt, prompt_str = format_idm_prompt(
+                obs_before,
+                obs_after,
+                obs_before_path,
+                obs_after_path,
+                action_space,
+            )
             response, info = self.model.generate_response(
                 prompt,
                 model=model_name,
@@ -93,19 +120,17 @@ class IDMSingleEval(BaseEval):
             # get the position in the set of action_space
             index = action_space.index(operation)
             ref_answer = chr(65 + index)
-
-            score = eval_idm_response(response, ref_answer)
+            answer = parse_idm_response(response)
+            score = eval_idm_response(answer, ref_answer)
 
             result = {
-                "obs_before": obs_before_path,
-                "obs_after": obs_after_path,
-                "action_space": action_space,
+                "prompt": prompt_str,
                 "score": score,
                 "source": row["source"],
                 "platform": row["platform"],
-                "annotation_id": row["action_id"],
-                "instruction": instruction,
+                "instruction": row["instruction"],
                 "response": response,
+                "parsed_answer": answer,
                 "ref_answer": operation,
                 "input_tokens": info.get("prompt_tokens", 0),
                 "output_tokens": info.get("completion_tokens", 0),

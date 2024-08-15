@@ -11,74 +11,140 @@ from eval_base import BaseEval
 from agent_studio.utils.json_utils import add_jsonl
 from agent_studio.utils.types import Message, MessageList
 
-logger = logging.getLogger("eval_logger")
+logger = logging.getLogger("agent_studio")
 
 QUERY_TEMPLATE = """
-Answer the following multiple selection question. The last line of your response should be of the following format: 'Answer: [LETTER] -> [LETTER] -> ...' (without quotes) where each letter is one of "{choices}".
-
-In this question, you are given the goal(instruction) of the trajectory and a sequence of images during the trajectory, which denote the observations before and after each action. You should not assume whether the trajectory is finished or not. Your task is to determine the executed action types between the observations.
-For example, the instruction is "Open the browser", the action space is ["type", "click", "scroll"], and the trajectory is ["obs1_image", "obs2_image", "obs3_image"], the choices are "A: type\nB: click\nC: scroll", and you think the executed action between obs1_image and obs2_image is "type", and the executed action between obs2_image and obs3_image is "scroll", then your response should be "Answer: [A] -> [C]". Think step by step before answering.
-
-Instruction: {instruction}
-
+Analyze the sequence of images provided. These images are snapshots taken from a video screen recording. Your task is to identify the types of actions executed in order throughout this recording.
+Available actions:
 {choices_str}
+After your analysis, conclude your response with the answer in this format:
+Answer:
+X
+Y
+Z
+...
+Where X, Y, Z, etc. are letters corresponding to the actions you believe were taken, chosen from the options provided above.
+For example, if the options were:
+A: Type
+B: Click
+C: Scroll
+And you determined the actions were "Type", then "Scroll", your response would end with:
+Answer:
+A
+C
 """.strip()  # noqa: E501
+
+ANSWER_PATTERN = r"(?i)Answer:\s*([A-Z](?:\n[A-Z])*)"
 
 
 def format_idm_prompt(
-    instruction: str,
     actions: list[dict],
     action_space: list[str],
 ) -> tuple[list, list, list]:
-    messages: MessageList = []
-    for action in actions:
-        messages.append(
-            Message(
-                role="user",
-                content=action["obs_before"],
-            )
-        )
-    messages.append(
-        Message(
-            role="user",
-            content=actions[-1]["obs_after"],
-        )
-    )
-
     choicestr = "\n".join(
         [
             f"{chr(65 + i)}. {selected_actions}"
             for i, selected_actions in enumerate(list(action_space))
         ]
     )
-    choices = "".join([chr(65 + i) for i in range(len(action_space))])
+
+    messages: MessageList = [
+        Message(
+            role="user",
+            content=action["obs_before"],
+        )
+        for action in actions
+    ]
     messages.append(
         Message(
             role="user",
-            content=QUERY_TEMPLATE.format(
-                instruction=instruction, choices_str=choicestr, choices=choices
-            ),
+            content=actions[-1]["obs_after"],
+        )
+    )
+    messages.append(
+        Message(
+            role="user",
+            content=QUERY_TEMPLATE.format(choices_str=choicestr),
         )
     )
 
-    return messages
+    messages_str = [
+        {
+            "role": "user",
+            "content": action["obs_before_path"],
+        }
+        for action in actions
+    ]
+    messages_str.append(
+        {
+            "role": "user",
+            "content": actions[-1]["obs_after_path"],
+        }
+    )
+    messages_str.append(
+        {
+            "role": "user",
+            "content": QUERY_TEMPLATE.format(choices_str=choicestr),
+        }
+    )
+
+    return messages, messages_str
 
 
-def eval_idm_response(response: str, reference: list) -> float:
+def parse_idm_response(response: str) -> str:
     try:
-        section_match: re.Match[str] | None = re.search(
-            r"Answer\s*:\s*(.*)", response.splitlines()[-1]
-        )
-        matched_section = section_match.group(1)
-        letter_pattern = r"([A-Za-z])"
-        match = re.findall(letter_pattern, matched_section)
+        match = re.findall(ANSWER_PATTERN, response)[-1].split("\n")
     except Exception:
         match = []
-    score = 0.0
-    for i in range(min(len(match), len(reference))):
-        if match[i] == reference[i]:
-            score += 1
-    return score
+    return match
+
+
+def get_edit_distance(response: list[str], reference: list[str]) -> int:
+    len1 = len(response)
+    len2 = len(reference)
+
+    # Create a 2D array, where dp[i][j] represents the edit distance between the first i characters of response and the first j characters of reference  # noqa: E501
+    dp = [[0 for _ in range(len2 + 1)] for _ in range(len1 + 1)]
+
+    # Initialize dp array
+    for i in range(len1 + 1):
+        dp[i][
+            0
+        ] = i  # The cost of converting the first i characters of response to an empty list (all deletions)  # noqa: E501
+    for j in range(len2 + 1):
+        dp[0][
+            j
+        ] = j  # The cost of converting an empty list to the first j characters of reference (all insertions)  # noqa: E501
+
+    # Fill the dp array
+    for i in range(1, len1 + 1):
+        for j in range(1, len2 + 1):
+            if response[i - 1] == reference[j - 1]:
+                dp[i][j] = dp[i - 1][
+                    j - 1
+                ]  # No extra cost if the current characters are the same
+            else:
+                # Take the minimum of three operations: delete, insert, or replace, and add 1  # noqa: E501
+                dp[i][j] = (
+                    min(
+                        dp[i - 1][j],  # Deletion
+                        dp[i][j - 1],  # Insertion
+                        dp[i - 1][j - 1],  # Replacement
+                    )
+                    + 1
+                )
+
+    # Return the final edit distance
+    return dp[len1][len2]
+
+
+def eval_idm_response(response: list[str], reference: list[str]) -> tuple[int, float]:
+    edit_distance = get_edit_distance(response, reference)
+    if edit_distance == 0:
+        score = 1.0
+    else:
+        score = 0.0
+    return edit_distance, score
 
 
 class IDMMultipleEval(BaseEval):
@@ -95,7 +161,6 @@ class IDMMultipleEval(BaseEval):
                     dict(zip(row["actions"].keys(), values))
                     for values in zip(*row["actions"].values())
                 ]
-            instruction = row["instruction"]
             action_space = row["action_space"]
 
             # Only use the last 5 actions at most
@@ -108,14 +173,14 @@ class IDMMultipleEval(BaseEval):
             ref_answer = []
             for action in actions:
                 if self.data_dir is not None:
+                    action["obs_before_path"] = action["obs_before"]
+                    action["obs_after_path"] = action["obs_after"]
                     action["obs_before"] = Path(
                         os.path.join(self.data_dir, action["obs_before"])
                     )
                     action["obs_after"] = Path(
                         os.path.join(self.data_dir, action["obs_after"])
                     )
-                    action["obs_before_path"] = action["obs_before"]
-                    action["obs_after_path"] = action["obs_after"]
                 else:
                     action["obs_before"] = np.array(action["obs_before"].convert("RGB"))
                     action["obs_after"] = np.array(action["obs_after"].convert("RGB"))
@@ -124,8 +189,7 @@ class IDMMultipleEval(BaseEval):
                 ref_answer.append(chr(65 + action_space.index(action["operation"])))
 
             # Query the model and evaluate the response
-            prompt = format_idm_prompt(
-                instruction,
+            prompt, prompt_str = format_idm_prompt(
                 actions,
                 action_space,
             )
@@ -137,26 +201,18 @@ class IDMMultipleEval(BaseEval):
                 max_length=32,
                 num_return_sequences=1,
             )
+            answer = parse_idm_response(response)
+            edit_distance, score = eval_idm_response(answer, ref_answer)
 
-            score = eval_idm_response(response, ref_answer)
-
-            trajectory = [
-                {
-                    "obs_before": action["obs_before_path"],
-                    "action": action["operation"],
-                    "obs_after": action["obs_after_path"],
-                }
-                for action in actions
-            ]
             result = {
-                "trajectory": trajectory,
-                "action_space": action_space,
+                "prompt": prompt_str,
                 "score": score,
+                "edit_distance": edit_distance,
                 "source": row["source"],
                 "platform": row["platform"],
-                "annotation_id": row["annotation_id"],
-                "instruction": instruction,
+                "instruction": row["instruction"],
                 "response": response,
+                "parsed_answer": answer,
                 "ref_answer": ref_answer,
                 "input_tokens": info.get("prompt_tokens", 0),
                 "output_tokens": info.get("completion_tokens", 0),

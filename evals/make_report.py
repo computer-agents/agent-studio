@@ -2,7 +2,7 @@ import argparse
 import os
 
 import numpy as np
-from common import HTML_JINJA, jinja_env, make_report
+from common import GROUND_UI_HTML_JINJA, HTML_JINJA, jinja_env, make_report
 
 from agent_studio.utils.json_utils import read_jsonl
 
@@ -86,7 +86,7 @@ def main():
                             prompt[i]["content"] = os.path.join(
                                 args.image_path, p["content"]
                             )
-                html = jinja_env.from_string(HTML_JINJA).render(
+                html = jinja_env.from_string(GROUND_UI_HTML_JINJA).render(
                     prompt_messages=prompt,
                     next_message=dict(content=result["response"], role="assistant"),
                     score=result["score"],
@@ -191,6 +191,30 @@ def main():
                         )
                     else:
                         metrics[f"{source}_score"].append(result["score"])
+
+            if len(htmls) < 3:
+                prompt = result["prompt"]
+                for i, p in enumerate(prompt):
+                    if isinstance(p["content"], str):
+                        if p["content"].endswith((".png", ".jpg", ".jpeg")):
+                            prompt[i]["content"] = os.path.join(
+                                args.image_path, p["content"]
+                            )
+
+                kwargs = dict(
+                    prompt_messages=prompt,
+                    next_message=dict(content=result["response"], role="assistant"),
+                    score=result["score"],
+                    parsed_answer=result["parsed_answer"],
+                    ref_answer=result["ref_answer"],
+                )
+                if "n2n" in args.result_path:
+                    kwargs["score"] = {
+                        "score": result["score"],
+                        "edit_distance": result["edit_distance"],
+                    }
+                html = jinja_env.from_string(HTML_JINJA).render(**kwargs)
+                htmls.append(html)
 
     final_metrics = {}
     for k, v in metrics.items():
