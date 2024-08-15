@@ -25,6 +25,7 @@ class Config(metaclass=ThreadSafeSingleton):
     seed: int = 42
     max_retries: int = 3
     temperature: float = 0.0
+    top_k: int = 1
     max_tokens: int = 4096
     gemini_api_key: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
     openai_api_key: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"

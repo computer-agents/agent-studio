@@ -78,7 +78,7 @@ class GeminiProvider(BaseModel):
         generation_config = GenerationConfig(
             temperature=kwargs.get("temperature", config.temperature),
             # top_p=kwargs.get("top_p", config.max_tokens),
-            # top_k=kwargs.get("top_k", config.max_tokens),
+            top_k=kwargs.get("top_k", config.top_k),
             candidate_count=1,
             # max_output_tokens=kwargs.get("max_tokens", config.max_tokens),
         )
