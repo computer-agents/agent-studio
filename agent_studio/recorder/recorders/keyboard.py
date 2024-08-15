@@ -28,7 +28,7 @@ class KeyboardRecorder(Recorder):
             if isinstance(key, keyboard.KeyCode):
                 key_code = key.vk
                 ascii = ord(key.char) if key.char else None
-                note = None
+                note = key.char
             else:
                 key_code: int | None = key.value.vk
                 ascii = None
@@ -53,12 +53,11 @@ class KeyboardRecorder(Recorder):
             if isinstance(key, keyboard.KeyCode):
                 key_code = key.vk
                 ascii = ord(key.char) if key.char else None
-                note = None
+                note = key.char
             else:
                 key_code: int | None = key.value.vk
                 ascii = None
                 note = key.name
-            print(f"Key {key_code} released")
             self.events.append(
                 KeyboardEvent(
                     time=time(),

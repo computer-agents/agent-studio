@@ -5,7 +5,10 @@ from enum import Enum
 import bisect
 import logging
 
-from agent_studio.recorder.utils import Record, Event
+from agent_studio.recorder.utils import (Record, Event, KeyboardEvent,
+                                         KeyboardEventAdvanced, KeyboardAction,
+                                         KeyboardActionAdvanced, MouseAction,
+                                         MouseEvent)
 
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QFileDialog, QListWidget,
@@ -20,6 +23,62 @@ from PyQt6.QtGui import QAction
 # from qfluentwidgets import FluentTranslator
 
 logger = logging.getLogger(__name__)
+
+
+def aggregate_events(events: list[KeyboardEvent | MouseEvent | KeyboardEventAdvanced]) -> list[Event]:
+    # Aggregate events, e.g. for keyboard events, aggregate
+    # consecutive key presses into a single event, TYPE
+    aggregated_events: list[Event] = []
+    cur_keyboard_event: KeyboardEventAdvanced | None = None
+    modif_keys: set[str] = set()
+
+    for event in events:
+        if isinstance(event, KeyboardEvent):
+            if event.action == KeyboardAction.DOWN:
+                if event.ascii is not None:
+                    # notmal key press
+                    if len(modif_keys) == 0:
+                        # typing
+                        if cur_keyboard_event is None:
+                            cur_keyboard_event = KeyboardEventAdvanced(
+                                time=event.time,
+                                event_type="keyboard",
+                                action=KeyboardActionAdvanced.TYPE,
+                                key_code=[event.key_code],
+                                note=chr(event.ascii)
+                            )
+                        else:
+                            assert cur_keyboard_event.note is not None
+                            cur_keyboard_event.key_code.append(event.key_code)
+                            cur_keyboard_event.note += chr(event.ascii)
+                    else:
+                        # shortcut
+                        aggregated_events.append(event)
+                else:
+                    # modifier keys
+                    if cur_keyboard_event is not None:
+                        aggregated_events.append(cur_keyboard_event)
+                        cur_keyboard_event = None
+                    assert event.note is not None
+                    modif_keys.add(event.note)
+                    aggregated_events.append(event)
+            if event.action == KeyboardAction.UP:
+                if event.ascii is None:
+                    # modifier keys
+                    assert event.note is not None
+                    modif_keys.remove(event.note)
+                if len(modif_keys) != 0:
+                    # ignore key up event if there are no modifier keys pressed
+                    aggregated_events.append(event)
+        elif isinstance(event, MouseEvent):
+            cur_keyboard_event = None
+            aggregated_events.append(event)
+        else:
+            aggregated_events.append(event)
+    if cur_keyboard_event is not None:
+        aggregated_events.append(cur_keyboard_event)
+
+    return sorted(aggregated_events)
 
 
 class VideoPlayer(QMainWindow):
@@ -171,14 +230,39 @@ class VideoPlayer(QMainWindow):
             self.event_details_layout.addRow(
                 "Event Type:", QLabel(self.current_event.event_type))
             self.create_dynamic_ui(self.current_event)
-        # else:
-        #     # Multiple items selected, show advanced options
-        #     # all selected events should have the same type
-        #     event_types = set()
-        #     for item in selected_items:
-        #         selected_index = self.list_widget.row(item)
-        #         event_types.add(self.record.events[selected_index].event_type)
-        #     if len(event_types) == 1:
+        else:
+            # Multiple items selected, show advanced options
+            # all selected events should have the same type
+            event_types = set()
+            for item in selected_items:
+                selected_index = self.list_widget.row(item)
+                event_types.add(self.record.events[selected_index].event_type)
+            # add a aggregate button to aggregate the selected events
+            aggregate_button = QPushButton("Aggregate")
+            aggregate_button.clicked.connect(self.aggregate_events)
+            self.event_details_layout.addRow(aggregate_button)
+            if len(event_types) == 1:
+                aggregated_events = aggregate_events(
+                    [self.record.events[self.list_widget.row(item)]
+                     for item in selected_items])
+                # only display the first aggregated event
+                if (len(aggregated_events) > 0):
+                    self.current_event = aggregated_events[0]
+                    self.create_dynamic_ui(aggregated_events[0])
+
+    def aggregate_events(self):
+        if self.record is None or self.current_event is None:
+            return
+        # Delete the selected events
+        # and insert self.current_event to the record
+        selected_items = self.list_widget.selectedItems()
+        selected_indices = [self.list_widget.row(item) for item in selected_items]
+        for i in reversed(selected_indices):
+            self.record.events.pop(i)
+        self.record.events.append(self.current_event)
+        self.list_widget.clear()
+        self.record.events = sorted(self.record.events)
+        self._reload_events()
 
     def create_dynamic_ui(self, event: Event):
         for field_name, field in event.model_fields.items():
@@ -243,17 +327,23 @@ class VideoPlayer(QMainWindow):
 
     ### Menu Bar Slots ###
 
+    def _reload_events(self):
+        if self.record is None:
+            return
+        self.list_widget.clear()
+        if self.record.task_type == "vision" and self.record.video is not None:
+            self.media_player.setSource(
+                QUrl.fromLocalFile(self.record.video.path))
+        self.list_widget.clear()
+        for i, event in enumerate(self.record.events):
+            self.list_widget.addItem(event.format())
+
     def _load_file(self, file_name):
         if file_name:
             self.current_file = file_name
             with open(file_name, 'r') as f:
                 self.record = Record.model_validate(json.load(f))
-                if self.record.task_type == "vision" and self.record.video is not None:
-                    self.media_player.setSource(
-                        QUrl.fromLocalFile(self.record.video.path))
-                self.list_widget.clear()
-                for i, event in enumerate(self.record.events):
-                    self.list_widget.addItem(event.format())
+                self._reload_events()
 
     def open_file(self):
         file_name, _ = QFileDialog.getOpenFileName(self, "Open Record Trajectory")

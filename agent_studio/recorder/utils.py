@@ -58,7 +58,7 @@ class KeyboardEvent(Event, BaseModel):
     action: KeyboardAction
     # virtual key code of the key or key name of the key
     key_code: int | None = None
-    # ascii code of the key, can be different from `key` if it is combination key
+    # ascii code of the key, modifier keys have no ascii code
     ascii: int | None = None
     note: str | None = None
 
@@ -76,8 +76,20 @@ class KeyboardEvent(Event, BaseModel):
 
 class KeyboardEventAdvanced(Event, BaseModel):
     action: KeyboardActionAdvanced
-    key: list[str | int] | None = None
+    key_code: list[str | int | None] = []
     note: str | None = None
+
+    def format(self) -> str:
+        # {time} | {event_type} | {ACTION} {str} |
+        if self.action == KeyboardActionAdvanced.TYPE:
+            template = "{} | {} \"{}\" |"
+            return template.format(super().format(), self.action.name, self.note)
+        elif self.action == KeyboardActionAdvanced.SHORTCUT:
+            template = "{} | {} {} |"
+            return template.format(super().format(), self.action.name, "+".join(
+                [str(key) for key in self.key_code]))
+        else:
+            return super().format()
 
 
 class MouseAction(Enum):
