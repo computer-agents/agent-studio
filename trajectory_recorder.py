@@ -1,5 +1,7 @@
 import re
 import logging
+import os
+from datetime import datetime
 
 from agent_studio.recorder.utils import (
     OS,
@@ -157,10 +159,14 @@ class AllinOneRecorder(Recorder):
 
 
 if __name__ == "__main__":
+    # create a folder with date and time
+    folder_name = datetime.now().strftime("%Y%m%d_%H%M%S")
+    os.makedirs(folder_name, exist_ok=True)
+
     rec = AllinOneRecorder(
         mouse_options=MouseOptions.LOG_ALL,
         with_video=True,
-        video_path='test.mp4',
+        video_path=f'{folder_name}/video.mp4',
         video_screen_region={
             "left": 0,
             "top": 0,
@@ -168,7 +174,7 @@ if __name__ == "__main__":
             "height": 1600,
         },
         video_fps=10,
-        output_file='record.json',
+        output_file=f'{folder_name}/record.json',
         mouse_fps=5,   # valid if recording mouse movement
     )
     rec.start()
