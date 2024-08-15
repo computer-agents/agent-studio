@@ -62,6 +62,7 @@ MODEL_PROVIDER_MAPPING = {
     "gemini-1.5-flash-001": "gemini",
     "claude-3-haiku-20240307": "claude",
     "claude-3-sonnet-20240229": "claude",
+    "claude-3-5-sonnet-20240620": "claude",
 }
 
 

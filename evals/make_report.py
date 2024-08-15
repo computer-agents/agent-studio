@@ -3,7 +3,6 @@ import os
 
 import numpy as np
 from common import HTML_JINJA, jinja_env, make_report
-from eval_gui_grounding import format_gui_grounding_prompt
 
 from agent_studio.utils.json_utils import read_jsonl
 
@@ -80,10 +79,13 @@ def main():
                     metrics[f"{platform}_score"].append(result["score"])
 
             if len(htmls) < 3:
-                prompt = format_gui_grounding_prompt(
-                    result["instruction"],
-                    os.path.join(args.image_path, result["image"]),
-                )
+                prompt = result["prompt"]
+                for i, p in enumerate(prompt):
+                    if isinstance(p["content"], str):
+                        if p["content"].endswith((".png", ".jpg", ".jpeg")):
+                            prompt[i]["content"] = os.path.join(
+                                args.image_path, p["content"]
+                            )
                 html = jinja_env.from_string(HTML_JINJA).render(
                     prompt_messages=prompt,
                     next_message=dict(content=result["response"], role="assistant"),

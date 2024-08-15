@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from pathlib import Path
@@ -10,6 +11,8 @@ from eval_base import BaseEval
 from agent_studio.utils.json_utils import add_jsonl
 from agent_studio.utils.types import Message, MessageList
 
+logger = logging.getLogger("agent_studio")
+
 QUERY_TEMPLATE = """
 Please output the coordinate for the next action based on the instruction and screenshot. Your answer should be of the following format: '(X, Y)' (without quotes) where X, Y is the coordinates ranging from 0 to 1.
 Instruction: {instruction}
@@ -17,27 +20,39 @@ Answer:
 """.strip()  # noqa: E501
 
 
-ANSWER_PATTERN = r"\(\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*\)"
+ANSWER_PATTERN = r"\(\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*\)(?!.*\(\s*[-+]?\d*\.?\d+\s*,\s*[-+]?\d*\.?\d+\s*\))"  # noqa: E501
 
 
 def format_gui_grounding_prompt(
     instruction: str,
-    image_path: np.ndarray | Path,
+    image: np.ndarray | Path,
+    image_path: str,
 ) -> list:
     messages: MessageList = [
-        Message(role="user", content=image_path),
+        Message(role="user", content=image),
         Message(role="user", content=QUERY_TEMPLATE.format(instruction=instruction)),
     ]
 
-    return messages
+    messages_str = [
+        {
+            "role": "user",
+            "content": image_path,
+        },
+        {
+            "role": "user",
+            "content": QUERY_TEMPLATE.format(instruction=instruction),
+        },
+    ]
+
+    return messages, messages_str
 
 
 def parse_gui_grounding_response(response: str) -> Tuple[float, float] | None:
     try:
-        match = re.search(ANSWER_PATTERN, response.splitlines()[-1])
+        match = re.findall(ANSWER_PATTERN, response)[-1]
     except Exception:
         match = None
-    return [float(match.group(1)), float(match.group(2))] if match else None
+    return [float(match[0]), float(match[1])] if match else None
 
 
 def eval_coord_output(action, bbox, img_size, do_scale=True):
@@ -74,7 +89,9 @@ class GUIGroundingEval(BaseEval):
             instruction = row["instruction"]
 
             # Query the model and evaluate the response
-            prompt = format_gui_grounding_prompt(instruction, image)
+            prompt, prompt_str = format_gui_grounding_prompt(
+                instruction, image, image_path
+            )
             response, info = self.model.generate_response(
                 prompt,
                 model=model_name,
@@ -92,7 +109,7 @@ class GUIGroundingEval(BaseEval):
             )
 
             result = {
-                "image": image_path,
+                "prompt": prompt_str,
                 "score": score,
                 "source": row["source"],
                 "platform": row["platform"],
@@ -106,6 +123,6 @@ class GUIGroundingEval(BaseEval):
             }
 
             add_jsonl([result], self.result_filename)
-            print(f"Writing results to {self.result_filename}")
+            logger.info(f"Writing results to {self.result_filename}")
 
         map_with_progress(fn, self.data, self.num_workers)

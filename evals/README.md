@@ -47,25 +47,43 @@ evals/
         └─ metadata_success_detection.jsonl
 ```
 
+For raw data downloading and processing, see [the detailed instructions](processing/README.md).
+
+We use GPT-4o to recaption GroundUI-1K.
+
+```bash
+python evals/re_caption_gui_grounding_data.py --model gpt-4o-2024-05-13 --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
+```
+
+We use CogVLM2 to recaption GroundUI-18K.
+
+```bash
+python evals/re_caption_gui_grounding_data.py --model /PATH/TO/cogvlm2-llama3-chat-19B --data_path evals/datasets/gui_grounding/metadata_raw.jsonl
+```
+
 ## Evaluation on GUI Grounding
 
 ### Evaluation on re-captioned GroundUI-1K
 
-The `--model` tested are `gpt-4o-2024-05-13`, `gpt-4-turbo-2024-04-09`, `gemini-pro-vision`, `gemini-1.5-pro`, `gemini-1.5-flash-001`, `claude-3-haiku-20240307`, `claude-3-sonnet-20240229`, `/PATH/TO/SeeClick`, `/PATH/TO/cogvlm2-llama3-chat-19B`, `/PATH/TO/Qwen-VL-Chat`, `/PATH/TO/cogagent-chat-hf`, `/PATH/TO/paligemma-3b-mix-448`, `/PATH/TO/paligemma-3b-pt-896`, `/PATH/TO/MiniCPM-Llama3-V-2_5`.
+The `--model` tested are `gpt-4o-2024-05-13`, `gpt-4-turbo-2024-04-09`, `gemini-pro-vision`, `gemini-1.5-pro`, `gemini-1.5-flash-001`, `claude-3-5-sonnet-20240620`, `/PATH/TO/SeeClick`, `/PATH/TO/cogvlm2-llama3-chat-19B`, `/PATH/TO/Qwen-VL-Chat`, `/PATH/TO/cogagent-chat-hf`, `/PATH/TO/paligemma-3b-mix-448`, `/PATH/TO/paligemma-3b-pt-896`, `/PATH/TO/MiniCPM-Llama3-V-2_5`.
+
+You can add `--num_workers` to speed up the evaluation process for APIs, and use `batch_inference.sh` for parallelize local model inference.
 
 For example:
 
 ```bash
 # If using local data downloaded from Google Drive
-python evals/main.py --model gpt-4o-2024-05-13 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
+python evals/main.py --model gpt-4o-2024-05-13 --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl --num_workers 5
 # If using HuggingFace dataset
-python evals/main.py --model gpt-4o-2024-05-13 --eval_type gui_grounding --data_path agent-studio/GroundUI-1K
+python evals/main.py --model gpt-4o-2024-05-13 --eval_type gui_grounding --data_path agent-studio/GroundUI-1K --num_workers 5
 
-# You need to specify the `--tokenizer` for some open-source models like SeeClick and Qwen-VL-Chat
-python evals/main.py --model /PATH/TO/SeeClick --tokenizer /PATH/TO/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
+# You need to specify the `--tokenizer` for some open-source models like SeeClick, otherwise the tokenizer will be automatically loaded from the model path.
+python evals/main.py --model /PATH/TO/SeeClick --tokenizer /PATH/TO/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_1k.jsonl
+# Run distributed inference of local models (arg1: number of GPUs, arg2: path to the dataset, arg3: model path, arg4: tokenizer path, arg5: eval type)
+bash batch_inference.sh 2 evals/datasets/gui_grounding/metadata_1k.jsonl /PATH/TO/SeeClick /PATH/TO/Qwen-VL-Chat gui_grounding
 ```
 
-After running experiments, you can generate a report with metrics using the following command. The `--result_path` is the path to save the evaluation results, e.g., `results/gui_grounding/gpt-4o-2024-05-13.jsonl` and `results/gui_grounding/SeeClick.jsonl`. Example script for gathering results:
+After running experiments, you can generate a report with metrics using the following command. The `--result_path` is the path to save the evaluation results shown in the last log of running evaluation, e.g., `results/gui_grounding/gpt-4o-2024-05-13.jsonl`. Example script for gathering results:
 
 ```bash
 python evals/make_report.py --image_path evals/datasets/gui_grounding/images --result_path results/gui_grounding/gpt-4o-2024-05-13.jsonl
@@ -84,7 +102,7 @@ python evals/main.py --model /PATH/TO/cogvlm2-llama3-chat-19B --eval_type gui_gr
 ### Full evaluation on GroundUI-18K
 
 ```bash
-python evals/main.py --model /PATH/TO/SeeClick --tokenizer /PATH/TO/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata_raw.jsonl
+python evals/main.py --model /PATH/TO/SeeClick --tokenizer /PATH/TO/Qwen-VL-Chat --eval_type gui_grounding --data_path evals/datasets/gui_grounding/metadata.jsonl
 ```
 
 ## Evaluation on Inverse Action Labeling
@@ -134,18 +152,4 @@ Example script for gathering results:
 
 ```bash
 python evals/make_report.py --image_path evals/datasets/trajectory_lite/images --result_path results/success_detection/claude-3-sonnet-20240229.jsonl
-```
-
-## Re-Captioning GroundUI
-
-We use GPT-4o to recaption GroundUI-1K.
-
-```bash
-python evals/re_caption_gui_grounding_data.py --model gpt-4o-2024-05-13 --data_path evals/datasets/gui_grounding/metadata_raw_1k.jsonl
-```
-
-We use CogVLM2 to recaption GroundUI-18K.
-
-```bash
-python evals/re_caption_gui_grounding_data.py --model /PATH/TO/cogvlm2-llama3-chat-19B --data_path evals/datasets/gui_grounding/metadata_raw.jsonl
 ```

@@ -1,4 +1,5 @@
 import argparse
+import logging
 import time
 from pathlib import Path
 
@@ -8,6 +9,8 @@ from eval_idmn2n import IDMMultipleEval
 from eval_success_detection import SuccessDetectionEval
 
 from agent_studio.llm import setup_model
+
+logger = logging.getLogger("agent_studio")
 
 
 def create_parser():
@@ -30,7 +33,7 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    print(f"Running with args: {args}")
+    logger.info(f"Running with args: {args}")
 
     model = setup_model(args.model)
     save_path = Path(f"results/{args.eval_type}")
