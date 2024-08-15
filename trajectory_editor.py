@@ -4,6 +4,7 @@ from typing import get_origin
 from enum import Enum
 import bisect
 import logging
+import copy
 
 from agent_studio.recorder.utils import (Record, Event, KeyboardEvent,
                                          KeyboardEventAdvanced, KeyboardAction,
@@ -73,6 +74,17 @@ def aggregate_events(events: list[KeyboardEvent | MouseEvent | KeyboardEventAdva
         elif isinstance(event, MouseEvent):
             cur_keyboard_event = None
             aggregated_events.append(event)
+        elif isinstance(event, KeyboardEventAdvanced):
+            if event.action == KeyboardActionAdvanced.TYPE:
+                if cur_keyboard_event is None:
+                    cur_keyboard_event = copy.deepcopy(event)
+                else:
+                    assert cur_keyboard_event.note is not None
+                    assert event.note is not None
+                    cur_keyboard_event.key_code.extend(event.key_code)
+                    cur_keyboard_event.note += event.note
+            else:
+                aggregated_events.append(event)
         else:
             aggregated_events.append(event)
     if cur_keyboard_event is not None:
