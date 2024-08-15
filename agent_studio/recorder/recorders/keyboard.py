@@ -26,26 +26,22 @@ class KeyboardRecorder(Recorder):
     def __on_press(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
         if key is not None:
             if isinstance(key, keyboard.KeyCode):
-                key_id = key.vk
+                key_code = key.vk
+                ascii = ord(key.char) if key.char else None
+                note = None
             else:
-                key_id = str(key)
+                key_code: int | None = key.value.vk
+                ascii = None
+                note = key.name
             self.events.append(
                 KeyboardEvent(
                     time=time(),
                     event_type="keyboard",
                     action=KeyboardAction.DOWN,
-                    key=key_id,
-                    note=str(key)
+                    key_code=key_code,
+                    ascii=ascii,
+                    note=note
                 )
-                # Event(
-                #     time(),
-                #     'keyboard',
-                #     {
-                #         'action': 'down',
-                #         'key': key_id,
-                #         'note': str(key)
-                #     }
-                # )
             )
 
             canonical_key = self.listener.canonical(key)
@@ -55,26 +51,23 @@ class KeyboardRecorder(Recorder):
     def __on_release(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
         if key is not None:
             if isinstance(key, keyboard.KeyCode):
-                key_id = key.vk
+                key_code = key.vk
+                ascii = ord(key.char) if key.char else None
+                note = None
             else:
-                key_id = str(key)
+                key_code: int | None = key.value.vk
+                ascii = None
+                note = key.name
+            print(f"Key {key_code} released")
             self.events.append(
                 KeyboardEvent(
                     time=time(),
                     event_type="keyboard",
                     action=KeyboardAction.UP,
-                    key=key_id,
-                    note=str(key)
+                    key_code=key_code,
+                    ascii=ascii,
+                    note=note
                 )
-                # Event(
-                #     time(),
-                #     'keyboard',
-                #     {
-                #         'action': 'up',
-                #         'key': key_id,
-                #         'note': str(key)
-                #     }
-                # )
             )
 
             canonical_key = self.listener.canonical(key)

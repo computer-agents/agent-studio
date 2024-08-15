@@ -56,13 +56,22 @@ class KeyboardActionAdvanced(Enum):
 
 class KeyboardEvent(Event, BaseModel):
     action: KeyboardAction
-    key: str | int | None = None
+    # virtual key code of the key or key name of the key
+    key_code: int | None = None
+    # ascii code of the key, can be different from `key` if it is combination key
+    ascii: int | None = None
     note: str | None = None
 
     def format(self) -> str:
         # {time} | {event_type} | {Key} {Action} |
         template = "{} | {} {} |"
-        return template.format(super().format(), self.note, self.action.name)
+        if isinstance(self.ascii, int):
+            # if ascii is visible, then use chr(self.ascii), else ise self.key
+            key = chr(
+                self.ascii) if self.ascii >= 32 and self.ascii <= 126 else f"<{self.key_code}>"
+        else:
+            key = f"<{self.key_code}>"
+        return template.format(super().format(), key, self.action.name)
 
 
 class KeyboardEventAdvanced(Event, BaseModel):

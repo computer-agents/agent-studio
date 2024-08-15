@@ -73,13 +73,13 @@ class AllinOneRecorder(Recorder):
         pressed_keys = set()
         for event in events:
             if event.action == KeyboardAction.DOWN:
-                if event.key not in pressed_keys:
+                if event.key_code not in pressed_keys:
                     clean_events.append(event)
-                    pressed_keys.add(event.key)
+                    pressed_keys.add(event.key_code)
             elif event.action == KeyboardAction.UP:
-                if event.key in pressed_keys:
+                if event.key_code in pressed_keys:
                     clean_events.append(event)
-                    pressed_keys.remove(event.key)
+                    pressed_keys.remove(event.key_code)
             else:
                 assert False, f"invalid keyboard event {event}"
         events = clean_events
@@ -87,13 +87,13 @@ class AllinOneRecorder(Recorder):
         released_key = set()
         for event in reversed(events):
             if event.action == KeyboardAction.DOWN:
-                if event.key in released_key:
+                if event.key_code in released_key:
                     clean_events.append(event)
-                    released_key.remove(event.key)
+                    released_key.remove(event.key_code)
             elif event.action == KeyboardAction.UP:
-                if event.key not in released_key:
+                if event.key_code not in released_key:
                     clean_events.append(event)
-                    released_key.add(event.key)
+                    released_key.add(event.key_code)
             else:
                 assert False, f"invalid keyboard event {event}"
         return list(reversed(clean_events))
