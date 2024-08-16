@@ -62,7 +62,7 @@ class ImageExtractor:
 
 
 def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
-    extractor = ImageExtractor(record.video.path)
+    extractor = ImageExtractor((base_path / record.video.path).as_posix())
     # use the name of the action as the action space
     action_space = list(KeyboardActionAdvanced.__members__.keys()) + \
         list(MouseAction.__members__.keys())
@@ -155,16 +155,17 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
 
     return episode
 
+
 def aggregate_events(events: list[KeyboardEvent | MouseEvent | KeyboardEventAdvanced]) -> list[Event]:
     # Aggregate events, e.g. for keyboard events, aggregate
-    # consecutive key presses into a single event, TYPE
+    # consecutive key presses into a single event, KEY_TYPE
     aggregated_events: list[Event] = []
     cur_keyboard_event: KeyboardEventAdvanced | None = None
     modif_keys: set[str] = set()
 
     for event in events:
         if isinstance(event, KeyboardEvent):
-            if event.action == KeyboardAction.DOWN:
+            if event.action == KeyboardAction.KEY_DOWN:
                 if event.ascii is not None:
                     # notmal key press
                     if len(modif_keys) == 0:
@@ -173,7 +174,7 @@ def aggregate_events(events: list[KeyboardEvent | MouseEvent | KeyboardEventAdva
                             cur_keyboard_event = KeyboardEventAdvanced(
                                 time=event.time,
                                 event_type="keyboard",
-                                action=KeyboardActionAdvanced.TYPE,
+                                action=KeyboardActionAdvanced.KEY_TYPE,
                                 key_code=[event.key_code],
                                 note=chr(event.ascii)
                             )
@@ -192,7 +193,7 @@ def aggregate_events(events: list[KeyboardEvent | MouseEvent | KeyboardEventAdva
                     assert event.note is not None
                     modif_keys.add(event.note)
                     aggregated_events.append(event)
-            if event.action == KeyboardAction.UP:
+            if event.action == KeyboardAction.KEY_UP:
                 if event.ascii is None:
                     # modifier keys
                     assert event.note is not None
@@ -204,7 +205,7 @@ def aggregate_events(events: list[KeyboardEvent | MouseEvent | KeyboardEventAdva
             cur_keyboard_event = None
             aggregated_events.append(event)
         elif isinstance(event, KeyboardEventAdvanced):
-            if event.action == KeyboardActionAdvanced.TYPE:
+            if event.action == KeyboardActionAdvanced.KEY_TYPE:
                 if cur_keyboard_event is None:
                     cur_keyboard_event = copy.deepcopy(event)
                 else:
@@ -472,11 +473,12 @@ class VideoPlayer(QMainWindow):
     ### Menu Bar Slots ###
 
     def _reload_events(self):
-        if self.record is None:
+        if self.record is None or self.current_file is None:
             return
         self.list_widget.clear()
+        base_path = pathlib.Path(self.current_file).parent
         self.media_player.setSource(
-            QUrl.fromLocalFile(self.record.video.path))
+            QUrl.fromLocalFile((base_path / self.record.video.path).as_posix()))
         self.list_widget.clear()
         for i, event in enumerate(self.record.events):
             self.list_widget.addItem(event.format())
@@ -525,9 +527,8 @@ class VideoPlayer(QMainWindow):
             self, "Export Record Trajectory", "trajectory.jsonl")
         if file_name:
             try:
-                print(file_name)
                 episode = convert_to_episode(
-                    self.record, pathlib.Path(self.record.video.path).parent)
+                    self.record, pathlib.Path(file_name).parent)
                 json_str = episode.model_dump_json()
                 with open(file_name, 'w') as f:
                     f.write(json_str)

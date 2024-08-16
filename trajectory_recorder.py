@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import datetime
 import uuid
+from pathlib import Path
 
 from agent_studio.recorder.utils import (
     OS,
@@ -72,11 +73,11 @@ class AllinOneRecorder(Recorder):
         clean_events = []
         pressed_keys = set()
         for event in events:
-            if event.action == KeyboardAction.DOWN:
+            if event.action == KeyboardAction.KEY_DOWN:
                 if event.key_code not in pressed_keys:
                     clean_events.append(event)
                     pressed_keys.add(event.key_code)
-            elif event.action == KeyboardAction.UP:
+            elif event.action == KeyboardAction.KEY_UP:
                 if event.key_code in pressed_keys:
                     clean_events.append(event)
                     pressed_keys.remove(event.key_code)
@@ -86,11 +87,11 @@ class AllinOneRecorder(Recorder):
         clean_events = []
         released_key = set()
         for event in reversed(events):
-            if event.action == KeyboardAction.DOWN:
+            if event.action == KeyboardAction.KEY_DOWN:
                 if event.key_code in released_key:
                     clean_events.append(event)
                     released_key.remove(event.key_code)
-            elif event.action == KeyboardAction.UP:
+            elif event.action == KeyboardAction.KEY_UP:
                 if event.key_code not in released_key:
                     clean_events.append(event)
                     released_key.add(event.key_code)
@@ -120,7 +121,7 @@ class AllinOneRecorder(Recorder):
         video_json: VideoInfo | None = VideoInfo(
             region=self.video_screen_region,
             fps=self.video_recorder.fps,
-            path=video_path
+            path=Path(video_path).relative_to(self.output_folder).as_posix()
         )
         start_time = video_start_time
         stop_time = video_stop_time
