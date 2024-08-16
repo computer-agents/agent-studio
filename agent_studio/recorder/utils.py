@@ -135,6 +135,7 @@ class VideoInfo(BaseModel):
 
 class Record(BaseModel):
     instruction: str
+    annotation_id: str
     start_time: float
     stop_time: float
     events: list[MouseEvent | KeyboardEvent | KeyboardEventAdvanced]

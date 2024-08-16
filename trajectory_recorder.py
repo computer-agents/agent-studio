@@ -2,6 +2,7 @@ import re
 import logging
 import os
 from datetime import datetime
+import uuid
 
 from agent_studio.recorder.utils import (
     OS,
@@ -25,16 +26,14 @@ class AllinOneRecorder(Recorder):
         self,
         mouse_options: MouseOptions,
         instruction: str,
-        video_path: str,
         video_screen_region: dict[str, int],
         video_fps: int,
-        output_file: str,
+        output_folder: str,
         mouse_fps: int = 10,
     ):
-        self.video_path: str = video_path
         self.instruction: str = instruction
         self.video_screen_region: dict[str, int] = video_screen_region
-        self.output_file: str = output_file
+        self.output_folder: str = output_folder
         self.events: list[Event] = []
         self.shebang_template = re.compile(r"^#!\s*(.+)")
         self.mouse_recorder = MouseRecorder(
@@ -47,7 +46,6 @@ class AllinOneRecorder(Recorder):
             }
         )
         self.video_recorder = VideoRecorder(
-            video_path=self.video_path,
             screen_region=video_screen_region,
             fps=video_fps,
         )
@@ -101,7 +99,9 @@ class AllinOneRecorder(Recorder):
         return list(reversed(clean_events))
 
     def post_process(self) -> None:
-        self.video_recorder.get_video(start_frame_id=0)
+        annotation_id = uuid.uuid4().hex
+        video_path = f"{self.output_folder}/{annotation_id}.mp4"
+        self.video_recorder.get_video(video_path=video_path, start_frame_id=0)
         # if exit from coding mode, save the code
         keyboard_events = self.remove_bad_keys(
             self.keyboard_recorder.events
@@ -120,13 +120,14 @@ class AllinOneRecorder(Recorder):
         video_json: VideoInfo | None = VideoInfo(
             region=self.video_screen_region,
             fps=self.video_recorder.fps,
-            path=self.video_path
+            path=video_path
         )
         start_time = video_start_time
         stop_time = video_stop_time
         offset = start_time
         record_json: Record = Record(
             instruction=self.instruction,
+            annotation_id=annotation_id,
             start_time=start_time - offset,
             stop_time=stop_time - offset,
             events=[],
@@ -138,7 +139,7 @@ class AllinOneRecorder(Recorder):
         for event in record_json.events:
             event.time -= offset
         json_str = record_json.model_dump_json(indent=4)
-        with open(self.output_file, 'w') as f:
+        with open(f"{self.output_folder}/record.json", 'w') as f:
             f.write(json_str)
 
     def wait_exit(self) -> None:
@@ -160,9 +161,8 @@ if __name__ == "__main__":
     instruction = input()
 
     rec = AllinOneRecorder(
-        mouse_options=MouseOptions.LOG_ALL,
+        mouse_options=MouseOptions.LOG_CLICK | MouseOptions.LOG_SCROLL,
         instruction=instruction,
-        video_path=f'{folder_name}/video.mp4',
         video_screen_region={
             "left": 0,
             "top": 0,
@@ -170,7 +170,7 @@ if __name__ == "__main__":
             "height": 1600,
         },
         video_fps=10,
-        output_file=f'{folder_name}/record.json',
+        output_folder=folder_name,
         mouse_fps=5,   # valid if recording mouse movement
     )
     rec.start()

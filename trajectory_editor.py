@@ -69,7 +69,7 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
 
     episode: Episode = Episode(
         instruction=record.instruction,
-        annotation_id=uuid.uuid4().hex,
+        annotation_id=record.annotation_id,
         actions=[],
         source="agent-studio",
         platform="desktop",
@@ -522,7 +522,7 @@ class VideoPlayer(QMainWindow):
             QMessageBox.critical(self, "Export Failed", "No record to export.")
             return
         file_name, _ = QFileDialog.getSaveFileName(
-            self, "Export Record Trajectory", "trajectory.json")
+            self, "Export Record Trajectory", "trajectory.jsonl")
         if file_name:
             try:
                 print(file_name)

@@ -62,12 +62,10 @@ class FrameBuffer:
 class VideoRecorder(Recorder):
     def __init__(
         self,
-        video_path: str,
         fps: int,
         screen_region: dict[str, int],
     ):
         super().__init__()
-        self.video_path = video_path
         self.fps = fps
         self.screen_region = screen_region
         self.frame_size: Tuple[int, int] = (
@@ -91,21 +89,21 @@ class VideoRecorder(Recorder):
     def __get_frames_to_latest(self, frame_id, before_frame_nums=5):
         return self.frame_buffer.get_frames_to_latest(frame_id, before_frame_nums)
 
-    def get_video(self, start_frame_id: int, end_frame_id: int | None = None) -> str:
-        output_dir = os.path.dirname(self.video_path)
+    def get_video(self, video_path: str, start_frame_id: int, end_frame_id: int | None = None) -> str:
+        output_dir = os.path.dirname(video_path)
         if output_dir != "" and not os.path.exists(output_dir):
             os.makedirs(output_dir, exist_ok=True)
         writer = cv2.VideoWriter(
-            self.video_path, cv2.VideoWriter_fourcc(*'mp4v'), self.fps, self.frame_size
+            video_path, cv2.VideoWriter_fourcc(*'mp4v'), self.fps, self.frame_size
         )
-        logging.info(f"Write video to {self.video_path}")
+        logging.info(f"Write video to {video_path}")
 
         frames = self.__get_frames(start_frame_id, end_frame_id)
         logging.info(f"Get {len(frames)} frames with fps {self.fps}")
         for frame in frames:
             writer.write(frame[1])
         writer.release()
-        return self.video_path
+        return video_path
 
     def __clear_frame_buffer(self):
         self.frame_buffer.clear()
@@ -161,7 +159,6 @@ class VideoRecorder(Recorder):
 
 if __name__ == "__main__":
     capture_video = VideoRecorder(
-        video_path="test.mp4",
         screen_region={
             "left": 0,
             "top": 0,
@@ -178,5 +175,6 @@ if __name__ == "__main__":
     capture_video.wait_exit()
 
     capture_video.get_video(
+        video_path="test.mp4",
         start_frame_id=0
     )
