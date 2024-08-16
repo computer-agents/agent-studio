@@ -30,6 +30,8 @@ class Config(metaclass=ThreadSafeSingleton):
     gemini_api_key: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
     openai_api_key: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
     anthropic_api_key: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
+    vertexai_project_id: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
+    vertexai_location: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
 
     # Google API config
     google_credential_path: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"

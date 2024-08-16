@@ -35,12 +35,12 @@ class HuggingFaceProvider(BaseModel):
     ) -> Any:
         model_message: list[dict[str, Any]] = []
         for msg in raw_messages:
-            if isinstance(msg["content"], str):
-                model_message.append({"text": msg["content"]})
-            elif isinstance(msg["content"], Path):
-                model_message.append({"image": msg["content"].as_posix()})
-            elif isinstance(msg["content"], np.ndarray):
-                model_message.append({"image": msg["content"]})
+            if isinstance(msg.content, str):
+                model_message.append({"text": msg.content})
+            elif isinstance(msg.content, Path):
+                model_message.append({"image": msg.content.as_posix()})
+            elif isinstance(msg.content, np.ndarray):
+                model_message.append({"image": msg.content})
             else:
                 assert (
                     False

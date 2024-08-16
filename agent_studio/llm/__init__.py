@@ -58,11 +58,12 @@ MODEL_PROVIDER_MAPPING = {
     "gpt-4-turbo-2024-04-09": "openai",
     "gemini-pro-vision": "gemini",
     "gemini-1.0-pro-001": "gemini",
-    "gemini-1.5-pro": "gemini",
+    "gemini-1.5-pro-001": "vertexai",
     "gemini-1.5-flash-001": "gemini",
     "claude-3-haiku-20240307": "claude",
     "claude-3-sonnet-20240229": "claude",
     "claude-3-5-sonnet-20240620": "claude",
+    "claude-3-5-sonnet@20240620": "vertexai-anthropic",
 }
 
 
