@@ -1,6 +1,5 @@
 import logging
 import os
-import re
 from pathlib import Path
 from typing import Any
 
@@ -11,23 +10,39 @@ from eval_base import BaseEval
 from agent_studio.utils.json_utils import add_jsonl
 from agent_studio.utils.types import Message, MessageList
 
-logger = logging.getLogger("eval_logger")
+logger = logging.getLogger("agent_studio")
 
 QUERY_TEMPLATE = """
-You are a human annotator, your task is to judge whether the instruction is correctly executed based on the above trajectory. The trajectory is represented by a sequence of actions and the observations before and after each action. Your response is either "Answer: succ" if the trajectory finished the instruction or "Answer: fail" if not.
-The action space: {action_space}
+Analyze the sequence of images provided. These images are snapshots taken from a video screen recording. Your task is to evaluate whether the given instruction has been successfully completed based on the provided trajectory. This trajectory is depicted through a series of actions and the corresponding observations before and after each action.
 Instruction: {instruction}
+Action space: {action_space}
+Carefully examine the sequence of actions and their results. Determine if the final state successfully fulfills the given instruction.
+Conclude your analysis with one of these two responses:
+If the trajectory successfully completes the instruction:
+Answer: True
+If the trajectory fails to complete the instruction:
+Answer: False
 """.strip()  # noqa: E501
 
-ANSWER_PATTERN = r"(?i)Answer\s*:\s*(succ|fail)"
+ACTIONLESS_QUERY_TEMPLATE = """
+Analyze the sequence of images provided. These images are snapshots taken from a video screen recording. Your task is to evaluate whether the given instruction has been successfully completed based on the provided images.
+Instruction: {instruction}
+Carefully examine the sequence of images. Determine if the final state successfully fulfills the given instruction.
+Conclude your analysis with one of these two responses:
+If the trajectory successfully completes the instruction:
+Answer: True
+If the trajectory fails to complete the instruction:
+Answer: False
+""".strip()  # noqa: E501
 
 
 def format_success_detection_prompt(
     instruction: str,
     actions: list[dict],
-    action_space: list[str],
+    action_space: list[str] | None,
 ) -> list:
     messages: MessageList = []
+    messages_str = []
     for action in actions:
         messages.append(
             Message(
@@ -35,12 +50,26 @@ def format_success_detection_prompt(
                 content=action["obs_before"],
             )
         )
-        messages.append(
-            Message(
-                role="user",
-                content=action["metadata"]["repr"],
+        if action_space is not None:
+            messages.append(
+                Message(
+                    role="user",
+                    content=action["metadata"]["repr"],
+                )
             )
+        messages_str.append(
+            {
+                "role": "user",
+                "content": action["obs_before_path"],
+            }
         )
+        if action_space is not None:
+            messages_str.append(
+                {
+                    "role": "user",
+                    "content": action["metadata"]["repr"],
+                }
+            )
     if actions[-1]["obs_after"] is not None:
         messages.append(
             Message(
@@ -48,28 +77,57 @@ def format_success_detection_prompt(
                 content=actions[-1]["obs_after"],
             )
         )
-    messages.append(
-        Message(
-            role="user",
-            content=QUERY_TEMPLATE.format(
-                instruction=instruction,
-                action_space=", ".join(action_space),
+        messages_str.append(
+            {
+                "role": "user",
+                "content": actions[-1]["obs_after_path"],
+            }
+        )
+    if action_space is not None:
+        messages.append(
+            Message(
+                role="user",
+                content=QUERY_TEMPLATE.format(
+                    instruction=instruction,
+                    action_space=", ".join(action_space),
+                ),
             ),
-        ),
-    )
+        )
+        messages_str.append(
+            {
+                "role": "user",
+                "content": QUERY_TEMPLATE.format(
+                    instruction=instruction,
+                    action_space=", ".join(action_space),
+                ),
+            },
+        )
+    else:
+        messages.append(
+            Message(
+                role="user",
+                content=ACTIONLESS_QUERY_TEMPLATE.format(
+                    instruction=instruction,
+                ),
+            ),
+        )
+        messages_str.append(
+            {
+                "role": "user",
+                "content": ACTIONLESS_QUERY_TEMPLATE.format(
+                    instruction=instruction,
+                ),
+            },
+        )
 
-    return messages
-
-
-def parse_success_detection_response(response: str, reference: bool) -> float:
-    try:
-        match = re.search(ANSWER_PATTERN, response.splitlines()[-1])
-    except Exception:
-        match = None
-    return 1.0 if (match and ((match.group(1) == "succ")) == reference) else 0.0
+    return messages, messages_str
 
 
 class SuccessDetectionEval(BaseEval):
+    def __init__(self, actionless: bool = False, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.actionless = actionless
+
     def __call__(
         self,
         model_name: str,
@@ -91,6 +149,7 @@ class SuccessDetectionEval(BaseEval):
 
             for action in actions:
                 if self.data_dir is not None:
+                    action["obs_before_path"] = action["obs_before"]
                     action["obs_before"] = Path(
                         os.path.join(self.data_dir, action["obs_before"])
                     )
@@ -102,7 +161,6 @@ class SuccessDetectionEval(BaseEval):
                     else:
                         action["obs_after"] = None
                         action["obs_after_path"] = None
-                    action["obs_before_path"] = action["obs_before"]
                 else:
                     action["obs_before"] = np.array(action["obs_before"].convert("RGB"))
                     if action["obs_after"] is not None:
@@ -115,9 +173,14 @@ class SuccessDetectionEval(BaseEval):
                     action["obs_after_path"] = action["obs_after_path"]
 
             # Query the model and evaluate the response
-            prompt = format_success_detection_prompt(
-                instruction, actions, row["action_space"]
-            )
+            if self.actionless:
+                prompt, prompt_str = format_success_detection_prompt(
+                    instruction, actions, None
+                )
+            else:
+                prompt, prompt_str = format_success_detection_prompt(
+                    instruction, actions, row["action_space"]
+                )
             response, info = self.model.generate_response(
                 prompt,
                 model=model_name,
@@ -127,21 +190,23 @@ class SuccessDetectionEval(BaseEval):
                 num_return_sequences=1,
             )
             logger.info(f"response: {response}")
-            score = parse_success_detection_response(response, is_success)
 
-            trajectory_images = [action["obs_before_path"] for action in actions]
-            if actions[-1]["obs_after_path"] is not None:
-                trajectory_images.append(actions[-1]["obs_after_path"])
+            if (
+                is_success
+                and "True" in response
+                or not is_success
+                and "False" in response
+            ):
+                score = 1.0
+            else:
+                score = 0.0
+
             result = {
-                "trajectory_images": trajectory_images,
-                "trajectory_actions": [
-                    action["metadata"]["repr"] for action in actions
-                ],
+                "prompt": prompt_str,
                 "instruction": instruction,
                 "score": score,
                 "source": row["source"],
                 "platform": row["platform"],
-                "annotation_id": row["annotation_id"],
                 "ref_answer": is_success,
                 "response": response,
                 "input_tokens": info.get("prompt_tokens", 0),

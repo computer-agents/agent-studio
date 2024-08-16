@@ -23,35 +23,31 @@ def compute_stat(values: list, stat: str):
 
 
 def compute_f1(results):
-    pos = 0
-    neg = 0
     tp = 0
     fp = 0
     tn = 0
     fn = 0
     for result in results:
         if result["ref_answer"]:
-            pos += 1
-            if result["score"] == 1:
+            if result["score"] == 1.0:
                 tp += 1
             else:
                 fn += 1
         else:
-            neg += 1
-            if result["score"] == 1:
-                fp += 1
-            else:
+            if result["score"] == 1.0:
                 tn += 1
+            else:
+                fp += 1
     accuracy = (tp + tn) / (tp + tn + fp + fn)
-    # precision = tp / (tp + fp)
-    # recall = tp / (tp + fn)
-    # f1 = 2 * precision * recall / (precision + recall)
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f1 = 2 * precision * recall / (precision + recall)
 
     return {
         "accuracy": accuracy,
-        # "precision": precision,
-        # "recall": recall,
-        # "f1": f1,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
     }
 
 
@@ -136,16 +132,39 @@ def main():
             elif "agent-studio" in result["source"]:
                 agent_studio_results.append(result)
 
+            if len(htmls) < 3:
+                prompt = result["prompt"]
+                for i, p in enumerate(prompt):
+                    if isinstance(p["content"], str):
+                        if p["content"].endswith((".png", ".jpg", ".jpeg")):
+                            prompt[i]["content"] = os.path.join(
+                                args.image_path, p["content"]
+                            )
+
+                kwargs = dict(
+                    prompt_messages=prompt,
+                    next_message=dict(content=result["response"], role="assistant"),
+                    score=result["score"],
+                    parsed_answer=result["response"],
+                    ref_answer=result["ref_answer"],
+                )
+                html = jinja_env.from_string(HTML_JINJA).render(**kwargs)
+                htmls.append(html)
+
         stats = compute_f1(results)
         for k, v in stats.items():
             metrics[k].append(v)
 
         for res in [web_results, desktop_results, mobile_results]:
+            if len(res) == 0:
+                continue
             stats = compute_f1(res)
             for k, v in stats.items():
                 metrics[f"{res[0]['platform']}_{k}"].append(v)
 
         for res in [mind2web_results, aitw_results, vwa_results, agent_studio_results]:
+            if len(res) == 0:
+                continue
             stats = compute_f1(res)
             if "mind2web" in res[0]["source"]:
                 source = "mind2web"

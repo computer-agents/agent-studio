@@ -20,7 +20,13 @@ def create_parser():
     parser.add_argument(
         "--eval_type",
         type=str,
-        choices=["gui_grounding", "success_detection", "idm", "idmn2n"],
+        choices=[
+            "gui_grounding",
+            "idm",
+            "idmn2n",
+            "success_detection",
+            "success_detection_actionless",
+        ],
     )
     parser.add_argument("--data_path", type=str)
     parser.add_argument("--start_idx", type=int, default=0)
@@ -64,6 +70,16 @@ def main():
                 start_idx=args.start_idx,
                 end_idx=args.end_idx,
                 num_workers=args.num_workers,
+            )
+        case "success_detection_actionless":
+            evaluator = SuccessDetectionEval(
+                model=model,
+                data_path=args.data_path,
+                result_filename=result_filename,
+                start_idx=args.start_idx,
+                end_idx=args.end_idx,
+                num_workers=args.num_workers,
+                actionless=True,
             )
         case "idm":  # evaluation on ability as inverse dynamics model
             evaluator = IDMSingleEval(
