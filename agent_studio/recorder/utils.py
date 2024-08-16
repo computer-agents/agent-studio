@@ -21,6 +21,7 @@ class MouseOptions(Flag):
 class Event(BaseModel):
     time: float
     event_type: str
+    duration: float = 0.0
 
     def __gt__(self, other) -> bool:
         return self.time > other.time

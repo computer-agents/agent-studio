@@ -5,11 +5,8 @@ from enum import Enum
 import bisect
 import logging
 import copy
-
-from agent_studio.recorder.utils import (Record, Event, KeyboardEvent,
-                                         KeyboardEventAdvanced, KeyboardAction,
-                                         KeyboardActionAdvanced, MouseAction,
-                                         MouseEvent)
+import uuid
+import pathlib
 
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QFileDialog, QListWidget,
@@ -20,11 +17,143 @@ from PyQt6.QtMultimedia import QMediaPlayer
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QAction
+from PIL import Image
+import cv2
+
+from agent_studio.recorder.utils import (Record, Event, KeyboardEvent,
+                                         KeyboardEventAdvanced, KeyboardAction,
+                                         KeyboardActionAdvanced, MouseAction,
+                                         MouseEvent)
+from agent_studio.utils.types import Action, Episode
 
 # from qfluentwidgets import FluentTranslator
 
 logger = logging.getLogger(__name__)
 
+
+class ImageExtractor:
+    def __init__(self, video_path: str):
+        self.video_path = video_path
+        self.cap = cv2.VideoCapture(video_path)
+
+        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+        self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.duration = self.total_frames / self.fps
+
+    # Extract the frame no later than the target time
+    def extract_left(self, target_time: float) -> Image.Image | None:
+        frame_no = int(target_time * self.fps)
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
+        ret, frame = self.cap.read()
+        if not ret:
+            logging.info("Cannot find frame for the target time")
+            return None
+        return Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+    # Extract the frame no earlier than the target time
+    def extract_right(self, target_time: float) -> Image.Image | None:
+        frame_no = int(target_time * self.fps) + 1
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
+        ret, frame = self.cap.read()
+        if not ret:
+            logging.info("Cannot find frame for the target time")
+            return None
+        return Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+
+def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
+    extractor = ImageExtractor(record.video.path)
+    # use the name of the action as the action space
+    action_space = list(KeyboardActionAdvanced.__members__.keys()) + \
+        list(MouseAction.__members__.keys())
+
+    episode: Episode = Episode(
+        instruction=record.instruction,
+        annotation_id=uuid.uuid4().hex,
+        actions=[],
+        source="agent-studio",
+        platform="desktop",
+        metadata={},
+        action_space=action_space,
+        is_success=True
+    )
+
+    img_folder = base_path / "image"
+    img_folder.mkdir(exist_ok=True)
+
+    obs_after_image_path: str | None = None
+    last_event: Event | None = None
+    last_time = 0.0
+    for idx, event in enumerate(record.events):
+        action_id = uuid.uuid4().hex
+        obs_before_image = extractor.extract_left((last_time + event.time) / 2)
+        # obs_after_image = extractor.extract_right(event.time)
+        if obs_before_image is not None:
+            obs_before_image_path = str(img_folder / f"{action_id}.png")
+            obs_before_image.save(obs_before_image_path)
+        else:
+            logging.error("No first frame")
+            obs_before_image_path = None
+
+        if len(episode.actions) > 0:
+            episode.actions[-1].obs_after = obs_before_image_path
+
+        if isinstance(event, KeyboardEventAdvanced):
+            action = Action(
+                action_id=action_id,
+                obs_before=obs_before_image_path,
+                obs_after=obs_after_image_path,
+                operation=event.action.name,
+                bbox=None,
+                metadata={
+                    "note": event.note,
+                }
+            )
+            episode.actions.append(action)
+        elif isinstance(event, KeyboardEvent):
+            action = Action(
+                action_id=action_id,
+                obs_before=obs_before_image_path,
+                obs_after=obs_after_image_path,
+                operation=event.action.name,
+                bbox=None,
+                metadata={
+                    "ascii": event.ascii,
+                }
+            )
+            episode.actions.append(action)
+        elif isinstance(event, MouseEvent):
+            action = Action(
+                action_id=action_id,
+                obs_before=obs_before_image_path,
+                obs_after=obs_after_image_path,
+                operation=event.action.name,
+                bbox={
+                    "x": event.x, "y": event.y,
+                    "width": 1.0, "height": 1.0
+                },
+                metadata={}
+            )
+            episode.actions.append(action)
+        else:
+            logging.error(f"Unsupported event type: {type(event)}")
+
+        obs_after_image_path = obs_before_image_path
+        last_event = event
+        last_time = event.time
+
+    if len(episode.actions) > 0 and last_event is not None:
+        obs_after_image = extractor.extract_left(
+            (last_event.time + extractor.duration) / 2)
+        if obs_after_image is not None:
+            obs_after_image_path = str(img_folder / f"{uuid.uuid4().hex}.png")
+            obs_after_image.save(obs_after_image_path)
+        else:
+            logging.error("No first frame")
+            obs_after_image_path = None
+        episode.actions[-1].obs_after = obs_after_image_path
+
+    return episode
 
 def aggregate_events(events: list[KeyboardEvent | MouseEvent | KeyboardEventAdvanced]) -> list[Event]:
     # Aggregate events, e.g. for keyboard events, aggregate
@@ -201,6 +330,11 @@ class VideoPlayer(QMainWindow):
         save_as_action = QAction("Save As", self)
         save_as_action.triggered.connect(self.save_file_as)
         file_menu.addAction(save_as_action)
+
+        # Export action as idm format
+        export_action = QAction("Export", self)
+        export_action.triggered.connect(self.export_file)
+        file_menu.addAction(export_action)
 
     ### List Widget Slots ###
 
@@ -382,6 +516,26 @@ class VideoPlayer(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Save Failed",
                                  f"An error occurred while saving: {str(e)}")
+
+    def export_file(self):
+        if self.record is None:
+            QMessageBox.critical(self, "Export Failed", "No record to export.")
+            return
+        file_name, _ = QFileDialog.getSaveFileName(
+            self, "Export Record Trajectory", "trajectory.json")
+        if file_name:
+            try:
+                print(file_name)
+                episode = convert_to_episode(
+                    self.record, pathlib.Path(self.record.video.path).parent)
+                json_str = episode.model_dump_json()
+                with open(file_name, 'w') as f:
+                    f.write(json_str)
+                QMessageBox.information(self, "Export Successful",
+                                        "File exported successfully.")
+            except Exception as e:
+                QMessageBox.critical(self, "Export Failed",
+                                     f"An error occurred while exporting: {str(e)}")
 
     ### Media Player Slots ###
 
