@@ -46,13 +46,13 @@ class Event(BaseModel):
 
 
 class KeyboardAction(Enum):
-    DOWN = auto()  # key down
-    UP = auto()    # key up
+    KEY_DOWN = auto()  # key down
+    KEY_UP = auto()    # key up
 
 
 class KeyboardActionAdvanced(Enum):
-    TYPE = auto()  # key type
-    SHORTCUT = auto()  # key combination
+    KEY_TYPE = auto()  # key type
+    KEY_SHORTCUT = auto()  # key combination
 
 
 class KeyboardEvent(Event, BaseModel):
@@ -66,12 +66,7 @@ class KeyboardEvent(Event, BaseModel):
     def format(self) -> str:
         # {time} | {event_type} | {Key} {Action} |
         template = "{} | {} {} |"
-        if isinstance(self.ascii, int):
-            # if ascii is visible, then use chr(self.ascii), else ise self.key
-            key = chr(
-                self.ascii) if self.ascii >= 32 and self.ascii <= 126 else f"<{self.key_code}>"
-        else:
-            key = f"<{self.key_code}>"
+        key = self.note
         return template.format(super().format(), key, self.action.name)
 
 
@@ -82,10 +77,10 @@ class KeyboardEventAdvanced(Event, BaseModel):
 
     def format(self) -> str:
         # {time} | {event_type} | {ACTION} {str} |
-        if self.action == KeyboardActionAdvanced.TYPE:
+        if self.action == KeyboardActionAdvanced.KEY_TYPE:
             template = "{} | {} \"{}\" |"
             return template.format(super().format(), self.action.name, self.note)
-        elif self.action == KeyboardActionAdvanced.SHORTCUT:
+        elif self.action == KeyboardActionAdvanced.KEY_SHORTCUT:
             template = "{} | {} {} |"
             return template.format(super().format(), self.action.name, "+".join(
                 [str(key) for key in self.key_code]))
@@ -94,9 +89,9 @@ class KeyboardEventAdvanced(Event, BaseModel):
 
 
 class MouseAction(Enum):
-    POS = auto()     # position of the mouse
-    BUTTON = auto()  # click or release of a button
-    SCROLL = auto()  # scroll of the mouse wheel
+    MOUSE_POS = auto()     # position of the mouse
+    MOUSE_BUTTON = auto()  # click or release of a button
+    MOUSE_SCROLL = auto()  # scroll of the mouse wheel
 
 
 class MouseEvent(Event, BaseModel):
@@ -109,20 +104,20 @@ class MouseEvent(Event, BaseModel):
     dy: int | None = None
 
     def format(self) -> str:
-        if self.action == MouseAction.POS:
+        if self.action == MouseAction.MOUSE_POS:
             # {time} | {event_type} | POS {X} {Y} |
-            template = "{} | POS {} {} |"
-            return template.format(super().format(), self.x, self.y)
-        elif self.action == MouseAction.BUTTON:
+            template = "{} | {} {} {} |"
+            return template.format(super().format(), self.action.name, self.x, self.y)
+        elif self.action == MouseAction.MOUSE_BUTTON:
             # {time} | {event_type} | {Button} {Action} {Pressed} |
             template = "{} | {} {} {} |"
             return template.format(super().format(), self.button, self.action.name,
                                    "Pressed" if self.pressed else "Released")
-        elif self.action == MouseAction.SCROLL:
+        elif self.action == MouseAction.MOUSE_SCROLL:
             assert self.dy is not None and self.dx is not None
             # {time} | {event_type} | SCROLL {Direction} |
-            template = "{} | SCROLL {} |"
-            return template.format(super().format(), "DOWN" if self.dy < 0 else "UP")
+            template = "{} | {} {} |"
+            return template.format(super().format(), self.action.name, "DOWN" if self.dy < 0 else "UP")
         else:
             return super().format()
 

@@ -9,6 +9,15 @@ from agent_studio.recorder.utils import KeyboardEvent, KeyboardAction, Recorder
 logger = logging.getLogger(__name__)
 
 
+def ascii_to_caret_notation(ascii_code):
+    if 0 <= ascii_code <= 31:
+        return f"^{chr(ascii_code + 64)}"
+    elif ascii_code == 127:
+        return "^?"
+    else:
+        return chr(ascii_code)
+
+
 class KeyboardRecorder(Recorder):
     def __init__(self,
                  hotkey_binds: dict[str, tuple[str, Callable]]
@@ -28,7 +37,7 @@ class KeyboardRecorder(Recorder):
             if isinstance(key, keyboard.KeyCode):
                 key_code = key.vk
                 ascii = ord(key.char) if key.char else None
-                note = key.char
+                note = None if ascii is None else ascii_to_caret_notation(ascii)
             else:
                 key_code: int | None = key.value.vk
                 ascii = None
@@ -37,7 +46,7 @@ class KeyboardRecorder(Recorder):
                 KeyboardEvent(
                     time=time(),
                     event_type="keyboard",
-                    action=KeyboardAction.DOWN,
+                    action=KeyboardAction.KEY_DOWN,
                     key_code=key_code,
                     ascii=ascii,
                     note=note
@@ -53,7 +62,7 @@ class KeyboardRecorder(Recorder):
             if isinstance(key, keyboard.KeyCode):
                 key_code = key.vk
                 ascii = ord(key.char) if key.char else None
-                note = key.char
+                note = None if ascii is None else ascii_to_caret_notation(ascii)
             else:
                 key_code: int | None = key.value.vk
                 ascii = None
@@ -62,7 +71,7 @@ class KeyboardRecorder(Recorder):
                 KeyboardEvent(
                     time=time(),
                     event_type="keyboard",
-                    action=KeyboardAction.UP,
+                    action=KeyboardAction.KEY_UP,
                     key_code=key_code,
                     ascii=ascii,
                     note=note

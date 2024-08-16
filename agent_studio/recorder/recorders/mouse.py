@@ -29,7 +29,7 @@ class MouseRecorder(Recorder):
                 MouseEvent(
                     time=time(),
                     event_type="mouse",
-                    action=MouseAction.POS,
+                    action=MouseAction.MOUSE_POS,
                     x=x,
                     y=y
                 )
@@ -44,7 +44,7 @@ class MouseRecorder(Recorder):
             MouseEvent(
                 time=time(),
                 event_type="mouse",
-                action=MouseAction.BUTTON,
+                action=MouseAction.MOUSE_BUTTON,
                 x=x,
                 y=y,
                 button=button.name,
@@ -59,7 +59,7 @@ class MouseRecorder(Recorder):
             MouseEvent(
                 time=time(),
                 event_type="mouse",
-                action=MouseAction.SCROLL,
+                action=MouseAction.MOUSE_SCROLL,
                 x=x,
                 y=y,
                 dx=dx,
