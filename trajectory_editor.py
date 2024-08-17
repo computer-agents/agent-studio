@@ -480,6 +480,11 @@ class VideoPlayer(QMainWindow):
         self.file_path_label.setFixedHeight(30)
         video_layout.addWidget(self.file_path_label)
 
+        # Show instruction
+        self.instruction_label = QLabel("Instruction: ")
+        self.instruction_label.setFixedHeight(30)
+        video_layout.addWidget(self.instruction_label)
+
         self.video_widget = QVideoWidget()
         self.media_player = QMediaPlayer()
         self.media_player.setVideoOutput(self.video_widget)
@@ -766,6 +771,7 @@ class VideoPlayer(QMainWindow):
                     self.record.events = aggregate_mouse_events(self.record.events)
                     self._reload_events()
                     self.file_path_label.setText(file_name)
+                    self.instruction_label.setText(f"Instruction: {self.record.instruction}")
             except Exception as e:
                 QMessageBox.critical(self, "Load Failed",
                                      f"An error occurred while loading: {str(e)}")
