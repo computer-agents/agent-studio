@@ -156,6 +156,7 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
                     "to": {"x": event.x2, "y": event.y2}
                 }
             )
+            episode.actions.append(action)
         else:
             logging.error(f"Unsupported event type: {type(event)}")
 
