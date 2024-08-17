@@ -103,10 +103,8 @@ class GeminiProvider(BaseModel):
             try:
                 message = response.text
             except ValueError as e:
-                if response.candidates[0].content.parts:
-                    message = response.candidates[0].content.parts[0].text
-                else:
-                    logger.error(f"Failed to generate response: {e}")
+                message = ""
+                logger.error(f"Failed to generate response: {e}")
 
             logger.info(f"\nReceived response:\n{message}\nInfo:\n{info}")
             return message, info
