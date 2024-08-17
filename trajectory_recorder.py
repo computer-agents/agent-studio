@@ -4,6 +4,8 @@ import os
 from datetime import datetime
 import uuid
 from pathlib import Path
+import chime
+import time
 
 from agent_studio.recorder.utils import (
     OS,
@@ -21,6 +23,8 @@ from agent_studio.recorder.recorders.video import VideoRecorder
 
 logger = logging.getLogger(__name__)
 
+chime.theme('material')
+
 
 class AllinOneRecorder(Recorder):
     def __init__(
@@ -30,8 +34,10 @@ class AllinOneRecorder(Recorder):
         video_screen_region: dict[str, int],
         video_fps: int,
         output_folder: str,
+        delay_src: int = 5,
         mouse_fps: int = 10,
     ):
+        self.delay_src: int = delay_src
         self.instruction: str = instruction
         self.video_screen_region: dict[str, int] = video_screen_region
         self.output_folder: str = output_folder
@@ -52,6 +58,15 @@ class AllinOneRecorder(Recorder):
         )
 
     def start(self) -> None:
+
+        # count down 3 seconds
+        print(f"recording will start in {self.delay_src} seconds")
+        print("You will hear a sound when recording starts")
+        for i in range(self.delay_src, 0, -1):
+            print(i)
+            time.sleep(1)
+        chime.info()
+
         self.keyboard_recorder.start()
         self.mouse_recorder.start()
         self.video_recorder.start()
@@ -64,6 +79,7 @@ class AllinOneRecorder(Recorder):
         self.mouse_recorder.stop()
         self.video_recorder.stop()
         logger.info("STOPPED!")
+        chime.success()
 
     @staticmethod
     def remove_bad_keys(events: list[KeyboardEvent]) -> list[KeyboardEvent]:

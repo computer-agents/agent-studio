@@ -65,7 +65,8 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
     extractor = ImageExtractor((base_path / record.video.path).as_posix())
     # use the name of the action as the action space
     action_space = list(KeyboardActionAdvanced.__members__.keys()) + \
-        list(MouseAction.__members__.keys())
+        list(MouseAction.__members__.keys()) + \
+        list(KeyboardAction.__members__.keys())
 
     episode: Episode = Episode(
         instruction=record.instruction,
@@ -83,10 +84,13 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
 
     obs_after_image_path: str | None = None
     last_event: Event | None = None
-    last_time = 0.0
     for idx, event in enumerate(record.events):
         action_id = uuid.uuid4().hex
-        obs_before_image = extractor.extract_left((last_time + event.time) / 2)
+        if last_event is None:
+            obs_before_image = extractor.extract_left(event.time / 2)
+        else:
+            obs_before_image = extractor.extract_left(
+                (last_event.time + last_event.duration + event.time) / 2)
         # obs_after_image = extractor.extract_right(event.time)
         if obs_before_image is not None:
             obs_before_image_path = str(img_folder / f"{action_id}.png")
@@ -119,6 +123,7 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
                 bbox=None,
                 metadata={
                     "ascii": event.ascii,
+                    "note": event.note,
                 }
             )
             episode.actions.append(action)
@@ -139,8 +144,7 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
             logging.error(f"Unsupported event type: {type(event)}")
 
         obs_after_image_path = obs_before_image_path
-        last_event = event
-        last_time = event.time
+        last_event = copy.deepcopy(event)
 
     if len(episode.actions) > 0 and last_event is not None:
         obs_after_image = extractor.extract_left(
@@ -182,6 +186,7 @@ def aggregate_events(events: list[KeyboardEvent | MouseEvent | KeyboardEventAdva
                             assert cur_keyboard_event.note is not None
                             cur_keyboard_event.key_code.append(event.key_code)
                             cur_keyboard_event.note += chr(event.ascii)
+                            cur_keyboard_event.duration = event.time - cur_keyboard_event.time
                     else:
                         # shortcut
                         aggregated_events.append(event)
@@ -213,6 +218,7 @@ def aggregate_events(events: list[KeyboardEvent | MouseEvent | KeyboardEventAdva
                     assert event.note is not None
                     cur_keyboard_event.key_code.extend(event.key_code)
                     cur_keyboard_event.note += event.note
+                    cur_keyboard_event.duration = event.time - cur_keyboard_event.time
             else:
                 aggregated_events.append(event)
         else:
@@ -439,6 +445,8 @@ class VideoPlayer(QMainWindow):
                 lambda state: self.update_field(field_name, bool(state)))
         elif field_type == int or get_origin(field_type) == int:
             widget = QSpinBox()
+            widget.setMaximum(999999)
+            widget.setMinimum(0)
             if field_value is not None:
                 widget.setValue(field_value)
             widget.valueChanged.connect(
@@ -454,9 +462,10 @@ class VideoPlayer(QMainWindow):
             widget = QLineEdit(str(field_value) if field_value is not None else "")
             widget.textChanged.connect(lambda text: self.update_field(field_name, text))
         else:
-            # For complex types, use a simple QLineEdit
-            widget = QLineEdit(str(field_value) if field_value is not None else "")
-            widget.textChanged.connect(lambda text: self.update_field(field_name, text))
+            # For complex types, use a QLabel for now
+            widget = QLabel(str(field_value) if field_value is not None else "")
+            # widget = QLineEdit(str(field_value) if field_value is not None else "")
+            # widget.textChanged.connect(lambda text: self.update_field(field_name, text))
 
         return widget
 

@@ -90,8 +90,10 @@ class KeyboardEventAdvanced(Event, BaseModel):
 
 class MouseAction(Enum):
     MOUSE_POS = auto()     # position of the mouse
-    MOUSE_BUTTON = auto()  # click or release of a button
-    MOUSE_SCROLL = auto()  # scroll of the mouse wheel
+    MOUSE_PRESSED = auto()  # click a button
+    MOUSE_RELEASED = auto()  # release a button
+    MOUSE_SCROLL_UP = auto()  # scroll up
+    MOUSE_SCROLL_DOWN = auto()  # scroll down
 
 
 class MouseEvent(Event, BaseModel):
@@ -99,7 +101,6 @@ class MouseEvent(Event, BaseModel):
     x: int
     y: int
     button: str | None = None
-    pressed: bool | None = None
     dx: int | None = None
     dy: int | None = None
 
@@ -108,16 +109,15 @@ class MouseEvent(Event, BaseModel):
             # {time} | {event_type} | POS {X} {Y} |
             template = "{} | {} {} {} |"
             return template.format(super().format(), self.action.name, self.x, self.y)
-        elif self.action == MouseAction.MOUSE_BUTTON:
-            # {time} | {event_type} | {Button} {Action} {Pressed} |
-            template = "{} | {} {} {} |"
-            return template.format(super().format(), self.button, self.action.name,
-                                   "Pressed" if self.pressed else "Released")
-        elif self.action == MouseAction.MOUSE_SCROLL:
-            assert self.dy is not None and self.dx is not None
-            # {time} | {event_type} | SCROLL {Direction} |
+        elif self.action == MouseAction.MOUSE_PRESSED or self.action == MouseAction.MOUSE_RELEASED:
+            # {time} | {event_type} | {Button} {Action} |
             template = "{} | {} {} |"
-            return template.format(super().format(), self.action.name, "DOWN" if self.dy < 0 else "UP")
+            return template.format(super().format(), self.button, self.action.name)
+        elif self.action == MouseAction.MOUSE_SCROLL_UP or self.action == MouseAction.MOUSE_SCROLL_DOWN:
+            assert self.dy is not None and self.dx is not None
+            # {time} | {event_type} |
+            template = "{} | {} |"
+            return template.format(super().format(), self.action.name)
         else:
             return super().format()
 
