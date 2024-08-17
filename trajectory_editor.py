@@ -65,8 +65,7 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
     extractor = ImageExtractor((base_path / record.video.path).as_posix())
     # use the name of the action as the action space
     action_space = list(KeyboardActionAdvanced.__members__.keys()) + \
-        list(MouseActionAdvanced.__members__.keys()) + \
-        list(KeyboardAction.__members__.keys())
+        list(MouseActionAdvanced.__members__.keys())
 
     episode: Episode = Episode(
         instruction=record.instruction,
