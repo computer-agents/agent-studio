@@ -1,12 +1,14 @@
 import platform
-from abc import ABC
-from enum import Flag, Enum, auto
+from abc import ABC, abstractmethod
+from enum import Enum, Flag, auto
+
 from pydantic import BaseModel
 
 OS = platform.platform()
 
 if OS.startswith("Windows"):
     import ctypes
+
     PROCESS_PER_MONITOR_DPI_AWARE = 2
     ctypes.windll.shcore.SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE)
 
@@ -39,7 +41,9 @@ class Event(BaseModel):
         template = "{:02d}:{:02d}:{:03d} | {:<10}"
         minutes, seconds = divmod(int(self.time), 60)
         milliseconds = self.time - int(self.time)
-        return template.format(minutes, seconds, int(milliseconds * 1000), self.event_type)
+        return template.format(
+            minutes, seconds, int(milliseconds * 1000), self.event_type
+        )
 
     def __repr__(self) -> str:
         return str(self)
@@ -47,7 +51,7 @@ class Event(BaseModel):
 
 class KeyboardAction(Enum):
     KEY_DOWN = auto()  # key down
-    KEY_UP = auto()    # key up
+    KEY_UP = auto()  # key up
 
 
 class KeyboardActionAdvanced(Enum):
@@ -79,7 +83,7 @@ class KeyboardEventAdvanced(Event, BaseModel):
     def format(self) -> str:
         # {time} | {event_type} | {ACTION} {str} |
         if self.action == KeyboardActionAdvanced.KEY_TYPE:
-            template = "{} | {} \"{}\" |"
+            template = '{} | {} "{}" |'
             return template.format(super().format(), self.action.name, self.note)
         elif self.action == KeyboardActionAdvanced.KEY_SHORTCUT:
             template = "{} | {} {} |"
@@ -92,7 +96,7 @@ class KeyboardEventAdvanced(Event, BaseModel):
 
     def __str__(self) -> str:
         if self.action == KeyboardActionAdvanced.KEY_TYPE:
-            template = "{} -> \"{}\""
+            template = '{} -> "{}"'
             return template.format(self.action.name, self.note)
         elif self.action == KeyboardActionAdvanced.KEY_SHORTCUT:
             template = "{} -> {} |"
@@ -105,7 +109,7 @@ class KeyboardEventAdvanced(Event, BaseModel):
 
 
 class MouseAction(Enum):
-    MOUSE_POS = auto()     # position of the mouse
+    MOUSE_POS = auto()  # position of the mouse
     MOUSE_PRESSED = auto()  # click a button
     MOUSE_RELEASED = auto()  # release a button
     MOUSE_SCROLL_UP = auto()  # scroll up
@@ -132,11 +136,17 @@ class MouseEvent(Event, BaseModel):
             # {time} | {event_type} | POS {X} {Y} |
             template = "{} | {} {} {} |"
             return template.format(super().format(), self.action.name, self.x, self.y)
-        elif self.action == MouseAction.MOUSE_PRESSED or self.action == MouseAction.MOUSE_RELEASED:
+        elif (
+            self.action == MouseAction.MOUSE_PRESSED
+            or self.action == MouseAction.MOUSE_RELEASED
+        ):
             # {time} | {event_type} | {Button} {Action} |
             template = "{} | {} {} |"
             return template.format(super().format(), self.button, self.action.name)
-        elif self.action == MouseAction.MOUSE_SCROLL_UP or self.action == MouseAction.MOUSE_SCROLL_DOWN:
+        elif (
+            self.action == MouseAction.MOUSE_SCROLL_UP
+            or self.action == MouseAction.MOUSE_SCROLL_DOWN
+        ):
             assert self.dy is not None and self.dx is not None
             # {time} | {event_type} |
             template = "{} | {} |"
@@ -150,7 +160,7 @@ class MouseEventAdvanced(Event, BaseModel):
     x1: int
     y1: int
     button: str | None = None
-    x2: int | None = None   # if is SCROLL, x2 and y2 are dx and dy
+    x2: int | None = None  # if is SCROLL, x2 and y2 are dx and dy
     y2: int | None = None
 
     def format(self) -> str:
@@ -162,7 +172,10 @@ class MouseEventAdvanced(Event, BaseModel):
             # {time} | {event_type} | {Button} {Action} {X} {Y} |
             template = "{} | {} {} |"
             return template.format(super().format(), self.button, self.action.name)
-        elif self.action == MouseActionAdvanced.MOUSE_SCROLL_UP or self.action == MouseActionAdvanced.MOUSE_SCROLL_DOWN:
+        elif (
+            self.action == MouseActionAdvanced.MOUSE_SCROLL_UP
+            or self.action == MouseActionAdvanced.MOUSE_SCROLL_DOWN
+        ):
             # {time} | {event_type} | {Action} |
             template = "{} | {} |"
             return template.format(super().format(), self.action.name)
@@ -176,7 +189,10 @@ class MouseEventAdvanced(Event, BaseModel):
         elif self.action == MouseActionAdvanced.MOUSE_CLICK:
             template = "{} {} -> at ({}, {})"
             return template.format(self.action.name, self.button, self.x1, self.y1)
-        elif self.action == MouseActionAdvanced.MOUSE_SCROLL_UP or self.action == MouseActionAdvanced.MOUSE_SCROLL_DOWN:
+        elif (
+            self.action == MouseActionAdvanced.MOUSE_SCROLL_UP
+            or self.action == MouseActionAdvanced.MOUSE_SCROLL_DOWN
+        ):
             template = "{} -> dx: {}, dy: {}"
             return template.format(self.action.name, self.x2, self.y2)
         else:
@@ -194,21 +210,25 @@ class Record(BaseModel):
     annotation_id: str
     start_time: float
     stop_time: float
-    events: list[MouseEvent | KeyboardEvent |
-                 KeyboardEventAdvanced | MouseEventAdvanced]
+    events: list[
+        MouseEvent | KeyboardEvent | KeyboardEventAdvanced | MouseEventAdvanced
+    ]
     video: VideoInfo
 
 
 class Recorder(ABC):
     def __init__(self):
         self.start_time: float = 0
-        self.stop_time: float = float('inf')
+        self.stop_time: float = float("inf")
 
+    @abstractmethod
     def start(self) -> None:
         raise NotImplementedError
 
+    @abstractmethod
     def stop(self) -> None:
         raise NotImplementedError
 
+    @abstractmethod
     def wait_exit(self) -> None:
         raise NotImplementedError

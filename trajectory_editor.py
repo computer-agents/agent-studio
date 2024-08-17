@@ -1,29 +1,54 @@
-import sys
-import json
-from typing import get_origin
-from enum import Enum
 import bisect
-import logging
 import copy
-import uuid
+import json
+import logging
 import pathlib
+import sys
+import uuid
+from enum import Enum
+from typing import get_origin
 
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                             QHBoxLayout, QPushButton, QFileDialog, QListWidget,
-                             QSlider, QLabel, QLineEdit, QComboBox, QFormLayout,
-                             QCheckBox, QSpinBox, QDoubleSpinBox, QMenuBar, QMenu,
-                             QMessageBox, QScrollArea)
-from PyQt6.QtMultimedia import QMediaPlayer
-from PyQt6.QtMultimediaWidgets import QVideoWidget
+import cv2
+from PIL import Image
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QAction
-from PIL import Image
-import cv2
+from PyQt6.QtMultimedia import QMediaPlayer
+from PyQt6.QtMultimediaWidgets import QVideoWidget
+from PyQt6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QDoubleSpinBox,
+    QFileDialog,
+    QFormLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QMainWindow,
+    QMenu,
+    QMenuBar,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QSlider,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
 
-from agent_studio.recorder.utils import (Record, Event, KeyboardEvent,
-                                         KeyboardEventAdvanced, KeyboardAction,
-                                         KeyboardActionAdvanced, MouseAction,
-                                         MouseEvent, MouseActionAdvanced, MouseEventAdvanced)
+from agent_studio.recorder.utils import (
+    Event,
+    KeyboardAction,
+    KeyboardActionAdvanced,
+    KeyboardEvent,
+    KeyboardEventAdvanced,
+    MouseAction,
+    MouseActionAdvanced,
+    MouseEvent,
+    MouseEventAdvanced,
+    Record,
+)
 from agent_studio.utils.types import Action, Episode
 
 # from qfluentwidgets import FluentTranslator
@@ -64,8 +89,9 @@ class ImageExtractor:
 def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
     extractor = ImageExtractor((base_path / record.video.path).as_posix())
     # use the name of the action as the action space
-    action_space = list(KeyboardActionAdvanced.__members__.keys()) + \
-        list(MouseActionAdvanced.__members__.keys())
+    action_space = list(KeyboardActionAdvanced.__members__.keys()) + list(
+        MouseActionAdvanced.__members__.keys()
+    )
 
     episode: Episode = Episode(
         instruction=record.instruction,
@@ -75,7 +101,7 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
         platform="desktop",
         metadata={},
         action_space=action_space,
-        is_success=True
+        is_success=True,
     )
 
     img_folder = base_path / "image"
@@ -89,7 +115,8 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
             obs_before_image = extractor.extract_left(event.time / 2)
         else:
             obs_before_image = extractor.extract_left(
-                (last_event.time + last_event.duration + event.time) / 2)
+                (last_event.time + last_event.duration + event.time) / 2
+            )
         # obs_after_image = extractor.extract_right(event.time)
         if obs_before_image is not None:
             image_save_path = img_folder / f"{action_id}.png"
@@ -109,10 +136,7 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
                 obs_after=obs_after_image_path,
                 operation=event.action.name,
                 bbox=None,
-                metadata={
-                    "note": event.note,
-                    "repr": str(event)
-                }
+                metadata={"note": event.note, "repr": str(event)},
             )
             episode.actions.append(action)
         # elif isinstance(event, KeyboardEvent):
@@ -150,16 +174,15 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
                 obs_before=obs_before_image_path,
                 obs_after=obs_after_image_path,
                 operation=event.action.name,
-                bbox={
-                    "x": event.x1, "y": event.y1,
-                    "width": 1.0, "height": 1.0
-                } if event.action != MouseActionAdvanced.MOUSE_DRAG else None,
+                bbox={"x": event.x1, "y": event.y1, "width": 1.0, "height": 1.0}
+                if event.action != MouseActionAdvanced.MOUSE_DRAG
+                else None,
                 metadata={
                     "button": event.button,
                     "from": {"x": event.x1, "y": event.y1},
                     "to": {"x": event.x2, "y": event.y2},
-                    "repr": str(event)
-                }
+                    "repr": str(event),
+                },
             )
             episode.actions.append(action)
         else:
@@ -170,7 +193,8 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
 
     if len(episode.actions) > 0 and last_event is not None:
         obs_after_image = extractor.extract_left(
-            (last_event.time + extractor.duration) / 2)
+            (last_event.time + extractor.duration) / 2
+        )
         action_id = uuid.uuid4().hex
         if obs_after_image is not None:
             image_save_path = img_folder / f"{action_id}.png"
@@ -197,52 +221,63 @@ def aggregate_mouse_events(events: list[Event]) -> list[Event]:
                     logging.error(f"Mouse button {event.button} is already pressed")
             elif event.action == MouseAction.MOUSE_RELEASED:
                 if event.button in mouse_events:
-                    if mouse_events[event.button].x == event.x and mouse_events[event.button].y == event.y:
-                        aggregated_events.append(MouseEventAdvanced(
-                            time=mouse_events[event.button].time,
-                            event_type="mouse",
-                            action=MouseActionAdvanced.MOUSE_CLICK,
-                            x1=mouse_events[event.button].x,
-                            y1=mouse_events[event.button].y,
-                            button=event.button
-                        ))
+                    if (
+                        mouse_events[event.button].x == event.x
+                        and mouse_events[event.button].y == event.y
+                    ):
+                        aggregated_events.append(
+                            MouseEventAdvanced(
+                                time=mouse_events[event.button].time,
+                                event_type="mouse",
+                                action=MouseActionAdvanced.MOUSE_CLICK,
+                                x1=mouse_events[event.button].x,
+                                y1=mouse_events[event.button].y,
+                                button=event.button,
+                            )
+                        )
                     else:
-                        aggregated_events.append(MouseEventAdvanced(
-                            time=mouse_events[event.button].time,
-                            duration=event.time - mouse_events[event.button].time,
-                            event_type="mouse",
-                            action=MouseActionAdvanced.MOUSE_DRAG,
-                            x1=mouse_events[event.button].x,
-                            y1=mouse_events[event.button].y,
-                            x2=event.x,
-                            y2=event.y,
-                            button=event.button
-                        ))
+                        aggregated_events.append(
+                            MouseEventAdvanced(
+                                time=mouse_events[event.button].time,
+                                duration=event.time - mouse_events[event.button].time,
+                                event_type="mouse",
+                                action=MouseActionAdvanced.MOUSE_DRAG,
+                                x1=mouse_events[event.button].x,
+                                y1=mouse_events[event.button].y,
+                                x2=event.x,
+                                y2=event.y,
+                                button=event.button,
+                            )
+                        )
                     mouse_events.pop(event.button)
                 else:
                     logging.error(f"Mouse button {event.button} is not pressed")
             elif event.action == MouseAction.MOUSE_SCROLL_UP:
-                aggregated_events.append(MouseEventAdvanced(
-                    time=event.time,
-                    event_type="mouse",
-                    action=MouseActionAdvanced.MOUSE_SCROLL_UP,
-                    x1=event.x,
-                    y1=event.y,
-                    button=event.button,
-                    x2=event.dx,
-                    y2=event.dy
-                ))
+                aggregated_events.append(
+                    MouseEventAdvanced(
+                        time=event.time,
+                        event_type="mouse",
+                        action=MouseActionAdvanced.MOUSE_SCROLL_UP,
+                        x1=event.x,
+                        y1=event.y,
+                        button=event.button,
+                        x2=event.dx,
+                        y2=event.dy,
+                    )
+                )
             elif event.action == MouseAction.MOUSE_SCROLL_DOWN:
-                aggregated_events.append(MouseEventAdvanced(
-                    time=event.time,
-                    event_type="mouse",
-                    action=MouseActionAdvanced.MOUSE_SCROLL_DOWN,
-                    x1=event.x,
-                    y1=event.y,
-                    button=event.button,
-                    x2=event.dx,
-                    y2=event.dy
-                ))
+                aggregated_events.append(
+                    MouseEventAdvanced(
+                        time=event.time,
+                        event_type="mouse",
+                        action=MouseActionAdvanced.MOUSE_SCROLL_DOWN,
+                        x1=event.x,
+                        y1=event.y,
+                        button=event.button,
+                        x2=event.dx,
+                        y2=event.dy,
+                    )
+                )
         else:
             aggregated_events.append(event)
 
@@ -264,8 +299,10 @@ def aggregate_keyboard_events(events: list[Event]) -> list[Event]:
     for event in events:
         if isinstance(event, KeyboardEvent):
             if event.action == KeyboardAction.KEY_DOWN:
-                assert event.key_code not in key_events and event.key_code not in modif_key_events, \
-                    f"Key {event.key_code} is already pressed"
+                assert (
+                    event.key_code not in key_events
+                    and event.key_code not in modif_key_events
+                ), f"Key {event.key_code} is already pressed"
                 if event.ascii is not None:
                     # normal key press
                     key_events[event.key_code] = event
@@ -277,7 +314,7 @@ def aggregate_keyboard_events(events: list[Event]) -> list[Event]:
                                 time=event.time,
                                 event_type="keyboard",
                                 action=KeyboardActionAdvanced.KEY_SHORTCUT,
-                                note=event.note
+                                note=event.note,
                             )
                         break
                     else:
@@ -289,20 +326,24 @@ def aggregate_keyboard_events(events: list[Event]) -> list[Event]:
                                     time=event.time,
                                     event_type="keyboard",
                                     action=KeyboardActionAdvanced.KEY_TYPE,
-                                    note=event.note
+                                    note=event.note,
                                 )
                             else:
                                 aggregated_event.note += event.note
-                                aggregated_event.duration = event.time - aggregated_event.time
+                                aggregated_event.duration = (
+                                    event.time - aggregated_event.time
+                                )
                         else:
                             # shortcut
-                            key_str = (" + ".join(sorted([str(e.note) for e in modif_key_events.values()]) + sorted(
-                                [str(e.note) for e in key_events.values()])))
+                            key_str = " + ".join(
+                                sorted([str(e.note) for e in modif_key_events.values()])
+                                + sorted([str(e.note) for e in key_events.values()])
+                            )
                             aggregated_event = KeyboardEventAdvanced(
                                 time=event.time,
                                 event_type="keyboard",
                                 action=KeyboardActionAdvanced.KEY_SHORTCUT,
-                                note=key_str
+                                note=key_str,
                             )
                 else:
                     # modifier keys
@@ -315,7 +356,7 @@ def aggregate_keyboard_events(events: list[Event]) -> list[Event]:
                         time=event.time,
                         event_type="keyboard",
                         action=KeyboardActionAdvanced.KEY_PRESS,
-                        note=modif_key_events[event.key_code].note
+                        note=modif_key_events[event.key_code].note,
                     )
                     break
                 else:
@@ -338,63 +379,6 @@ def aggregate_keyboard_events(events: list[Event]) -> list[Event]:
 
     return [aggregated_event] if aggregated_event is not None else []
 
-# def aggregate_keyboard_events(events: list[Event]) -> list[Event]:
-#     aggregated_events: list[Event] = []
-#     key_events: dict[int, KeyboardEvent] = {}
-#     modif_key_events: dict[int, KeyboardEvent] = {}
-
-#     for event in events:
-#         if isinstance(event, KeyboardEvent):
-#             if event.action == KeyboardAction.KEY_DOWN:
-#                 assert event.key_code not in key_events and event.key_code not in modif_key_events, \
-#                     f"Key {event.key_code} is already pressed"
-#                 if event.ascii is not None:
-#                     # normal key press
-#                     key_events[event.key_code] = event
-#                     # if invisiable key, append it
-#                     if not is_visiable_ascii(event.ascii):
-#                         aggregated_events.append(event)
-#                     else:
-#                         if len(modif_key_events) == 0:
-#                             # typing
-#                             if len(aggregated_events) > 0 and isinstance(aggregated_events[-1], KeyboardEventAdvanced) and \
-#                                     aggregated_events[-1].action == KeyboardActionAdvanced.KEY_TYPE:
-#                                 assert aggregated_events[-1].note is not None
-#                                 aggregated_events[-1].key_code.append(event.key_code)
-#                                 aggregated_events[-1].note += chr(event.ascii)
-#                                 aggregated_events[-1].duration = event.time - aggregated_events[-1].time
-#                             else:
-#                                 aggregated_events.append(KeyboardEventAdvanced(
-#                                     time=event.time,
-#                                     event_type="keyboard",
-#                                     action=KeyboardActionAdvanced.KEY_TYPE,
-#                                     note=key_str,
-#                                 ))
-#                         else:
-#                             # shortcut
-#                             key_str = (" + ".join(sorted([str(e.note) for e in modif_key_events.values()]) + sorted(
-#                                 [str(e.note) for e in key_events.values()])))
-#                             aggregated_events.append(KeyboardEventAdvanced(
-#                                 time=event.time,
-#                                 event_type="keyboard",
-#                                 action=KeyboardActionAdvanced.KEY_SHORTCUT,
-#                                 note=key_str
-#                             ))
-#                 else:
-#                     # modifier keys
-#                     modif_key_events[event.key_code] = event
-#             elif event.action == KeyboardAction.KEY_UP:
-#                 assert event.key_code in key_events or event.key_code in modif_key_events, \
-#                     f"Key {event.key_code} is not pressed"
-#                 if event.ascii is not None:
-#                     key_events.pop(event.key_code)
-#                 else:
-#                     modif_key_events.pop(event.key_code)
-#         else:
-#             aggregated_events.append(event)
-
-#     return sorted(aggregated_events)
-
 
 def aggregate_events(events: list[Event]) -> list[Event]:
     # Aggregate events, e.g. for keyboard events, aggregate
@@ -416,13 +400,15 @@ def aggregate_events(events: list[Event]) -> list[Event]:
                                 event_type="keyboard",
                                 action=KeyboardActionAdvanced.KEY_TYPE,
                                 key_code=[event.key_code],
-                                note=chr(event.ascii)
+                                note=chr(event.ascii),
                             )
                         else:
                             assert cur_keyboard_event.note is not None
                             cur_keyboard_event.key_code.append(event.key_code)
                             cur_keyboard_event.note += chr(event.ascii)
-                            cur_keyboard_event.duration = event.time - cur_keyboard_event.time
+                            cur_keyboard_event.duration = (
+                                event.time - cur_keyboard_event.time
+                            )
                     else:
                         # shortcut
                         aggregated_events.append(event)
@@ -620,13 +606,14 @@ class VideoPlayer(QMainWindow):
         export_action.triggered.connect(self.export_file)
         file_menu.addAction(export_action)
 
-    ### List Widget Slots ###
+    # -- List Widget Slots --#
 
     def seek_to_event(self, item):
         selected_index = self.list_widget.row(item)
         if self.record is not None:
             self.media_player.setPosition(
-                int(self.record.events[selected_index].time * 1000))
+                int(self.record.events[selected_index].time * 1000)
+            )
 
     def delete_event(self):
         selected_items = self.list_widget.selectedItems()
@@ -656,7 +643,8 @@ class VideoPlayer(QMainWindow):
             self.current_event = self.record.events[selected_index]
             # Add static fields
             self.event_details_layout.addRow(
-                "Event Type:", QLabel(self.current_event.event_type))
+                "Event Type:", QLabel(self.current_event.event_type)
+            )
             self.create_dynamic_ui(self.current_event)
         else:
             # Multiple items selected, show advanced options
@@ -671,10 +659,13 @@ class VideoPlayer(QMainWindow):
             self.event_details_layout.addRow(aggregate_button)
             if len(event_types) == 1:
                 aggregated_events = aggregate_keyboard_events(
-                    [self.record.events[self.list_widget.row(item)]
-                     for item in selected_items])
+                    [
+                        self.record.events[self.list_widget.row(item)]
+                        for item in selected_items
+                    ]
+                )
                 # only display the first aggregated event
-                if (len(aggregated_events) > 0):
+                if len(aggregated_events) > 0:
                     self.current_event = aggregated_events[0]
                     self.create_dynamic_ui(aggregated_events[0])
 
@@ -694,7 +685,7 @@ class VideoPlayer(QMainWindow):
 
     def create_dynamic_ui(self, event: Event):
         for field_name, field in event.model_fields.items():
-            if field_name in ['event_type']:
+            if field_name in ["event_type"]:
                 continue  # Skip static fields
 
             field_type = field.annotation
@@ -713,13 +704,15 @@ class VideoPlayer(QMainWindow):
             if field_value:
                 widget.setCurrentText(field_value.name)
             widget.currentTextChanged.connect(
-                lambda text: self.update_field(field_name, field_type[text]))
+                lambda text: self.update_field(field_name, field_type[text])
+            )
         elif field_type == bool or get_origin(field_type) == bool:
             widget = QCheckBox()
             if field_value is not None:
                 widget.setChecked(field_value)
             widget.stateChanged.connect(
-                lambda state: self.update_field(field_name, bool(state)))
+                lambda state: self.update_field(field_name, bool(state))
+            )
         elif field_type == int or get_origin(field_type) == int:
             widget = QSpinBox()
             widget.setMaximum(999999)
@@ -727,22 +720,22 @@ class VideoPlayer(QMainWindow):
             if field_value is not None:
                 widget.setValue(field_value)
             widget.valueChanged.connect(
-                lambda value: self.update_field(field_name, value))
+                lambda value: self.update_field(field_name, value)
+            )
         elif field_type == float or get_origin(field_type) == float:
             widget = QDoubleSpinBox()
             widget.setDecimals(9)
             if field_value is not None:
                 widget.setValue(field_value)
             widget.valueChanged.connect(
-                lambda value: self.update_field(field_name, value))
+                lambda value: self.update_field(field_name, value)
+            )
         elif field_type == str or get_origin(field_type) == str:
             widget = QLineEdit(str(field_value) if field_value is not None else "")
             widget.textChanged.connect(lambda text: self.update_field(field_name, text))
         else:
             # For complex types, use a QLabel for now
             widget = QLabel(str(field_value) if field_value is not None else "")
-            # widget = QLineEdit(str(field_value) if field_value is not None else "")
-            # widget.textChanged.connect(lambda text: self.update_field(field_name, text))
 
         return widget
 
@@ -756,7 +749,7 @@ class VideoPlayer(QMainWindow):
         if len(selected_items) == 1 and self.current_event is not None:
             selected_items[0].setText(self.current_event.format())
 
-    ### Menu Bar Slots ###
+    # Menu Bar Slots #
 
     def _reload_events(self):
         if self.record is None or self.current_file is None:
@@ -764,7 +757,8 @@ class VideoPlayer(QMainWindow):
         self.list_widget.clear()
         base_path = pathlib.Path(self.current_file).parent
         self.media_player.setSource(
-            QUrl.fromLocalFile((base_path / self.record.video.path).as_posix()))
+            QUrl.fromLocalFile((base_path / self.record.video.path).as_posix())
+        )
         self.list_widget.clear()
         for i, event in enumerate(self.record.events):
             self.list_widget.addItem(event.format())
@@ -773,16 +767,19 @@ class VideoPlayer(QMainWindow):
         if file_name:
             self.current_file = file_name
             try:
-                with open(file_name, 'r') as f:
+                with open(file_name, "r") as f:
                     self.record = Record.model_validate(json.load(f))
                     assert self.record is not None
                     self.record.events = aggregate_mouse_events(self.record.events)
                     self._reload_events()
                     self.file_path_label.setText(file_name)
-                    self.instruction_label.setText(f"Instruction: {self.record.instruction}")
+                    self.instruction_label.setText(
+                        f"Instruction: {self.record.instruction}"
+                    )
             except Exception as e:
-                QMessageBox.critical(self, "Load Failed",
-                                     f"An error occurred while loading: {str(e)}")
+                QMessageBox.critical(
+                    self, "Load Failed", f"An error occurred while loading: {str(e)}"
+                )
 
     def open_file(self):
         file_name, _ = QFileDialog.getOpenFileName(self, "Open Record Trajectory")
@@ -806,38 +803,49 @@ class VideoPlayer(QMainWindow):
             return
         try:
             json_str = self.record.model_dump_json(indent=4)
-            with open(file_name, 'w') as f:
+            with open(file_name, "w") as f:
                 f.write(json_str)
             QMessageBox.information(self, "Save Successful", "File saved successfully.")
         except Exception as e:
-            QMessageBox.critical(self, "Save Failed",
-                                 f"An error occurred while saving: {str(e)}")
+            QMessageBox.critical(
+                self, "Save Failed", f"An error occurred while saving: {str(e)}"
+            )
 
     def export_file(self):
         if self.record is None or self.current_file is None:
             QMessageBox.critical(self, "Export Failed", "No record to export.")
             return
         file_name, _ = QFileDialog.getSaveFileName(
-            self, "Export Record Trajectory",
-            (pathlib.Path(self.current_file) / "trajectory.jsonl").as_posix())
+            self,
+            "Export Record Trajectory",
+            (pathlib.Path(self.current_file) / "trajectory.jsonl").as_posix(),
+        )
         if file_name:
             try:
                 for event in self.record.events:
-                    if not isinstance(event, KeyboardEventAdvanced) and not isinstance(event, MouseEventAdvanced):
+                    if not isinstance(event, KeyboardEventAdvanced) and not isinstance(
+                        event, MouseEventAdvanced
+                    ):
                         raise ValueError(
-                            "Please aggregate the events before exporting.")
+                            "Please aggregate the events before exporting."
+                        )
                 episode = convert_to_episode(
-                    self.record, pathlib.Path(file_name).parent)
+                    self.record, pathlib.Path(file_name).parent
+                )
                 json_str = episode.model_dump_json()
-                with open(file_name, 'w') as f:
+                with open(file_name, "w") as f:
                     f.write(json_str + "\n")
-                QMessageBox.information(self, "Export Successful",
-                                        "File exported successfully.")
+                QMessageBox.information(
+                    self, "Export Successful", "File exported successfully."
+                )
             except Exception as e:
-                QMessageBox.critical(self, "Export Failed",
-                                     f"An error occurred while exporting: {str(e)}")
+                QMessageBox.critical(
+                    self,
+                    "Export Failed",
+                    f"An error occurred while exporting: {str(e)}",
+                )
 
-    ### Media Player Slots ###
+    # Media Player Slots #
 
     def play_pause(self):
         if self.media_player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
@@ -851,8 +859,13 @@ class VideoPlayer(QMainWindow):
         # find out the current event
         if self.record is not None:
             # position is in milliseconds
-            idx = bisect.bisect_right(self.record.events, Event(
-                time=self.media_player.position() / 1000.0, event_type="")) - 1
+            idx = (
+                bisect.bisect_right(
+                    self.record.events,
+                    Event(time=self.media_player.position() / 1000.0, event_type=""),
+                )
+                - 1
+            )
             # change the corresponding item to green
             for i in range(self.list_widget.count()):
                 item = self.list_widget.item(i)
@@ -874,8 +887,12 @@ class VideoPlayer(QMainWindow):
         self.handle_item_color()
         # Update the time label, format the time as mm:ss::ms
         self.time_label.setText(
-            f"{position // 60000:02}:{(position // 1000) % 60:02}:{position % 1000:03} / "
-            f"{self.media_player.duration() // 60000:02}:{(self.media_player.duration() // 1000) % 60:02}:{self.media_player.duration() % 1000:03}")
+            f"{position // 60000:02}:{(position // 1000) % 60:02}"
+            f":{position % 1000:03} / "
+            f"{self.media_player.duration() // 60000:02}"
+            f":{(self.media_player.duration() // 1000) % 60:02}"
+            f":{self.media_player.duration() % 1000:03}"
+        )
 
     def duration_changed(self, duration):
         self.seek_slider.setRange(0, duration)

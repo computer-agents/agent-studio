@@ -1,18 +1,15 @@
 import json
-from time import time, sleep
-from pynput import keyboard, mouse
-from utils import OS, MouseOptions
-
 import logging
+from time import sleep, time
+
+from pynput import keyboard, mouse
+from utils import MouseOptions
 
 logger = logging.getLogger(__name__)
 
 
 class Player:
-    def __init__(self,
-                 event_time_zero: float,
-                 start_time: float
-                 ) -> None:
+    def __init__(self, event_time_zero: float, start_time: float) -> None:
         self.event_time_zero = event_time_zero
         self.start_time = start_time
 
@@ -32,15 +29,10 @@ class Player:
 
 
 class MousePlayer(Player):
-    def __init__(self,
-                 event_time_zero: float,
-                 start_time: float,
-                 options: MouseOptions
-                 ) -> None:
-        super().__init__(
-            event_time_zero,
-            start_time
-        )
+    def __init__(
+        self, event_time_zero: float, start_time: float, options: MouseOptions
+    ) -> None:
+        super().__init__(event_time_zero, start_time)
         self.controller = mouse.Controller()
         self.last_pos = self.controller.position
         self.options = options
@@ -51,7 +43,8 @@ class MousePlayer(Player):
                 if MouseOptions.LOG_MOVE in self.options:
                     logger.debug(f"Mouse pos: {data['x']}, {data['y']}")
                     self.controller.move(
-                        data["x"] - self.last_pos[0], data["y"] - self.last_pos[1])
+                        data["x"] - self.last_pos[0], data["y"] - self.last_pos[1]
+                    )
                     self.last_pos = (data["x"], data["y"])
                     # self.controller.position = (data["x"], data["y"])
             case "button":
@@ -85,14 +78,8 @@ class MousePlayer(Player):
 
 
 class KeyboardPlayer(Player):
-    def __init__(self,
-                 event_time_zero: float,
-                 start_time: float
-                 ) -> None:
-        super().__init__(
-            event_time_zero,
-            start_time
-        )
+    def __init__(self, event_time_zero: float, start_time: float) -> None:
+        super().__init__(event_time_zero, start_time)
         self.controller = keyboard.Controller()
         self.pressed_keys = set()
 
@@ -125,10 +112,7 @@ class KeyboardPlayer(Player):
     def stop(self):
         for key in self.pressed_keys:
             self.controller.release(key)
-            logger.warn(
-                f"{key} is still pressed\n"
-                f"check the record file"
-            )
+            logger.warn(f"{key} is still pressed\n" f"check the record file")
 
 
 class CodePlayer(Player):
@@ -137,11 +121,7 @@ class CodePlayer(Player):
 
 
 class AllinOnePlayer(Player):
-    def __init__(
-        self,
-        record_path: str,
-        mouse_options: MouseOptions
-    ) -> None:
+    def __init__(self, record_path: str, mouse_options: MouseOptions) -> None:
         with open(record_path, "r") as f:
             records = json.load(f)
 
@@ -150,19 +130,9 @@ class AllinOnePlayer(Player):
         self.event_time_zero = self.meta_data["start_time"]
         self.start_time = time()
         self.players = {
-            "mouse": MousePlayer(
-                self.event_time_zero,
-                self.start_time,
-                mouse_options
-            ),
-            "keyboard": KeyboardPlayer(
-                self.event_time_zero,
-                self.start_time
-            ),
-            "code": CodePlayer(
-                self.event_time_zero,
-                self.start_time
-            ),
+            "mouse": MousePlayer(self.event_time_zero, self.start_time, mouse_options),
+            "keyboard": KeyboardPlayer(self.event_time_zero, self.start_time),
+            "code": CodePlayer(self.event_time_zero, self.start_time),
         }
 
     def run(self) -> None:
@@ -182,7 +152,7 @@ class AllinOnePlayer(Player):
 if __name__ == "__main__":
     player = AllinOnePlayer(
         record_path="record.json",
-        mouse_options=MouseOptions.LOG_CLICK | MouseOptions.LOG_SCROLL
+        mouse_options=MouseOptions.LOG_CLICK | MouseOptions.LOG_SCROLL,
     )
     player.run()
     player.stop()

@@ -2,9 +2,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Union
 
-from pydantic import BaseModel
-
 import numpy as np
+from pydantic import BaseModel
 
 
 @dataclass
@@ -14,6 +13,7 @@ class Message:
 
 
 MessageList = list[Message]
+
 
 class Action(BaseModel):
     action_id: str | None

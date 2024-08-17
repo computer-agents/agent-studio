@@ -1,8 +1,8 @@
+import logging
 import os
 import threading
 import time
 from typing import Tuple
-import logging
 
 import cv2
 import mss
@@ -69,7 +69,9 @@ class VideoRecorder(Recorder):
         self.fps = fps
         self.screen_region = screen_region
         self.frame_size: Tuple[int, int] = (
-            self.screen_region['width'], self.screen_region['height'])
+            self.screen_region["width"],
+            self.screen_region["height"],
+        )
         logger.info(f"Frame size: {self.frame_size}")
         logger.info(f"Screen region: {self.screen_region}")
 
@@ -89,12 +91,14 @@ class VideoRecorder(Recorder):
     def __get_frames_to_latest(self, frame_id, before_frame_nums=5):
         return self.frame_buffer.get_frames_to_latest(frame_id, before_frame_nums)
 
-    def get_video(self, video_path: str, start_frame_id: int, end_frame_id: int | None = None) -> str:
+    def get_video(
+        self, video_path: str, start_frame_id: int, end_frame_id: int | None = None
+    ) -> str:
         output_dir = os.path.dirname(video_path)
         if output_dir != "" and not os.path.exists(output_dir):
             os.makedirs(output_dir, exist_ok=True)
         writer = cv2.VideoWriter(
-            video_path, cv2.VideoWriter_fourcc(*'mp4v'), self.fps, self.frame_size
+            video_path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, self.frame_size
         )
         logging.info(f"Write video to {video_path}")
 
@@ -174,7 +178,4 @@ if __name__ == "__main__":
     capture_video.stop()
     capture_video.wait_exit()
 
-    capture_video.get_video(
-        video_path="test.mp4",
-        start_frame_id=0
-    )
+    capture_video.get_video(video_path="test.mp4", start_frame_id=0)

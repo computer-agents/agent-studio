@@ -1,29 +1,29 @@
-import re
 import logging
 import os
-from datetime import datetime
-import uuid
-from pathlib import Path
-import chime
+import re
 import time
+import uuid
+from datetime import datetime
+from pathlib import Path
 
+import chime
+
+from agent_studio.recorder.recorders.keyboard import KeyboardRecorder
+from agent_studio.recorder.recorders.mouse import MouseRecorder
+from agent_studio.recorder.recorders.video import VideoRecorder
 from agent_studio.recorder.utils import (
-    OS,
     Event,
-    MouseOptions,
-    Recorder,
-    Record,
-    KeyboardEvent,
     KeyboardAction,
+    KeyboardEvent,
+    MouseOptions,
+    Record,
+    Recorder,
     VideoInfo,
 )
-from agent_studio.recorder.recorders.mouse import MouseRecorder
-from agent_studio.recorder.recorders.keyboard import KeyboardRecorder
-from agent_studio.recorder.recorders.video import VideoRecorder
 
 logger = logging.getLogger(__name__)
 
-chime.theme('material')
+chime.theme("material")
 
 
 class AllinOneRecorder(Recorder):
@@ -43,13 +43,10 @@ class AllinOneRecorder(Recorder):
         self.output_folder: str = output_folder
         self.events: list[Event] = []
         self.shebang_template = re.compile(r"^#!\s*(.+)")
-        self.mouse_recorder = MouseRecorder(
-            mouse_options,
-            mouse_fps
-        )
+        self.mouse_recorder = MouseRecorder(mouse_options, mouse_fps)
         self.keyboard_recorder = KeyboardRecorder(
             {
-                'stop': ('<alt>+s', self.stop),
+                "stop": ("<alt>+s", self.stop),
             }
         )
         self.video_recorder = VideoRecorder(
@@ -58,7 +55,6 @@ class AllinOneRecorder(Recorder):
         )
 
     def start(self) -> None:
-
         # count down 3 seconds
         print(f"recording will start in {self.delay_src} seconds")
         print("You will hear a sound when recording starts")
@@ -120,11 +116,8 @@ class AllinOneRecorder(Recorder):
         video_path = f"{self.output_folder}/{annotation_id}.mp4"
         self.video_recorder.get_video(video_path=video_path, start_frame_id=0)
         # if exit from coding mode, save the code
-        keyboard_events = self.remove_bad_keys(
-            self.keyboard_recorder.events
-        )
-        video_events: list = keyboard_events + \
-            self.mouse_recorder.events
+        keyboard_events = self.remove_bad_keys(self.keyboard_recorder.events)
+        video_events: list = keyboard_events + self.mouse_recorder.events
         # start and stop time of the whole recording
         video_start_time: float = self.video_recorder.start_time
         video_stop_time: float = self.video_recorder.stop_time
@@ -137,7 +130,7 @@ class AllinOneRecorder(Recorder):
         video_json: VideoInfo | None = VideoInfo(
             region=self.video_screen_region,
             fps=self.video_recorder.fps,
-            path=Path(video_path).relative_to(self.output_folder).as_posix()
+            path=Path(video_path).relative_to(self.output_folder).as_posix(),
         )
         start_time = video_start_time
         stop_time = video_stop_time
@@ -148,7 +141,7 @@ class AllinOneRecorder(Recorder):
             start_time=start_time - offset,
             stop_time=stop_time - offset,
             events=[],
-            video=video_json
+            video=video_json,
         )
         events_all = valid_key_mouse_events + self.events
         events_all.sort()
@@ -156,7 +149,7 @@ class AllinOneRecorder(Recorder):
         for event in record_json.events:
             event.time -= offset
         json_str = record_json.model_dump_json(indent=4)
-        with open(f"{self.output_folder}/record.json", 'w') as f:
+        with open(f"{self.output_folder}/record.json", "w") as f:
             f.write(json_str)
 
     def wait_exit(self) -> None:
@@ -188,7 +181,7 @@ if __name__ == "__main__":
         },
         video_fps=10,
         output_folder=folder_name,
-        mouse_fps=5,   # valid if recording mouse movement
+        mouse_fps=5,  # valid if recording mouse movement
     )
     rec.start()
     rec.wait_exit()
