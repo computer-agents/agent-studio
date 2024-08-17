@@ -165,9 +165,11 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
     if len(episode.actions) > 0 and last_event is not None:
         obs_after_image = extractor.extract_left(
             (last_event.time + extractor.duration) / 2)
+        action_id = uuid.uuid4().hex
         if obs_after_image is not None:
-            obs_after_image_path = str(img_folder / f"{uuid.uuid4().hex}.png")
-            obs_after_image.save(obs_after_image_path)
+            image_save_path = img_folder / f"{action_id}.png"
+            obs_after_image_path = image_save_path.relative_to(base_path).as_posix()
+            obs_after_image.save(image_save_path)
         else:
             logging.error("No first frame")
             obs_after_image_path = None
