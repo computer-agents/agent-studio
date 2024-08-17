@@ -88,7 +88,20 @@ class KeyboardEventAdvanced(Event, BaseModel):
             template = "{} | {} {} |"
             return template.format(super().format(), self.action.name, self.note)
         else:
-            return super().format()
+            raise NotImplementedError
+
+    def __str__(self) -> str:
+        if self.action == KeyboardActionAdvanced.KEY_TYPE:
+            template = "{} -> \"{}\""
+            return template.format(self.action.name, self.note)
+        elif self.action == KeyboardActionAdvanced.KEY_SHORTCUT:
+            template = "{} -> {} |"
+            return template.format(self.action.name, self.note)
+        elif self.action == KeyboardActionAdvanced.KEY_PRESS:
+            template = "{} -> {} |"
+            return template.format(self.action.name, self.note)
+        else:
+            raise NotImplementedError
 
 
 class MouseAction(Enum):
@@ -155,6 +168,19 @@ class MouseEventAdvanced(Event, BaseModel):
             return template.format(super().format(), self.action.name)
         else:
             return super().format()
+
+    def __str__(self) -> str:
+        if self.action == MouseActionAdvanced.MOUSE_DRAG:
+            template = "{} -> from: ({} {}) to ({} {})"
+            return template.format(self.action.name, self.x1, self.y1, self.x2, self.y2)
+        elif self.action == MouseActionAdvanced.MOUSE_CLICK:
+            template = "{} {} -> at ({}, {})"
+            return template.format(self.action.name, self.button, self.x1, self.y1)
+        elif self.action == MouseActionAdvanced.MOUSE_SCROLL_UP or self.action == MouseActionAdvanced.MOUSE_SCROLL_DOWN:
+            template = "{} -> dx: {}, dy: {}"
+            return template.format(self.action.name, self.x2, self.y2)
+        else:
+            raise NotImplementedError
 
 
 class VideoInfo(BaseModel):

@@ -111,35 +111,39 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
                 bbox=None,
                 metadata={
                     "note": event.note,
+                    "repr": str(event)
                 }
             )
             episode.actions.append(action)
-        elif isinstance(event, KeyboardEvent):
-            action = Action(
-                action_id=action_id,
-                obs_before=obs_before_image_path,
-                obs_after=obs_after_image_path,
-                operation=event.action.name,
-                bbox=None,
-                metadata={
-                    "ascii": event.ascii,
-                    "note": event.note,
-                }
-            )
-            episode.actions.append(action)
-        elif isinstance(event, MouseEvent):
-            action = Action(
-                action_id=action_id,
-                obs_before=obs_before_image_path,
-                obs_after=obs_after_image_path,
-                operation=event.action.name,
-                bbox={
-                    "x": event.x, "y": event.y,
-                    "width": 1.0, "height": 1.0
-                },
-                metadata={}
-            )
-            episode.actions.append(action)
+        # elif isinstance(event, KeyboardEvent):
+        #     action = Action(
+        #         action_id=action_id,
+        #         obs_before=obs_before_image_path,
+        #         obs_after=obs_after_image_path,
+        #         operation=event.action.name,
+        #         bbox=None,
+        #         metadata={
+        #             "ascii": event.ascii,
+        #             "note": event.note,
+        #             "repr": str(event)
+        #         }
+        #     )
+        #     episode.actions.append(action)
+        # elif isinstance(event, MouseEvent):
+        #     action = Action(
+        #         action_id=action_id,
+        #         obs_before=obs_before_image_path,
+        #         obs_after=obs_after_image_path,
+        #         operation=event.action.name,
+        #         bbox={
+        #             "x": event.x, "y": event.y,
+        #             "width": 1.0, "height": 1.0
+        #         },
+        #         metadata={
+        #             "repr": str(event)
+        #         }
+        #     )
+        #     episode.actions.append(action)
         elif isinstance(event, MouseEventAdvanced):
             action = Action(
                 action_id=action_id,
@@ -153,7 +157,8 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
                 metadata={
                     "button": event.button,
                     "from": {"x": event.x1, "y": event.y1},
-                    "to": {"x": event.x2, "y": event.y2}
+                    "to": {"x": event.x2, "y": event.y2},
+                    "repr": str(event)
                 }
             )
             episode.actions.append(action)
