@@ -23,7 +23,7 @@ import cv2
 from agent_studio.recorder.utils import (Record, Event, KeyboardEvent,
                                          KeyboardEventAdvanced, KeyboardAction,
                                          KeyboardActionAdvanced, MouseAction,
-                                         MouseEvent)
+                                         MouseEvent, MouseActionAdvanced, MouseEventAdvanced)
 from agent_studio.utils.types import Action, Episode
 
 # from qfluentwidgets import FluentTranslator
@@ -65,7 +65,7 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
     extractor = ImageExtractor((base_path / record.video.path).as_posix())
     # use the name of the action as the action space
     action_space = list(KeyboardActionAdvanced.__members__.keys()) + \
-        list(MouseAction.__members__.keys()) + \
+        list(MouseActionAdvanced.__members__.keys()) + \
         list(KeyboardAction.__members__.keys())
 
     episode: Episode = Episode(
@@ -93,8 +93,9 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
                 (last_event.time + last_event.duration + event.time) / 2)
         # obs_after_image = extractor.extract_right(event.time)
         if obs_before_image is not None:
-            obs_before_image_path = str(img_folder / f"{action_id}.png")
-            obs_before_image.save(obs_before_image_path)
+            image_save_path = img_folder / f"{action_id}.png"
+            obs_before_image_path = image_save_path.relative_to(base_path).as_posix()
+            obs_before_image.save(image_save_path)
         else:
             logging.error("No first frame")
             obs_before_image_path = None
@@ -140,6 +141,22 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
                 metadata={}
             )
             episode.actions.append(action)
+        elif isinstance(event, MouseEventAdvanced):
+            action = Action(
+                action_id=action_id,
+                obs_before=obs_before_image_path,
+                obs_after=obs_after_image_path,
+                operation=event.action.name,
+                bbox={
+                    "x": event.x1, "y": event.y1,
+                    "width": 1.0, "height": 1.0
+                } if event.action != MouseActionAdvanced.MOUSE_DRAG else None,
+                metadata={
+                    "button": event.button,
+                    "from": {"x": event.x1, "y": event.y1},
+                    "to": {"x": event.x2, "y": event.y2}
+                }
+            )
         else:
             logging.error(f"Unsupported event type: {type(event)}")
 
@@ -160,7 +177,219 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
     return episode
 
 
-def aggregate_events(events: list[KeyboardEvent | MouseEvent | KeyboardEventAdvanced]) -> list[Event]:
+def aggregate_mouse_events(events: list[Event]) -> list[Event]:
+    aggregated_events: list[Event] = []
+    mouse_events = {}
+
+    for event in events:
+        if isinstance(event, MouseEvent):
+            if event.action == MouseAction.MOUSE_PRESSED:
+                if event.button not in mouse_events:
+                    mouse_events[event.button] = event
+                else:
+                    logging.error(f"Mouse button {event.button} is already pressed")
+            elif event.action == MouseAction.MOUSE_RELEASED:
+                if event.button in mouse_events:
+                    if mouse_events[event.button].x == event.x and mouse_events[event.button].y == event.y:
+                        aggregated_events.append(MouseEventAdvanced(
+                            time=mouse_events[event.button].time,
+                            event_type="mouse",
+                            action=MouseActionAdvanced.MOUSE_CLICK,
+                            x1=mouse_events[event.button].x,
+                            y1=mouse_events[event.button].y,
+                            button=event.button
+                        ))
+                    else:
+                        aggregated_events.append(MouseEventAdvanced(
+                            time=mouse_events[event.button].time,
+                            duration=event.time - mouse_events[event.button].time,
+                            event_type="mouse",
+                            action=MouseActionAdvanced.MOUSE_DRAG,
+                            x1=mouse_events[event.button].x,
+                            y1=mouse_events[event.button].y,
+                            x2=event.x,
+                            y2=event.y,
+                            button=event.button
+                        ))
+                    mouse_events.pop(event.button)
+                else:
+                    logging.error(f"Mouse button {event.button} is not pressed")
+            elif event.action == MouseAction.MOUSE_SCROLL_UP:
+                aggregated_events.append(MouseEventAdvanced(
+                    time=event.time,
+                    event_type="mouse",
+                    action=MouseActionAdvanced.MOUSE_SCROLL_UP,
+                    x1=event.x,
+                    y1=event.y,
+                    button=event.button,
+                    x2=event.dx,
+                    y2=event.dy
+                ))
+            elif event.action == MouseAction.MOUSE_SCROLL_DOWN:
+                aggregated_events.append(MouseEventAdvanced(
+                    time=event.time,
+                    event_type="mouse",
+                    action=MouseActionAdvanced.MOUSE_SCROLL_DOWN,
+                    x1=event.x,
+                    y1=event.y,
+                    button=event.button,
+                    x2=event.dx,
+                    y2=event.dy
+                ))
+        else:
+            aggregated_events.append(event)
+
+    return sorted(aggregated_events)
+
+
+def is_visiable_ascii(ascii_code) -> bool:
+    if 0 <= ascii_code <= 31 or ascii_code == 127:
+        return False
+    else:
+        return True
+
+
+def aggregate_keyboard_events(events: list[Event]) -> list[Event]:
+    aggregated_event: Event | None = None
+    key_events: dict[int, KeyboardEvent] = {}
+    modif_key_events: dict[int, KeyboardEvent] = {}
+
+    for event in events:
+        if isinstance(event, KeyboardEvent):
+            if event.action == KeyboardAction.KEY_DOWN:
+                assert event.key_code not in key_events and event.key_code not in modif_key_events, \
+                    f"Key {event.key_code} is already pressed"
+                if event.ascii is not None:
+                    # normal key press
+                    key_events[event.key_code] = event
+                    # if invisiable key, it's probably a shortcut
+                    if not is_visiable_ascii(event.ascii):
+                        assert event.note is not None
+                        if aggregated_event is None:
+                            aggregated_event = KeyboardEventAdvanced(
+                                time=event.time,
+                                event_type="keyboard",
+                                action=KeyboardActionAdvanced.KEY_SHORTCUT,
+                                note=event.note
+                            )
+                        break
+                    else:
+                        if len(modif_key_events) == 0:
+                            # typing
+                            assert event.note is not None
+                            if aggregated_event is None:
+                                aggregated_event = KeyboardEventAdvanced(
+                                    time=event.time,
+                                    event_type="keyboard",
+                                    action=KeyboardActionAdvanced.KEY_TYPE,
+                                    note=event.note
+                                )
+                            else:
+                                aggregated_event.note += event.note
+                                aggregated_event.duration = event.time - aggregated_event.time
+                        else:
+                            # shortcut
+                            key_str = (" + ".join(sorted([str(e.note) for e in modif_key_events.values()]) + sorted(
+                                [str(e.note) for e in key_events.values()])))
+                            aggregated_event = KeyboardEventAdvanced(
+                                time=event.time,
+                                event_type="keyboard",
+                                action=KeyboardActionAdvanced.KEY_SHORTCUT,
+                                note=key_str
+                            )
+                else:
+                    # modifier keys
+                    modif_key_events[event.key_code] = event
+            elif event.action == KeyboardAction.KEY_UP:
+                if len(modif_key_events) == 1 and len(key_events) == 0:
+                    # single modifier key
+                    assert modif_key_events[event.key_code].note is not None
+                    aggregated_event = KeyboardEventAdvanced(
+                        time=event.time,
+                        event_type="keyboard",
+                        action=KeyboardActionAdvanced.KEY_PRESS,
+                        note=modif_key_events[event.key_code].note
+                    )
+                    break
+                else:
+                    if event.ascii is not None:
+                        key_events.pop(event.key_code, None)
+                    else:
+                        modif_key_events.pop(event.key_code, None)
+        elif isinstance(event, KeyboardEventAdvanced):
+            if event.action == KeyboardActionAdvanced.KEY_TYPE:
+                if aggregated_event is None:
+                    aggregated_event = copy.deepcopy(event)
+                else:
+                    assert event.note is not None
+                    aggregated_event.note += event.note
+                    aggregated_event.duration = event.time - aggregated_event.time
+            else:
+                aggregated_event = copy.deepcopy(event)
+        elif aggregated_event is not None:
+            break
+
+    return [aggregated_event] if aggregated_event is not None else []
+
+# def aggregate_keyboard_events(events: list[Event]) -> list[Event]:
+#     aggregated_events: list[Event] = []
+#     key_events: dict[int, KeyboardEvent] = {}
+#     modif_key_events: dict[int, KeyboardEvent] = {}
+
+#     for event in events:
+#         if isinstance(event, KeyboardEvent):
+#             if event.action == KeyboardAction.KEY_DOWN:
+#                 assert event.key_code not in key_events and event.key_code not in modif_key_events, \
+#                     f"Key {event.key_code} is already pressed"
+#                 if event.ascii is not None:
+#                     # normal key press
+#                     key_events[event.key_code] = event
+#                     # if invisiable key, append it
+#                     if not is_visiable_ascii(event.ascii):
+#                         aggregated_events.append(event)
+#                     else:
+#                         if len(modif_key_events) == 0:
+#                             # typing
+#                             if len(aggregated_events) > 0 and isinstance(aggregated_events[-1], KeyboardEventAdvanced) and \
+#                                     aggregated_events[-1].action == KeyboardActionAdvanced.KEY_TYPE:
+#                                 assert aggregated_events[-1].note is not None
+#                                 aggregated_events[-1].key_code.append(event.key_code)
+#                                 aggregated_events[-1].note += chr(event.ascii)
+#                                 aggregated_events[-1].duration = event.time - aggregated_events[-1].time
+#                             else:
+#                                 aggregated_events.append(KeyboardEventAdvanced(
+#                                     time=event.time,
+#                                     event_type="keyboard",
+#                                     action=KeyboardActionAdvanced.KEY_TYPE,
+#                                     note=key_str,
+#                                 ))
+#                         else:
+#                             # shortcut
+#                             key_str = (" + ".join(sorted([str(e.note) for e in modif_key_events.values()]) + sorted(
+#                                 [str(e.note) for e in key_events.values()])))
+#                             aggregated_events.append(KeyboardEventAdvanced(
+#                                 time=event.time,
+#                                 event_type="keyboard",
+#                                 action=KeyboardActionAdvanced.KEY_SHORTCUT,
+#                                 note=key_str
+#                             ))
+#                 else:
+#                     # modifier keys
+#                     modif_key_events[event.key_code] = event
+#             elif event.action == KeyboardAction.KEY_UP:
+#                 assert event.key_code in key_events or event.key_code in modif_key_events, \
+#                     f"Key {event.key_code} is not pressed"
+#                 if event.ascii is not None:
+#                     key_events.pop(event.key_code)
+#                 else:
+#                     modif_key_events.pop(event.key_code)
+#         else:
+#             aggregated_events.append(event)
+
+#     return sorted(aggregated_events)
+
+
+def aggregate_events(events: list[Event]) -> list[Event]:
     # Aggregate events, e.g. for keyboard events, aggregate
     # consecutive key presses into a single event, KEY_TYPE
     aggregated_events: list[Event] = []
@@ -246,6 +475,12 @@ class VideoPlayer(QMainWindow):
 
         # Video widget (left side)
         video_layout = QVBoxLayout()
+
+        # Show opened file path
+        self.file_path_label = QLabel("No file opened")
+        self.file_path_label.setFixedHeight(30)
+        video_layout.addWidget(self.file_path_label)
+
         self.video_widget = QVideoWidget()
         self.media_player = QMediaPlayer()
         self.media_player.setVideoOutput(self.video_widget)
@@ -314,6 +549,36 @@ class VideoPlayer(QMainWindow):
         # Connect media player signals
         self.media_player.positionChanged.connect(self.position_changed)
         self.media_player.durationChanged.connect(self.duration_changed)
+
+        # shortcut ctrl+n to open a new record
+        new_shortcut = QAction(self)
+        new_shortcut.setShortcut("Ctrl+N")
+        new_shortcut.triggered.connect(self.open_file)
+        self.addAction(new_shortcut)
+
+        # shortcut ctrl+e to export the record
+        export_shortcut = QAction(self)
+        export_shortcut.setShortcut("Ctrl+E")
+        export_shortcut.triggered.connect(self.export_file)
+        self.addAction(export_shortcut)
+
+        # Shortcut d to delete the selected event
+        delete_shortcut = QAction(self)
+        delete_shortcut.setShortcut("D")
+        delete_shortcut.triggered.connect(self.delete_event)
+        self.addAction(delete_shortcut)
+
+        # Shortcut A to aggregate the selected event
+        aggregate_shortcut = QAction(self)
+        aggregate_shortcut.setShortcut("A")
+        aggregate_shortcut.triggered.connect(self.aggregate_events)
+        self.addAction(aggregate_shortcut)
+
+        # Shortcut ctrl+s to save the record
+        save_shortcut = QAction(self)
+        save_shortcut.setShortcut("Ctrl+S")
+        save_shortcut.triggered.connect(self.save_file)
+        self.addAction(save_shortcut)
 
     def create_menu_bar(self):
         menu_bar = QMenuBar(self)
@@ -393,7 +658,7 @@ class VideoPlayer(QMainWindow):
             aggregate_button.clicked.connect(self.aggregate_events)
             self.event_details_layout.addRow(aggregate_button)
             if len(event_types) == 1:
-                aggregated_events = aggregate_events(
+                aggregated_events = aggregate_keyboard_events(
                     [self.record.events[self.list_widget.row(item)]
                      for item in selected_items])
                 # only display the first aggregated event
@@ -495,9 +760,16 @@ class VideoPlayer(QMainWindow):
     def _load_file(self, file_name):
         if file_name:
             self.current_file = file_name
-            with open(file_name, 'r') as f:
-                self.record = Record.model_validate(json.load(f))
-                self._reload_events()
+            try:
+                with open(file_name, 'r') as f:
+                    self.record = Record.model_validate(json.load(f))
+                    assert self.record is not None
+                    self.record.events = aggregate_mouse_events(self.record.events)
+                    self._reload_events()
+                    self.file_path_label.setText(file_name)
+            except Exception as e:
+                QMessageBox.critical(self, "Load Failed",
+                                     f"An error occurred while loading: {str(e)}")
 
     def open_file(self):
         file_name, _ = QFileDialog.getOpenFileName(self, "Open Record Trajectory")
@@ -529,18 +801,23 @@ class VideoPlayer(QMainWindow):
                                  f"An error occurred while saving: {str(e)}")
 
     def export_file(self):
-        if self.record is None:
+        if self.record is None or self.current_file is None:
             QMessageBox.critical(self, "Export Failed", "No record to export.")
             return
         file_name, _ = QFileDialog.getSaveFileName(
-            self, "Export Record Trajectory", "trajectory.jsonl")
+            self, "Export Record Trajectory",
+            (pathlib.Path(self.current_file) / "trajectory.jsonl").as_posix())
         if file_name:
             try:
+                for event in self.record.events:
+                    if not isinstance(event, KeyboardEventAdvanced) and not isinstance(event, MouseEventAdvanced):
+                        raise ValueError(
+                            "Please aggregate the events before exporting.")
                 episode = convert_to_episode(
                     self.record, pathlib.Path(file_name).parent)
                 json_str = episode.model_dump_json()
                 with open(file_name, 'w') as f:
-                    f.write(json_str)
+                    f.write(json_str + "\n")
                 QMessageBox.information(self, "Export Successful",
                                         "File exported successfully.")
             except Exception as e:

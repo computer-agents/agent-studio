@@ -53,12 +53,13 @@ class KeyboardAction(Enum):
 class KeyboardActionAdvanced(Enum):
     KEY_TYPE = auto()  # key type
     KEY_SHORTCUT = auto()  # key combination
+    KEY_PRESS = auto()  # key press
 
 
 class KeyboardEvent(Event, BaseModel):
     action: KeyboardAction
     # virtual key code of the key or key name of the key
-    key_code: int | None = None
+    key_code: int
     # ascii code of the key, modifier keys have no ascii code
     ascii: int | None = None
     note: str | None = None
@@ -72,8 +73,8 @@ class KeyboardEvent(Event, BaseModel):
 
 class KeyboardEventAdvanced(Event, BaseModel):
     action: KeyboardActionAdvanced
+    note: str
     key_code: list[str | int | None] = []
-    note: str | None = None
 
     def format(self) -> str:
         # {time} | {event_type} | {ACTION} {str} |
@@ -82,8 +83,10 @@ class KeyboardEventAdvanced(Event, BaseModel):
             return template.format(super().format(), self.action.name, self.note)
         elif self.action == KeyboardActionAdvanced.KEY_SHORTCUT:
             template = "{} | {} {} |"
-            return template.format(super().format(), self.action.name, "+".join(
-                [str(key) for key in self.key_code]))
+            return template.format(super().format(), self.action.name, self.note)
+        elif self.action == KeyboardActionAdvanced.KEY_PRESS:
+            template = "{} | {} {} |"
+            return template.format(super().format(), self.action.name, self.note)
         else:
             return super().format()
 
@@ -92,6 +95,13 @@ class MouseAction(Enum):
     MOUSE_POS = auto()     # position of the mouse
     MOUSE_PRESSED = auto()  # click a button
     MOUSE_RELEASED = auto()  # release a button
+    MOUSE_SCROLL_UP = auto()  # scroll up
+    MOUSE_SCROLL_DOWN = auto()  # scroll down
+
+
+class MouseActionAdvanced(Enum):
+    MOUSE_DRAG = auto()  # drag the mouse
+    MOUSE_CLICK = auto()  # click the mouse
     MOUSE_SCROLL_UP = auto()  # scroll up
     MOUSE_SCROLL_DOWN = auto()  # scroll down
 
@@ -122,6 +132,31 @@ class MouseEvent(Event, BaseModel):
             return super().format()
 
 
+class MouseEventAdvanced(Event, BaseModel):
+    action: MouseActionAdvanced
+    x1: int
+    y1: int
+    button: str | None = None
+    x2: int | None = None   # if is SCROLL, x2 and y2 are dx and dy
+    y2: int | None = None
+
+    def format(self) -> str:
+        if self.action == MouseActionAdvanced.MOUSE_DRAG:
+            # {time} | {event_type} | DRAG {X1} {Y1} {X2} {Y2} |
+            template = "{} | {} |"
+            return template.format(super().format(), self.action.name)
+        elif self.action == MouseActionAdvanced.MOUSE_CLICK:
+            # {time} | {event_type} | {Button} {Action} {X} {Y} |
+            template = "{} | {} {} |"
+            return template.format(super().format(), self.button, self.action.name)
+        elif self.action == MouseActionAdvanced.MOUSE_SCROLL_UP or self.action == MouseActionAdvanced.MOUSE_SCROLL_DOWN:
+            # {time} | {event_type} | {Action} |
+            template = "{} | {} |"
+            return template.format(super().format(), self.action.name)
+        else:
+            return super().format()
+
+
 class VideoInfo(BaseModel):
     region: dict[str, int]
     fps: int
@@ -133,7 +168,8 @@ class Record(BaseModel):
     annotation_id: str
     start_time: float
     stop_time: float
-    events: list[MouseEvent | KeyboardEvent | KeyboardEventAdvanced]
+    events: list[MouseEvent | KeyboardEvent |
+                 KeyboardEventAdvanced | MouseEventAdvanced]
     video: VideoInfo
 
 

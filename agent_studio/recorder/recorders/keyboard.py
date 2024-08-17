@@ -35,11 +35,11 @@ class KeyboardRecorder(Recorder):
     def __on_press(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
         if key is not None:
             if isinstance(key, keyboard.KeyCode):
-                key_code = key.vk
+                key_code = -1 if key.vk is None else key.vk
                 ascii = ord(key.char) if key.char else None
                 note = None if ascii is None else ascii_to_caret_notation(ascii)
             else:
-                key_code: int | None = key.value.vk
+                key_code: int = -1 if key.value.vk is None else key.value.vk
                 ascii = None
                 note = key.name
             self.events.append(
@@ -60,11 +60,11 @@ class KeyboardRecorder(Recorder):
     def __on_release(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
         if key is not None:
             if isinstance(key, keyboard.KeyCode):
-                key_code = key.vk
+                key_code = -1 if key.vk is None else key.vk
                 ascii = ord(key.char) if key.char else None
                 note = None if ascii is None else ascii_to_caret_notation(ascii)
             else:
-                key_code: int | None = key.value.vk
+                key_code: int = -1 if key.value.vk is None else key.value.vk
                 ascii = None
                 note = key.name
             self.events.append(
