@@ -193,6 +193,19 @@ class IDMMultipleEval(BaseEval):
                 actions,
                 action_space,
             )
+            if "gemini" in model_name:
+                prompt.append(
+                    Message(
+                        role="user",
+                        content="You must output no more than ten actions.",
+                    )
+                )
+                prompt_str.append(
+                    {
+                        "role": "user",
+                        "content": "You must output no more than ten actions.",
+                    }
+                )
             response, info = self.model.generate_response(
                 prompt,
                 model=model_name,
