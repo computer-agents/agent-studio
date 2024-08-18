@@ -76,6 +76,31 @@ def push_ground_ui_18k():
 
 
 def push_idm_single():
+    features = Features(
+        {
+            "action_id": Value("string"),
+            "obs_before_path": Value("string"),
+            "obs_after_path": Value("string"),
+            "obs_before": Image(),
+            "obs_after": Image(),
+            "operation": Value("string"),
+            "bbox": {
+                "x": Value("float32"),
+                "y": Value("float32"),
+                "width": Value("float32"),
+                "height": Value("float32"),
+            },
+            "metadata": {
+                "repr": Value("string"),
+                "text": Value("string"),
+            },
+            "instruction": Value("string"),
+            "source": Value("string"),
+            "platform": Value("string"),
+            "action_space": Sequence(Value("string")),
+        }
+    )
+
     dataset_dict = {
         "action_id": [],
         "obs_before_path": [],
@@ -110,7 +135,7 @@ def push_idm_single():
         dataset_dict["platform"].append(d["platform"])
         dataset_dict["action_space"].append(d["action_space"])
 
-    dataset = Dataset.from_dict(dataset_dict)
+    dataset = Dataset.from_dict(dataset_dict, features=features)
     dataset = dataset.cast_column("obs_before", Image())
     dataset = dataset.cast_column("obs_after", Image())
     print(f"column: {dataset.column_names}")
@@ -147,10 +172,6 @@ def push_idm_multiple():
             ),
             "source": Value("string"),
             "platform": Value("string"),
-            "metadata": {
-                "repr": Value("string"),
-                "text": Value("string"),
-            },
             "action_space": Sequence(Value("string")),
             "is_success": Value("bool"),
         }
@@ -162,7 +183,6 @@ def push_idm_multiple():
         "actions": [],
         "source": [],
         "platform": [],
-        "metadata": [],
         "action_space": [],
         "is_success": [],
     }
@@ -184,10 +204,10 @@ def push_idm_multiple():
             else:
                 action["obs_after"] = None
                 action["obs_after_path"] = None
+            action["metadata"] = action["metadata"]
         dataset_dict["actions"].append(d["actions"])
         dataset_dict["source"].append(d["source"])
         dataset_dict["platform"].append(d["platform"])
-        dataset_dict["metadata"].append(d["metadata"])
         dataset_dict["action_space"].append(d["action_space"])
         dataset_dict["is_success"].append(d["is_success"])
 
@@ -226,10 +246,6 @@ def push_success_detection():
             ),
             "source": Value("string"),
             "platform": Value("string"),
-            "metadata": {
-                "repr": Value("string"),
-                "text": Value("string"),
-            },
             "action_space": Sequence(Value("string")),
             "is_success": Value("bool"),
         }
@@ -241,7 +257,6 @@ def push_success_detection():
         "actions": [],
         "source": [],
         "platform": [],
-        "metadata": [],
         "action_space": [],
         "is_success": [],
     }
@@ -263,10 +278,10 @@ def push_success_detection():
             else:
                 action["obs_after"] = None
                 action["obs_after_path"] = None
+            action["metadata"] = action["metadata"]
         dataset_dict["actions"].append(d["actions"])
         dataset_dict["source"].append(d["source"])
         dataset_dict["platform"].append(d["platform"])
-        dataset_dict["metadata"].append(d["metadata"])
         dataset_dict["action_space"].append(d["action_space"])
         dataset_dict["is_success"].append(d["is_success"])
 
