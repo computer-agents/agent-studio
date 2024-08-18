@@ -179,37 +179,46 @@ def main():
 
     elif "idm" in args.result_path:
         metrics = {}
-        for prefix in ["", "web_", "desktop_", "mobile_", "mind2web_", "aitw_", "vwa_"]:
+        for prefix in [
+            "",
+            "web_",
+            "desktop_",
+            "mobile_",
+            "mind2web_",
+            "aitw_",
+            "vwa_",
+            "agent_studio_",
+        ]:
             metrics[f"{prefix}score"] = []
+            if "n2n" in args.result_path:
+                metrics[f"{prefix}edit_distance"] = []
         metrics["input_tokens"] = []
         metrics["output_tokens"] = []
 
         for result in results:
+            metrics["score"].append(result["score"])
             if "n2n" in args.result_path:
-                metrics["score"].append(result["score"] / len(result["ref_answer"]))
-            else:
-                metrics["score"].append(result["score"])
+                metrics["edit_distance"].append(result["edit_distance"])
 
             for k in ["input_tokens", "output_tokens"]:
                 metrics[k].append(result[k])
 
             for platform in ["web", "desktop", "mobile"]:
                 if result["platform"] == platform:
+                    metrics[f"{platform}_score"].append(result["score"])
                     if "n2n" in args.result_path:
-                        metrics[f"{platform}_score"].append(
-                            result["score"] / len(result["ref_answer"])
+                        metrics[f"{platform}_edit_distance"].append(
+                            result["edit_distance"]
                         )
-                    else:
-                        metrics[f"{platform}_score"].append(result["score"])
 
-            for source in ["mind2web", "aitw", "vwa"]:
+            for source in ["mind2web", "aitw", "vwa", "agent-studio"]:
                 if source in result["source"]:
+                    source = source.replace("-", "_")
+                    metrics[f"{source}_score"].append(result["score"])
                     if "n2n" in args.result_path:
-                        metrics[f"{source}_score"].append(
-                            result["score"] / len(result["ref_answer"])
+                        metrics[f"{source}_edit_distance"].append(
+                            result["edit_distance"]
                         )
-                    else:
-                        metrics[f"{source}_score"].append(result["score"])
 
             if len(htmls) < 3:
                 prompt = result["prompt"]
