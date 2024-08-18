@@ -27,6 +27,7 @@ dependencies = [
     "google-generativeai",
     "google-auth-oauthlib",
     "pyrogram",
+    "toml",
     "torch",
     "transformers",
 ]
