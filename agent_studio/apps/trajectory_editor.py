@@ -174,9 +174,11 @@ def convert_to_episode(record: Record, base_path: pathlib.Path) -> Episode:
                 obs_before=obs_before_image_path,
                 obs_after=obs_after_image_path,
                 operation=event.action.name,
-                bbox={"x": event.x1, "y": event.y1, "width": 1.0, "height": 1.0}
-                if event.action != MouseActionAdvanced.MOUSE_DRAG
-                else None,
+                bbox=(
+                    {"x": event.x1, "y": event.y1, "width": 1.0, "height": 1.0}
+                    if event.action != MouseActionAdvanced.MOUSE_DRAG
+                    else None
+                ),
                 metadata={
                     "button": event.button,
                     "from": {"x": event.x1, "y": event.y1},

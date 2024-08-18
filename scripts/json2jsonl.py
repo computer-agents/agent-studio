@@ -20,9 +20,11 @@ for i in range(len(data)):
         results.append(
             {
                 "task_id": task_id,
-                "instruction": data[i]["instruction"]
-                if "instruction" in data[i]
-                else data[i]["intent"],
+                "instruction": (
+                    data[i]["instruction"]
+                    if "instruction" in data[i]
+                    else data[i]["intent"]
+                ),
                 "evals": data[i]["evals"],
                 "visual": data[i]["visual"] if "visual" in data[i] else False,
             }
