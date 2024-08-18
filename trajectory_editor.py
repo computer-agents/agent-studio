@@ -451,10 +451,10 @@ def aggregate_events(events: list[Event]) -> list[Event]:
     return sorted(aggregated_events)
 
 
-class VideoPlayer(QMainWindow):
+class TrajectoryEditor(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Video Player")
+        self.setWindowTitle("Trajectory Editor")
         self.setGeometry(100, 100, 1000, 600)
 
         self.record: Record | None = None
@@ -904,6 +904,6 @@ if __name__ == "__main__":
     #     app.setStyle("fusion")
     # translator = FluentTranslator()
     # app.installTranslator(translator)
-    player = VideoPlayer()
+    player = TrajectoryEditor()
     player.show()
     sys.exit(app.exec())
