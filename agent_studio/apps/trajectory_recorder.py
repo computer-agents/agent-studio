@@ -167,7 +167,7 @@ class AllinOneRecorder(Recorder):
 def main():
     config_file_path = Path.home().joinpath(".agent-studio")
     conf = {
-        "output_folder": (Path.home() / datetime.now().strftime("%Y%m%d_%H%M%S")).as_posix()
+        "output_folder": Path.home().as_posix()
     }
 
     if config_file_path.exists():
@@ -186,6 +186,8 @@ def main():
     if user_input:
         output_folder = Path(user_input)
         conf["output_folder"] = output_folder.as_posix()
+
+    output_folder = output_folder / datetime.now().strftime("%Y%m%d_%H%M%S")
 
     os.makedirs(output_folder, exist_ok=True)
 
