@@ -3,7 +3,7 @@ AgentStudio
 </h1>
 
 <p align="center">
-<a href='https://arxiv.org/abs/2403.17918'><img src='https://img.shields.io/badge/arXiv-2403.17918-b31b1b.svg'></a>
+<!-- <a href='https://arxiv.org/abs/2403.17918'><img src='https://img.shields.io/badge/arXiv-2403.17918-b31b1b.svg'></a> -->
 <a href='https://skyworkai.github.io/agent-studio/'><img src='https://img.shields.io/badge/Project-Page-Green'></a>
 <a href="https://www.python.org/downloads/release/python-3117/"><img alt="Python 3.11" src="https://img.shields.io/badge/python-3.11-blue.svg"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
@@ -12,7 +12,7 @@ AgentStudio
 <a href="https://pre-commit.com/"><img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white" alt="pre-commit"></a>
 </p>
 
-AgentStudio is an integrated solution featuring in-depth benchmark suites, realistic environments, and comprehensive toolkits. Here, we open-source everything to promote research towards generalist computer agents of the future. The paper, leaderboard, benchmark suites, and documentation for environments and toolkits can be found in our <a href="https://skyworkai.github.io/agent-studio/"><b>project page</b></a>.
+AgentStudio is an **integrated solution for building and benchmarking computer agents**. It features in-depth benchmark suites, realistic environments, and comprehensive toolkits. Here, we open-source everything to promote research towards generalist computer agents of the future. The paper, leaderboard, benchmark suites, and documentation for environments and toolkits can be found in our <a href="https://skyworkai.github.io/agent-studio/"><b>project page</b></a>.
 
 ![](docs/assets/overview.png)
 
@@ -20,11 +20,23 @@ Comparisons with existing work:
 
 ![](docs/assets/comparison.png)
 
+## News
+
+**Aug 18, 2024**: We make major update v0.2 to clean up code and datasets.
+
+**Jun 6, 2024**: We update the leaderboard and benchmarks.
+
+**Mar 30, 2024**: We release the beta version of AgentStudio.
+
 ## Install
 
 Please see [docs/install.md](docs/install.md) for more details. We are going to create a packed release for out-of-box usage.
 
-## Three Offline Benchmark Suites
+## Benchmarks for Fundamental Agent Abilities
+
+To provide benchmarking focusing on specific agent capabilities that current benchmark is lacking, we release three benchmark suites, targeting robust **UI grounding**, **success detection** (self-reflection), and **learning from unlabeled videos** (inverse dynamics models).
+
+The leaderboard and data can be found at our [project page](https://skyworkai.github.io/agent-studio/). The scripts to produce or add benchmark results can be found [here](evals/README.md).
 
 We curated three static datasets for benchmarking GUI grounding, success detection, and learning from videos, respectively. Please see the detailed [evals/README.md](evals/README.md) for scripts that reproduce the benchmark results in our paper.
 
@@ -40,7 +52,14 @@ The real-world environments also facilitate scalable data collection across diff
 
 Here is an example of recording single-step GUI grounding data in MacOS:
 
-![](docs/assets/annotate_gui_2.jpg)
+<div style="display: flex; justify-content: space-between;">
+    <img src="docs/assets/annotate_gui_1.jpg" width="50%">
+    <img src="docs/assets/annotate_gui_2.jpg" width="50%">
+</div>
+
+The example video of recording trajectories can be found at our project page.
+
+
 
 ## Contributing
 
