@@ -166,9 +166,7 @@ class AllinOneRecorder(Recorder):
 
 def main():
     config_file_path = Path.home().joinpath(".agent-studio")
-    conf = {
-        "output_folder": Path.home().as_posix()
-    }
+    conf = {"output_folder": Path.home().as_posix()}
 
     if config_file_path.exists():
         with open(config_file_path, "r") as f:
@@ -182,7 +180,8 @@ def main():
 
     user_input = input(
         "Please enter the folder path where you want to save the record"
-        f" (Press Enter to use the default path: {output_folder}): ")
+        f" (Press Enter to use the default path: {output_folder}): "
+    )
     if user_input:
         output_folder = Path(user_input)
         conf["output_folder"] = output_folder.as_posix()
