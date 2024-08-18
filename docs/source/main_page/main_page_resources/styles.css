@@ -11,8 +11,7 @@
   --orange: #ff7040;
   --lightgreen: #C2D8B9;
   --darkorange: #d54718;
-  --accent_color: #1697e2;
-  --dark_accent_color: #0ea7ff;
+  --dark_accent_color: #46aeeb;
   --odd_line_color: #ffffff;
   --even_line_color: #f2f2f2; 
 }
@@ -86,13 +85,13 @@ body {
 }
 
 .download:hover {
-  color: var(--accent_color);
-  border-color: var(--accent_color);
+  color: var(--dark_accent_color);
+  border-color: var(--dark_accent_color);
   transition: all 0.1s linear;
 }
 
 .light-blue-link, .light-blue-link:visited {
-  color: var(--accent_color); /* Light blue color */
+  color: var(--dark_accent_color); /* Light blue color */
   text-decoration: none; /* Optional: Removes underline from links */
 }
 
@@ -107,7 +106,7 @@ body {
 h1.logo,
 .subtitle,
 .logo-button-text {
-  color: var(--accent_color);
+  color: var(--dark_accent_color);
 }
 
 h1.logo {
@@ -155,7 +154,7 @@ h2.text-title {
 
 #citation {
   background-color: var(--grey);
-  border: 2px solid var(--accent_color);
+  border: 2px solid var(--dark_accent_color);
   padding: 15px;
   overflow-x: auto;
   border-radius: 0.5em;
@@ -183,7 +182,7 @@ button {
       padding: 0em 0em;
       margin: 0.2em 0.5em;
       transition: all 0.2s linear;
-      color: var(--accent_color);
+      color: var(--dark_accent_color);
       background-color: white;
     }
     &.outline:hover {
@@ -368,13 +367,13 @@ tr {
 }
 
 .scrollable::-webkit-scrollbar-thumb {
-  background: var(--accent_color);  /* color of the scroll thumb */
+  background: var(--dark_accent_color);  /* color of the scroll thumb */
   border-radius: 3px;  /* roundness of the scroll thumb */
-  border: 2px solid var(--accent_color);  /* creates padding around scroll thumb */
+  border: 2px solid var(--dark_accent_color);  /* creates padding around scroll thumb */
 }
 
 /* For Firefox */
 .scrollable {
   scrollbar-width: thin;  /* "auto" or "thin" */
-  scrollbar-color: #888 var(--accent_color); /* scroll thumb and track */
+  scrollbar-color: #888 var(--dark_accent_color); /* scroll thumb and track */
 }

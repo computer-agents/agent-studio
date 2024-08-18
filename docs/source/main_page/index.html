@@ -52,7 +52,7 @@
           <div class="content-wrapper" style="margin-top: 2em">
             <a href="https://drive.google.com/file/d/1gT6_ZNCk4EwclTP3bt-GiQDR3NwbZ8os/view?usp=sharing">
               <button class="outline">
-                <i class="fa fa-paperclip"></i> Paper&nbsp;
+                <i class="fa-solid fa-file"></i> Paper&nbsp;
               </button>
             </a>
             <a href="https://github.com/SkyworkAI/agent-studio">
@@ -62,7 +62,12 @@
             </a>
             <a href="./doc_index.html">
               <button class="outline">
-                <i class="fa-solid fa-file"></i> Docs&nbsp;
+                <i class="fa fa-paperclip"></i> Data&nbsp;
+              </button>
+            </a>
+            <a href="./doc_index.html">
+              <button class="outline">
+                <i class="fa fa-book"></i> Docs&nbsp;
               </button>
             </a>
             <!-- <a href="https://huggingface.co/spaces/Skywork/agent-studio-leaderboard">
@@ -76,8 +81,62 @@
       <section class="main-container">
         <div class="content-wrapper">
           <div class="content-box">
-            <h2 class="text-title">GroundUI Leaderboard (Accuracy %)</h2>
-            <div class="tabcontent tabcontentall" style="display: block">
+            <h2 class="text-title">Desiderata for Next-Generation Computer Agents</h2>
+            <p class="text-content">
+              The development of general computer agents is a long-standing goal in artificial intelligence. To achieve this goal, agents must be able to interact with the world in a human-like manner, which requires a wide range of capabilities. We identify three key desiderata for next-generation computer agents:
+            </p>
+            <img src="./main_page_resources/overview.png" style="width:60%;margin:auto;display:block;">
+          </div>
+        </div>
+        <div class="content-wrapper">
+          <div class="content-box">
+            <h2 class="text-title">Resources</h2>
+            <p class="text-content" style="margin-top:1em;">
+              AgentStudio benchmark suites are available at both HuggingFace and Google Drive. The jsonl files of GroundUI-1K and Trajectory-Lite can also be found in our GitHub repository. We are more than happy to receive feedback and suggestions from the community. Please feel free to raise a GitHub Issue if you have any questions or comments, or want to submit new benchmark results.
+            </p>
+            <div class="content-wrapper" style="width: 100%">
+              <div class="content-box column">
+                <a style="width: 120%" href="https://huggingface.co/datasets/agent-studio/GroundUI-1K">
+                  <div class="download">🤗 GroundUI-1K</div>
+                </a>
+              </div>
+              <div class="content-box column">
+                <a style="width: 120%" href="https://huggingface.co/datasets/agent-studio/GroundUI-18K">
+                  <div class="download">🤗 GroundUI-18K</div>
+                </a>
+              </div>
+              <div class="content-box column">
+                <a style="width: 120%" href="https://huggingface.co/datasets/agent-studio/SuccessDetection">
+                  <div class="download">🤗 Success Detection</div>
+                </a>
+              </div>
+              <div class="content-box column">
+                <a style="width: 120%" href="https://huggingface.co/datasets/agent-studio/IDM-Single">
+                  <div class="download">🤗 IDM-Single</div>
+                </a>
+              </div>
+              <div class="content-box column">
+                <a style="width: 120%" href="https://huggingface.co/datasets/agent-studio/IDM-Multiple">
+                  <div class="download">🤗 IDM-Multiple</div>
+                </a>
+              </div>
+              <div class="content-box column">
+                <a style="width: 120%" href="https://drive.google.com/drive/folders/1XKDXwdWODCB2e80gflAgZiiBICqbgdeB?usp=sharing">
+                  <div class="download">Google Drive</div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="main-container">
+        <div class="content-wrapper">
+          <div class="content-box">
+            <h2 class="text-title">GroundUI Leaderboard</h2>
+            <p class="text-content">
+              UI grounding with accurate coordinates is one of the main challenges for human-like computer agents, since not all interactable elements are not readily available. It has also been validated that current models can already generate correct high-level planning in text space, but struggle to ground them into accurate actions. However, there are few existing benchmark provide evaluation results on UI grounding capabilities across different applications and paltforms. In AgentStudio, we systematically re-organize existing datasets, plus self-collected data, into 18K diverse and realistic data with recaptioned clear instructions to benchmark UI grounding.
+            </p>
+            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
               <table class="table scrollable">
                 <thead>
                   <tr>
@@ -104,7 +163,7 @@
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
-                  <tr>
+<tr>
                     <td>
                       <p class="model-type">Gemini 1.5 Pro</p>
                     </td>
@@ -130,7 +189,7 @@
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
-                  <tr>
+<tr>
                     <td>
                       <p class="model-type">Claude 3.5 Sonnet (0620)</p>
                     </td>
@@ -234,7 +293,7 @@
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
-                  <tr>
+<tr>
                     <td>
                       <p class="model-type">PaliGemma-3B-896</p>
                     </td>
@@ -263,17 +322,21 @@
                 </tbody>
               </table>
             </div>
-            <p class="text-content">
-              UI grounding with accurate coordinates is one of the main challenges for human-like computer agents, since not all interactable elements are not readily available. It has also been validated that current models can already generate correct high-level planning in text space, but struggle to ground them into accurate actions. However, there are few existing benchmark provide evaluation results on UI grounding capabilities across different applications and paltforms. In AgentStudio, we systematically re-organize existing datasets, plus self-collected data, into 18K diverse and realistic data with recaptioned clear instructions to benchmark UI grounding.
-              <br>
-              We collected screenshots from test set of existing datasets across web, desktop, and mobile devices, and additional screenshots collected with AgentStudio toolkits. We augment the instructions into detailed and clear ones with the help of GPT-4o. These data add up to 18K UI grounding dataset. For efficient benchmarking, we conduct experiments on a subset, <strong>GroundUI-1K</strong>, which contains 400, 300, and 300 samples for web, desktop, and mobile devices, respectively.
-            </p>
+            <br>
+            <h3 class="text-title">Data Sample</h3>
+              <p class="text-content">
+                We collected screenshots from test set of existing datasets across web, desktop, and mobile devices, and additional screenshots collected with AgentStudio toolkits. We augment the instructions into detailed and clear ones with the help of GPT-4o. These data add up to 18K UI grounding dataset. For efficient benchmarking, we conduct experiments on a subset, <strong>GroundUI-1K</strong>, which contains 400, 300, and 300 samples for web, desktop, and mobile devices, respectively.
+              </p>
+              <img src="./main_page_resources/ui_grounding_example.jpg" style="width:70%;margin:auto;display:block;">
           </div>
         </div>
         <div class="content-wrapper">
           <div class="content-box">
             <h2 class="text-title">Success Detection Leaderboard</h2>
-            <div class="tabcontent tabcontentall" style="display: block">
+            <p class="text-content">
+              The ability to self-evaluate and learn from environment interactions is one of the core abilities of agents. However, there are currently few benchmarks that focus on and measure the ability of computer agents to judge whether a trajectory is successful.
+            </p>
+            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
               <h3 class="text-subtitle">With Observation-Action Pairs (Accuracy %)</h3>
               <br>
               <table class="table scrollable">
@@ -346,7 +409,7 @@
                       <p class="model-type">Qwen-VL-Chat</p>
                     </td>
                     <td><span class="label-date">2024-06-06</span></p></td>
-                    <td><p class="number">52.0</p></td>
+<td><p class="number">52.0</p></td>
                     <td><p class="number">38.0</p></td>
                     <td><p class="number">48.0</p></td>
                     <td><p class="number">48.9</p></td>
@@ -358,7 +421,7 @@
               </table>
             </div>
             <br/>
-            <div class="tabcontent tabcontentall" style="display: block">
+            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
               <h3 class="text-subtitle">With Observations Only (Accuracy %)</h3>
               <br>
               <table class="table scrollable">
@@ -418,7 +481,7 @@
                       <p class="model-type">GPT-4o (0513)</p>
                     </td>
                     <td><span class="label-date">2024-06-06</span></p></td>
-                    <td><p class="number">63.5</p></td>
+<td><p class="number">63.5</p></td>
                     <td><p class="number">84.0</p></td>
                     <td><p class="number">57.0</p></td>
                     <td><p class="number">64.6</p></td>
@@ -442,18 +505,22 @@
                 </tbody>
               </table>
             </div>
+            <br>
+            <h3 class="text-title">Data Sample</h3>
             <p class="text-content">
-              The ability to self-evaluate and learn from environment interactions is one of the core abilities of agents. However, there are currently few benchmarks that focus on and measure the ability of computer agents to judge whether a trajectory is successful.
-              <br>
               We collect trajectories from both existing environments such as AITW, Mind2Web, VisualWebArena, etc. and AgentStudio's real-world environments, resulting in diverse trajectories of both human and agents on web, desktop, and mobile environments. Since most human trajectories are successful, we balance the dataset by labeling partial trajectories as failure cases.
             </p>
+            <img src="./main_page_resources/success_detection_example_web.jpg" style="width:70%;margin:auto;display:block;">
           </div>
         </div>
         <div class="content-wrapper">
           <div class="content-box">
-            <h2 class="text-title">Inverse Action Labeling Leaderboard</h2>
-            <div class="tabcontent tabcontentall" style="display: block">
-              <h3 class="text-subtitle">Neighboring Frames to Single Action (Accuracy %)</h3>
+            <h2 class="text-title">IDM-Single & IDM-Multiple Leaderboard</h2>
+            <p class="text-content">
+              Unlocking the ability to learn from videos is a key capability for next-generation computer agents to achieve generalization and lifelong learning. Therefore, we present the first dataset designed to measure the ability to learn how to act from videos. Specifically, we evaluate current multimodal models as inverse dynamics models, predicting actions from unlabeled videos in two separate settings. In the first scenario, we provide the model with two neighboring screenshots, one before and one after an action, and ask it to predict the action that occurred in between. In the second, which is a more general scenario, we provide the model with states for multiple actions (which can be viewed as video frames) and ask it to predict all the actions within the frames.
+            </p>
+            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
+              <h3 class="text-subtitle">IDM-Single (Accuracy %)</h3>
               <br>
               <table class="table scrollable">
                 <thead>
@@ -482,11 +549,11 @@
                   <tr>
                     <td><p class="model-type">GPT-4o (0513)</p></td>
                     <td><span class="label-date">2024-06-06</span></p></td>
-                    <td><p class="number">70.0</p></td>
+<td><p class="number">70.0</p></td>
                     <td><p class="number">56.0</p></td>
                     <td><p class="number">45.0</p></td>
                     <td><p class="number">57.0</p></td>
-                    <!-- <td><p style="text-align: center;">
+                                        <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
@@ -504,7 +571,7 @@
                   <tr>
                     <td><p class="model-type">Gemini 1.5 Flash</p></td>
                     <td><span class="label-date">2024-08-17</span></p></td>
-                    <td><p class="number">65.0</p></td>
+<td><p class="number">65.0</p></td>
                     <td><p class="number">34.0</p></td>
                     <td><p class="number">31.0</p></td>
                     <td><p class="number">43.3</p></td>
@@ -527,8 +594,8 @@
               </table>
             </div>
             <br/>
-            <div class="tabcontent tabcontentall" style="display: block">
-              <h3 class="text-subtitle">Video to Multiple Actions (Accuracy %)</h3>
+            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
+              <h3 class="text-subtitle">IDM-Multiple (Accuracy %)</h3>
               <br>
               <table class="table scrollable">
                 <thead>
@@ -602,8 +669,8 @@
               </table>
             </div>
             <br/>
-            <div class="tabcontent tabcontentall" style="display: block">
-              <h3 class="text-subtitle">Video to Multiple Actions (Edit Distance)</h3>
+            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
+              <h3 class="text-subtitle">IDM-Multiple (Edit Distance)</h3>
               <br>
               <table class="table scrollable">
                 <thead>
@@ -651,7 +718,7 @@
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
-                  <tr>
+                                    <tr>
                     <td><p class="model-type">Qwen-VL-Chat</p></td>
                     <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">5.1</p></td>
@@ -676,34 +743,14 @@
                 </tbody>
               </table>
             </div>
-            <p class="text-content">
-              Unlocking the ability to learn from videos is a key capability for next-generation computer agents to achieve generalization and lifelong learning. Therefore, we present the first dataset designed to measure the ability to learn how to act from videos. Specifically, we evaluate current multimodal models as inverse dynamics models, predicting actions from unlabeled videos in two separate settings. In the first scenario, we provide the model with two neighboring screenshots, one before and one after an action, and ask it to predict the action that occurred in between. In the second, which is a more general scenario, we provide the model with states for multiple actions (which can be viewed as video frames) and ask it to predict all the actions within the frames.
-            </p>
-          </div>
-        </div>
-        <div class="content-wrapper">
-          <div class="content-box">
-            <h2 class="text-title">Resources</h2>
-            <p class="text-content" style="margin-top:1em;">
-              AgentStudio benchmark suites are available at both HuggingFace and Google Drive. The jsonl files of GroundUI-1K and Trajectory-Lite can also be found in our GitHub repository. We are more than happy to receive feedback and suggestions from the community. Please feel free to raise a GitHub Issue or <a href="mailto:longtao001@e.ntu.edu.sg">reach out to us</a> if you have any questions or comments, or want to submit new benchmark results.
-            </p>
-            <div class="content-wrapper" style="width: 100%">
-              <div class="content-box column">
-                <a style="width: 100%" href="https://huggingface.co/datasets/agent-studio/GroundUI-1K">
-                  <div class="download">🤗 GroundUI-1K</div>
-                </a>
-              </div>
-              <div class="content-box column">
-                <a style="width: 100%" href="https://huggingface.co/datasets/agent-studio/GroundUI-18K">
-                  <div class="download">🤗 GroundUI-18K</div>
-                </a>
-              </div>
-              <div class="content-box column">
-                <a style="width: 100%" href="https://drive.google.com/drive/folders/1XKDXwdWODCB2e80gflAgZiiBICqbgdeB?usp=sharing">
-                  <div class="download">Google Drive</div>
-                </a>
-              </div>
-            </div>
+            <br>
+            <h3 class="text-title">Data Sample of IDM-Single</h3>
+            <br>
+            <img src="./main_page_resources/idm_single_example_web.jpg" style="width:70%;margin:auto;display:block;">
+            <br>
+            <h3 class="text-title">Data Sample of IDM-Multiple</h3>
+            <br>
+            <img src="./main_page_resources/idm_multiple_example_mobile.jpg" style="width:70%;margin:auto;display:block;">
           </div>
         </div>
         <div class="content-wrapper">
@@ -712,8 +759,6 @@
             <p class="text-content">
               AgentStudio environments supports <strong>online interactions</strong> the most <strong>generic observation and action spaces</strong>, including human-computer interfaces and code execution. The implementation is also compatible with <strong>diverse operating systems and devices</strong>. These features drastically expand the potential task space and allow building and benchmarking agents in <strong>real-world</strong> settings.
             </p>
-            <img src="./main_page_resources/overview.png" style="width:80%;margin:auto;display:block;">
-            <br>
             <img src="./main_page_resources/agent_space.jpg" style="width:80%;margin:auto;display:block;">
             <br>
             <img src="./main_page_resources/comparison.png" style="width:80%;margin:auto;display:block;">
@@ -722,14 +767,16 @@
         <div class="content-wrapper">
           <div class="content-box">
             <h2 class="text-title">AgentStudio Toolkits</h2>
-            <img src="./main_page_resources/annotation_example.jpg" style="width:80%;margin:auto;display:block;">
+            <div style="display: flex; justify-content: space-between;">
+              <img src="./main_page_resources/annotate_gui_1.png" width="50%">
+              <img src="./main_page_resources/annotate_gui_2.png" width="50%">
+            </div>
             <p class="text-content">
-              This figure demonstrates the process of recording complete keyboard-mouse action sequences required to open the preferences menu. The procedure involves the following steps: i) importing requisite tools, ii) obtaining the screen coordinates for mouse operations, and iii) executing actions. When collecting the UI grounding dataset, users are additionally required to delineate the UI elements within a bounding box provided in the interface.
+              Here is an example of recording single-step GUI grounding data in MacOS. The example video of recording trajectories can be found at our project page.
             <br>
             <br>
               You can also evaluate agents on your own tasks with the help of our toolkits. The figure below shows the process of monitoring agent behaviors on custom task configurations using AgentStudio toolkits. Read more in our <a href="https://skyworkai.github.io/agent-studio/doc_index.html" ,="" target="_blank">documentation</a> for environments and toolkits!
             </p>
-            <img src="./main_page_resources/recorder_record.jpg" style="width:80%;margin:auto;display:block;">
           </div>
         </div>
         <div class="content-wrapper">
