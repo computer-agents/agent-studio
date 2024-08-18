@@ -76,7 +76,7 @@
       <section class="main-container">
         <div class="content-wrapper">
           <div class="content-box">
-            <h2 class="text-title">GroundUI Leaderboard</h2>
+            <h2 class="text-title">GroundUI Leaderboard (Accuracy %)</h2>
             <div class="tabcontent tabcontentall" style="display: block">
               <table class="table scrollable">
                 <thead>
@@ -274,6 +274,8 @@
           <div class="content-box">
             <h2 class="text-title">Success Detection Leaderboard</h2>
             <div class="tabcontent tabcontentall" style="display: block">
+              <h3 class="text-subtitle">With Observation-Action Pairs (Accuracy %)</h3>
+              <br>
               <table class="table scrollable">
                 <thead>
                   <tr>
@@ -289,13 +291,52 @@
                 <tbody>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini-1.0 Pro</p>
+                      <p class="model-type">Gemini 1.5 Pro</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">73.5</p></td>
+                    <td><p class="number">82.0</p></td>
+                    <td><p class="number">62.0</p></td>
+                    <td><p class="number">71.4</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini 1.5 Flash</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">68.5</p></td>
+                    <td><p class="number">82.0</p></td>
+                    <td><p class="number">65.0</p></td>
+                    <td><p class="number">69.4</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Claude 3.5 Sonnet</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">70.0</p></td>
+                    <td><p class="number">92.0</p></td>
+                    <td><p class="number">55.0</p></td>
+                    <td><p class="number">68.9</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">GPT-4o (0513)</p>
                     </td>
                     <td><span class="label-date">2024-06-06</span></p></td>
-                    <td><p class="number">63.0</p></td>
+                    <td><p class="number">68.5</p></td>
                     <td><p class="number">90.0</p></td>
-                    <td><p class="number">60.0</p></td>
-                    <td><p class="number">63.7</p></td>
+                    <td><p class="number">58.0</p></td>
+                    <td><p class="number">68.6</p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -305,49 +346,94 @@
                       <p class="model-type">Qwen-VL-Chat</p>
                     </td>
                     <td><span class="label-date">2024-06-06</span></p></td>
+                    <td><p class="number">52.0</p></td>
+                    <td><p class="number">38.0</p></td>
+                    <td><p class="number">48.0</p></td>
+                    <td><p class="number">48.9</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tabcontent tabcontentall" style="display: block">
+              <h3 class="text-subtitle">With Observations Only (Accuracy %)</h3>
+              <br>
+              <table class="table scrollable">
+                <thead>
+                  <tr>
+                    <th><div class="sticky-header-content">Model</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
+                    <th><div class="sticky-header-content">Web</div></th>
+                    <th><div class="sticky-header-content">Desktop</div></th>
+                    <th><div class="sticky-header-content">Mobile</div></th>
+                    <th><div class="sticky-header-content">Total</div></th>
+                    <!-- <th><div class="sticky-header-content">Logs</div></th> -->
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini 1.5 Pro</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">65.0</p></td>
+                    <td><p class="number">86.0</p></td>
+                    <td><p class="number">59.0</p></td>
+                    <td><p class="number">66.3</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini 1.5 Flash</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">67.0</p></td>
+                    <td><p class="number">72.0</p></td>
+                    <td><p class="number">62.0</p></td>
+                    <td><p class="number">66.3</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Claude 3.5 Sonnet</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">66.0</p></td>
+                    <td><p class="number">86.0</p></td>
                     <td><p class="number">58.0</p></td>
-                    <td><p class="number">90.0</p></td>
-                    <td><p class="number">64.0</p></td>
-                    <td><p class="number">61.9</p></td>
+                    <td><p class="number">66.6</p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">GPT-4o</p>
+                      <p class="model-type">GPT-4o (0513)</p>
                     </td>
                     <td><span class="label-date">2024-06-06</span></p></td>
+                    <td><p class="number">63.5</p></td>
+                    <td><p class="number">84.0</p></td>
                     <td><p class="number">57.0</p></td>
-                    <td><p class="number">85.0</p></td>
-                    <td><p class="number">32.0</p></td>
-                    <td><p class="number">50.9</p></td>
+                    <td><p class="number">64.6</p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">GPT-4o</p>
+                      <p class="model-type">Qwen-VL-Chat</p>
                     </td>
                     <td><span class="label-date">2024-06-06</span></p></td>
-                    <td><p class="number">57.0</p></td>
-                    <td><p class="number">85.0</p></td>
-                    <td><p class="number">32.0</p></td>
-                    <td><p class="number">50.9</p></td>
-                    <!-- <td><p style="text-align: center;">
-                      <a href="">🔗</a>
-                    </p></td> -->
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="model-type">GPT-4o</p>
-                    </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
-                    <td><p class="number">57.0</p></td>
-                    <td><p class="number">85.0</p></td>
-                    <td><p class="number">32.0</p></td>
-                    <td><p class="number">50.9</p></td>
+                    <td><p class="number">54.5</p></td>
+                    <td><p class="number">58.0</p></td>
+                    <td><p class="number">52.0</p></td>
+                    <td><p class="number">54.3</p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -364,9 +450,9 @@
         </div>
         <div class="content-wrapper">
           <div class="content-box">
-            <h2 class="text-title">Inverse Action Labeling Leaderboard (Accuracy %)</h2>
+            <h2 class="text-title">Inverse Action Labeling Leaderboard</h2>
             <div class="tabcontent tabcontentall" style="display: block">
-              <h3 class="text-subtitle">Neighboring Frames to Single Action</h3>
+              <h3 class="text-subtitle">Neighboring Frames to Single Action (Accuracy %)</h3>
               <br>
               <table class="table scrollable">
                 <thead>
