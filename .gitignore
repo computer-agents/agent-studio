@@ -171,3 +171,13 @@ vscode_workspace/
 
 raw_data
 results*
+
+training_data
+*.png
+*.jpg
+*.mp4
+results*
+trajectories
+*.zip
+*.tar.gz
+gpt4v_som
