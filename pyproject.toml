@@ -6,6 +6,30 @@ build-backend = "setuptools.build_meta"
 name = "agent_studio"
 version = "0.1.1"
 requires-python = ">=3.10,<4.0"
+dependencies = [
+    "chime",
+    "pynput",
+    "pydantic",
+    "opencv-python",
+    "mss",
+    "pillow",
+    "PyQt6",
+    "jsonpickle",
+    "requests",
+    "tqdm",
+    "jupyter_client",
+    "pyautogui",
+    "cryptography",
+    "backoff",
+    "anthropic",
+    "openai",
+    "vertexai",
+    "google-generativeai",
+    "google-auth-oauthlib",
+    "pyrogram",
+    "torch",
+    "transformers",
+]
 
 [tool.setuptools]
 packages = ["agent_studio"]
@@ -22,8 +46,9 @@ dev = [
     "pytest==8.3.2",
     "types-requests==2.32.0.20240712",
     "check-jsonschema==0.29.1",
-    "jsonschema==4.20.0"
+    "jsonschema==4.20.0",
 ]
+docker = ["fastapi", "uvicorn", "ipykernel"]
 
 [tool.pytest.ini_options]
 log_cli = true
