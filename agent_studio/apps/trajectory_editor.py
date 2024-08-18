@@ -898,12 +898,12 @@ class TrajectoryEditor(QMainWindow):
         self.seek_slider.setRange(0, duration)
 
 
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
-    # if sys.platform == 'win32' and sys.getwindowsversion().build >= 22000:
-    #     app.setStyle("fusion")
-    # translator = FluentTranslator()
-    # app.installTranslator(translator)
     player = TrajectoryEditor()
     player.show()
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()

@@ -7,7 +7,7 @@ With AgentStudio, you can easily create a dataset with **single-step UI groundin
 Local annotator requires at least two screens (one for recording, and one for annotation):
 
 ```bash
-python annotate_ground_ui.py --local_monitor_idx 1 --record_path recordings
+as-annotate-ground --local_monitor_idx 1 --record_path recordings
 ```
 
 ## Remote annotator
@@ -15,7 +15,7 @@ python annotate_ground_ui.py --local_monitor_idx 1 --record_path recordings
 You can also annotate on another machine with VNC:
 
 ```bash
-python annotate_ground_ui.py --record_path recordings --remote --vnc_server_addr 127.0.0.1 --vnc_server_port 5900 --vnc_password 123456
+as-annotate-ground --record_path recordings --remote --vnc_server_addr 127.0.0.1 --vnc_server_port 5900 --vnc_password 123456
 ```
 
 The address and port are set in the [docker setup](./install.md).

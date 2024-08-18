@@ -163,7 +163,7 @@ class AllinOneRecorder(Recorder):
             self.post_process()
 
 
-if __name__ == "__main__":
+def main():
     folder_name = datetime.now().strftime("%Y%m%d_%H%M%S")
     os.makedirs(folder_name, exist_ok=True)
 
@@ -185,3 +185,7 @@ if __name__ == "__main__":
     )
     rec.start()
     rec.wait_exit()
+
+
+if __name__ == "__main__":
+    main()
