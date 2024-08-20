@@ -47,8 +47,7 @@ python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/
 This setup is suitable for evaluating agents in visual tasks. For reproducibility, we use a Ubuntu docker container connected via VNC remote desktop.
 
 ```bash
-python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_3/desktop_hard.json --model gemini-1.5-flash-001 --remote --end_idx 1 --render
-python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_3/vscode.json --model gemini-1.5-flash-001 --remote ...
+python online_benchmark.py --task_configs_path evals/datasets/online_benchmarks/level_3/vscode.json --model gemini-1.5-flash-001 --remote --end_idx 1 --render --need_human_confirmation
 ```
 
 ## Add more tasks

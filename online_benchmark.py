@@ -21,6 +21,7 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QPushButton,
     QStatusBar,
+    QVBoxLayout,
     QWidget,
 )
 from tqdm import tqdm
@@ -119,6 +120,7 @@ class AgentMonitor(QMainWindow):
 
         # Left layout for VNC frame.
         self.vnc_container = QWidget()
+        left_layout = QVBoxLayout(self.vnc_container)
 
         # Start the capture thread to get video feed.
         assert self.capture_thread is not None
@@ -136,15 +138,21 @@ class AgentMonitor(QMainWindow):
         # Setup the VNC frame for video display.
         frame_size_hint = QSize(window_width, window_height)
         self.vnc_frame = VNCFrame(self, frame_size_hint, enable_selection=True)
-        main_layout.addWidget(self.vnc_frame)
+        left_layout.addWidget(self.vnc_frame)
         main_layout.addWidget(self.vnc_container)
 
         if remote:
+            right_layout = QVBoxLayout()
+            right_layout.setSpacing(10)
+            right_layout.setContentsMargins(10, 10, 10, 10)
+
             self.reconnect_button = QPushButton("Re-connect")
             self.reconnect_button.clicked.connect(self.reconnect)
             self.reconnect_button.setFixedWidth(150)
             self.reconnect_button.setFixedHeight(50)
-            main_layout.addWidget(self.reconnect_button)
+            right_layout.addWidget(self.reconnect_button)
+
+            main_layout.addLayout(right_layout)
 
         # Setup the status bar.
         status_bar = self.statusBar()
@@ -161,7 +169,9 @@ class AgentMonitor(QMainWindow):
         self.vnc_container.show()
         self.refresh_timer.start()
         self.screenshot_uuid = None
-        self.status_bar.showMessage("Connected.")
+        self.status_bar.showMessage(
+            "Connected. Please go to the terminal to check outputs."
+        )
 
     def reconnect(self):
         self.status_bar.showMessage("Reconnecting")
@@ -175,7 +185,9 @@ class AgentMonitor(QMainWindow):
                 vnc_password=config.vnc_password,
             )
             self.capture_thread.start()
-        self.status_bar.showMessage("Connected.")
+        self.status_bar.showMessage(
+            "Connected. Please go to the terminal to check outputs."
+        )
 
     def render(self):
         """Renders the screen by periodically updating the frame."""
@@ -215,8 +227,11 @@ class AgentMonitor(QMainWindow):
             self.frame_buffer = FrameBuffer()
         self.status_bar.showMessage("Recording started.")
 
-    def get_current_frame(self) -> np.ndarray:
+    def get_screenshot(self) -> np.ndarray:
         """Returns the current frame as a numpy array."""
+        while np.all(self.now_screenshot == 0):
+            print("Waiting for the first frame.")
+            time.sleep(0.5)
         frame = cv2.cvtColor(self.now_screenshot, cv2.COLOR_BGRA2RGB)
         return np.array(frame)
 
@@ -351,7 +366,7 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
             for t in range(task_config["max_steps"]):
                 logger.info(f"Step {t}")
                 if task_config["visual"]:
-                    obs = interface.get_current_frame()
+                    obs = interface.get_screenshot()
                 else:
                     obs = None
                 action = agent.generate_action(obs=obs, model_name=args.model)
@@ -458,12 +473,18 @@ def main():
     parser.add_argument(
         "--window_height", type=int, default=600, help="Height of the window"
     )
+    parser.add_argument(
+        "--need_human_confirmation",
+        action="store_true",
+        help="Need human confirmation for actions",
+    )
     args = parser.parse_args()
     logger.info(f"Running with args: {args}")
     assert args.task_configs_path is not None, "Task config is not set."
 
     config.remote = args.remote
     config.headless = not args.render
+    config.need_human_confirmation = args.need_human_confirmation
 
     # Ensure a second screen is available.
     app = QApplication(sys.argv)
