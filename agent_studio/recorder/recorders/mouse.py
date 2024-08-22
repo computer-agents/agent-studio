@@ -46,9 +46,9 @@ class MouseRecorder(Recorder):
             MouseEvent(
                 time=time(),
                 event_type="mouse",
-                action=MouseAction.MOUSE_PRESSED
-                if pressed
-                else MouseAction.MOUSE_RELEASED,
+                action=(
+                    MouseAction.MOUSE_PRESSED if pressed else MouseAction.MOUSE_RELEASED
+                ),
                 x=x,
                 y=y,
                 button=button.name,
@@ -61,9 +61,11 @@ class MouseRecorder(Recorder):
             MouseEvent(
                 time=time(),
                 event_type="mouse",
-                action=MouseAction.MOUSE_SCROLL_UP
-                if dy > 0
-                else MouseAction.MOUSE_SCROLL_DOWN,
+                action=(
+                    MouseAction.MOUSE_SCROLL_UP
+                    if dy > 0
+                    else MouseAction.MOUSE_SCROLL_DOWN
+                ),
                 x=x,
                 y=y,
                 dx=dx,
@@ -74,12 +76,12 @@ class MouseRecorder(Recorder):
     def start(self):
         self.listener = mouse.Listener(
             on_move=self.__on_move if MouseOptions.LOG_MOVE in self.options else None,
-            on_click=self.__on_click
-            if MouseOptions.LOG_CLICK in self.options
-            else None,
-            on_scroll=self.__on_scroll
-            if MouseOptions.LOG_SCROLL in self.options
-            else None,
+            on_click=(
+                self.__on_click if MouseOptions.LOG_CLICK in self.options else None
+            ),
+            on_scroll=(
+                self.__on_scroll if MouseOptions.LOG_SCROLL in self.options else None
+            ),
         )
         self.listener.start()
         self.start_time = time()

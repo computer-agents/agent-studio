@@ -28,9 +28,11 @@ class TelegramService:
             "agent_studio_account",
             self.__app_id,
             self.__app_hash,
-            workdir=config.telegram_workdir
-            if hasattr(config, "telegram_workdir")
-            else "agent_studio/config",
+            workdir=(
+                config.telegram_workdir
+                if hasattr(config, "telegram_workdir")
+                else "agent_studio/config"
+            ),
         )
 
     def __get_message_type(self, message) -> str:

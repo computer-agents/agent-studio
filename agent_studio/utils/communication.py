@@ -8,8 +8,8 @@ bytes2str: Callable[..., str] = lambda x: base64.b64encode(pickle.dumps(obj=x)).
     "utf-8"
 )
 
-str2bytes: Callable[..., Any] = (
-    lambda x: pickle.loads(base64.b64decode(x.encode("utf-8")))
+str2bytes: Callable[..., Any] = lambda x: (
+    pickle.loads(base64.b64decode(x.encode("utf-8")))
     if isinstance(x, str)
     else "Error encoding string to bytes"
 )
