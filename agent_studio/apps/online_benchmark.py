@@ -28,6 +28,7 @@ from PyQt6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QDialog,
+    QSplitter,
 )
 from tqdm import tqdm
 
@@ -294,9 +295,9 @@ class TaskThread(QThread):
                 ),
             )
             self.signals.status_bar_signal.emit(
-                "color: green;", "Done"
+                "color: green;", "Ready"
             )
-            # self.signals.finish_signal.emit()
+            self.signals.finish_signal.emit()
         except Exception as e:
             import traceback
 
@@ -385,25 +386,7 @@ class AgentMonitor(QMainWindow):
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
-
-        if self.remote:
-            # Setup the VNC frame for video display.
-            self.frame_size_hint = QSize(self.window_width, self.window_height)
-            # Left layout for VNC frame.
-            self.vnc_container = QWidget()
-            left_layout = QVBoxLayout()
-            self.vnc_frame = VNCFrame(
-                self, self.frame_size_hint, enable_selection=False)
-            left_layout.addWidget(self.vnc_frame)
-            main_layout.addWidget(self.vnc_container)
-
-            self.reconnect_button = QPushButton("Re-connect")
-            self.reconnect_button.clicked.connect(self.reconnect)
-            self.reconnect_button.setFixedWidth(150)
-            self.reconnect_button.setFixedHeight(50)
-            left_layout.addWidget(self.reconnect_button)
-
-            main_layout.addLayout(left_layout)
+        main_splitter = QSplitter(Qt.Orientation.Horizontal)
 
         # Setup the status bar.
         status_bar = self.statusBar()
@@ -413,38 +396,69 @@ class AgentMonitor(QMainWindow):
         self.set_task_status_bar_text("color: green;", "Task: Init")
         self.status_bar.addPermanentWidget(self.task_status_bar)
 
+        if self.remote:
+            # Setup the VNC frame for video display.
+            self.frame_size_hint = QSize(self.window_width, self.window_height)
+            # Left layout for VNC frame.
+            left_layout = QVBoxLayout()
+            self.vnc_frame = VNCFrame(
+                self, self.frame_size_hint, enable_selection=False)
+            left_layout.addWidget(self.vnc_frame)
+
+            self.reconnect_button = QPushButton("Re-connect")
+            self.reconnect_button.clicked.connect(self.reconnect)
+            self.reconnect_button.setFixedWidth(150)
+            self.reconnect_button.setFixedHeight(50)
+            left_layout.addWidget(self.reconnect_button)
+
+
+            vnc_widget = QWidget()
+            vnc_widget.setLayout(left_layout)
+            main_splitter.addWidget(vnc_widget)
+
         # Task layout #
         task_layout = QVBoxLayout()
 
         task_layout.addWidget(QLabel("Task configuration"))
+
         self.task_config_display = JSONEditor(editable=False, parent=self)
-        task_layout.addWidget(self.task_config_display)
+
+        # Add the JSONEditor to a splitter to allow resizing
+        task_splitter = QSplitter(Qt.Orientation.Vertical)
+        task_splitter.addWidget(self.task_config_display)
+
+        task_layout.addWidget(task_splitter)
 
         task_layout.addWidget(QLabel("Task Selection (double click to select)"))
         self.instruction_selection = QListWidget(self)
         self.instruction_selection.itemDoubleClicked.connect(
             self.select_task_instruction
         )
-        task_layout.addWidget(self.instruction_selection)
         self.instruction_selection.clear()
         self.populate_instruction_selection_widget()
+
+        # Add the QListWidget to the same splitter for resizing
+        task_splitter.addWidget(self.instruction_selection)
 
         execution_button_layout = QHBoxLayout()
 
         self.start_button = QPushButton("Start")
         self.start_button.setEnabled(False)
-        self.start_button.clicked.connect(self.start_task)
+        self.start_button.clicked.connect(self.task_start)
         execution_button_layout.addWidget(self.start_button)
 
         task_layout.addLayout(execution_button_layout)
 
-        self.reset_button = QPushButton("Reset")
-        self.reset_button.clicked.connect(self.reset)
-        task_layout.addWidget(self.reset_button)
+        self.interrupt_button = QPushButton("Interrupt")
+        self.interrupt_button.clicked.connect(self.reset)
+        task_layout.addWidget(self.interrupt_button)
 
         self.status_bar.showMessage("Ready")
 
-        main_layout.addLayout(task_layout)
+        task_widget = QWidget()
+        task_widget.setLayout(task_layout)
+        main_splitter.addWidget(task_widget)
+
         # End of task layout #
 
         # Agent layout #
@@ -454,20 +468,29 @@ class AgentMonitor(QMainWindow):
         agent_layout.addWidget(self.show_trajectory_button)
 
         agent_layout.addWidget(QLabel("Runtime output"))
+
         self.output_display = JSONEditor(editable=False, parent=self)
         self.output_display.setReadOnly(True)
-        agent_layout.addWidget(self.output_display)
 
-        # interrupt_button = QPushButton("Interrupt action")
-        # interrupt_button.clicked.connect(self.interrupt_action)
-        # agent_layout.addWidget(interrupt_button)
+        # Add the JSONEditor to a splitter to allow resizing
+        agent_splitter = QSplitter(Qt.Orientation.Vertical)
+        agent_splitter.addWidget(self.output_display)
+
+        agent_layout.addWidget(agent_splitter)
 
         agent_layout.addWidget(QLabel("Evaluation Result"))
+
         self.evaluation_display = QTextEdit(self)
         self.evaluation_display.setReadOnly(True)
-        agent_layout.addWidget(self.evaluation_display)
 
-        main_layout.addLayout(agent_layout)
+        # Add the QTextEdit to the same splitter for resizing
+        agent_splitter.addWidget(self.evaluation_display)
+
+        agent_widget = QWidget()
+        agent_widget.setLayout(agent_layout)
+        main_splitter.addWidget(agent_widget)
+
+        main_layout.addWidget(main_splitter)
         # End of agent layout #
 
         self.setMouseTracking(True)
@@ -515,6 +538,7 @@ class AgentMonitor(QMainWindow):
         self.selected_task = self.task_configs[selected_task_idx]
         self.task_config_display.setText(self.selected_task)
         self.evaluation_display.clear()
+        self.output_display.clear()
         # if self.selected_task["task_id"] in self.task_results:
         #     score = self.task_results[self.selected_task["task_id"]]["score"]
         #     feedback = self.task_results[self.selected_task["task_id"]]["feedback"]
@@ -524,17 +548,18 @@ class AgentMonitor(QMainWindow):
 
         self.start_button.setEnabled(True)
 
-    def start_task(self):
+    def task_start(self):
         self.start_button.setEnabled(False)
         self.output_display.clear()
         self.evaluation_display.clear()
+        self.instruction_selection.setEnabled(False)
         signals = WorkerSignals()
         signals.show_dialog_signal.connect(self.show_choice_dialog)
         signals.show_dialog_signal_python.connect(self.show_choice_dialog_python)
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
         signals.runtime_output_signal.connect(self.output_display.setText)
         signals.evaluation_result_signal.connect(self.evaluation_display.setPlainText)
-        signals.finish_signal.connect(self.reset)
+        signals.finish_signal.connect(self.task_finished)
         signals.status_bar_signal.connect(self.set_task_status_bar_text)
         self.task_thread = TaskThread(
             agent=self.agent,
@@ -545,15 +570,21 @@ class AgentMonitor(QMainWindow):
         )
         self.task_thread.start()
 
+    def task_finished(self):
+        if self.task_thread is not None:
+            self.task_thread.wait()
+            self.task_thread = None
+        self.interrupt_button.setEnabled(True)
+        self.instruction_selection.setEnabled(True)
+
     def reset(self) -> None:
         """Resets the UI elements to their default state."""
         self.vnc_frame.reset()
-        self.vnc_container.show()
         self.refresh_timer.start()
-        self.screenshot_uuid = None
-        # reset buttons
-        self.reset_button.setEnabled(True)
+        # set widgets to default state
+        self.interrupt_button.setEnabled(True)
         self.start_button.setEnabled(False)
+        self.instruction_selection.setEnabled(True)
         # clear displays and selections
         self.instruction_selection.clearSelection()
         self.output_display.clear()
@@ -568,7 +599,7 @@ class AgentMonitor(QMainWindow):
             self.task_thread.terminate()
             self.task_thread = None
         # reset status bar
-        self.set_task_status_bar_text("color: green;", "Task: Init")
+        self.set_task_status_bar_text("color: green;", "Ready")
         self.status_bar.showMessage(
             "Connected. Please go to the terminal to check outputs."
         )
@@ -917,11 +948,6 @@ def main():
                 geometry = second_screen.geometry()
                 interface.move(geometry.topLeft())
             interface.show()
-
-            # timer = QTimer()
-            # timer.timeout.connect(lambda: eval(args, interface))
-            # timer.setSingleShot(True)  # Set the timer to single-shot mode
-            # timer.start(100)  # Executes main_task once after 100 ms
 
             sys.exit(app.exec())
         except asyncio.exceptions.CancelledError:
