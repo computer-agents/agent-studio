@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import argparse
 import asyncio
 import logging
@@ -13,26 +14,36 @@ import cv2
 import jsonpickle
 import numpy as np
 import requests
-from PyQt6.QtCore import QSize, QTimer, QThread, pyqtSignal, QObject, QMutex, QWaitCondition, Qt
+from PyQt6.QtCore import (
+    QMutex,
+    QObject,
+    QSize,
+    Qt,
+    QThread,
+    QTimer,
+    QWaitCondition,
+    pyqtSignal,
+)
 from PyQt6.QtGui import QImage
 from PyQt6.QtWidgets import (
     QApplication,
+    QDialog,
     QHBoxLayout,
     QLabel,
-    QMainWindow,
-    QPushButton,
-    QStatusBar,
-    QVBoxLayout,
-    QWidget,
-    QTextEdit,
     QListWidget,
     QListWidgetItem,
-    QDialog,
+    QMainWindow,
+    QPushButton,
     QSplitter,
+    QStatusBar,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 from tqdm import tqdm
 
 from agent_studio.agent import setup_agent
+from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
 from agent_studio.envs.desktop_env.vnc_client import (
@@ -46,9 +57,13 @@ from agent_studio.utils.communication import (
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
 )
+from agent_studio.utils.gui import (
+    ChoiceDialog,
+    ChoiceDialogPython,
+    InputDialog,
+    JSONEditor,
+)
 from agent_studio.utils.json_utils import export_trajectories, read_json
-from agent_studio.utils.gui import JSONEditor, InputDialog, ChoiceDialog, ChoiceDialogPython
-from agent_studio.agent.base_agent import BaseAgent
 
 config = Config()
 
@@ -131,13 +146,12 @@ class TaskThread(QThread):
                     "color: red;", "Waiting for user input..."
                 )
                 self.signals.show_input_dialog_signal.emit(
-                    "Human Evaluation", response.content)
+                    "Human Evaluation", response.content
+                )
                 self.wait_condition.wait(self.mutex)
                 self.mutex.unlock()
                 user_input = self.user_input
-                self.signals.status_bar_signal.emit(
-                    "color: blue;", "Evaluating..."
-                )
+                self.signals.status_bar_signal.emit("color: blue;", "Evaluating...")
             else:
                 # reset
                 if config.need_human_confirmation:
@@ -146,15 +160,14 @@ class TaskThread(QThread):
                         "color: red;", "Waiting for user input..."
                     )
                     self.signals.show_dialog_signal.emit(
-                        "Confirm Action", response.content)
+                        "Confirm Action", response.content
+                    )
                     self.wait_condition.wait(self.mutex)
                     self.mutex.unlock()
                     user_input = self.user_input
                 else:
                     user_input = "y"
-                self.signals.status_bar_signal.emit(
-                    "color: blue;", "Resetting Task..."
-                )
+                self.signals.status_bar_signal.emit("color: blue;", "Resetting Task...")
             response_raw = requests.post(
                 url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
                 json=AgentStudioTextRequest(message=user_input).model_dump(),
@@ -175,18 +188,18 @@ class TaskThread(QThread):
                     "color: blue;", "Resetting Runtime..."
                 )
                 response_raw = requests.post(
-                    f"http://{REMOTE_SERVER_ADDR}/runtime/reset")
+                    f"http://{REMOTE_SERVER_ADDR}/runtime/reset"
+                )
                 response = AgentStudioStatusResponse(**response_raw.json())
                 assert (
                     response.status == "success"
                 ), f"Fail to reset runtime: {response_raw.text}"
-                self.signals.status_bar_signal.emit(
-                    "color: blue;", "Resetting Task..."
-                )
+                self.signals.status_bar_signal.emit("color: blue;", "Resetting Task...")
                 response_raw = requests.post(
                     f"http://{REMOTE_SERVER_ADDR}/task/reset",
                     json=AgentStudioResetRequest(
-                        task_config=self.task_config).model_dump(),
+                        task_config=self.task_config
+                    ).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
                 response = self.wait_finish(is_eval=False, response=response)
@@ -204,9 +217,7 @@ class TaskThread(QThread):
                 instruction = instruction.replace("GMAIL_RECIPIENT", gmail_recipient)
 
             # Reset the agent
-            self.signals.status_bar_signal.emit(
-                "color: blue;", "Resetting Agent..."
-            )
+            self.signals.status_bar_signal.emit("color: blue;", "Resetting Agent...")
             self.agent.reset(task_config=self.task_config)
 
             # Loop until the task is done or the max step is reached.
@@ -226,7 +237,8 @@ class TaskThread(QThread):
                         "color: red;", "Waiting for user input..."
                     )
                     self.signals.show_dialog_signal_python.emit(
-                        f"Execute Action?", action)
+                        "Execute Action?", action
+                    )
                     self.wait_condition.wait(self.mutex)
                     self.mutex.unlock()
                     confirmed = self.user_input.strip().lower() == "y"
@@ -294,9 +306,7 @@ class TaskThread(QThread):
                     ".json", ".jsonl"
                 ),
             )
-            self.signals.status_bar_signal.emit(
-                "color: green;", "Ready"
-            )
+            self.signals.status_bar_signal.emit("color: green;", "Ready")
             self.signals.finish_signal.emit()
         except Exception as e:
             import traceback
@@ -402,7 +412,8 @@ class AgentMonitor(QMainWindow):
             # Left layout for VNC frame.
             left_layout = QVBoxLayout()
             self.vnc_frame = VNCFrame(
-                self, self.frame_size_hint, enable_selection=False)
+                self, self.frame_size_hint, enable_selection=False
+            )
             left_layout.addWidget(self.vnc_frame)
 
             self.reconnect_button = QPushButton("Re-connect")
@@ -410,7 +421,6 @@ class AgentMonitor(QMainWindow):
             self.reconnect_button.setFixedWidth(150)
             self.reconnect_button.setFixedHeight(50)
             left_layout.addWidget(self.reconnect_button)
-
 
             vnc_widget = QWidget()
             vnc_widget.setLayout(left_layout)
@@ -502,23 +512,31 @@ class AgentMonitor(QMainWindow):
         self.dlg.show()
 
     def show_choice_dialog(self, title: str, message: str):
-        self.dlg = ChoiceDialog(title, message,
-                                lambda: self.task_thread.receive_user_input(
-                                    "y") if self.task_thread is not None else None,
-                                lambda: self.task_thread.receive_user_input(
-                                    "n") if self.task_thread is not None else None
-                                )
+        self.dlg = ChoiceDialog(
+            title,
+            message,
+            lambda: self.task_thread.receive_user_input("y")
+            if self.task_thread is not None
+            else None,
+            lambda: self.task_thread.receive_user_input("n")
+            if self.task_thread is not None
+            else None,
+        )
         self.dlg.setWindowModality(Qt.WindowModality.NonModal)
         self.dlg.show()
 
     def show_choice_dialog_python(self, title: str, message: str):
         assert self.task_thread is not None
-        self.dlg = ChoiceDialogPython(title, message,
-                                      lambda: self.task_thread.receive_user_input(
-                                          "y") if self.task_thread is not None else None,
-                                      lambda: self.task_thread.receive_user_input(
-                                          "n") if self.task_thread is not None else None
-                                      )
+        self.dlg = ChoiceDialogPython(
+            title,
+            message,
+            lambda: self.task_thread.receive_user_input("y")
+            if self.task_thread is not None
+            else None,
+            lambda: self.task_thread.receive_user_input("n")
+            if self.task_thread is not None
+            else None,
+        )
         self.dlg.setWindowModality(Qt.WindowModality.NonModal)
         self.dlg.show()
 
@@ -935,8 +953,9 @@ def main():
             interface = AgentMonitor(
                 args=args,
                 remote=args.remote,
-                task_configs=read_json(args.task_configs_path,
-                                       args.start_idx, args.end_idx),
+                task_configs=read_json(
+                    args.task_configs_path, args.start_idx, args.end_idx
+                ),
                 window_width=args.window_width,
                 window_height=args.window_height,
             )

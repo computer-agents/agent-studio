@@ -21,7 +21,8 @@ class HumanEvaluator(Evaluator):
         """Human evaluation handler."""
         if config.headless:
             feedback = input(
-                f"{prompt}\n\nGive your feedback and Press Enter (Leave blank if successful): "
+                f"{prompt}\n\nGive your feedback and Press Enter"
+                " (Leave blank if successful): "
             )
         else:
             task_status.set_task_state(

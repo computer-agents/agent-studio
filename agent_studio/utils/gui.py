@@ -5,11 +5,11 @@ from PyQt6 import Qsci
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QDialog,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
     QVBoxLayout,
-    QHBoxLayout,
 )
 
 
@@ -60,10 +60,14 @@ class InputDialog(QDialog):
 class ChoiceDialog(QDialog):
     choice = False
 
-    def __init__(self, title: str, message: str,
-                 accept_callback: Callable | None = None,
-                 reject_callback: Callable | None = None,
-                 parent=None):
+    def __init__(
+        self,
+        title: str,
+        message: str,
+        accept_callback: Callable | None = None,
+        reject_callback: Callable | None = None,
+        parent=None,
+    ):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.setModal(True)
@@ -104,13 +108,19 @@ class ChoiceDialog(QDialog):
             self.reject_callback()
         super().reject()
 
+
 class ChoiceDialogPython(ChoiceDialog):
-    def __init__(self, title: str, message: str, accept_callback: Callable | None = None,
-                 reject_callback: Callable | None = None, parent=None):
+    def __init__(
+        self,
+        title: str,
+        message: str,
+        accept_callback: Callable | None = None,
+        reject_callback: Callable | None = None,
+        parent=None,
+    ):
         super().__init__(title, message, accept_callback, reject_callback, parent)
 
         self.messageLabel = Qsci.QsciScintilla()
         self.messageLabel.setLexer(Qsci.QsciLexerPython())
         self.messageLabel.setReadOnly(True)
         self.messageLabel.setText(message)
-

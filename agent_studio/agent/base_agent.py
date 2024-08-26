@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
-import requests
 
 from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.llm import setup_model
