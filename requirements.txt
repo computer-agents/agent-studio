@@ -124,6 +124,7 @@ pynput==1.7.6
 pyparsing==3.1.1
 pyperclip==1.8.2
 PyQt6==6.6.1
+PyQt6-QScintil==2.14.1
 PyQt6-Qt6==6.6.2
 PyQt6-sip==13.6.0
 PyRect==0.2.0
