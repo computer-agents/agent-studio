@@ -30,6 +30,9 @@ def confirm_action(prompt: str = "") -> Callable:
                         StateEnum.WAIT_FOR_INPUT
                     )
                     assert current_status.state == StateEnum.IN_PROGRESS, current_status
+                    assert isinstance(
+                        current_status.message, str
+                    ), f"Invalid message: {current_status.message}"
                     user_input = current_status.message.strip().lower()
                 if user_input == "y":
                     return True, func(*args, **kwargs)

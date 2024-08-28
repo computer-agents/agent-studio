@@ -3,11 +3,9 @@ import time
 from typing import Any
 
 import numpy as np
-import requests
 
-from agent_studio.agent.base_agent import BaseAgent, TrajectorySeg
+from agent_studio.agent.base_agent import BaseAgent, StepInfo
 from agent_studio.config import Config
-from agent_studio.llm.base_model import BaseModel
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -18,19 +16,7 @@ class HumanAgent(BaseAgent):
 
     name = "human"
 
-    def __init__(self) -> None:
-        super().__init__(model=BaseModel())
-
-    def reset(
-        self, task_config: dict[str, Any], registered_evaluators: dict[str, Any]
-    ) -> None:
-        super().reset(task_config=task_config, registered_evaluators={})
-        with open(config.init_code_path, "r") as f:
-            init_code = f.read()
-            assert self.runtime is not None
-            self.runtime(init_code)
-
-    def step_action(self, confirmed: bool, **kwargs) -> tuple[dict, bool]:
+    def step_action(self, confirmed: bool) -> tuple[dict, bool]:
         """Executes the code and record the result.
 
         Args:
@@ -43,37 +29,23 @@ class HumanAgent(BaseAgent):
         Returns:
             tuple[dict, bool]: The result of the execution and whether the task is done.
         """
-        obs = kwargs.get("obs", None)
-        code = kwargs.get("code", "")
-        annotation = kwargs.get("annotation", {})
-        self.cur_obs = obs
-        self.cur_raw_code = code
-        cur_time = time.time()
-        result = {}
-
+        if self.step_info is None:
+            raise ValueError("step_info is None")
+        code = self.step_info.action
         logger.debug(f"Code to execute:\n{code}\n")
-        if config.remote:
-            response = requests.post(
-                f"http://{config.env_server_addr}:{config.env_server_port}/execute",
-                json={"message": code},
-            )
-            result = response.json()
-        else:
-            assert self.runtime is not None, "The agent needs to reset first."
-            result = self.runtime(code)
+        result = self.runtime(code)
 
-        assert self.cur_prompt is not None, "Invalid prompt"
-        self.trajectory.append(
-            TrajectorySeg(
-                obs=self.cur_obs,
-                prompt=self.cur_prompt,
-                response=self.cur_response,
-                info=self.cur_info,
-                act=self.cur_raw_code,
-                annotation=annotation,
-                res=result,
-                timestamp=cur_time,
-            )
+        self.step_info.result = result
+        self.step_info.timestamp = time.time()
+        self.trajectory.append(self.step_info)
+        self.step_info = StepInfo(
+            obs=None,
+            prompt=None,
+            response=None,
+            action="",
+            info={},
+            result={},
+            timestamp=0.0,
         )
         logger.info(f"Output: {result}")
 

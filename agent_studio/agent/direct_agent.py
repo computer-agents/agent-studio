@@ -57,7 +57,7 @@ class DirectAgent(BaseAgent):
                 )
             )
 
-        if self.step_info.obs is not None:
-            messages.append(Message(role="user", content=self.step_info.obs))
+        if self.obs is not None:
+            messages.append(Message(role="user", content=self.obs))
 
         return messages

@@ -51,7 +51,9 @@ def add_jsonl(data: list, file_path: str, mode="a"):
             file.write(json_str + "\n")
 
 
-def read_json(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> dict:
+def read_json(
+    file_path: str, start_idx: int = 0, end_idx: int | None = None
+) -> dict | list:
     """Reads a dictionary from a .json file.
 
     Args:

@@ -30,6 +30,7 @@ dependencies = [
     "toml",
     "torch",
     "transformers",
+    "PyQt6-QScintilla",
 ]
 
 [tool.setuptools]

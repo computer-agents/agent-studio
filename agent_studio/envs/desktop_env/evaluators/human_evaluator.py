@@ -20,30 +20,20 @@ class HumanEvaluator(Evaluator):
     def handle_human_evaluation(self, prompt: str = "Is the task successful?") -> None:
         """Human evaluation handler."""
         if config.headless:
-            score = float(input(f"{prompt} (y/n): ") == "y")
-            if score == 0:
-                feedback = input(
-                    "Type any feedback and press Enter (or press Enter to skip): "
-                )
-                raise FeedbackException(feedback)
+            feedback = input(
+                f"{prompt}\n\nGive your feedback and Press Enter"
+                " (Leave blank if successful): "
+            )
         else:
             task_status.set_task_state(
                 StateInfo(
                     state=StateEnum.WAIT_FOR_INPUT,
-                    message=f"{prompt} (y/n): ",
+                    message=f"{prompt}\n\nGive your feedback and Press Enter (Leave blank if successful): ",  # noqa: E501
                 )
             )
             state = task_status.wait_for_state_change(StateEnum.WAIT_FOR_INPUT)
             assert state.state == StateEnum.IN_PROGRESS, state
-            if state.message != "y":
-                task_status.set_task_state(
-                    StateInfo(
-                        state=StateEnum.WAIT_FOR_INPUT,
-                        message="Type any feedback and press Enter (or press Enter to skip): ",  # noqa: E501
-                    )
-                )
-                state = task_status.wait_for_state_change(StateEnum.WAIT_FOR_INPUT)
-                assert state.state == StateEnum.IN_PROGRESS, state
-                assert isinstance(state.message, str), state
-                feedback = state.message
-                raise FeedbackException(feedback)
+            assert isinstance(state.message, str), state
+            feedback = state.message
+        if feedback != "":
+            raise FeedbackException(feedback)

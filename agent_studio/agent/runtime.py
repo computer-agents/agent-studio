@@ -1,6 +1,7 @@
 import os
 from queue import Empty
 
+import requests
 from jupyter_client.manager import KernelManager
 
 # Supresses a weird debugging error
@@ -47,8 +48,51 @@ class PythonRuntime:
 
         return result
 
-    def close(self) -> None:
+    def close(self) -> bool:
         self.kc.stop_channels()
         self.km.shutdown_kernel()
         del self.km
         del self.kc
+        return True
+
+    def reset(self) -> bool:
+        if not self.close():
+            return False
+        self.km = KernelManager(kernel_name="python3")
+        self.km.start_kernel()
+        self.kc = self.km.client()
+        self.kc.start_channels()
+        self.kc.wait_for_ready()
+        return True
+
+
+class RemotePythonRuntime:
+    def __init__(self, env_server_addr: str, env_server_port: int, python_timeout=20):
+        self.env_server_addr = env_server_addr
+        self.env_server_port = env_server_port
+        self.python_timeout = python_timeout
+        response = requests.post(
+            f"http://{self.env_server_addr}:{self.env_server_port}/runtime/reset"
+        )
+        assert response.json()["status"] == "success"
+
+    def __call__(self, code: str) -> dict:
+        response = requests.post(
+            f"http://{self.env_server_addr}:{self.env_server_port}/execute",
+            json={"message": code},
+        )
+        return response.json()
+
+    def close(self) -> bool:
+        return True
+
+    def reset(self) -> bool:
+        if not self.close():
+            return False
+        response = requests.post(
+            f"http://{self.env_server_addr}:{self.env_server_port}/runtime/reset"
+        )
+        if response.json()["status"] == "success":
+            return True
+        else:
+            return False
