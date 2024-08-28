@@ -515,12 +515,16 @@ class AgentMonitor(QMainWindow):
         self.dlg = ChoiceDialog(
             title,
             message,
-            lambda: self.task_thread.receive_user_input("y")
-            if self.task_thread is not None
-            else None,
-            lambda: self.task_thread.receive_user_input("n")
-            if self.task_thread is not None
-            else None,
+            lambda: (
+                self.task_thread.receive_user_input("y")
+                if self.task_thread is not None
+                else None
+            ),
+            lambda: (
+                self.task_thread.receive_user_input("n")
+                if self.task_thread is not None
+                else None
+            ),
         )
         self.dlg.setWindowModality(Qt.WindowModality.NonModal)
         self.dlg.show()
@@ -530,12 +534,16 @@ class AgentMonitor(QMainWindow):
         self.dlg = ChoiceDialogPython(
             title,
             message,
-            lambda: self.task_thread.receive_user_input("y")
-            if self.task_thread is not None
-            else None,
-            lambda: self.task_thread.receive_user_input("n")
-            if self.task_thread is not None
-            else None,
+            lambda: (
+                self.task_thread.receive_user_input("y")
+                if self.task_thread is not None
+                else None
+            ),
+            lambda: (
+                self.task_thread.receive_user_input("n")
+                if self.task_thread is not None
+                else None
+            ),
         )
         self.dlg.setWindowModality(Qt.WindowModality.NonModal)
         self.dlg.show()
