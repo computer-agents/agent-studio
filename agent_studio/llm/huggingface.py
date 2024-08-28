@@ -115,9 +115,11 @@ class HuggingFaceProvider(BaseModel):
                 "attention_mask": input_by_model["attention_mask"]
                 .unsqueeze(0)
                 .to("cuda"),
-                "images": [[input_by_model["images"][0].to("cuda").to(self.dtype)]]
-                if image is not None
-                else None,
+                "images": (
+                    [[input_by_model["images"][0].to("cuda").to(self.dtype)]]
+                    if image is not None
+                    else None
+                ),
             }
             with torch.no_grad():
                 outputs = self.model.generate(**inputs, **kwargs)
@@ -151,9 +153,11 @@ class HuggingFaceProvider(BaseModel):
                 "attention_mask": input_by_model["attention_mask"]
                 .unsqueeze(0)
                 .to("cuda"),
-                "images": [[input_by_model["images"][0].to("cuda").to(self.dtype)]]
-                if image is not None
-                else None,
+                "images": (
+                    [[input_by_model["images"][0].to("cuda").to(self.dtype)]]
+                    if image is not None
+                    else None
+                ),
             }
             if "cross_images" in input_by_model and input_by_model["cross_images"]:
                 inputs["cross_images"] = [

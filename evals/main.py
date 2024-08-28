@@ -90,7 +90,9 @@ def main():
                 end_idx=args.end_idx,
                 num_workers=args.num_workers,
             )
-        case "idmn2n":  # evaluation on inverse dynamics model that predict a sequence of actions from trajectories  # noqa: E501
+        case (
+            "idmn2n"
+        ):  # evaluation on inverse dynamics model that predict a sequence of actions from trajectories  # noqa: E501
             evaluator = IDMMultipleEval(
                 model=model,
                 data_path=args.data_path,

@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 import chime
+import toml
 
 from agent_studio.recorder.recorders.keyboard import KeyboardRecorder
 from agent_studio.recorder.recorders.mouse import MouseRecorder
@@ -163,12 +164,38 @@ class AllinOneRecorder(Recorder):
             self.post_process()
 
 
-if __name__ == "__main__":
-    folder_name = datetime.now().strftime("%Y%m%d_%H%M%S")
-    os.makedirs(folder_name, exist_ok=True)
+def main():
+    config_file_path = Path.home().joinpath(".agent-studio")
+    conf = {"output_folder": Path.home().as_posix()}
 
-    print("Please input the instruction:")
-    instruction = input()
+    if config_file_path.exists():
+        with open(config_file_path, "r") as f:
+            full_conf = toml.load(f)
+            if "as-trajectory-recorder" in full_conf:
+                conf = full_conf["as-trajectory-recorder"]
+    else:
+        full_conf = {}
+
+    output_folder = Path(conf["output_folder"])
+
+    user_input = input(
+        "Please enter the folder path where you want to save the record"
+        f" (Press Enter to use the default path: {output_folder}): "
+    )
+    if user_input:
+        output_folder = Path(user_input)
+        conf["output_folder"] = output_folder.as_posix()
+
+    output_folder = output_folder / datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    os.makedirs(output_folder, exist_ok=True)
+
+    # save the folder name to config file in user's home directory
+    with open(config_file_path, "w") as f:
+        full_conf["as-trajectory-recorder"] = conf
+        toml.dump(full_conf, f)
+
+    instruction = input("Please input the instruction:")
 
     rec = AllinOneRecorder(
         mouse_options=MouseOptions.LOG_CLICK | MouseOptions.LOG_SCROLL,
@@ -180,8 +207,12 @@ if __name__ == "__main__":
             "height": 1600,
         },
         video_fps=10,
-        output_folder=folder_name,
+        output_folder=output_folder.as_posix(),
         mouse_fps=5,  # valid if recording mouse movement
     )
     rec.start()
     rec.wait_exit()
+
+
+if __name__ == "__main__":
+    main()

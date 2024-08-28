@@ -244,9 +244,9 @@ class Video:
         format = "!%dsHHHH" % self.bypp
         while pos < end:
             (color, x, y, width, height) = unpack(format, block[pos : pos + sz])
-            self.data[
-                topy + y : topy + y + height, topx + x : topx + x + width
-            ] = np.frombuffer(color, dtype="B").reshape(1, 1, 4)
+            self.data[topy + y : topy + y + height, topx + x : topx + x + width] = (
+                np.frombuffer(color, dtype="B").reshape(1, 1, 4)
+            )
             pos += sz
 
     def _handle_decode_hextile(self, block, bg, color, x, y, width, height, tx, ty):
@@ -332,9 +332,9 @@ class Video:
             self.data[y : y + height, x : x + width] = np.frombuffer(
                 data, dtype="B"
             ).reshape(height, width, 4)
-            self.data[
-                y : y + height, x : x + width, self.mode.index("a")
-            ] = 255  # alpha channel
+            self.data[y : y + height, x : x + width, self.mode.index("a")] = (
+                255  # alpha channel
+            )
 
         elif encoding == 5:  # Hextile
             self.now_encoding = "Hextile"
