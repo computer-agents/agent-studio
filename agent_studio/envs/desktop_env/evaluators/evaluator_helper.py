@@ -188,7 +188,7 @@ def extract_evaluator_meta(file_path) -> tuple[str, list[dict]]:
     return evaluator_name, extracted_info
 
 
-def load_evaluator_args(
+def load_evaluator_meta(
     base_path: str = "agent_studio/envs/desktop_env/evaluators",
 ) -> dict[str, list[dict]]:
     """Loads the evaluator arguments."""

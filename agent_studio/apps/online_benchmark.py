@@ -45,7 +45,7 @@ from tqdm import tqdm
 from agent_studio.agent import setup_agent
 from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config.config import Config
-from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router, verify_task_config, load_evaluator_args
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router, verify_task_config, load_evaluator_meta
 from agent_studio.envs.desktop_env.vnc_client import (
     LocalStreamer,
     VNCFrame,
@@ -361,7 +361,7 @@ class AgentMonitor(QMainWindow):
             runtime_server_port=config.env_server_port,
         )
 
-        self.evaluator_meta = load_evaluator_args()
+        self.evaluator_meta = load_evaluator_meta()
 
         # self.task_thread: None | TaskThread = None
         self.capture_thread: VNCStreamer | LocalStreamer | None = None
@@ -805,6 +805,14 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
 
     # Setup tasks
     task_configs = read_json(args.task_configs_path, args.start_idx, args.end_idx)
+
+    evaluator_meta = load_evaluator_meta()
+    for task_config in task_configs:
+        try:
+            verify_task_config(task_config, evaluator_meta)
+        except Exception as e:
+            logger.error(f"Invalid task configuration: {str(e)}\n{task_config}")
+            raise
 
     # Run evaluation
     scores = {}

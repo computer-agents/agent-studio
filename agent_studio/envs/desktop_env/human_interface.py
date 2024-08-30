@@ -412,7 +412,7 @@ class HumanInterface(QMainWindow):
 
         self.screen_width, self.screen_height = pyautogui.size()
         self.evaluator_infos: dict[str, list[dict]] = {}
-        self.load_evaluator_args()
+        self.load_evaluator_meta()
 
         self.setup_ui()
         self.agent = HumanAgent()
@@ -762,7 +762,7 @@ class HumanInterface(QMainWindow):
         self.task_status_bar.setStyleSheet(color)
         self.task_status_bar.setText(text)
 
-    def load_evaluator_args(
+    def load_evaluator_meta(
         self,
         base_path: str = "agent_studio/envs/desktop_env/evaluators",
     ) -> None:
