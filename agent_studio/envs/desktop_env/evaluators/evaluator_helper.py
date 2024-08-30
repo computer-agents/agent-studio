@@ -198,14 +198,13 @@ def load_evaluator_args(
             if file.endswith(".py"):
                 file_path = os.path.join(root, file)
                 try:
-                    evaluator_name, evaluator_info = extract_evaluator_meta(
-                        file_path
-                    )
+                    evaluator_name, evaluator_info = extract_evaluator_meta(file_path)
                     evaluator_args[evaluator_name] = evaluator_info
                 except Exception:
                     # logger.warn(f"Fail to parse {file_path}: {e}")
                     pass
     return evaluator_args
+
 
 def verify_task_config(
     task_config: dict,
@@ -219,24 +218,44 @@ def verify_task_config(
         for eval_procedure in eval.get("eval_procedure", []):
             for fun_name, fun_params in eval_procedure.items():
                 for fun_param in fun_params:
-                    fun_meta = [meta for meta in evaluator_args[eval_type] if meta["function_name"] == fun_name]
+                    fun_meta = [
+                        meta
+                        for meta in evaluator_args[eval_type]
+                        if meta["function_name"] == fun_name
+                    ]
                     if len(fun_meta) == 0:
-                        raise ValueError(f"Wrong eval_procedure '{fun_name}' in task config.")
+                        raise ValueError(
+                            f"Wrong eval_procedure '{fun_name}' in task config."
+                        )
                     fun_meta = fun_meta[0]
-                    if fun_meta['decorator'] != 'evaluation_handler':
-                        raise ValueError(f"Wrong eval_procedure '{fun_name}' in task config.")
-                    if fun_param not in fun_meta['function_args']:
-                        raise ValueError(f"Wrong eval_procedure '{fun_name}' in task config.")
+                    if fun_meta["decorator"] != "evaluation_handler":
+                        raise ValueError(
+                            f"Wrong eval_procedure '{fun_name}' in task config."
+                        )
+                    if fun_param not in fun_meta["function_args"]:
+                        raise ValueError(
+                            f"Wrong eval_procedure '{fun_name}' in task config."
+                        )
                     # TODO: check parameter type
         for reset_procedure in eval.get("reset_procedure", []):
             for fun_name, fun_params in reset_procedure.items():
                 for fun_param in fun_params:
-                    fun_meta = [meta for meta in evaluator_args[eval_type] if meta["function_name"] == fun_name]
+                    fun_meta = [
+                        meta
+                        for meta in evaluator_args[eval_type]
+                        if meta["function_name"] == fun_name
+                    ]
                     if len(fun_meta) == 0:
-                        raise ValueError(f"Wrong reset_procedure '{fun_name}' in task config.")
+                        raise ValueError(
+                            f"Wrong reset_procedure '{fun_name}' in task config."
+                        )
                     fun_meta = fun_meta[0]
-                    if fun_meta['decorator'] != 'reset_handler':
-                        raise ValueError(f"Wrong reset_procedure '{fun_name}' in task config.")
-                    if fun_param not in fun_meta['function_args']:
-                        raise ValueError(f"Wrong reset_procedure '{fun_name}' in task config.")
+                    if fun_meta["decorator"] != "reset_handler":
+                        raise ValueError(
+                            f"Wrong reset_procedure '{fun_name}' in task config."
+                        )
+                    if fun_param not in fun_meta["function_args"]:
+                        raise ValueError(
+                            f"Wrong reset_procedure '{fun_name}' in task config."
+                        )
                     # TODO: check parameter type

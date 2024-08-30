@@ -45,7 +45,11 @@ from tqdm import tqdm
 from agent_studio.agent import setup_agent
 from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config.config import Config
-from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router, verify_task_config, load_evaluator_args
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import (
+    evaluator_router,
+    load_evaluator_args,
+    verify_task_config,
+)
 from agent_studio.envs.desktop_env.vnc_client import (
     LocalStreamer,
     VNCFrame,
