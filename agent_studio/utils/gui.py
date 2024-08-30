@@ -19,6 +19,11 @@ class JSONEditor(Qsci.QsciScintilla):
         self.setLexer(Qsci.QsciLexerJSON(self))
         self.setReadOnly(not editable)
 
+        # Enable line numbers
+        self.setMargins(1)
+        self.setMarginType(0, Qsci.QsciScintilla.MarginType.NumberMargin)
+        self.setMarginWidth(0, "000")  # Adjust width as needed
+
     def setText(self, text: str | dict):
         if isinstance(text, dict):
             text = json.dumps(text, indent=4)

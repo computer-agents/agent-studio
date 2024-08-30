@@ -103,3 +103,140 @@ def evaluator_router(
             )
 
     return EvaluatorComb(evaluators)
+
+
+def extract_evaluator_meta(file_path) -> tuple[str, list[dict]]:
+    """Extracts the reset_handler and evaluate_handler \
+        and their metadata from the evaluator."""
+    with open(file_path, "r") as file:
+        tree = ast.parse(file.read(), filename=file_path)
+
+    # Initialize a list to hold the extracted information
+    extracted_info = []
+    evaluator_name = None
+
+    for node in ast.walk(tree):
+        # Check for class definitions that are derived from "Evaluator"
+        if isinstance(node, ast.ClassDef):
+            for base in node.bases:
+                if isinstance(base, ast.Name) and base.id == "Evaluator":
+                    # Iterate through the body of the class to find methods
+                    for item in node.body:
+                        if isinstance(item, ast.FunctionDef):
+                            # Check for decorators
+                            for decorator in item.decorator_list:
+                                if (
+                                    isinstance(decorator, ast.Call)
+                                    and hasattr(decorator.func, "id")
+                                    and decorator.func.id
+                                    in [
+                                        "evaluation_handler",
+                                        "reset_handler",
+                                    ]
+                                ):
+                                    # Extract decorator name and arguments
+                                    decorator_name = decorator.func.id
+                                    decorator_args = [
+                                        ast.literal_eval(arg) for arg in decorator.args
+                                    ]
+
+                                    # Extract function name, arguments, and docstring
+                                    function_name = item.name
+                                    function_args = {
+                                        arg.arg: ast.unparse(arg.annotation)
+                                        for arg in item.args.args
+                                        if arg.annotation is not None
+                                    }
+                                    docstring = ast.get_docstring(item)
+
+                                    # Add extracted information to the list
+                                    extracted_info.append(
+                                        {
+                                            "decorator": decorator_name,
+                                            "decorator_args": decorator_args,
+                                            "function_name": function_name,
+                                            "function_args": function_args,
+                                            "docstring": docstring,
+                                        }
+                                    )
+                        elif isinstance(item, ast.AnnAssign):
+                            target = item.target
+                            if isinstance(target, ast.Name) and target.id == "name":
+                                if item.value is not None and hasattr(item.value, "n"):
+                                    if evaluator_name is None:
+                                        evaluator_name = item.value.n
+                                    else:
+                                        raise ValueError(
+                                            "Multiple evaluator names found in "
+                                            f"{file_path}"
+                                        )
+                        elif isinstance(item, ast.Assign):
+                            for assign in item.targets:
+                                if isinstance(assign, ast.Name) and assign.id == "name":
+                                    if item.value is not None and hasattr(
+                                        item.value, "n"
+                                    ):
+                                        if evaluator_name is None:
+                                            evaluator_name = item.value.n
+                                        else:
+                                            raise ValueError(
+                                                "Multiple evaluator names found in "
+                                                f"{file_path}"
+                                            )
+    if evaluator_name is None:
+        raise ValueError(f"No evaluator name found in {file_path}")
+    return evaluator_name, extracted_info
+
+
+def load_evaluator_args(
+    base_path: str = "agent_studio/envs/desktop_env/evaluators",
+) -> dict[str, list[dict]]:
+    """Loads the evaluator arguments."""
+    evaluator_args = {}
+    for root, _, files in os.walk(base_path):
+        for file in files:
+            if file.endswith(".py"):
+                file_path = os.path.join(root, file)
+                try:
+                    evaluator_name, evaluator_info = extract_evaluator_meta(
+                        file_path
+                    )
+                    evaluator_args[evaluator_name] = evaluator_info
+                except Exception:
+                    # logger.warn(f"Fail to parse {file_path}: {e}")
+                    pass
+    return evaluator_args
+
+def verify_task_config(
+    task_config: dict,
+    evaluator_args: dict[str, list[dict]],
+) -> None:
+    """Verifies the task configuration."""
+    for eval in task_config["evals"]:
+        eval_type = eval["eval_type"]
+        if eval_type not in evaluator_args:
+            raise ValueError(f"Wrong evaluator type '{eval_type}' in task config.")
+        for eval_procedure in eval.get("eval_procedure", []):
+            for fun_name, fun_params in eval_procedure.items():
+                for fun_param in fun_params:
+                    fun_meta = [meta for meta in evaluator_args[eval_type] if meta["function_name"] == fun_name]
+                    if len(fun_meta) == 0:
+                        raise ValueError(f"Wrong eval_procedure '{fun_name}' in task config.")
+                    fun_meta = fun_meta[0]
+                    if fun_meta['decorator'] != 'evaluation_handler':
+                        raise ValueError(f"Wrong eval_procedure '{fun_name}' in task config.")
+                    if fun_param not in fun_meta['function_args']:
+                        raise ValueError(f"Wrong eval_procedure '{fun_name}' in task config.")
+                    # TODO: check parameter type
+        for reset_procedure in eval.get("reset_procedure", []):
+            for fun_name, fun_params in reset_procedure.items():
+                for fun_param in fun_params:
+                    fun_meta = [meta for meta in evaluator_args[eval_type] if meta["function_name"] == fun_name]
+                    if len(fun_meta) == 0:
+                        raise ValueError(f"Wrong reset_procedure '{fun_name}' in task config.")
+                    fun_meta = fun_meta[0]
+                    if fun_meta['decorator'] != 'reset_handler':
+                        raise ValueError(f"Wrong reset_procedure '{fun_name}' in task config.")
+                    if fun_param not in fun_meta['function_args']:
+                        raise ValueError(f"Wrong reset_procedure '{fun_name}' in task config.")
+                    # TODO: check parameter type

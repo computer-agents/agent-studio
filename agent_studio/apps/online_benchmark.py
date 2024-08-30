@@ -45,7 +45,7 @@ from tqdm import tqdm
 from agent_studio.agent import setup_agent
 from agent_studio.agent.base_agent import BaseAgent
 from agent_studio.config.config import Config
-from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router
+from agent_studio.envs.desktop_env.evaluators.evaluator_helper import evaluator_router, verify_task_config, load_evaluator_args
 from agent_studio.envs.desktop_env.vnc_client import (
     LocalStreamer,
     VNCFrame,
@@ -361,6 +361,8 @@ class AgentMonitor(QMainWindow):
             runtime_server_port=config.env_server_port,
         )
 
+        self.evaluator_meta = load_evaluator_args()
+
         # self.task_thread: None | TaskThread = None
         self.capture_thread: VNCStreamer | LocalStreamer | None = None
         if remote:
@@ -505,6 +507,20 @@ class AgentMonitor(QMainWindow):
 
         self.setMouseTracking(True)
 
+    def show_exception_dialog(self, title: str, message: str):
+        dlg = QDialog(self)
+        dlg.setWindowTitle(title)
+        dlg.setFixedWidth(400)
+        label = QLabel(message)
+        label.setWordWrap(True)  # Enables word wrapping
+        layout = QVBoxLayout()
+        layout.addWidget(label)
+        confirm_button = QPushButton("OK")
+        confirm_button.clicked.connect(dlg.close)
+        layout.addWidget(confirm_button)
+        dlg.setLayout(layout)
+        dlg.exec()
+
     def show_input_dialog(self, title: str, message: str):
         assert self.task_thread is not None
         self.dlg = InputDialog(title, message, self.task_thread.receive_user_input)
@@ -562,6 +578,15 @@ class AgentMonitor(QMainWindow):
         self.task_instruction = item.text()
         selected_task_idx = self.instruction_selection.currentRow()
         self.selected_task = self.task_configs[selected_task_idx]
+        try:
+            verify_task_config(self.selected_task, self.evaluator_meta)
+        except Exception as e:
+            logger.error(f"Invalid task configuration: {str(e)}\n{self.selected_task}")
+            self.show_exception_dialog(
+                "Invalid task configuration",
+                f"{str(e)}",
+            )
+            return
         self.task_config_display.setText(self.selected_task)
         self.evaluation_display.clear()
         self.output_display.clear()
