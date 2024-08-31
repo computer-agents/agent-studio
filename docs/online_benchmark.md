@@ -6,7 +6,7 @@ The example task configurations are located in `evals/datasets/online_benchmarks
 
 - **Level 1**: `filesystem.json`
 - **Level 2**: `gcalendar.json`, `gdocs.json`, and `gmail.json`.
-- **Level 3**: ``
+- **Level 3**: `vscode.json`
 
 We also provide more auto-evaluators on other applications in `agent_studio/envs/desktop_env/evaluators`, such as Google Drive, Google Slides, etc.
 

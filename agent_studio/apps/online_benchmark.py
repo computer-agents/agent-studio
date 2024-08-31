@@ -219,6 +219,11 @@ class TaskThread(QThread):
             # Reset the agent
             self.signals.status_bar_signal.emit("color: blue;", "Resetting Agent...")
             self.agent.reset(task_config=self.task_config)
+            if self.task_config["visual"]:
+                assert (
+                    self.interface is not None
+                ), "Interface has to be open for visual tasks."
+                self.interface.start_recording()
 
             # Loop until the task is done or the max step is reached.
             for t in range(self.task_config["max_steps"]):
