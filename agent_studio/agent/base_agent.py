@@ -6,7 +6,7 @@ from typing import Any
 import numpy as np
 
 from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
-from agent_studio.llm import setup_model
+from agent_studio.llm import ModelManager
 from agent_studio.llm.utils import extract_from_response
 from agent_studio.utils.types import MessageList
 
@@ -49,7 +49,8 @@ class BaseAgent:
         runtime_server_port: int,
     ) -> None:
         """Initialize with model, prompt template, and initilization code."""
-        self.model = setup_model(model)
+        model_manager = ModelManager()
+        self.model = model_manager.get_model(model)
         self.remote = remote
         self.runtime_server_addr = runtime_server_addr
         self.runtime_server_port = runtime_server_port
