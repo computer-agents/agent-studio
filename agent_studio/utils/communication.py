@@ -4,6 +4,8 @@ from typing import Any, Callable
 
 from pydantic import BaseModel
 
+from agent_studio.utils.types import TaskConfig
+
 bytes2str: Callable[..., str] = lambda x: base64.b64encode(pickle.dumps(obj=x)).decode(
     "utf-8"
 )
@@ -26,9 +28,9 @@ class AgentStudioTextRequest(BaseModel):
 
 
 class AgentStudioResetRequest(BaseModel):
-    task_config: dict
+    task_config: TaskConfig
 
 
 class AgentStudioEvalRequest(BaseModel):
-    task_config: dict
-    trajectory: str
+    task_config: TaskConfig
+    kwargs: str

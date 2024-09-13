@@ -10,6 +10,7 @@ from PIL import Image
 
 from agent_studio.agent.base_agent import TrajectoryInfo
 from agent_studio.llm.utils import decode_image
+from agent_studio.utils.types import TaskConfig
 
 
 def read_jsonl(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> list:
@@ -89,7 +90,7 @@ def format_json(data: dict, indent=4, sort_keys=False):
 
 
 def export_trajectories(
-    task_config: dict,
+    task_config: TaskConfig,
     trajectory: TrajectoryInfo,
     record_path: str,
     score: float | None,
@@ -101,11 +102,11 @@ def export_trajectories(
     """Exports the trajectory data to a .jsonl file."""
     if not os.path.exists(record_path):
         os.makedirs(record_path, exist_ok=True)
-    media_path = os.path.join(record_path, task_config["task_id"])
+    media_path = os.path.join(record_path, task_config.task_id)
     results = {
         "video": video_meta,
-        "task_id": task_config["task_id"],
-        "instruction": task_config["instruction"],
+        "task_id": task_config.task_id,
+        "instruction": task_config.instruction,
         "trajectory": trajectory,
         "token_count": token_count,
     }

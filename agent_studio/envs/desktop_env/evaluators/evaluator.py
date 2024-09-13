@@ -1,6 +1,10 @@
 import inspect
 import logging
-from typing import Any, Callable
+from typing import Callable
+
+import requests
+
+from agent_studio.utils.types import Procedure
 
 logger = logging.getLogger(__name__)
 
@@ -63,11 +67,7 @@ class Evaluator:
 
     def __init__(
         self,
-        eval_procedure: list[dict[str, dict[str, Any]]],
-        reset_procedure: list[dict[str, dict[str, Any]]],
     ) -> None:
-        self.eval_procedure = eval_procedure
-        self.reset_procedure = reset_procedure
         self.evaluation_handlers: dict[str, Handler] = {}
         self.reset_handlers: dict[str, Handler] = {}
         self.auto_register_handlers()
@@ -93,33 +93,75 @@ class Evaluator:
                         )
                     self.reset_handlers[name] = Handler(name, f)
 
-    def reset(self) -> None:
-        """Reset the environment before task execution."""
-        for step in self.reset_procedure:
-            for action, params in step.items():
-                if action in self.reset_handlers:
-                    self.reset_handlers[action](**params)
-                else:
-                    raise ValueError(f"Action {action} is not supported for reset.")
+    # def reset(self) -> None:
+    #     """Reset the environment before task execution."""
+    #     for step in self.reset_procedure:
+    #         for action, params in step.items():
+    #             if action in self.reset_handlers:
+    #                 self.reset_handlers[action](**params)
+    #             else:
+    #                 raise ValueError(f"Action {action} is not supported for reset.")
 
-    def __call__(self, **kwargs) -> tuple[float, str]:
+    def reset(self, procedure: Procedure) -> None:
+        """Reset the environment before task execution."""
+        action = procedure.function
+        params = procedure.params
+        if action in self.reset_handlers:
+            self.reset_handlers[action](**params)
+        else:
+            raise ValueError(f"Action {action} is not supported for reset.")
+
+    def __call__(self, procedure: Procedure, **kwargs) -> tuple[float, str]:
         """Evaluate the outcome of the task."""
         score = 1.0
         feedback = ""
-        for step in self.eval_procedure:
-            for action, params in step.items():
-                if action in self.evaluation_handlers:
-                    try:
-                        self.evaluation_handlers[action](**params, **kwargs)
-                    except FeedbackException as e:
-                        score = 0.0
-                        feedback += e.message + "\n"
-                    except Exception as e:
-                        logger.error(f"Evaluation failed due to {e}")
-                        raise e
-                else:
-                    raise ValueError(
-                        f"Action {action} is not supported for {self.name} evaluation."
-                    )
+        action = procedure.function
+        params = procedure.params
+        assert self.name == procedure.evaluator
+        if action in self.evaluation_handlers:
+            try:
+                self.evaluation_handlers[action](**params, **kwargs)
+            except FeedbackException as e:
+                score = 0.0
+                feedback += e.message + "\n"
+            except Exception as e:
+                logger.error(f"Evaluation failed due to {e}")
+                raise e
+        else:
+            raise ValueError(
+                f"Action {action} is not supported for {self.name} evaluation."
+            )
 
         return score, feedback
+
+
+class LocalEvaluator:
+    def __init__(self) -> None:
+        pass
+
+    def __call__(self, code: str) -> dict:
+        return {"output": [code]}
+
+
+class RemoteEvaluator:
+    def __init__(self, env_server_addr: str, env_server_port: int):
+        self.env_server_addr = env_server_addr
+        self.env_server_port = env_server_port
+
+    def __call__(self, code: str) -> dict:
+        response = requests.post(
+            f"http://{self.env_server_addr}:{self.env_server_port}/execute",
+            json={"message": code},
+        )
+        return response.json()
+
+    def close(self) -> bool:
+        return True
+
+    def reset(self) -> bool:
+        if not self.close():
+            return False
+        response = requests.post(
+            f"http://{self.env_server_addr}:{self.env_server_port}/runtime/reset"
+        )
+        return response.json()["status"] == "success"

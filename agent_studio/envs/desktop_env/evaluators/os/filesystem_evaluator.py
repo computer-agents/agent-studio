@@ -24,16 +24,6 @@ logger = logging.getLogger(__name__)
 class FilesystemEvaluator(Evaluator):
     name: str = "filesystem"
 
-    def __init__(
-        self,
-        eval_procedure: list[dict],
-        reset_procedure: list[dict],
-    ) -> None:
-        super().__init__(
-            eval_procedure=eval_procedure,
-            reset_procedure=reset_procedure,
-        )
-
     @staticmethod
     @evaluation_handler("exists")
     def exists(file_to_check: dict[str, bool]) -> None:

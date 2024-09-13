@@ -20,13 +20,8 @@ class QAEvaluator(Evaluator):
 
     def __init__(
         self,
-        eval_procedure: list[dict[str, dict[str, Any]]],
-        reset_procedure: list[dict[str, dict[str, Any]]],
     ) -> None:
-        super().__init__(
-            eval_procedure=eval_procedure,
-            reset_procedure=reset_procedure,
-        )
+        super().__init__()
 
     @evaluation_handler("string_match")
     def string_match(self, trajectory: TrajectoryInfo, answer: str) -> None:
