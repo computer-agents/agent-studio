@@ -28,7 +28,8 @@ dependencies = [
     "google-auth-oauthlib",
     "pyrogram",
     "toml",
-    "torch",
+    "ipykernel",
+    # "torch",
     "transformers",
     "PyQt6-QScintilla",
 ]
@@ -50,7 +51,7 @@ dev = [
     "check-jsonschema==0.29.1",
     "jsonschema==4.20.0",
 ]
-docker = ["fastapi", "uvicorn", "ipykernel"]
+server = ["fastapi", "uvicorn"]
 
 [tool.pytest.ini_options]
 log_cli = true
