@@ -17,22 +17,19 @@ class Singleton(abc.ABCMeta):
         return cls._instances[cls]
 
 
-class ThreadSafeSingleton(abc.ABCMeta):
-    """Thread Safe Singleton Abstract Base Class
+class ThreadSafeSingleton:
+    """Thread Safe Singleton
 
-    https://stackoverflow.com/questions/33364070/implementing\
-        -singleton-as-metaclass-but-for-abstract-classes
     https://medium.com/analytics-vidhya/how-to-create-\
         a-thread-safe-singleton-class-in-python-822e1170a7f6
     """
 
-    _instances: Dict[Any, Any] = {}
+    _instance = None
     _lock = threading.Lock()
 
-    def __call__(cls, *args, **kwargs):
-        with cls._lock:
-            if cls not in cls._instances:
-                cls._instances[cls] = super(ThreadSafeSingleton, cls).__call__(
-                    *args, **kwargs
-                )
-        return cls._instances[cls]
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if not cls._instance:
+                    cls._instance = super().__new__(cls)
+        return cls._instance

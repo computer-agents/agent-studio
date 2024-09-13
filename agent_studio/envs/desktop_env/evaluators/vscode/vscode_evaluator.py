@@ -20,15 +20,8 @@ logger = logging.getLogger(__name__)
 class VSCodeEvaluator(Evaluator):
     name: str = "vscode"
 
-    def __init__(
-        self,
-        eval_procedure: list[dict],
-        reset_procedure: list[dict],
-    ) -> None:
-        super().__init__(
-            eval_procedure=eval_procedure,
-            reset_procedure=reset_procedure,
-        )
+    def __init__(self) -> None:
+        super().__init__()
         self.vscode_connector = VSCodeConnector(
             workspace_path=config.vscode_workspace_path,
             executable_path=config.vscode_executable_path,

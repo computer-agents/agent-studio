@@ -4,6 +4,7 @@ import logging
 import os
 
 from agent_studio.llm.base_model import BaseModel
+from agent_studio.utils.singleton import ThreadSafeSingleton
 
 logger = logging.getLogger(__name__)
 
@@ -67,25 +68,46 @@ MODEL_PROVIDER_MAPPING = {
 }
 
 
-def setup_model(model_name: str) -> BaseModel:
-    if model_name not in MODEL_PROVIDER_MAPPING:
-        logger.info(
-            f"Model name '{model_name}' is not mapped to a provider, "
-            "defaulting to huggingface"
-        )
-    provider_name = MODEL_PROVIDER_MAPPING.get(model_name, "huggingface")
-    registered_models: dict[str, type[BaseModel]] = register_models()
-    logger.info(f"Registered models: {registered_models.keys()}")
-    if provider_name not in registered_models:
-        logger.error(f"Model provider '{provider_name}' is not registered")
-        raise ValueError(f"Model provider '{provider_name}' is not registered")
-    else:
-        logger.info(f"Setting up model provider: {provider_name}")
-        model = registered_models[provider_name]()
+class ModelManager(ThreadSafeSingleton):
+    """
+    A class to manage the model providers.
+    It provides a method to get a new model instance
+    """
 
-    return model
+    def __init__(self):
+        print("ModelManager init")
+        self.models = register_models()
+        print("ModelManager init done")
+
+    def get_model(self, model_name: str) -> BaseModel:
+        """
+        Get a new model instance based on the model name.
+
+        Args:
+            model_name: The name of the model to get.
+
+        Returns:
+            The model instance.
+
+        Raises:
+            ValueError: If the model provider is not registered
+        """
+        if model_name not in MODEL_PROVIDER_MAPPING:
+            logger.info(
+                f"Model name '{model_name}' is not mapped to a provider, "
+                "defaulting to huggingface"
+            )
+        provider_name = MODEL_PROVIDER_MAPPING.get(model_name, "huggingface")
+        if provider_name not in self.models:
+            logger.error(f"Model provider '{provider_name}' is not registered")
+            raise ValueError(f"Model provider '{provider_name}' is not registered")
+        else:
+            logger.info(f"Setting up model provider: {provider_name}")
+            model = self.models[provider_name]()
+
+        return model
 
 
 __all__ = [
-    "setup_model",
+    "ModelManager",
 ]

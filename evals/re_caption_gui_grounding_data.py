@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
-from agent_studio.llm import setup_model
+from agent_studio.llm import ModelManager
 from agent_studio.utils.json_utils import add_jsonl, read_jsonl
 
 GPT4O_PROMPT = """
@@ -27,6 +27,8 @@ Cleaned instruction: Click on 'IMAX at AMC'.
 Original instruction: {instruction}
 Cleaned instruction:
 """.strip()  # noqa: E501
+
+model_manager = ModelManager()
 
 
 def draw_bbox(image_path, bbox):
@@ -83,7 +85,7 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    model = setup_model(args.provider)
+    model = model_manager.get_model(args.provider)
     data = read_jsonl(args.data_path, args.start_idx, args.end_idx)
 
     image_dir = Path(args.data_path).parent / "images"

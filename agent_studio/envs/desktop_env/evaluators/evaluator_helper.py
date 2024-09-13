@@ -6,24 +6,31 @@ from pathlib import Path
 
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator import Evaluator
+from agent_studio.utils.types import Procedure, TaskConfig
 
 config = Config()
 logger = logging.getLogger(__name__)
 
 
 class EvaluatorComb:
-    def __init__(self, evaluators: list[Evaluator]) -> None:
+    def __init__(self, evaluators: dict[str, Evaluator]) -> None:
         self.evaluators = evaluators
 
-    def reset(self) -> None:
-        for evaluator in self.evaluators:
-            evaluator.reset()
+    def reset(self, reset_procedure: list[Procedure]) -> None:
+        for procedure in reset_procedure:
+            if procedure.evaluator not in self.evaluators:
+                raise ValueError(f"Evaluator {procedure.evaluator} not found")
+            self.evaluators[procedure.evaluator].reset(procedure)
 
-    def __call__(self, **kwargs) -> tuple[float, str]:
+    def __call__(self, eval_procedure: list[Procedure], **kwargs) -> tuple[float, str]:
         score = 1.0
         feedback = ""
-        for evaluator in self.evaluators:
-            cur_score, cur_feedback = evaluator(**kwargs)
+        for procedure in eval_procedure:
+            if procedure.evaluator not in self.evaluators:
+                raise ValueError(f"Evaluator {procedure.evaluator} not found")
+            cur_score, cur_feedback = self.evaluators[procedure.evaluator](
+                procedure, kwargs=kwargs
+            )
             score *= cur_score
             feedback += cur_feedback
         # TODO: use bool instead of float
@@ -79,23 +86,19 @@ def register_evaluators(
 
 
 def evaluator_router(
-    task_configs: dict,
+    task_config: TaskConfig,
 ) -> EvaluatorComb:
     """Router to get the evaluator class"""
 
     registered_evaluators: dict[str, type[Evaluator]] = register_evaluators()
-    evaluators: list[Evaluator] = []
+    evaluators: dict[str, Evaluator] = {}
     logger.info(f"Registered evaluators: {registered_evaluators.keys()}")
 
-    for eval in task_configs["evals"]:
-        eval_type: str = eval["eval_type"]
+    for procedure in task_config.eval_procedure + task_config.reset_procedure:
+        eval_type: str = procedure.evaluator
         if eval_type in registered_evaluators:
-            evaluators.append(
-                registered_evaluators[eval_type](
-                    eval_procedure=eval.get("eval_procedure", []),
-                    reset_procedure=eval.get("reset_procedure", []),
-                )
-            )
+            if eval_type not in evaluators:
+                evaluators[eval_type] = registered_evaluators[eval_type]()
         else:
             raise ValueError(
                 f"The eval_type '{eval_type}' is not registered. "

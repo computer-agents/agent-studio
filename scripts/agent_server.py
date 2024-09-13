@@ -21,6 +21,7 @@ from agent_studio.utils.communication import (
     AgentStudioTextRequest,
 )
 from agent_studio.utils.task_status import StateEnum, StateInfo, TaskStatus
+from agent_studio.utils.types import Procedure
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -44,9 +45,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-def reset_task(comb: EvaluatorComb):
+def reset_thread(comb: EvaluatorComb, procedures: list[Procedure]):
     try:
-        comb.reset()
+        comb.reset(procedures)
         task_status.set_task_state(
             StateInfo(state=StateEnum.FINISHED, message="", result="success")
         )
@@ -58,9 +59,9 @@ def reset_task(comb: EvaluatorComb):
         )
 
 
-def eval_task(comb: EvaluatorComb, **kwargs: Any):
+def eval_task(comb: EvaluatorComb, procedures: list[Procedure], **kwargs: Any):
     try:
-        score, feedback = comb(**kwargs)
+        score, feedback = comb(procedures, **kwargs)
         task_status.set_task_state(
             StateInfo(
                 state=StateEnum.FINISHED,
@@ -148,13 +149,9 @@ async def confirm(request: AgentStudioTextRequest) -> AgentStudioStatusResponse:
 
 
 @app.post("/task/reset")
-async def new_task(request: AgentStudioResetRequest) -> AgentStudioStatusResponse:
+async def reset_task(request: AgentStudioResetRequest) -> AgentStudioStatusResponse:
     """
     Reset the task.
-
-    Args:
-        request:
-            task_config: The task configuration.
 
     Returns:
         The status of the task.
@@ -170,11 +167,17 @@ async def new_task(request: AgentStudioResetRequest) -> AgentStudioStatusRespons
         current_thread.join()
         task_status.reset_state()
 
-    logger.info(f"Start resetting task: {request.task_config}")
+    logger.info(f"Reset task with procedures: {request.task_config.reset_procedure}")
     try:
-        comb = evaluator_router(request.task_config)
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
-        current_thread = threading.Thread(target=reset_task, args=(comb,))
+        comb = evaluator_router(request.task_config)
+        current_thread = threading.Thread(
+            target=reset_thread,
+            args=(
+                comb,
+                request.task_config.reset_procedure,
+            ),
+        )
         current_thread.start()
         return wait_for_state_shift(StateEnum.IN_PROGRESS)
     except Exception as e:
@@ -204,13 +207,20 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
         global current_thread
         if current_thread is not None:
             raise ValueError("Another task is in progress.")
-        logger.info(f"Start evaluating task: {request.task_config}")
-        comb: EvaluatorComb = evaluator_router(task_configs=request.task_config)
+        logger.info(f"Start evaluating task: {request.task_config.eval_procedure}")
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
+        kwargs = jsonpickle.decode(request.kwargs)
+        if not isinstance(kwargs, dict):
+            raise ValueError(f"kwargs is {type(kwargs)} instead of a dict")
+
+        comb = evaluator_router(request.task_config)
         current_thread = threading.Thread(
             target=eval_task,
-            args=(comb,),
-            kwargs={"trajectory": jsonpickle.decode(request.trajectory)},
+            args=(
+                comb,
+                request.task_config.eval_procedure,
+            ),
+            kwargs=kwargs,
         )
         current_thread.start()
         return wait_for_state_shift(StateEnum.IN_PROGRESS)

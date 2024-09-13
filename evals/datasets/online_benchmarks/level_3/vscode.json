@@ -1,0 +1,665 @@
+[
+    {
+        "task_id": "08d6db0f-8b06-41ae-bb20-26250e0a760f",
+        "instruction": "Install the VSCode extension provided in the file located at 'vscode_workspace/extensions/my_extension.vsix'.",
+        "visual": true,
+        "max_steps": 30,
+        "eval_procedure": [
+            {
+                "evaluator": "vscode",
+                "function": "extension_installed",
+                "params": {
+                    "extension_id": "eamodio.gitlens",
+                    "exists": true,
+                    "version": "2024.3.604"
+                }
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "process",
+                "function": "pkill_by_name",
+                "params": {
+                    "name": "code"
+                }
+            },
+            {
+                "evaluator": "vscode",
+                "function": "uninstall_all_extensions",
+                "params": {}
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "vscode_workspace"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "~/.config/Code/User"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "mkdir",
+                "params": {
+                    "path": "vscode_workspace/extensions"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "copy",
+                "params": {
+                    "src": "data/tasks/files/08d6db0f-8b06-41ae-bb20-26250e0a760f/eamodio.gitlens-2024.3.604.vsix",
+                    "dest": "vscode_workspace/extensions/my_extension.vsix"
+                }
+            },
+            {
+                "evaluator": "process",
+                "function": "create_process",
+                "params": {
+                    "cmd": [
+                        "code"
+                    ],
+                    "wait_for": "code"
+                }
+            },
+            {
+                "evaluator": "system",
+                "function": "sleep",
+                "params": {
+                    "seconds": 3
+                }
+            }
+        ]
+    },
+    {
+        "task_id": "b5b54c18-fddd-42f1-8299-00ab0a1397ae",
+        "instruction": "Install the 'markdownlint' by David Anson from the VSCode Marketplace.",
+        "visual": true,
+        "max_steps": 30,
+        "eval_procedure": [
+            {
+                "evaluator": "vscode",
+                "function": "extension_installed",
+                "params": {
+                    "extension_id": "davidanson.vscode-markdownlint",
+                    "exists": true
+                }
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "process",
+                "function": "pkill_by_name",
+                "params": {
+                    "name": "code"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "~/.config/Code/User"
+                }
+            },
+            {
+                "evaluator": "vscode",
+                "function": "uninstall_all_extensions",
+                "params": {}
+            },
+            {
+                "evaluator": "system",
+                "function": "sleep",
+                "params": {
+                    "seconds": 1
+                }
+            },
+            {
+                "evaluator": "process",
+                "function": "create_process",
+                "params": {
+                    "cmd": [
+                        "code"
+                    ],
+                    "wait_for": "code"
+                }
+            },
+            {
+                "evaluator": "system",
+                "function": "sleep",
+                "params": {
+                    "seconds": 5
+                }
+            }
+        ]
+    },
+    {
+        "task_id": "c4e9503c-822e-4297-a3c5-d4e0e5ad596d",
+        "instruction": "Install the 'markdownlint' by David Anson from the VSCode Marketplace. You should install a version that is released before 2023-01-01.",
+        "visual": true,
+        "max_steps": 30,
+        "eval_procedure": [
+            {
+                "evaluator": "vscode",
+                "function": "extension_installed",
+                "params": {
+                    "extension_id": "davidanson.vscode-markdownlint",
+                    "exists": true,
+                    "published_before": "2023-01-01T00:00:00Z"
+                }
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "process",
+                "function": "pkill_by_name",
+                "params": {
+                    "name": "code"
+                }
+            },
+            {
+                "evaluator": "vscode",
+                "function": "uninstall_all_extensions",
+                "params": {}
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "~/.config/Code/User"
+                }
+            },
+            {
+                "evaluator": "process",
+                "function": "create_process",
+                "params": {
+                    "cmd": [
+                        "code"
+                    ],
+                    "wait_for": "code"
+                }
+            },
+            {
+                "evaluator": "system",
+                "function": "sleep",
+                "params": {
+                    "seconds": 5
+                }
+            }
+        ]
+    },
+    {
+        "task_id": "3dcc6db1-7ca5-412d-b519-142724d41ef2",
+        "instruction": "Open VSCode in the vscode_workspace directory.",
+        "visual": true,
+        "max_steps": 30,
+        "eval_procedure": [
+            {
+                "evaluator": "human",
+                "function": "human",
+                "params": {}
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "process",
+                "function": "pkill_by_name",
+                "params": {
+                    "name": "code"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "vscode_workspace"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "~/.config/Code/User"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "mkdir",
+                "params": {
+                    "path": "vscode_workspace"
+                }
+            },
+            {
+                "evaluator": "system",
+                "function": "sleep",
+                "params": {
+                    "seconds": 3
+                }
+            }
+        ]
+    },
+    {
+        "task_id": "3b3098d8-6626-4d8d-a291-2ad19b73d0f2",
+        "instruction": "Open VSCode in the vscode_workspace directory and then open the file 'vscode_workspace/README.md' in it.",
+        "visual": true,
+        "max_steps": 30,
+        "eval_procedure": [
+            {
+                "evaluator": "human",
+                "function": "human",
+                "params": {}
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "process",
+                "function": "pkill_by_name",
+                "params": {
+                    "name": "code"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "vscode_workspace"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "mkdir",
+                "params": {
+                    "path": "vscode_workspace"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "~/.config/Code/User"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "create_file",
+                "params": {
+                    "path": "vscode_workspace/README.md",
+                    "content": "This is a test file."
+                }
+            }
+        ]
+    },
+    {
+        "task_id": "d7a47fa4-5e5b-4028-8d4e-a031f96c67b0",
+        "instruction": "Open VSCode in the vscode_workspace directory and then open the file 'vscode_workspace/README.md' in it. You should disable all extentions from Microsoft while leave other extensions enabled.",
+        "visual": true,
+        "max_steps": 30,
+        "eval_procedure": [
+            {
+                "evaluator": "human",
+                "function": "human",
+                "params": {}
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "vscode",
+                "function": "uninstall_all_extensions",
+                "params": {}
+            },
+            {
+                "evaluator": "vscode",
+                "function": "install_extension",
+                "params": {
+                    "extension_id": "vscjava.vscode-maven"
+                }
+            },
+            {
+                "evaluator": "vscode",
+                "function": "install_extension",
+                "params": {
+                    "extension_id": "visualstudioexptteam.intellicode-api-usage-examples"
+                }
+            },
+            {
+                "evaluator": "vscode",
+                "function": "install_extension",
+                "params": {
+                    "extension_id": "davidanson.vscode-markdownlint"
+                }
+            },
+            {
+                "evaluator": "process",
+                "function": "pkill_by_name",
+                "params": {
+                    "name": "code"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "vscode_workspace"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "~/.config/Code/User"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "mkdir",
+                "params": {
+                    "path": "vscode_workspace"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "create_file",
+                "params": {
+                    "path": "vscode_workspace/README.md",
+                    "content": "This is a test file."
+                }
+            }
+        ]
+    },
+    {
+        "task_id": "88f3f498-7cd0-4f3b-b7ae-40cb8e951aa7",
+        "instruction": "Uninstall all VSCode extentions from Microsoft.",
+        "visual": true,
+        "max_steps": 30,
+        "eval_procedure": [
+            {
+                "evaluator": "vscode",
+                "function": "extension_installed",
+                "params": {
+                    "extension_id": "vscjava.vscode-maven",
+                    "exists": false
+                }
+            },
+            {
+                "evaluator": "vscode",
+                "function": "extension_installed",
+                "params": {
+                    "extension_id": "visualstudioexptteam.intellicode-api-usage-examples",
+                    "exists": false
+                }
+            },
+            {
+                "evaluator": "vscode",
+                "function": "extension_installed",
+                "params": {
+                    "extension_id": "davidanson.vscode-markdownlint",
+                    "exists": true
+                }
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "~/.config/Code/User"
+                }
+            },
+            {
+                "evaluator": "vscode",
+                "function": "uninstall_all_extensions",
+                "params": {}
+            },
+            {
+                "evaluator": "vscode",
+                "function": "install_extension",
+                "params": {
+                    "extension_id": "vscjava.vscode-maven"
+                }
+            },
+            {
+                "evaluator": "vscode",
+                "function": "install_extension",
+                "params": {
+                    "extension_id": "visualstudioexptteam.intellicode-api-usage-examples"
+                }
+            },
+            {
+                "evaluator": "vscode",
+                "function": "install_extension",
+                "params": {
+                    "extension_id": "davidanson.vscode-markdownlint"
+                }
+            },
+            {
+                "evaluator": "process",
+                "function": "pkill_by_name",
+                "params": {
+                    "name": "code"
+                }
+            }
+        ]
+    },
+    {
+        "task_id": "6034aa6c-2892-4ebd-bdfb-a7cfdddd0cbf",
+        "instruction": "Disable the 'Markdown Lint' extension in the current VSCode window.",
+        "visual": true,
+        "max_steps": 30,
+        "eval_procedure": [
+            {
+                "evaluator": "human",
+                "function": "human",
+                "params": {}
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "vscode",
+                "function": "uninstall_all_extensions",
+                "params": {}
+            },
+            {
+                "evaluator": "vscode",
+                "function": "install_extension",
+                "params": {
+                    "extension_id": "davidanson.vscode-markdownlint"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "~/.config/Code/User"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rm",
+                "params": {
+                    "path": "~/.vscode/extensions/extensions.json"
+                }
+            },
+            {
+                "evaluator": "process",
+                "function": "pkill_by_name",
+                "params": {
+                    "name": "code"
+                }
+            },
+            {
+                "evaluator": "process",
+                "function": "create_process",
+                "params": {
+                    "cmd": [
+                        "code",
+                        "vscode_workspace"
+                    ],
+                    "wait_for": "code"
+                }
+            },
+            {
+                "evaluator": "system",
+                "function": "sleep",
+                "params": {
+                    "seconds": 3
+                }
+            }
+        ]
+    },
+    {
+        "task_id": "8bbe5ae1-611f-474e-a334-ad56c875e4bc",
+        "instruction": "Change the current VSCode theme to 'Visual Studio Dark'. You should only change the theme in the current opened window. Currently, the window is opened in the 'vscode_workspace' directory.",
+        "visual": true,
+        "max_steps": 30,
+        "eval_procedure": [
+            {
+                "evaluator": "human",
+                "function": "human",
+                "params": {}
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "vscode_workspace"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "~/.config/Code/User"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "mkdir",
+                "params": {
+                    "path": "vscode_workspace"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "mkdir",
+                "params": {
+                    "path": "vscode_workspace/.vscode"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "create_file",
+                "params": {
+                    "path": "vscode_workspace/.vscode/settings.json",
+                    "content": "{\n\"workbench.colorTheme\": \"Visual Studio Light\"\n}"
+                }
+            },
+            {
+                "evaluator": "process",
+                "function": "pkill_by_name",
+                "params": {
+                    "name": "code"
+                }
+            },
+            {
+                "evaluator": "process",
+                "function": "create_process",
+                "params": {
+                    "cmd": [
+                        "code",
+                        "vscode_workspace"
+                    ],
+                    "wait_for": "code"
+                }
+            },
+            {
+                "evaluator": "system",
+                "function": "sleep",
+                "params": {
+                    "seconds": 3
+                }
+            }
+        ]
+    },
+    {
+        "task_id": "083bee5b-24c1-43f9-9644-d1d04926000b",
+        "instruction": "Open the JavaScript file 'vscode_workspace/script.js' in VSCode and format it using the 'Prettier - Code formatter' extension.",
+        "visual": true,
+        "max_steps": 30,
+        "eval_procedure": [
+            {
+                "evaluator": "human",
+                "function": "human",
+                "params": {}
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "vscode_workspace"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "rmdir",
+                "params": {
+                    "path": "~/.config/Code/User"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "mkdir",
+                "params": {
+                    "path": "vscode_workspace"
+                }
+            },
+            {
+                "evaluator": "filesystem",
+                "function": "create_file",
+                "params": {
+                    "path": "vscode_workspace/script.js",
+                    "content": "function hello() {console.log('Hello, world!');}"
+                }
+            },
+            {
+                "evaluator": "vscode",
+                "function": "install_extension",
+                "params": {
+                    "extension_id": "esbenp.prettier-vscode"
+                }
+            },
+            {
+                "evaluator": "process",
+                "function": "pkill_by_name",
+                "params": {
+                    "name": "code"
+                }
+            },
+            {
+                "evaluator": "process",
+                "function": "create_process",
+                "params": {
+                    "cmd": [
+                        "code",
+                        "vscode_workspace/script.js"
+                    ],
+                    "wait_for": "code"
+                }
+            },
+            {
+                "evaluator": "system",
+                "function": "sleep",
+                "params": {
+                    "seconds": 3
+                }
+            }
+        ]
+    }
+]

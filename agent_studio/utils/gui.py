@@ -30,10 +30,12 @@ class JSONEditor(Qsci.QsciScintilla):
 
 
 class InputDialog(QDialog):
-    def __init__(self, parent=None, message="", callback: Callable | None = None):
+    def __init__(
+        self, title: str, message: str, callback: Callable | None = None, parent=None
+    ):
         super().__init__(parent)
         self.callback = callback
-        self.setWindowTitle("Input Dialog")
+        self.setWindowTitle(title)
         self.setModal(True)
 
         layout = QVBoxLayout(self)

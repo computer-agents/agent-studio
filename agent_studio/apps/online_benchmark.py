@@ -64,6 +64,7 @@ from agent_studio.utils.gui import (
     JSONEditor,
 )
 from agent_studio.utils.json_utils import export_trajectories, read_json
+from agent_studio.utils.types import TaskConfig
 
 config = Config()
 
@@ -85,7 +86,7 @@ logger.addHandler(file_handler)
 logging.basicConfig(level=logging.DEBUG, handlers=[handler, file_handler])
 logger.propagate = False
 
-REMOTE_SERVER_ADDR = f"{config.env_server_addr}:{config.env_server_port}"
+REMOTE_SERVER_ADDR = f"http://{config.env_server_addr}:{config.env_server_port}"
 
 
 class FrameBuffer:
@@ -121,7 +122,7 @@ class TaskThread(QThread):
     def __init__(
         self,
         agent: BaseAgent,
-        task_config: dict,
+        task_config: TaskConfig,
         signal: WorkerSignals,
         args: argparse.Namespace,
         interface: AgentMonitor,
@@ -169,7 +170,7 @@ class TaskThread(QThread):
                     user_input = "y"
                 self.signals.status_bar_signal.emit("color: blue;", "Resetting Task...")
             response_raw = requests.post(
-                url=f"http://{REMOTE_SERVER_ADDR}/task/confirm",
+                url=f"{REMOTE_SERVER_ADDR}/task/confirm",
                 json=AgentStudioTextRequest(message=user_input).model_dump(),
             )
             assert response_raw.status_code == 200
@@ -184,19 +185,9 @@ class TaskThread(QThread):
         try:
             # Reset
             if self.args.remote:
-                self.signals.status_bar_signal.emit(
-                    "color: blue;", "Resetting Runtime..."
-                )
-                response_raw = requests.post(
-                    f"http://{REMOTE_SERVER_ADDR}/runtime/reset"
-                )
-                response = AgentStudioStatusResponse(**response_raw.json())
-                assert (
-                    response.status == "success"
-                ), f"Fail to reset runtime: {response_raw.text}"
                 self.signals.status_bar_signal.emit("color: blue;", "Resetting Task...")
                 response_raw = requests.post(
-                    f"http://{REMOTE_SERVER_ADDR}/task/reset",
+                    f"{REMOTE_SERVER_ADDR}/task/reset",
                     json=AgentStudioResetRequest(
                         task_config=self.task_config
                     ).model_dump(),
@@ -209,7 +200,7 @@ class TaskThread(QThread):
             else:
                 raise ValueError("Local mode is not supported.")
 
-            instruction = self.task_config["instruction"]
+            instruction = self.task_config.instruction
             logger.info(f"Task instruction: {instruction}")
             if "GMAIL_RECIPIENT" in instruction:
                 gmail_recipient = config.gmail_recipient
@@ -219,11 +210,16 @@ class TaskThread(QThread):
             # Reset the agent
             self.signals.status_bar_signal.emit("color: blue;", "Resetting Agent...")
             self.agent.reset(task_config=self.task_config)
+            if self.task_config.visual:
+                assert (
+                    self.interface is not None
+                ), "Interface has to be open for visual tasks."
+                self.interface.start_recording()
 
             # Loop until the task is done or the max step is reached.
-            for t in range(self.task_config["max_steps"]):
+            for t in range(self.task_config.max_steps):
                 logger.info(f"Step {t}")
-                if self.task_config["visual"]:
+                if self.task_config.visual:
                     obs = self.interface.get_screenshot()
                 else:
                     obs = None
@@ -253,9 +249,9 @@ class TaskThread(QThread):
                 if done:
                     break
 
-            task_trajectory_path = Path(log_dir) / self.task_config["task_id"]
+            task_trajectory_path = Path(log_dir) / self.task_config.task_id
             video_meta = None
-            if self.task_config["visual"]:
+            if self.task_config.visual:
                 task_trajectory_path.mkdir(parents=True, exist_ok=True)
                 video_path = (task_trajectory_path / "video.mp4").as_posix()
                 video_meta = self.interface.save_video(video_path)
@@ -263,10 +259,12 @@ class TaskThread(QThread):
 
             if self.args.remote:
                 response_raw = requests.post(
-                    f"http://{REMOTE_SERVER_ADDR}/task/eval",
+                    f"{REMOTE_SERVER_ADDR}/task/eval",
                     json=AgentStudioEvalRequest(
                         task_config=self.task_config,
-                        trajectory=str(jsonpickle.encode(self.agent.trajectory)),
+                        kwargs=str(
+                            jsonpickle.encode({"trejectory": self.agent.trajectory})
+                        ),
                     ).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
@@ -328,7 +326,7 @@ class AgentMonitor(QMainWindow):
         self,
         args: argparse.Namespace,
         remote: bool,
-        task_configs: list,
+        task_configs: list[TaskConfig],
         window_width: int,
         window_height: int,
     ) -> None:
@@ -339,7 +337,7 @@ class AgentMonitor(QMainWindow):
         self.is_recording = False
         self.remote = remote
         self.task_configs = task_configs
-        self.selected_task: dict = {}
+        self.selected_task: TaskConfig
         self.window_width = window_width
         self.window_height = window_height
 
@@ -555,19 +553,19 @@ class AgentMonitor(QMainWindow):
     def populate_instruction_selection_widget(self):
         self.instruction_selection.clear()
         for task in self.task_configs:
-            item = QListWidgetItem(task["instruction"])
+            item = QListWidgetItem(task.instruction)
             self.instruction_selection.addItem(item)
 
     def select_task_instruction(self, item):
         self.task_instruction = item.text()
         selected_task_idx = self.instruction_selection.currentRow()
         self.selected_task = self.task_configs[selected_task_idx]
-        self.task_config_display.setText(self.selected_task)
+        self.task_config_display.setText(self.selected_task.model_dump_json(indent=4))
         self.evaluation_display.clear()
         self.output_display.clear()
-        # if self.selected_task["task_id"] in self.task_results:
-        #     score = self.task_results[self.selected_task["task_id"]]["score"]
-        #     feedback = self.task_results[self.selected_task["task_id"]]["feedback"]
+        # if self.selected_task.task_id in self.task_results:
+        #     score = self.task_results[self.selected_task.task_id]["score"]
+        #     feedback = self.task_results[self.selected_task.task_id]["feedback"]
         #     self.evaluation_display.setPlainText(
         #         f"Score: {score}\n" f"Feedback: {feedback}"
         #     )
@@ -746,7 +744,6 @@ class AgentMonitor(QMainWindow):
 
 
 def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
-    remote_server_addr = f"http://{config.env_server_addr}:{config.env_server_port}"
     if response.status == "finished":
         return response
     elif response.status == "wait_for_input":
@@ -756,7 +753,7 @@ def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
         else:
             user_input = "y"
         response_raw = requests.post(
-            url=f"{remote_server_addr}/task/confirm",
+            url=f"{REMOTE_SERVER_ADDR}/task/confirm",
             json=AgentStudioTextRequest(message=user_input).model_dump(),
         )
         assert response_raw.status_code == 200
@@ -779,7 +776,10 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
     Path(log_dir).mkdir(parents=True, exist_ok=True)
 
     # Setup tasks
-    task_configs = read_json(args.task_configs_path, args.start_idx, args.end_idx)
+    task_configs_json = read_json(args.task_configs_path, args.start_idx, args.end_idx)
+    task_configs: list[TaskConfig] = []
+    for task_config in task_configs_json:
+        task_configs.append(TaskConfig.model_validate(task_config))
 
     # Run evaluation
     scores = {}
@@ -787,16 +787,8 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
         try:
             # Reset
             if args.remote:
-                remote_server_addr = (
-                    f"http://{config.env_server_addr}:{config.env_server_port}"
-                )
-                response_raw = requests.post(f"{remote_server_addr}/runtime/reset")
-                response = AgentStudioStatusResponse(**response_raw.json())
-                assert (
-                    response.status == "success"
-                ), f"Fail to reset runtime: {response_raw.text}"
                 response_raw = requests.post(
-                    f"{remote_server_addr}/task/reset",
+                    f"{REMOTE_SERVER_ADDR}/task/reset",
                     json=AgentStudioResetRequest(task_config=task_config).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
@@ -806,9 +798,9 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
                 ), f"Fail to reset task: {response.message}"
             else:
                 evaluators = evaluator_router(task_config)
-                evaluators.reset()
+                evaluators.reset(task_config.reset_procedure)
 
-            instruction = task_config["instruction"]
+            instruction = task_config.instruction
             logger.info(f"Task instruction: {instruction}")
             if "GMAIL_RECIPIENT" in instruction:
                 gmail_recipient = config.gmail_recipient
@@ -817,16 +809,16 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
 
             # Reset the agent
             agent.reset(task_config=task_config)
-            if task_config["visual"]:
+            if task_config.visual:
                 assert (
                     interface is not None
                 ), "Interface has to be open for visual tasks."
                 interface.start_recording()
 
             # Loop until the task is done or the max step is reached.
-            for t in range(task_config["max_steps"]):
+            for t in range(task_config.max_steps):
                 logger.info(f"Step {t}")
-                if task_config["visual"]:
+                if task_config.visual:
                     obs = interface.get_screenshot()
                 else:
                     obs = None
@@ -845,9 +837,9 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
                 if done:
                     break
 
-            task_trajectory_path = Path(log_dir) / task_config["task_id"]
+            task_trajectory_path = Path(log_dir) / task_config.task_id
             video_meta = None
-            if task_config["visual"]:
+            if task_config.visual:
                 task_trajectory_path.mkdir(parents=True, exist_ok=True)
                 video_path = (task_trajectory_path / "video.mp4").as_posix()
                 video_meta = interface.save_video(video_path)
@@ -855,10 +847,10 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
 
             if args.remote:
                 response_raw = requests.post(
-                    f"{remote_server_addr}/task/eval",
+                    f"{REMOTE_SERVER_ADDR}/task/eval",
                     json=AgentStudioEvalRequest(
                         task_config=task_config,
-                        trajectory=str(jsonpickle.encode(agent.trajectory)),
+                        kwargs=str(jsonpickle.encode({"trajectory": agent.trajectory})),
                     ).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
@@ -874,9 +866,9 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
                 )
             else:
                 logger.info("Start evaluation")
-                score, feedback = evaluators()
+                score, feedback = evaluators(task_config.eval_procedure)
 
-            scores[task_config["task_id"]] = score
+            scores[task_config.task_id] = score
             if score == 1.0:
                 logger.info(f"[Result] (PASS): {feedback}")
             else:
@@ -957,13 +949,18 @@ def main():
         eval(args)
     else:
         try:
+            # Setup tasks
+            task_configs_json = read_json(
+                args.task_configs_path, args.start_idx, args.end_idx
+            )
+            task_configs: list[TaskConfig] = []
+            for task_config in task_configs_json:
+                task_configs.append(TaskConfig.model_validate(task_config))
             # Create the main interface.
             interface = AgentMonitor(
                 args=args,
                 remote=args.remote,
-                task_configs=read_json(
-                    args.task_configs_path, args.start_idx, args.end_idx
-                ),
+                task_configs=task_configs,
                 window_width=args.window_width,
                 window_height=args.window_height,
             )

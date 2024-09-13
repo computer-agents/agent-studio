@@ -6,9 +6,9 @@ from typing import Any
 import numpy as np
 
 from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
-from agent_studio.llm import setup_model
+from agent_studio.llm import ModelManager
 from agent_studio.llm.utils import extract_from_response
-from agent_studio.utils.types import MessageList
+from agent_studio.utils.types import MessageList, TaskConfig
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,8 @@ class BaseAgent:
         runtime_server_port: int,
     ) -> None:
         """Initialize with model, prompt template, and initilization code."""
-        self.model = setup_model(model)
+        model_manager = ModelManager()
+        self.model = model_manager.get_model(model)
         self.remote = remote
         self.runtime_server_addr = runtime_server_addr
         self.runtime_server_port = runtime_server_port
@@ -64,17 +65,17 @@ class BaseAgent:
         else:
             self.runtime = PythonRuntime()
 
-        self.task_config: dict[str, Any]
+        self.task_config: TaskConfig
         self.instruction: str
         self.trajectory: list[StepInfo]
         self.obs: np.ndarray | None = None
         self.step_info: StepInfo | None
         self.total_tokens: int
 
-    def reset(self, task_config: dict[str, Any]) -> None:
+    def reset(self, task_config: TaskConfig) -> None:
         """Reset the agent's state with a new task configuration."""
         self.task_config = task_config
-        self.instruction = task_config.get("instruction", "")
+        self.instruction = task_config.instruction
         self.trajectory = []
         self.obs = None
         self.step_info: StepInfo | None = None

@@ -115,13 +115,8 @@ class GoogleFormsEvaluator(Evaluator):
 
     def __init__(
         self,
-        eval_procedure: list[dict],
-        reset_procedure: list[dict],
     ) -> None:
-        super().__init__(
-            eval_procedure=eval_procedure,
-            reset_procedure=reset_procedure,
-        )
+        super().__init__()
         self.service = GoogleFormsService()
 
     @evaluation_handler("check_form_exists")

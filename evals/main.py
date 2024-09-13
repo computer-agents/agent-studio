@@ -8,9 +8,10 @@ from eval_idm import IDMSingleEval
 from eval_idmn2n import IDMMultipleEval
 from eval_success_detection import SuccessDetectionEval
 
-from agent_studio.llm import setup_model
+from agent_studio.llm import ModelManager
 
 logger = logging.getLogger("agent_studio")
+model_manager = ModelManager()
 
 
 def create_parser():
@@ -41,7 +42,7 @@ def main():
     args = parser.parse_args()
     logger.info(f"Running with args: {args}")
 
-    model = setup_model(args.model)
+    model = model_manager.get_model(args.model)
     save_path = Path(f"results/{args.eval_type}")
     save_path.mkdir(parents=True, exist_ok=True)
     # with time

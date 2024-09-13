@@ -1,512 +1,531 @@
 [
-  {
-    "task_id": "76406d27-a440-48ce-800b-d8a90cd88033",
-    "instruction": "Create a draft email in Gmail with subject 'Automated draft', content 'This is automated draft mail', attached file name 'attachment.txt',  recipient 'gduser@workspacesamples.dev', and carbon copy 'gduser1@workspacesamples.dev'",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    {
+        "task_id": "76406d27-a440-48ce-800b-d8a90cd88033",
+        "instruction": "Create a draft email in Gmail with subject 'Automated draft', content 'This is automated draft mail', attached file name 'attachment.txt',  recipient 'gduser@workspacesamples.dev', and carbon copy 'gduser1@workspacesamples.dev'",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_draft_exists": {
-              "draft_info": {
-                "subject": "Automated draft",
-                "recipient": "gduser@workspacesamples.dev",
-                "body": "This is automated draft mail",
-                "attachment": "attachment.txt",
-                "cc": "gduser1@workspacesamples.dev"
-              },
-              "exists": true
+            {
+                "evaluator": "gmail",
+                "function": "check_draft_exists",
+                "params": {
+                    "draft_info": {
+                        "subject": "Automated draft",
+                        "recipient": "gduser@workspacesamples.dev",
+                        "body": "This is automated draft mail",
+                        "attachment": "attachment.txt",
+                        "cc": "gduser1@workspacesamples.dev"
+                    },
+                    "exists": true
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_draft": {
-              "draft_info": {
-                "subject": "Automated draft",
-                "recipient": "gduser@workspacesamples.dev",
-                "body": "This is automated draft mail",
-                "attachment": "attachment.txt",
-                "cc": "gduser1@workspacesamples.dev"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "delete_draft",
+                "params": {
+                    "draft_info": {
+                        "subject": "Automated draft",
+                        "recipient": "gduser@workspacesamples.dev",
+                        "body": "This is automated draft mail",
+                        "attachment": "attachment.txt",
+                        "cc": "gduser1@workspacesamples.dev"
+                    }
+                }
             }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "64fc9208-ef98-475a-9949-e8e1db458067",
-    "instruction": "Send an email in Gmail with subject 'Automated Email', content 'This is automatically sent email', and recipient '{GMAIL_RECIPIENT}'",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "64fc9208-ef98-475a-9949-e8e1db458067",
+        "instruction": "Send an email in Gmail with subject 'Automated Email', content 'This is automatically sent email', and recipient '{GMAIL_RECIPIENT}'",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_sent_message_exists": {
-              "message_info": {
-                "subject": "Automated Email",
-                "body": "This is automatically sent email"
-              },
-              "exists": true
+            {
+                "evaluator": "gmail",
+                "function": "check_sent_message_exists",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated Email",
+                        "body": "This is automatically sent email"
+                    },
+                    "exists": true
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_sent_message": {
-              "message_info": {
-                "subject": "Automated Email",
-                "body": "This is automatically sent email"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "delete_sent_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated Email",
+                        "body": "This is automatically sent email"
+                    }
+                }
             }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "729b3221-4d1a-424e-b56b-7c0fe964da30",
-    "instruction": "Send the most recent draft to '{GMAIL_RECIPIENT}' in Gmail",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "729b3221-4d1a-424e-b56b-7c0fe964da30",
+        "instruction": "Send the most recent draft to '{GMAIL_RECIPIENT}' in Gmail",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_sent_message_exists": {
-              "message_info": {
-                "subject": "Automated draft",
-                "body": "This is automated draft mail"
-              },
-              "exists": true
+            {
+                "evaluator": "gmail",
+                "function": "check_sent_message_exists",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated draft",
+                        "body": "This is automated draft mail"
+                    },
+                    "exists": true
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_draft": {
-              "draft_info": {
-                "subject": "Automated draft",
-                "recipient": "gduser1@workspacesamples.dev",
-                "content": "This is automated draft mail"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "delete_draft",
+                "params": {
+                    "draft_info": {
+                        "subject": "Automated draft",
+                        "recipient": "gduser1@workspacesamples.dev",
+                        "content": "This is automated draft mail"
+                    }
+                }
             },
-            "create_draft": {
-              "draft_info": {
-                "subject": "Automated draft",
-                "recipient": "gduser1@workspacesamples.dev",
-                "body": "This is automated draft mail"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "create_draft",
+                "params": {
+                    "draft_info": {
+                        "subject": "Automated draft",
+                        "recipient": "gduser1@workspacesamples.dev",
+                        "body": "This is automated draft mail"
+                    }
+                }
             },
-            "delete_sent_message": {
-              "message_info": {
-                "subject": "Automated draft",
-                "body": "This is automated draft email"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "delete_sent_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated draft",
+                        "body": "This is automated draft email"
+                    }
+                }
             }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "ffcae34c-6301-407a-a87b-008c8efb6377",
-    "instruction": "Mark the most recent email in Gmail with 'Automated Email' in the subject as important.",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "ffcae34c-6301-407a-a87b-008c8efb6377",
+        "instruction": "Mark the most recent email in Gmail with 'Automated Email' in the subject as important.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "is_email_marked_important": {
-              "gt": true,
-              "message_info": {
-                "subject": "Automated Email",
-                "body": "This is automatically sent message"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "is_email_marked_important",
+                "params": {
+                    "gt": true,
+                    "message_info": {
+                        "subject": "Automated Email",
+                        "body": "This is automatically sent message"
+                    }
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_sent_message": {
-              "message_info": {
-                "subject": "Automated Email",
-                "body": "This is automatically sent message"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "delete_sent_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated Email",
+                        "body": "This is automatically sent message"
+                    }
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "send_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated Email",
+                        "body": "This is automatically sent message"
+                    }
+                }
             }
-          },
-          {
-            "send_message": {
-              "message_info": {
-                "subject": "Automated Email",
-                "body": "This is automatically sent message"
-              }
-            }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "5565ec62-0596-4ee9-abf0-240a8db557d1",
-    "instruction": "In Gmail, create a label named 'Benchmarking Agent'.",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "5565ec62-0596-4ee9-abf0-240a8db557d1",
+        "instruction": "In Gmail, create a label named 'Benchmarking Agent'.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_label_exists": {
-              "label_name": "Benchmarking Agent",
-              "exists": true
+            {
+                "evaluator": "gmail",
+                "function": "check_label_exists",
+                "params": {
+                    "label_name": "Benchmarking Agent",
+                    "exists": true
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_label": {
-              "label_name": "Benchmarking Agent"
+            {
+                "evaluator": "gmail",
+                "function": "delete_label",
+                "params": {
+                    "label_name": "Benchmarking Agent"
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "create_label",
+                "params": {
+                    "label_name": "Benchmarking Agent"
+                }
             }
-          },
-          {
-            "create_label": {
-              "label_name": "Benchmarking Agent"
-            }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "acaeeae1-cd4e-446d-bc5c-f94879de16c5",
-    "instruction": "In Gmail, create a label named 'Benchmarking Agent'.",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "acaeeae1-cd4e-446d-bc5c-f94879de16c5",
+        "instruction": "In Gmail, create a label named 'Benchmarking Agent'.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_label_exists": {
-              "label_name": "Benchmarking Agent",
-              "exists": true
+            {
+                "evaluator": "gmail",
+                "function": "check_label_exists",
+                "params": {
+                    "label_name": "Benchmarking Agent",
+                    "exists": true
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_label": {
-              "label_name": "Benchmarking Agent"
+            {
+                "evaluator": "gmail",
+                "function": "delete_label",
+                "params": {
+                    "label_name": "Benchmarking Agent"
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "create_label",
+                "params": {
+                    "label_name": "Benchmarking Agent"
+                }
             }
-          },
-          {
-            "create_label": {
-              "label_name": "Benchmarking Agent"
-            }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "77e47d98-4f75-46b3-b6d6-90665031a531",
-    "instruction": "Search for the most recent two drafts in Gmail that contains the word 'travel' in the subject line and forward it to '{GMAIL_RECIPIENT}' with title 'AutoPlan1' and 'AutoPlan2'.",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "77e47d98-4f75-46b3-b6d6-90665031a531",
+        "instruction": "Search for the most recent two drafts in Gmail that contains the word 'travel' in the subject line and forward it to '{GMAIL_RECIPIENT}' with title 'AutoPlan1' and 'AutoPlan2'.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_sent_message_exists": {
-              "message_info": {
-                "subject": "AutoPlan1",
-                "body": "This is automated draft mail of plan 1"
-              },
-              "exists": true
+            {
+                "evaluator": "gmail",
+                "function": "check_sent_message_exists",
+                "params": {
+                    "message_info": {
+                        "subject": "AutoPlan1",
+                        "body": "This is automated draft mail of plan 1"
+                    },
+                    "exists": true
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "check_sent_message_exists",
+                "params": {
+                    "message_info": {
+                        "subject": "AutoPlan2",
+                        "body": "This is automated draft mail of plan 2"
+                    },
+                    "exists": true
+                }
             }
-          },
-          {
-            "check_sent_message_exists": {
-              "message_info": {
-                "subject": "AutoPlan2",
-                "body": "This is automated draft mail of plan 2"
-              },
-              "exists": true
-            }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_sent_message": {
-              "message_info": {
-                "subject": "Automated travel agent",
-                "body": "This is automatically sent message of plan 2"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "delete_sent_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated travel agent",
+                        "body": "This is automatically sent message of plan 2"
+                    }
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "send_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated travel agent",
+                        "body": "This is automatically sent message of plan 2"
+                    }
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "delete_sent_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated travel plan",
+                        "body": "This is automatically sent message of plan 1"
+                    }
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "send_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated travel plan",
+                        "body": "This is automatically sent message of plan 1"
+                    }
+                }
             }
-          },
-          {
-            "send_message": {
-              "message_info": {
-                "subject": "Automated travel agent",
-                "body": "This is automatically sent message of plan 2"
-              }
-            }
-          },
-          {
-            "delete_sent_message": {
-              "message_info": {
-                "subject": "Automated travel plan",
-                "body": "This is automatically sent message of plan 1"
-              }
-            }
-          },
-          {
-            "send_message": {
-              "message_info": {
-                "subject": "Automated travel plan",
-                "body": "This is automatically sent message of plan 1"
-              }
-            }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "4a72b7ed-2cd8-419d-9ab3-52ea40307e08",
-    "instruction": "Search for the most recent draft in Gmail that contains the word 'travel' in the subject line and forward it to '{GMAIL_RECIPIENT}' with new title 'Forwarded travel plan'.",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "4a72b7ed-2cd8-419d-9ab3-52ea40307e08",
+        "instruction": "Search for the most recent draft in Gmail that contains the word 'travel' in the subject line and forward it to '{GMAIL_RECIPIENT}' with new title 'Forwarded travel plan'.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_sent_message_exists": {
-              "message_info": {
-                "subject": "Forwarded travel plan",
-                "body": "This is automated draft mail"
-              },
-              "exists": true
+            {
+                "evaluator": "gmail",
+                "function": "check_sent_message_exists",
+                "params": {
+                    "message_info": {
+                        "subject": "Forwarded travel plan",
+                        "body": "This is automated draft mail"
+                    },
+                    "exists": true
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_sent_message": {
-              "message_info": {
-                "subject": "Automated travel plan",
-                "body": "This is automatically sent message"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "delete_sent_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated travel plan",
+                        "body": "This is automatically sent message"
+                    }
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "send_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated travel plan",
+                        "body": "This is automatically sent message"
+                    }
+                }
             }
-          },
-          {
-            "send_message": {
-              "message_info": {
-                "subject": "Automated travel plan",
-                "body": "This is automatically sent message"
-              }
-            }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "4c199a1f-e1c1-435e-bd31-baa009f4edf8",
-    "instruction": "Trash the sent email with subject 'Meeting reminder' and body containing 'conference call' in Gmail.",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "4c199a1f-e1c1-435e-bd31-baa009f4edf8",
+        "instruction": "Trash the sent email with subject 'Meeting reminder' and body containing 'conference call' in Gmail.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "is_email_in_trash": {
-              "in_trash": true,
-              "message_info": {
-                "subject": "Meeting reminder",
-                "body_contains": "conference call"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "is_email_in_trash",
+                "params": {
+                    "in_trash": true,
+                    "message_info": {
+                        "subject": "Meeting reminder",
+                        "body_contains": "conference call"
+                    }
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_sent_message": {
-              "message_info": {
-                "subject": "Meeting reminder",
-                "body_contains": "conference call"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "delete_sent_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Meeting reminder",
+                        "body_contains": "conference call"
+                    }
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "send_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Meeting reminder",
+                        "body": "conference call"
+                    }
+                }
             }
-          },
-          {
-            "send_message": {
-              "message_info": {
-                "subject": "Meeting reminder",
-                "body": "conference call"
-              }
-            }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "b87bf58e-326c-4106-b49c-247434785261",
-    "instruction": "Untrash the email with subject 'Meeting reminder' and body containing 'conference call' in Gmail.",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "b87bf58e-326c-4106-b49c-247434785261",
+        "instruction": "Untrash the email with subject 'Meeting reminder' and body containing 'conference call' in Gmail.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "is_email_in_trash": {
-              "in_trash": false,
-              "message_info": {
-                "subject": "Meeting reminder",
-                "body_contains": "conference call"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "is_email_in_trash",
+                "params": {
+                    "in_trash": false,
+                    "message_info": {
+                        "subject": "Meeting reminder",
+                        "body_contains": "conference call"
+                    }
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_sent_message": {
-              "message_info": {
-                "subject": "Meeting reminder",
-                "body_contains": "conference call"
-              }
+            {
+                "evaluator": "gmail",
+                "function": "delete_sent_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Meeting reminder",
+                        "body_contains": "conference call"
+                    }
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "send_message",
+                "params": {
+                    "message_info": {
+                        "subject": "Meeting reminder",
+                        "body": "conference call"
+                    }
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "add_email_to_trash",
+                "params": {
+                    "message_info": {
+                        "subject": "Meeting reminder",
+                        "body_contains": "conference call"
+                    }
+                }
             }
-          },
-          {
-            "send_message": {
-              "message_info": {
-                "subject": "Meeting reminder",
-                "body": "conference call"
-              }
-            }
-          },
-          {
-            "add_email_to_trash": {
-              "message_info": {
-                "subject": "Meeting reminder",
-                "body_contains": "conference call"
-              }
-            }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "2af3ec73-7a09-4850-8664-5124e28c00f4",
-    "instruction": "Delete the email with subject 'Meeting reminder' and body containing 'conference call' in Gmail.",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "2af3ec73-7a09-4850-8664-5124e28c00f4",
+        "instruction": "Delete the email with subject 'Meeting reminder' and body containing 'conference call' in Gmail.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_sent_message_exists": {
-              "message_info": {
-                "subject": "Meeting reminder",
-                "body": "conference call"
-              },
-              "exists": false
+            {
+                "evaluator": "gmail",
+                "function": "check_sent_message_exists",
+                "params": {
+                    "message_info": {
+                        "subject": "Meeting reminder",
+                        "body": "conference call"
+                    },
+                    "exists": false
+                }
             }
-          }
         ],
         "reset_procedure": []
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "14748db5-6d85-48e8-afe8-92cb87d5aa7c",
-    "instruction": "Delete all drafts with subject 'Automated draft' in Gmail.",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "14748db5-6d85-48e8-afe8-92cb87d5aa7c",
+        "instruction": "Delete all drafts with subject 'Automated draft' in Gmail.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_draft_exists": {
-              "draft_info": {
-                "subject": "Automated draft"
-              },
-              "exists": false
+            {
+                "evaluator": "gmail",
+                "function": "check_draft_exists",
+                "params": {
+                    "draft_info": {
+                        "subject": "Automated draft"
+                    },
+                    "exists": false
+                }
             }
-          }
         ],
         "reset_procedure": []
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "f428be13-f44a-4524-b2d1-3483c0ea1fe3",
-    "instruction": "Delete all emails with subject 'Automated Email', 'AutoPlan1', 'AutoPlan2', 'Automated travel agent', and 'Automated travel plan' in Gmail.",
-    "evals": [
-      {
-        "eval_type": "gmail",
+    },
+    {
+        "task_id": "f428be13-f44a-4524-b2d1-3483c0ea1fe3",
+        "instruction": "Delete all emails with subject 'Automated Email', 'AutoPlan1', 'AutoPlan2', 'Automated travel agent', and 'Automated travel plan' in Gmail.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_sent_message_exists": {
-              "message_info": {
-                "subject": "Automated Email"
-              },
-              "exists": false
+            {
+                "evaluator": "gmail",
+                "function": "check_sent_message_exists",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated Email"
+                    },
+                    "exists": false
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "check_sent_message_exists",
+                "params": {
+                    "message_info": {
+                        "subject": "AutoPlan1"
+                    },
+                    "exists": false
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "check_sent_message_exists",
+                "params": {
+                    "message_info": {
+                        "subject": "AutoPlan2"
+                    },
+                    "exists": false
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "check_sent_message_exists",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated travel agent"
+                    },
+                    "exists": false
+                }
+            },
+            {
+                "evaluator": "gmail",
+                "function": "check_sent_message_exists",
+                "params": {
+                    "message_info": {
+                        "subject": "Automated travel plan"
+                    },
+                    "exists": false
+                }
             }
-          },
-          {
-            "check_sent_message_exists": {
-              "message_info": {
-                "subject": "AutoPlan1"
-              },
-              "exists": false
-            }
-          },
-          {
-            "check_sent_message_exists": {
-              "message_info": {
-                "subject": "AutoPlan2"
-              },
-              "exists": false
-            }
-          },
-          {
-            "check_sent_message_exists": {
-              "message_info": {
-                "subject": "Automated travel agent"
-              },
-              "exists": false
-            }
-          },
-          {
-            "check_sent_message_exists": {
-              "message_info": {
-                "subject": "Automated travel plan"
-              },
-              "exists": false
-            }
-          }
         ],
         "reset_procedure": []
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  }
+    }
 ]

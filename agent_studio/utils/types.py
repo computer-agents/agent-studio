@@ -15,6 +15,21 @@ class Message:
 MessageList = list[Message]
 
 
+class Procedure(BaseModel):
+    evaluator: str
+    function: str
+    params: dict
+
+
+class TaskConfig(BaseModel):
+    task_id: str
+    instruction: str
+    visual: bool
+    max_steps: int
+    eval_procedure: list[Procedure]
+    reset_procedure: list[Procedure]
+
+
 class Action(BaseModel):
     action_id: str | None
     obs_before: str | None

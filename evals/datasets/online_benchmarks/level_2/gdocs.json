@@ -1,220 +1,224 @@
 [
-  {
-    "task_id": "f05a7609-f896-4885-b4e6-7c29bbeab672",
-    "instruction": "Create a new document with title 'Sample Document' and content 'This is the content of the sample document' in Google Docs.",
-    "evals": [
-      {
-        "eval_type": "google_docs",
+    {
+        "task_id": "f05a7609-f896-4885-b4e6-7c29bbeab672",
+        "instruction": "Create a new document with title 'Sample Document' and content 'This is the content of the sample document' in Google Docs.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_doc_exists": {
-              "title": "Sample Document",
-              "content": "This is the content of the sample document",
-              "exists": true
+            {
+                "evaluator": "google_docs",
+                "function": "check_doc_exists",
+                "params": {
+                    "title": "Sample Document",
+                    "content": "This is the content of the sample document",
+                    "exists": true
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_document": {
-              "title": "Sample Document",
-              "content": "This is the content of the sample document"
+            {
+                "evaluator": "google_docs",
+                "function": "delete_document",
+                "params": {
+                    "title": "Sample Document",
+                    "content": "This is the content of the sample document"
+                }
             }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "acf13dbb-0627-477c-a14a-783ae93e2daa",
-    "instruction": "Permanently delete all documents with title 'Sample Document' in Google Docs.",
-    "evals": [
-      {
-        "eval_type": "google_docs",
-        "reset_procedure": [
-          {
-            "delete_document": {
-              "title": "Sample Document"
-            }
-          },
-          {
-            "create_document": {
-              "title": "Sample Document"
-            }
-          }
-        ]
-      },
-      {
-        "eval_type": "google_drive",
+    },
+    {
+        "task_id": "acf13dbb-0627-477c-a14a-783ae93e2daa",
+        "instruction": "Permanently delete all documents with title 'Sample Document' in Google Docs.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_file_exists": {
-              "file_name": "Sample Document",
-              "exists": false
+            {
+                "evaluator": "google_drive",
+                "function": "check_file_exists",
+                "params": {
+                    "file_name": "Sample Document",
+                    "exists": false
+                }
             }
-          }
-        ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "d96709c3-b648-44aa-8f92-7cbaba84bbd0",
-    "instruction": "In a document titled 'Formatting Guide', change the font of the text 'important note' to Arial and size 14 in Google Docs.",
-    "evals": [
-      {
-        "eval_type": "google_docs",
-        "eval_procedure": [
-          {
-            "text_format_match": {
-              "title": "Formatting Guide",
-              "text": "important note",
-              "font": "Arial",
-              "size": 14
-            }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_document": {
-              "title": "Formatting Guide"
+            {
+                "evaluator": "google_docs",
+                "function": "delete_document",
+                "params": {
+                    "title": "Sample Document"
+                }
             },
-            "create_document": {
-              "title": "Formatting Guide",
-              "content": "This is an important note."
+            {
+                "evaluator": "google_docs",
+                "function": "create_document",
+                "params": {
+                    "title": "Sample Document"
+                }
             }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "f188a494-3dad-44cf-a43c-5e6bfdbdda0d",
-    "instruction": "In a document titled 'Formatting Guide', change the font of 'This' to Times New Roman and size 24 in Google Docs.",
-    "evals": [
-      {
-        "eval_type": "google_docs",
+    },
+    {
+        "task_id": "d96709c3-b648-44aa-8f92-7cbaba84bbd0",
+        "instruction": "In a document titled 'Formatting Guide', change the font of the text 'important note' to Arial and size 14 in Google Docs.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "text_format_match": {
-              "title": "Formatting Guide",
-              "text": "This",
-              "font": "Times New Roman",
-              "size": 24
+            {
+                "evaluator": "google_docs",
+                "function": "text_format_match",
+                "params": {
+                    "title": "Formatting Guide",
+                    "text": "important note",
+                    "font": "Arial",
+                    "size": 14
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_document": {
-              "title": "Formatting Guide"
+            {
+                "evaluator": "google_docs",
+                "function": "delete_document",
+                "params": {
+                    "title": "Formatting Guide"
+                }
             },
-            "create_document": {
-              "title": "Formatting Guide",
-              "content": "This is an important note."
+            {
+                "evaluator": "google_docs",
+                "function": "create_document",
+                "params": {
+                    "title": "Formatting Guide",
+                    "content": "This is an important note."
+                }
             }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "3ca6dd01-aee4-42d1-aed8-13b599223542",
-    "instruction": "Create a document titled 'Hyperlink Guide' in Google Docs, and insert a hyperlink with text 'Click Here' in the doc that directs to 'https://www.example.com'.",
-    "evals": [
-      {
-        "eval_type": "google_docs",
+    },
+    {
+        "task_id": "f188a494-3dad-44cf-a43c-5e6bfdbdda0d",
+        "instruction": "In a document titled 'Formatting Guide', change the font of 'This' to Times New Roman and size 24 in Google Docs.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "hyperlink_match": {
-              "title": "Hyperlink Guide",
-              "text": "Click Here",
-              "url": "https://www.example.com",
-              "exists": true
+            {
+                "evaluator": "google_docs",
+                "function": "text_format_match",
+                "params": {
+                    "title": "Formatting Guide",
+                    "text": "This",
+                    "font": "Times New Roman",
+                    "size": 24
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_document": {
-              "title": "Hyperlink Guide"
-            }
-          }
-        ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "2edfcc5d-14dd-475f-920c-ca0077460999",
-    "instruction": "In a document titled 'Hyperlink Guide' in Google Docs, delete the hyperlink with text 'Click Here' in the doc that directs to 'https://www.example.com'.",
-    "evals": [
-      {
-        "eval_type": "google_docs",
-        "eval_procedure": [
-          {
-            "hyperlink_match": {
-              "title": "Hyperlink Guide",
-              "text": "Click Here",
-              "url": "https://www.example.com",
-              "exists": false
-            }
-          }
-        ],
-        "reset_procedure": [
-          {
-            "delete_document": {
-              "title": "Hyperlink Guide"
+            {
+                "evaluator": "google_docs",
+                "function": "delete_document",
+                "params": {
+                    "title": "Formatting Guide"
+                }
             },
-            "create_document": {
-              "title": "Hyperlink Guide",
-              "content": "This is the content of the hyperlink guide",
-              "hyperlink": {
-                "text": "Click Here",
-                "url": "https://www.example.com"
-              }
+            {
+                "evaluator": "google_docs",
+                "function": "create_document",
+                "params": {
+                    "title": "Formatting Guide",
+                    "content": "This is an important note."
+                }
             }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  },
-  {
-    "task_id": "57a29306-f576-43ea-af08-9c3ca6da3469",
-    "instruction": "A paper about AI regulation that was originally submitted to arXiv.org in June 2022 shows a figure with three axes, where each axis has a label word at both ends. Which of these words is used to describe a type of society in a Physics and Society article submitted to arXiv.org on August 11, 2016? Please create a new document with title 'Answer Document' and content containing the answer word in lowercase in Google Docs.",
-    "evals": [
-      {
-        "eval_type": "google_docs",
+    },
+    {
+        "task_id": "3ca6dd01-aee4-42d1-aed8-13b599223542",
+        "instruction": "Create a document titled 'Hyperlink Guide' in Google Docs, and insert a hyperlink with text 'Click Here' in the doc that directs to 'https://www.example.com'.",
+        "visual": false,
+        "max_steps": 1,
         "eval_procedure": [
-          {
-            "check_doc_exists": {
-              "title": "Answer Document",
-              "content": "egalitarian",
-              "exists": true
+            {
+                "evaluator": "google_docs",
+                "function": "hyperlink_match",
+                "params": {
+                    "title": "Hyperlink Guide",
+                    "text": "Click Here",
+                    "url": "https://www.example.com",
+                    "exists": true
+                }
             }
-          }
         ],
         "reset_procedure": [
-          {
-            "delete_document": {
-              "title": "Answer Document",
-              "content": "egalitarian"
+            {
+                "evaluator": "google_docs",
+                "function": "delete_document",
+                "params": {
+                    "title": "Hyperlink Guide"
+                }
             }
-          }
         ]
-      }
-    ],
-    "visual": false,
-    "max_steps": 1
-  }
+    },
+    {
+        "task_id": "2edfcc5d-14dd-475f-920c-ca0077460999",
+        "instruction": "In a document titled 'Hyperlink Guide' in Google Docs, delete the hyperlink with text 'Click Here' in the doc that directs to 'https://www.example.com'.",
+        "visual": false,
+        "max_steps": 1,
+        "eval_procedure": [
+            {
+                "evaluator": "google_docs",
+                "function": "hyperlink_match",
+                "params": {
+                    "title": "Hyperlink Guide",
+                    "text": "Click Here",
+                    "url": "https://www.example.com",
+                    "exists": false
+                }
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "google_docs",
+                "function": "delete_document",
+                "params": {
+                    "title": "Hyperlink Guide"
+                }
+            },
+            {
+                "evaluator": "google_docs",
+                "function": "create_document",
+                "params": {
+                    "title": "Hyperlink Guide",
+                    "content": "This is the content of the hyperlink guide",
+                    "hyperlink": {
+                        "text": "Click Here",
+                        "url": "https://www.example.com"
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "task_id": "57a29306-f576-43ea-af08-9c3ca6da3469",
+        "instruction": "A paper about AI regulation that was originally submitted to arXiv.org in June 2022 shows a figure with three axes, where each axis has a label word at both ends. Which of these words is used to describe a type of society in a Physics and Society article submitted to arXiv.org on August 11, 2016? Please create a new document with title 'Answer Document' and content containing the answer word in lowercase in Google Docs.",
+        "visual": false,
+        "max_steps": 1,
+        "eval_procedure": [
+            {
+                "evaluator": "google_docs",
+                "function": "check_doc_exists",
+                "params": {
+                    "title": "Answer Document",
+                    "content": "egalitarian",
+                    "exists": true
+                }
+            }
+        ],
+        "reset_procedure": [
+            {
+                "evaluator": "google_docs",
+                "function": "delete_document",
+                "params": {
+                    "title": "Answer Document",
+                    "content": "egalitarian"
+                }
+            }
+        ]
+    }
 ]
