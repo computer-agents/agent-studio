@@ -1,6 +1,5 @@
 import logging
 import re
-from typing import Any
 
 from agent_studio.agent.base_agent import TrajectoryInfo
 from agent_studio.config import Config

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator import Evaluator
-from agent_studio.utils.types import TaskConfig, Procedure
+from agent_studio.utils.types import Procedure, TaskConfig
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -29,7 +29,8 @@ class EvaluatorComb:
             if procedure.evaluator not in self.evaluators:
                 raise ValueError(f"Evaluator {procedure.evaluator} not found")
             cur_score, cur_feedback = self.evaluators[procedure.evaluator](
-                procedure, kwargs=kwargs)
+                procedure, kwargs=kwargs
+            )
             score *= cur_score
             feedback += cur_feedback
         # TODO: use bool instead of float

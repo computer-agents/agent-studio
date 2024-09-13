@@ -2,7 +2,6 @@ import logging
 import threading
 from contextlib import asynccontextmanager
 from typing import Any
-from dataclasses import dataclass
 
 import jsonpickle
 import uvicorn
@@ -22,7 +21,7 @@ from agent_studio.utils.communication import (
     AgentStudioTextRequest,
 )
 from agent_studio.utils.task_status import StateEnum, StateInfo, TaskStatus
-from agent_studio.utils.types import TaskConfig, Procedure
+from agent_studio.utils.types import Procedure
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -168,13 +167,17 @@ async def reset_task(request: AgentStudioResetRequest) -> AgentStudioStatusRespo
         current_thread.join()
         task_status.reset_state()
 
-    logger.info(
-        f"Reset task with procedures: {request.task_config.reset_procedure}")
+    logger.info(f"Reset task with procedures: {request.task_config.reset_procedure}")
     try:
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
         comb = evaluator_router(request.task_config)
         current_thread = threading.Thread(
-            target=reset_thread, args=(comb, request.task_config.reset_procedure,))
+            target=reset_thread,
+            args=(
+                comb,
+                request.task_config.reset_procedure,
+            ),
+        )
         current_thread.start()
         return wait_for_state_shift(StateEnum.IN_PROGRESS)
     except Exception as e:
@@ -213,8 +216,11 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
         comb = evaluator_router(request.task_config)
         current_thread = threading.Thread(
             target=eval_task,
-            args=(comb, request.task_config.eval_procedure, ),
-            kwargs=kwargs
+            args=(
+                comb,
+                request.task_config.eval_procedure,
+            ),
+            kwargs=kwargs,
         )
         current_thread.start()
         return wait_for_state_shift(StateEnum.IN_PROGRESS)

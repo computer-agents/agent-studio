@@ -70,7 +70,8 @@ MODEL_PROVIDER_MAPPING = {
 
 class ModelManager(ThreadSafeSingleton):
     """
-    A class to manage the model providers. It provides a method to get a new model instance
+    A class to manage the model providers.
+    It provides a method to get a new model instance
     """
 
     def __init__(self):

@@ -64,7 +64,7 @@ from agent_studio.utils.gui import (
     JSONEditor,
 )
 from agent_studio.utils.json_utils import export_trajectories, read_json
-from agent_studio.utils.types import TaskConfig, Procedure
+from agent_studio.utils.types import TaskConfig
 
 config = Config()
 
@@ -262,8 +262,9 @@ class TaskThread(QThread):
                     f"{REMOTE_SERVER_ADDR}/task/eval",
                     json=AgentStudioEvalRequest(
                         task_config=self.task_config,
-                        kwargs=str(jsonpickle.encode(
-                            {"trejectory": self.agent.trajectory})),
+                        kwargs=str(
+                            jsonpickle.encode({"trejectory": self.agent.trajectory})
+                        ),
                     ).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
@@ -788,8 +789,7 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
             if args.remote:
                 response_raw = requests.post(
                     f"{REMOTE_SERVER_ADDR}/task/reset",
-                    json=AgentStudioResetRequest(
-                        task_config=task_config).model_dump(),
+                    json=AgentStudioResetRequest(task_config=task_config).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
                 response = wait_finish(is_eval=False, response=response)
@@ -951,7 +951,8 @@ def main():
         try:
             # Setup tasks
             task_configs_json = read_json(
-                args.task_configs_path, args.start_idx, args.end_idx)
+                args.task_configs_path, args.start_idx, args.end_idx
+            )
             task_configs: list[TaskConfig] = []
             for task_config in task_configs_json:
                 task_configs.append(TaskConfig.model_validate(task_config))

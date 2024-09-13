@@ -20,9 +20,7 @@ logger = logging.getLogger(__name__)
 class VSCodeEvaluator(Evaluator):
     name: str = "vscode"
 
-    def __init__(
-        self
-    ) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self.vscode_connector = VSCodeConnector(
             workspace_path=config.vscode_workspace_path,
