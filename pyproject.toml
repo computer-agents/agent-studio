@@ -28,6 +28,7 @@ dependencies = [
     "google-auth-oauthlib",
     "pyrogram",
     "toml",
+    "urllib3 >= 2.2.3",
     "ipykernel",
     # "torch",
     "transformers",

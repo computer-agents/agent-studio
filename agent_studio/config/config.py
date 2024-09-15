@@ -3,7 +3,7 @@ import json
 from agent_studio.utils.singleton import ThreadSafeSingleton
 
 
-class Config(ThreadSafeSingleton):
+class Config(metaclass=ThreadSafeSingleton):
     """
     Singleton for config.
     """

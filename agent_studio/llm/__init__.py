@@ -68,7 +68,7 @@ MODEL_PROVIDER_MAPPING = {
 }
 
 
-class ModelManager(ThreadSafeSingleton):
+class ModelManager(metaclass=ThreadSafeSingleton):
     """
     A class to manage the model providers.
     It provides a method to get a new model instance

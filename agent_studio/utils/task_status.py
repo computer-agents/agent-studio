@@ -19,7 +19,7 @@ class StateInfo:
         self.result = result
 
 
-class TaskStatus(ThreadSafeSingleton):
+class TaskStatus(metaclass=ThreadSafeSingleton):
     def __init__(self) -> None:
         self.state_info: StateInfo = StateInfo(StateEnum.FINISHED)
         self.condition: threading.Condition = threading.Condition()

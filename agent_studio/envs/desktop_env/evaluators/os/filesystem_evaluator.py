@@ -7,6 +7,7 @@ import shutil
 import stat
 from datetime import datetime
 from pathlib import Path
+import json
 
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
@@ -260,6 +261,21 @@ class FilesystemEvaluator(Evaluator):
                 )
 
     @staticmethod
+    @evaluation_handler("check_json_settings")
+    def check_json_settings(path: str, settings: dict) -> None:
+        path = os.path.expanduser(path)
+        if not os.path.exists(path):
+            raise FeedbackException(f"File {path} does not exist.")
+        with open(path, "r") as f:
+            content = json.load(f)
+        for key, value in settings.items():
+            if key not in content:
+                raise FeedbackException(f"Key {key} not found in {path}")
+            if content[key] != value:
+                raise FeedbackException(f"Key {key} has wrong value: {content[key]}")
+
+
+    @staticmethod
     @reset_handler("create_file")
     def create_file(path: str, content: str | None = None) -> None:
         path = os.path.expanduser(path)
@@ -269,10 +285,6 @@ class FilesystemEvaluator(Evaluator):
         else:
             open(path, "w").close()
 
-    @reset_handler("create_directory")
-    def create_directory(self, path: str):
-        path = os.path.expanduser(path)
-        os.makedirs(path, exist_ok=True)
 
     @staticmethod
     @reset_handler("mkdir")
@@ -317,9 +329,15 @@ class FilesystemEvaluator(Evaluator):
     @staticmethod
     @reset_handler("copy")
     def copy(src: str, dest: str) -> None:
+        """
+        Copy file or directory to destination.
+        """
         src = os.path.expanduser(src)
         dest = os.path.expanduser(dest)
-        os.system(f"cp {src} {dest}")
+        if os.path.isdir(src):
+            shutil.copytree(src, dest)
+        else:
+            shutil.copy(src, dest)
 
     @staticmethod
     @reset_handler("move")
