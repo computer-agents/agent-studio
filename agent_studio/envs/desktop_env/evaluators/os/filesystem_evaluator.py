@@ -1,5 +1,6 @@
 import configparser
 import filecmp
+import json
 import logging
 import os
 import platform
@@ -7,7 +8,6 @@ import shutil
 import stat
 from datetime import datetime
 from pathlib import Path
-import json
 
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
@@ -274,7 +274,6 @@ class FilesystemEvaluator(Evaluator):
             if content[key] != value:
                 raise FeedbackException(f"Key {key} has wrong value: {content[key]}")
 
-
     @staticmethod
     @reset_handler("create_file")
     def create_file(path: str, content: str | None = None) -> None:
@@ -284,7 +283,6 @@ class FilesystemEvaluator(Evaluator):
                 f.write(content)
         else:
             open(path, "w").close()
-
 
     @staticmethod
     @reset_handler("mkdir")

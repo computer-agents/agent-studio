@@ -38,4 +38,3 @@ class ThreadSafeSingleton(abc.ABCMeta):
             cls._instances[cls] = (instance, cls._instances[cls][1])
         cls._instances[cls][1].release()
         return cls._instances[cls][0]
-
