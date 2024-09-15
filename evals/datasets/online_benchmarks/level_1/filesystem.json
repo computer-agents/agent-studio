@@ -751,7 +751,7 @@
                 "function": "verify_ini",
                 "params": {
                     "target_path": "tmp/config/settings.ini",
-                    "ref_path": "data/tasks/files/4e95c9af-ed12-473f-901a-3100d61c80d4/settings_ref.ini"
+                    "ref_path": "data/4e95c9af-ed12-473f-901a-3100d61c80d4/settings_ref.ini"
                 }
             }
         ],
