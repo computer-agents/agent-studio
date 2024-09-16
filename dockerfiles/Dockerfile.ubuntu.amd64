@@ -10,6 +10,7 @@ RUN apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated python3.11 build-essential python3.11-dev python3.11-tk libevdev-dev software-properties-common apt-transport-https \
     && apt install -y --no-install-recommends --allow-unauthenticated code telegram-desktop \
     && apt install -y --no-install-recommends --allow-unauthenticated golang-go git \
+    && apt install -y --no-install-recommends --allow-unauthenticated gimp \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
