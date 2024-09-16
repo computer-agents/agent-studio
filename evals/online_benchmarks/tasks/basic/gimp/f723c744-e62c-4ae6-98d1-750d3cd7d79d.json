@@ -1,0 +1,66 @@
+{
+  "task_id": "f723c744-e62c-4ae6-98d1-750d3cd7d79d",
+  "instruction": "make the picture's contrast stronger to really bring out the main subject.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey([\"shift\", \"ctrl\", \"e\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.write(\"berries_contrast\");pyautogui.press([\"enter\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 2
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.press([\"enter\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 5
+      }
+    },
+    {
+      "evaluator": "gimp",
+      "function": "check_contrast_increase_and_structure_sim",
+      "params": {
+        "src_path": "data/72f83cdc-bf76-4531-9a1b-eb893a13f8aa/berries_contrast.png"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "gimp data/72f83cdc-bf76-4531-9a1b-eb893a13f8aa/berry.jpeg"
+      }
+    }
+  ]
+}
