@@ -1,0 +1,67 @@
+{
+  "task_id": "2a729ded-3296-423d-aec4-7dd55ed5fbb3",
+  "instruction": "Make the background of the image in GIMP transparent",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey([\"shift\", \"ctrl\", \"e\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.write(\"dog_without_background\");pyautogui.press([\"enter\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 2
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.press([\"enter\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 5
+      }
+    },
+    {
+      "evaluator": "gimp",
+      "function": "check_structure_sim",
+      "params": {
+        "src_path": "data/2a729ded-3296-423d-aec4-7dd55ed5fbb3/dog_without_background.png",
+        "tgt_path": "data/2a729ded-3296-423d-aec4-7dd55ed5fbb3/dog_cutout_gold.png"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "gimp data/2a729ded-3296-423d-aec4-7dd55ed5fbb3/dog_with_background.png"
+      }
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "df81e919-58eb-4dea-87ba-4b6a6321a9c2",
+  "instruction": "Please modify VS Code's settings to disable error reporting for Python missing imports.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "check_json_settings",
+      "params": {
+        "path": "~/.config/Code/User/settings.json",
+        "settings": {
+          "python.analysis.diagnosticSeverityOverrides": {
+            "reportMissingImports": "none"
+          }
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "~/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "~/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "code"
+        ],
+        "wait_for": "code"
+      }
+    }
+  ]
+}

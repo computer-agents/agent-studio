@@ -1,0 +1,75 @@
+{
+  "task_id": "803a476e-41fd-4cf9-a68c-85b6d211b4c0",
+  "instruction": "What is the description for the 'Board Meeting' event on 2024-02-15 in Google Calendar? Save the description to tmp/answer.txt",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/answer.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/answer.txt": "Please prepare the Q1 reports"
+        },
+        "method": "strip"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Board Meeting",
+          "start": {
+            "dateTime": "2024-02-15T15:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-02-15T16:00:00Z"
+          },
+          "description": "Please prepare the Q1 reports"
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Board Meeting",
+          "start": {
+            "dateTime": "2024-02-15T15:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-02-15T16:00:00Z"
+          },
+          "description": "Please prepare the Q1 reports"
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp"
+      }
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "task_id": "554785e9-4523-4e7a-b8e1-8016f565f56a",
+  "instruction": "Enhance the color vibrancy of my photo in GIMP",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey([\"shift\", \"ctrl\", \"e\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.write(\"edited_colorful\");pyautogui.press([\"enter\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 2
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.press([\"enter\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 5
+      }
+    },
+    {
+      "evaluator": "gimp",
+      "function": "check_saturation_increase_and_structure_sim",
+      "params": {
+        "src_path": "data/554785e9-4523-4e7a-b8e1-8016f565f56a/woman_sitting_by_the_tree2.png",
+        "tgt_path": "data/554785e9-4523-4e7a-b8e1-8016f565f56a/edited_colorful.png"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "gimp data/554785e9-4523-4e7a-b8e1-8016f565f56a/woman_sitting_by_the_tree2.png"
+      }
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "task_id": "06ca5602-62ca-47f6-ad4f-da151cde54cc",
+  "instruction": "Set the image in GIMP to Palette-Based.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey([\"shift\", \"ctrl\", \"e\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.write(\"palette_computer\");pyautogui.press([\"enter\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 2
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.press([\"enter\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 5
+      }
+    },
+    {
+      "evaluator": "gimp",
+      "function": "check_palette_and_structure_sim",
+      "params": {
+        "src_path": "data/06ca5602-62ca-47f6-ad4f-da151cde54cc/computer.png",
+        "tgt_path": "data/06ca5602-62ca-47f6-ad4f-da151cde54cc/palette_computer.png"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "gimp data/06ca5602-62ca-47f6-ad4f-da151cde54cc/computer.png"
+      }
+    }
+  ]
+}

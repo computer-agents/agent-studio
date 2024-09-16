@@ -1,0 +1,133 @@
+{
+  "task_id": "493c21d4-c536-47a0-bff0-7116cf3eeb3d",
+  "instruction": "Find all 'Client Meeting' events in Google Calendar between 2024-08-01 and 2024-08-31. Save the dates and start times of these events to tmp/client_meetings.txt, each entry on a new line.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/client_meetings.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/client_meetings.txt": "2024-08-05 13:00\n2024-08-15 09:00"
+        },
+        "method": "strip"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Client Meeting",
+          "start": {
+            "dateTime": "2024-08-05T13:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-05T14:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Client Meeting",
+          "start": {
+            "dateTime": "2024-08-15T09:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-15T10:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Team Meeting",
+          "start": {
+            "dateTime": "2024-08-20T11:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-20T12:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Client Meeting",
+          "start": {
+            "dateTime": "2024-08-05T13:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-05T14:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Client Meeting",
+          "start": {
+            "dateTime": "2024-08-15T09:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-15T10:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Team Meeting",
+          "start": {
+            "dateTime": "2024-08-20T11:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-20T12:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp"
+      }
+    }
+  ]
+}

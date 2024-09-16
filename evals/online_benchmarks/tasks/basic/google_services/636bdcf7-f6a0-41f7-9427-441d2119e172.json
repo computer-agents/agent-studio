@@ -1,0 +1,73 @@
+{
+  "task_id": "636bdcf7-f6a0-41f7-9427-441d2119e172",
+  "instruction": "Is there an 'Annual Review' event on 2024-03-20 in Google Calendar? Save 'Yes' to tmp/answer.txt if it exists. Otherwise, save 'No' to tmp/answer.txt",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/answer.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/answer.txt": "Yes"
+        },
+        "method": "strip"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Annual Review",
+          "start": {
+            "dateTime": "2024-03-20T10:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-03-20T11:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Annual Review",
+          "start": {
+            "dateTime": "2024-03-20T10:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-03-20T11:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp"
+      }
+    }
+  ]
+}

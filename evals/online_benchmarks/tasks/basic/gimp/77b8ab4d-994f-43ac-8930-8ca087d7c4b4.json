@@ -1,0 +1,25 @@
+{
+  "task_id": "77b8ab4d-994f-43ac-8930-8ca087d7c4b4",
+  "instruction": "Save the image in GIMP as `export.jpg` in the same directory of the original image",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "gimp",
+      "function": "check_file_exists_and_structure_sim",
+      "params": {
+        "src_path": "data/77b8ab4d-994f-43ac-8930-8ca087d7c4b4/export.jpg",
+        "tgt_path": "data/77b8ab4d-994f-43ac-8930-8ca087d7c4b4/The_Lost_River_Of_Dreams.jpg"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "gimp data/77b8ab4d-994f-43ac-8930-8ca087d7c4b4/The_Lost_River_Of_Dreams.jpg"
+      }
+    }
+  ]
+}

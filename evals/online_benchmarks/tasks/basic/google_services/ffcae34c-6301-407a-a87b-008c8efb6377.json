@@ -1,0 +1,41 @@
+{
+  "task_id": "ffcae34c-6301-407a-a87b-008c8efb6377",
+  "instruction": "Mark the most recent email in Gmail with 'Automated Email' in the subject as important.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "is_email_marked_important",
+      "params": {
+        "gt": true,
+        "message_info": {
+          "subject": "Automated Email",
+          "body": "This is automatically sent message"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated Email",
+          "body": "This is automatically sent message"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "send_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated Email",
+          "body": "This is automatically sent message"
+        }
+      }
+    }
+  ]
+}

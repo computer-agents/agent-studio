@@ -1,0 +1,57 @@
+{
+  "task_id": "ab0b454a-9674-478d-9d64-b142a65453cd",
+  "instruction": "For the 'End of Year Party' event on 2024-12-20 in Google Calendar, add a custom color (colorId: 11).",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "check_event_exists",
+      "params": {
+        "event_info": {
+          "summary": "End of Year Party",
+          "start": {
+            "dateTime": "2024-12-20T18:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-12-20T23:00:00Z"
+          },
+          "colorId": "11"
+        },
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "End of Year Party",
+          "start": {
+            "dateTime": "2024-12-20T18:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-12-20T23:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "End of Year Party",
+          "start": {
+            "dateTime": "2024-12-20T18:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-12-20T23:00:00Z"
+          }
+        }
+      }
+    }
+  ]
+}

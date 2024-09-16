@@ -1,0 +1,76 @@
+{
+  "task_id": "b9503909-5457-425c-b6c8-b66d78bc8a13",
+  "instruction": "Copy 'config.json' from 'tmp/settings/' to 'tmp/backup/'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/settings/config.json": true,
+          "tmp/backup/config.json": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "type_check",
+      "params": {
+        "file_to_check": {
+          "tmp/settings/config.json": "file",
+          "tmp/backup/config.json": "file"
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/settings/config.json": "This is the configuration file",
+          "tmp/backup/config.json": "This is the configuration file"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp/backup"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp/backup"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp/settings"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp/settings"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/settings/config.json",
+        "content": "This is the configuration file"
+      }
+    }
+  ]
+}

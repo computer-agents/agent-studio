@@ -1,0 +1,67 @@
+{
+  "task_id": "72f83cdc-bf76-4531-9a1b-eb893a13f8aa",
+  "instruction": "Rotate my figure in GIMP to mirror it horizontally.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey([\"shift\", \"ctrl\", \"e\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.write(\"berry_mirror\");pyautogui.press([\"enter\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 2
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.press([\"enter\"]);"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "seconds",
+      "params": {
+          "seconds": 5
+      }
+    },
+    {
+      "evaluator": "gimp",
+      "function": "check_image_mirror",
+      "params": {
+        "src_path": "data/72f83cdc-bf76-4531-9a1b-eb893a13f8aa/berry.jpeg",
+        "tgt_path": "data/72f83cdc-bf76-4531-9a1b-eb893a13f8aa/berry_mirror.jpeg"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "gimp data/72f83cdc-bf76-4531-9a1b-eb893a13f8aa/berry.jpeg"
+      }
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "task_id": "b87bf58e-326c-4106-b49c-247434785261",
+  "instruction": "Untrash the email with subject 'Meeting reminder' and body containing 'conference call' in Gmail.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "is_email_in_trash",
+      "params": {
+        "in_trash": false,
+        "message_info": {
+          "subject": "Meeting reminder",
+          "body_contains": "conference call"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Meeting reminder",
+          "body_contains": "conference call"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "send_message",
+      "params": {
+        "message_info": {
+          "subject": "Meeting reminder",
+          "body": "conference call"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "add_email_to_trash",
+      "params": {
+        "message_info": {
+          "subject": "Meeting reminder",
+          "body_contains": "conference call"
+        }
+      }
+    }
+  ]
+}

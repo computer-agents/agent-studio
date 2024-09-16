@@ -1,0 +1,19 @@
+{
+  "task_id": "14748db5-6d85-48e8-afe8-92cb87d5aa7c",
+  "instruction": "Delete all drafts with subject 'Automated draft' in Gmail.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "check_draft_exists",
+      "params": {
+        "draft_info": {
+          "subject": "Automated draft"
+        },
+        "exists": false
+      }
+    }
+  ],
+  "reset_procedure": []
+}

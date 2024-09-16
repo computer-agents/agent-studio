@@ -1,0 +1,37 @@
+{
+  "task_id": "76406d27-a440-48ce-800b-d8a90cd88033",
+  "instruction": "Create a draft email in Gmail with subject 'Automated draft', content 'This is automated draft mail', attached file name 'attachment.txt',  recipient 'gduser@workspacesamples.dev', and carbon copy 'gduser1@workspacesamples.dev'",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "check_draft_exists",
+      "params": {
+        "draft_info": {
+          "subject": "Automated draft",
+          "recipient": "gduser@workspacesamples.dev",
+          "body": "This is automated draft mail",
+          "attachment": "attachment.txt",
+          "cc": "gduser1@workspacesamples.dev"
+        },
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_draft",
+      "params": {
+        "draft_info": {
+          "subject": "Automated draft",
+          "recipient": "gduser@workspacesamples.dev",
+          "body": "This is automated draft mail",
+          "attachment": "attachment.txt",
+          "cc": "gduser1@workspacesamples.dev"
+        }
+      }
+    }
+  ]
+}

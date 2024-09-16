@@ -1,0 +1,63 @@
+{
+  "task_id": "030eeff7-b492-4218-b312-701ec99ee0cc",
+  "instruction": "Enable the 'Do Not Track' feature in Chrome",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "chrome",
+      "function": "is_do_not_track_enabled",
+      "params": {
+        "expected": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "chrome"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "~/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "vscode_workspace/extensions"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/08d6db0f-8b06-41ae-bb20-26250e0a760f/eamodio.gitlens-2024.3.604.vsix",
+        "dest": "vscode_workspace/extensions/my_extension.vsix"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "code"
+        ],
+        "wait_for": "code"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 3
+      }
+    }
+  ]
+}
