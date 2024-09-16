@@ -28,6 +28,8 @@ if [ -z "$PASSWORD" ]; then
     PASSWORD=ubuntu
 fi
 echo "$USER:$PASSWORD" | chpasswd
+usermod -aG sudo $USER
+echo "$USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 cp -r /root/{.config,.gtkrc-2.0,.asoundrc} "${HOME}"
 chown -R "$USER":"$USER" "${HOME}"
 [ -d "/dev/snd" ] && chgrp -R adm /dev/snd
