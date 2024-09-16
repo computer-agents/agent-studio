@@ -1,0 +1,103 @@
+{
+  "task_id": "5f79b335-1cd8-4184-9401-3a5c0ac52ef5",
+  "instruction": "Check if there are any overlapping events with the 'Product Launch' event scheduled on 2024-08-25 from 1pm to 3pm in Google Calendar. Save hours of overlap to tmp/overlapping.txt if there are, otherwise save 'No'. You should keep the first two digits of the hours of overlap.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/overlapping.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/overlapping.txt": "1.50"
+        },
+        "method": "strip"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Product Launch",
+          "start": {
+            "dateTime": "2024-08-25T13:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-25T15:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Team Meeting",
+          "start": {
+            "dateTime": "2024-08-25T13:30:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-25T16:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Product Launch",
+          "start": {
+            "dateTime": "2024-08-25T13:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-25T15:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Team Meeting",
+          "start": {
+            "dateTime": "2024-08-25T13:30:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-25T16:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp"
+      }
+    }
+  ]
+}

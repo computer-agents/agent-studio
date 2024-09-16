@@ -1,0 +1,53 @@
+{
+  "task_id": "729b3221-4d1a-424e-b56b-7c0fe964da30",
+  "instruction": "Send the most recent draft to '{GMAIL_RECIPIENT}' in Gmail",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "check_sent_message_exists",
+      "params": {
+        "message_info": {
+          "subject": "Automated draft",
+          "body": "This is automated draft mail"
+        },
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_draft",
+      "params": {
+        "draft_info": {
+          "subject": "Automated draft",
+          "recipient": "gduser1@workspacesamples.dev",
+          "content": "This is automated draft mail"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "create_draft",
+      "params": {
+        "draft_info": {
+          "subject": "Automated draft",
+          "recipient": "gduser1@workspacesamples.dev",
+          "body": "This is automated draft mail"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated draft",
+          "body": "This is automated draft email"
+        }
+      }
+    }
+  ]
+}

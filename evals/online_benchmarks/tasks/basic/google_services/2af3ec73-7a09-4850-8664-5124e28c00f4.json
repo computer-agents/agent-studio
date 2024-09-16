@@ -1,0 +1,20 @@
+{
+  "task_id": "2af3ec73-7a09-4850-8664-5124e28c00f4",
+  "instruction": "Delete the email with subject 'Meeting reminder' and body containing 'conference call' in Gmail.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "check_sent_message_exists",
+      "params": {
+        "message_info": {
+          "subject": "Meeting reminder",
+          "body": "conference call"
+        },
+        "exists": false
+      }
+    }
+  ],
+  "reset_procedure": []
+}

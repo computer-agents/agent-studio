@@ -1,0 +1,103 @@
+{
+  "task_id": "8de89f53-78a6-4763-b49f-3d6ad63bd303",
+  "instruction": "List the summary of all events on 2024-07-04 in Google Calendar. Sort by start time and save summeries to tmp/answer.txt, each summary separated by a new line.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/answer.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/answer.txt": "Independence Day Celebration\nFireworks Viewing"
+        },
+        "method": "strip"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Independence Day Celebration",
+          "start": {
+            "dateTime": "2024-07-04T00:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-07-04T23:59:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Fireworks Viewing",
+          "start": {
+            "dateTime": "2024-07-04T18:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-07-04T19:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Independence Day Celebration",
+          "start": {
+            "dateTime": "2024-07-04T00:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-07-04T23:59:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Fireworks Viewing",
+          "start": {
+            "dateTime": "2024-07-04T18:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-07-04T19:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp"
+      }
+    }
+  ]
+}

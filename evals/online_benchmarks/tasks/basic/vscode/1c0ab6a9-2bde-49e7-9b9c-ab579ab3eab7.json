@@ -1,0 +1,73 @@
+{
+  "task_id": "1c0ab6a9-2bde-49e7-9b9c-ab579ab3eab7",
+  "instruction": "In VSCode Window, replace \"version 1.0\" with \"version 1.5\" in current opened file. You should save the file after editing.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "match_file",
+      "params": {
+        "file_to_check": {
+          "vscode_workspace/example_file.txt": "data/1c0ab6a9-2bde-49e7-9b9c-ab579ab3eab7/ref_file.txt"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "~/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/1c0ab6a9-2bde-49e7-9b9c-ab579ab3eab7/example_file.txt",
+        "dest": "vscode_workspace/example_file.txt"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "code",
+          "vscode_workspace/example_file.txt"
+        ],
+        "wait_for": "code"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 3
+      }
+    }
+  ]
+}

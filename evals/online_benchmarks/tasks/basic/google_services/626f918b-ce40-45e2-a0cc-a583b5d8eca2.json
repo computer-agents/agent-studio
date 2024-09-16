@@ -1,0 +1,77 @@
+{
+  "task_id": "626f918b-ce40-45e2-a0cc-a583b5d8eca2",
+  "instruction": "Get the location of the event called 'Meeting with Team' on 2024-01-05 10am to 11am in Google Calendar and save it to tmp/office_location.txt file.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/office_location.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/office_location.txt": "Office"
+        },
+        "method": "strip"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Meeting with Team",
+          "location": "Office",
+          "description": "Discuss project status",
+          "start": {
+            "dateTime": "2024-01-05T10:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-01-05T11:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Meeting with Team",
+          "location": "Office",
+          "description": "Discuss project status",
+          "start": {
+            "dateTime": "2024-01-05T10:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-01-05T11:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp"
+      }
+    }
+  ]
+}

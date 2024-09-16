@@ -1,0 +1,72 @@
+{
+  "task_id": "77e47d98-4f75-46b3-b6d6-90665031a531",
+  "instruction": "Search for the most recent two drafts in Gmail that contains the word 'travel' in the subject line and forward it to '{GMAIL_RECIPIENT}' with title 'AutoPlan1' and 'AutoPlan2'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "check_sent_message_exists",
+      "params": {
+        "message_info": {
+          "subject": "AutoPlan1",
+          "body": "This is automated draft mail of plan 1"
+        },
+        "exists": true
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "check_sent_message_exists",
+      "params": {
+        "message_info": {
+          "subject": "AutoPlan2",
+          "body": "This is automated draft mail of plan 2"
+        },
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel agent",
+          "body": "This is automatically sent message of plan 2"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "send_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel agent",
+          "body": "This is automatically sent message of plan 2"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel plan",
+          "body": "This is automatically sent message of plan 1"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "send_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel plan",
+          "body": "This is automatically sent message of plan 1"
+        }
+      }
+    }
+  ]
+}

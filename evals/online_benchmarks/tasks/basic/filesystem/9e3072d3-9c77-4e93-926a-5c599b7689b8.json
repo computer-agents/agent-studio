@@ -1,0 +1,53 @@
+{
+  "task_id": "9e3072d3-9c77-4e93-926a-5c599b7689b8",
+  "instruction": "Create an empty file named 'new_file.txt' in the 'tmp/' directory.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp": true,
+          "tmp/new_file.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "type_check",
+      "params": {
+        "file_to_check": {
+          "tmp/new_file.txt": "file",
+          "tmp": "folder"
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/new_file.txt": ""
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp"
+      }
+    }
+  ]
+}

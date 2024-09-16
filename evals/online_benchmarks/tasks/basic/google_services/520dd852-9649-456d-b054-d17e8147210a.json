@@ -1,0 +1,103 @@
+{
+  "task_id": "520dd852-9649-456d-b054-d17e8147210a",
+  "instruction": "Check if there are any overlapping events with the 'Product Launch' event scheduled on 2024-08-25 from 1pm to 3pm in Google Calendar. Save 'Yes' to tmp/overlapping.txt if there are, otherwise save 'No'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/overlapping.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/overlapping.txt": "Yes"
+        },
+        "method": "strip"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Product Launch",
+          "start": {
+            "dateTime": "2024-08-25T13:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-25T15:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Team Meeting",
+          "start": {
+            "dateTime": "2024-08-25T14:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-25T15:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Product Launch",
+          "start": {
+            "dateTime": "2024-08-25T13:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-25T15:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Team Meeting",
+          "start": {
+            "dateTime": "2024-08-25T14:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-25T15:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp"
+      }
+    }
+  ]
+}

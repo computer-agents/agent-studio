@@ -1,0 +1,77 @@
+{
+  "task_id": "08d6db0f-8b06-41ae-bb20-26250e0a760f",
+  "instruction": "Install the VSCode extension provided in the file located at 'vscode_workspace/extensions/my_extension.vsix'.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "vscode",
+      "function": "extension_installed",
+      "params": {
+        "extension_id": "eamodio.gitlens",
+        "exists": true,
+        "version": "2024.3.604"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    },
+    {
+      "evaluator": "vscode",
+      "function": "uninstall_all_extensions",
+      "params": {}
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "~/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "vscode_workspace/extensions"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/08d6db0f-8b06-41ae-bb20-26250e0a760f/eamodio.gitlens-2024.3.604.vsix",
+        "dest": "vscode_workspace/extensions/my_extension.vsix"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "code"
+        ],
+        "wait_for": "code"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 3
+      }
+    }
+  ]
+}

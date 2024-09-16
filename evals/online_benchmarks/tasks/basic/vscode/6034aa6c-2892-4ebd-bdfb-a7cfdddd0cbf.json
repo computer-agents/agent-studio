@@ -1,0 +1,72 @@
+{
+  "task_id": "6034aa6c-2892-4ebd-bdfb-a7cfdddd0cbf",
+  "instruction": "Disable the 'Markdown Lint' extension in the current VSCode window.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "vscode",
+      "function": "is_extension_disabled",
+      "params": {
+        "extension_list": [
+          {
+            "extension_id": "davidanson.vscode-markdownlint",
+            "enabled": false
+          }
+        ]
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "vscode",
+      "function": "uninstall_all_extensions",
+      "params": {}
+    },
+    {
+      "evaluator": "vscode",
+      "function": "install_extension",
+      "params": {
+        "extension_id": "davidanson.vscode-markdownlint"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "~/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "~/.vscode/extensions/extensions.json"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "code"
+        ],
+        "wait_for": "code"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 3
+      }
+    }
+  ]
+}

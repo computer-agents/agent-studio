@@ -1,0 +1,61 @@
+{
+  "task_id": "a24ca1c4-7b92-41a1-8ba8-2565678e3be2",
+  "instruction": "Add 'jane@example.com' as attendees to the 'Project Kickoff' event on 2024-03-15 in Google Calendar.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "check_event_exists",
+      "params": {
+        "event_info": {
+          "summary": "Project Kickoff",
+          "start": {
+            "dateTime": "2024-03-15T10:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-03-15T11:00:00Z"
+          },
+          "attendees": [
+            {
+              "email": "jane@example.com"
+            }
+          ]
+        },
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Project Kickoff",
+          "start": {
+            "dateTime": "2024-03-15T10:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-03-15T11:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Project Kickoff",
+          "start": {
+            "dateTime": "2024-03-15T10:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-03-15T11:00:00Z"
+          }
+        }
+      }
+    }
+  ]
+}

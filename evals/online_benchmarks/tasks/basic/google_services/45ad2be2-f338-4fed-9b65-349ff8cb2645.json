@@ -1,0 +1,72 @@
+{
+  "task_id": "45ad2be2-f338-4fed-9b65-349ff8cb2645",
+  "instruction": "Create two events on 2024-07-04: 'Independence Day Celebration' from 12am to 11:59pm and 'Fireworks Viewing' from 6pm to 7pm in Google Calendar.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "check_event_exists",
+      "params": {
+        "event_info": {
+          "summary": "Independence Day Celebration",
+          "start": {
+            "dateTime": "2024-07-04T00:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-07-04T23:59:00Z"
+          }
+        },
+        "exists": true
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "check_event_exists",
+      "params": {
+        "event_info": {
+          "summary": "Fireworks Viewing",
+          "start": {
+            "dateTime": "2024-07-04T18:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-07-04T19:00:00Z"
+          }
+        },
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Independence Day Celebration",
+          "start": {
+            "dateTime": "2024-07-04T00:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-07-04T23:59:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Fireworks Viewing",
+          "start": {
+            "dateTime": "2024-07-04T18:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-07-04T19:00:00Z"
+          }
+        }
+      }
+    }
+  ]
+}
