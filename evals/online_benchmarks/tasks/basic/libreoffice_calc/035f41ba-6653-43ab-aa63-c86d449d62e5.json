@@ -1,0 +1,74 @@
+{
+  "task_id": "035f41ba-6653-43ab-aa63-c86d449d62e5",
+  "instruction": "Help me fill in the Gross profit column. Then under column A named \"Year_Profit\" in a new sheet, display the Year Column in Sheet 1 as text appended by a \"_\" with the corresponding Gross Profit value.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"IncomeStatement2.xlsx - LibreOffice Calc\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "libreoffice_calc",
+      "function": "compare_table",
+      "params": {
+        "expected": "data/035f41ba-6653-43ab-aa63-c86d449d62e5/5_IncomeStatement2_gt1.xlsx",
+        "result": "~/IncomeStatement2.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RNSheet1",
+              "sheet_idx1": "ENSheet1"
+            },
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RNSheet2",
+              "sheet_idx1": "ENSheet2"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "mv data/035f41ba-6653-43ab-aa63-c86d449d62e5/IncomeStatement2.xlsx ~/IncomeStatement2.xlsx"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open ~/IncomeStatement2.xlsx"
+      }
+    }
+  ]
+}

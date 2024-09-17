@@ -13,7 +13,7 @@
     },
     {
       "evaluator": "system",
-      "function": "seconds",
+      "function": "sleep",
       "params": {
           "seconds": 0.5
       }
@@ -27,7 +27,7 @@
     },
     {
       "evaluator": "system",
-      "function": "seconds",
+      "function": "sleep",
       "params": {
           "seconds": 2
       }
@@ -41,7 +41,7 @@
     },
     {
       "evaluator": "system",
-      "function": "seconds",
+      "function": "sleep",
       "params": {
           "seconds": 5
       }

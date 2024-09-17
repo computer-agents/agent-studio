@@ -1,0 +1,69 @@
+{
+  "task_id": "01b269ae-2111-4a07-81fd-3fcd711993b0",
+  "instruction": "Fill all the blank cells with the value in the cell above it",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"Student_Level_Fill_Blank.xlsx - LibreOffice Calc\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "libreoffice_calc",
+      "function": "compare_table",
+      "params": {
+        "expected": "data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank_gold.xlsx",
+        "result": "~/Student_Level_Fill_Blank.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": 0,
+              "sheet_idx1": "EI0"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "mv data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank.xlsx ~/Student_Level_Fill_Blank.xlsx"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open ~/Student_Level_Fill_Blank.xlsx"
+      }
+    }
+  ]
+}

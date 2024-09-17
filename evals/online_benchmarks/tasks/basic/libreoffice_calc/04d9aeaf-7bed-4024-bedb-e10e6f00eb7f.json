@@ -1,0 +1,69 @@
+{
+  "task_id": "04d9aeaf-7bed-4024-bedb-e10e6f00eb7f",
+  "instruction": "In a new sheet with 4 headers \"Year\", \"CA changes\", \"FA changes\", and \"OA changes\", calculate the annual changes for the Current Assets, Fixed Assets, and Other Assets columns. Set the results as percentage type.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"SmallBalanceSheet.xlsx - LibreOffice Calc\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "libreoffice_calc",
+      "function": "compare_table",
+      "params": {
+        "expected": "data/04d9aeaf-7bed-4024-bedb-e10e6f00eb7f/4_SmallBalanceSheet_gt1.xlsx",
+        "result": "~/SmallBalanceSheet.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RNSheet2",
+              "sheet_idx1": "ENSheet2"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "mv data/04d9aeaf-7bed-4024-bedb-e10e6f00eb7f/SmallBalanceSheet.xlsx ~/SmallBalanceSheet.xlsx"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open ~/SmallBalanceSheet.xlsx"
+      }
+    }
+  ]
+}

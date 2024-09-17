@@ -1,0 +1,69 @@
+{
+  "task_id": "0acbd372-ca7a-4507-b949-70673120190f",
+  "instruction": "Calculate Net Income in a new column with header \"Net Income\" and format all data as accounting number type.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"NetIncome.xlsx - LibreOffice Calc\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "libreoffice_calc",
+      "function": "compare_table",
+      "params": {
+        "expected": "data/0acbd372-ca7a-4507-b949-70673120190f/1_NetIncome_gt1.xlsx",
+        "result": "~/NetIncome.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": 0,
+              "sheet_idx1": "EI0"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "mv data/0acbd372-ca7a-4507-b949-70673120190f/NetIncome.xlsx ~/NetIncome.xlsx"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open ~/NetIncome.xlsx"
+      }
+    }
+  ]
+}

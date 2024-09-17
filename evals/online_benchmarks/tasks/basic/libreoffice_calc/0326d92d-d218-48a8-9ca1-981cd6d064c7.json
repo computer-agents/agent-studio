@@ -1,0 +1,78 @@
+{
+  "task_id": "0326d92d-d218-48a8-9ca1-981cd6d064c7",
+  "instruction": "Calculate the total sales in an underneath row called \"Total\" and display the total of each month as bars. Then calculate the growth percentage between each pair of months in another row called \"Growth\" and show them in a line chart. Set the chart titles as the two row headers respectively.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"SalesRep.xlsx - LibreOffice Calc\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "libreoffice_calc",
+      "function": "compare_table",
+      "params": {
+        "expected": "data/0326d92d-d218-48a8-9ca1-981cd6d064c7/2_SalesRep_gt1.xlsx",
+        "result": "~/SalesRep.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": 0,
+              "sheet_idx1": "EI0"
+            },
+            {
+              "type": "chart",
+              "sheet_idx0": 0,
+              "sheet_idx1": "EI0",
+              "chart_props": [
+                "type",
+                "title"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "mv data/0326d92d-d218-48a8-9ca1-981cd6d064c7/SalesRep.xlsx ~/SalesRep.xlsx"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open ~/SalesRep.xlsx"
+      }
+    }
+  ]
+}
