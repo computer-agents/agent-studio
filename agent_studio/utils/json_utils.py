@@ -68,6 +68,25 @@ def read_json(
     return data
 
 
+def read_task_jsons(
+    path: str
+) -> list[TaskConfig]:
+    """
+    Read task configs from folder or file
+    """
+    task_configs: list[TaskConfig] = []
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for file in files:
+                if file.endswith(".json"):
+                    with open(os.path.join(root, file), "r") as f:
+                        task_configs.append(TaskConfig.model_validate(json.load(f)))
+    else:
+        with open(path, "r") as f:
+            task_configs.append(TaskConfig.model_validate(json.load(f)))
+    return task_configs
+
+
 def add_json(data: dict, file_path: str, mode="a"):
     """Adds a dictionary to a .json file.
 
@@ -132,7 +151,7 @@ def save_image_or_array(obj: Any, folder_path: str) -> str:
         obj.save(file_path)
     elif isinstance(obj, np.ndarray):
         file_path = os.path.join(folder_path, f"{unique_filename}.png")
-        cv2.imwrite(file_path, cv2.cvtColor(obj, cv2.COLOR_RGB2BGR))
+        cv2.imwrite(file_path, obj)
     else:
         raise ValueError("Unsupported object type for saving.")
     return file_path

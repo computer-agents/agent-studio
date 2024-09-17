@@ -75,9 +75,7 @@ class ModelManager(metaclass=ThreadSafeSingleton):
     """
 
     def __init__(self):
-        print("ModelManager init")
         self.models = register_models()
-        print("ModelManager init done")
 
     def get_model(self, model_name: str) -> BaseModel:
         """

@@ -62,7 +62,7 @@ from agent_studio.utils.gui import (
     InputDialog,
     JSONEditor,
 )
-from agent_studio.utils.json_utils import export_trajectories, read_json
+from agent_studio.utils.json_utils import export_trajectories, read_task_jsons
 from agent_studio.utils.types import TaskConfig
 
 config = Config()
@@ -107,7 +107,7 @@ class TaskThread(QThread):
         task_config: TaskConfig,
         signal: WorkerSignals,
         args: argparse.Namespace,
-        interface: AgentMonitor,
+        interface: GUI,
     ):
         super().__init__()
         self.mutex = QMutex()
@@ -282,9 +282,6 @@ class TaskThread(QThread):
                 feedback=feedback,
                 token_count=self.agent.get_token_count(),
                 video_meta=video_meta,
-                jsonl_name=os.path.basename(self.args.task_configs_path).replace(
-                    ".json", ".jsonl"
-                ),
             )
             self.signals.status_bar_signal.emit("color: green;", "Ready")
             self.signals.finish_signal.emit()
@@ -301,7 +298,7 @@ class TaskThread(QThread):
         self.mutex.unlock()
 
 
-class AgentMonitor(QMainWindow):
+class GUI(QMainWindow):
     """Main class for the agent monitor."""
 
     def __init__(
@@ -725,6 +722,112 @@ class AgentMonitor(QMainWindow):
         exit(0)
 
 
+class NonGUI():
+    def __init__(
+        self,
+        args: argparse.Namespace,
+        remote: bool,
+        window_width: int,
+        window_height: int,
+    ) -> None:
+        """Initializes the UI."""
+        super().__init__()
+        self.frame_buffer: FrameBuffer = FrameBuffer()
+        self.args = args
+        self.remote = remote
+        self.window_width = window_width
+        self.window_height = window_height
+
+        self.fps = config.video_fps
+
+        self.capture_thread: VNCStreamer | LocalStreamer | None = None
+        if remote:
+            self.capture_thread = VNCStreamer(
+                config.env_server_addr, config.vnc_port, config.vnc_password
+            )
+        else:
+            self.capture_thread = LocalStreamer(config.monitor_idx)
+        self.data_lock = threading.Lock()
+
+        # Start the capture thread to get video feed.
+        assert self.capture_thread is not None
+        self.capture_thread.start()
+
+        # Initialize the screenshot as a blank image.
+        self.video_height, self.video_width = (
+            self.capture_thread.video_height,
+            self.capture_thread.video_width,
+        )
+        self.now_screenshot = np.zeros(
+            (self.video_height, self.video_width, 4), dtype="uint8"
+        )
+        self.recording_thread = threading.Thread(
+            target=self._capture
+        )
+        self.is_recording = True
+        self.recording_thread.start()
+
+    def start_recording(self):
+        self.is_recording = True
+        self.start_time = time.time()
+        self.frame_buffer.clear()
+
+    def get_screenshot(self):
+        with self.data_lock:
+            while np.all(self.now_screenshot == 0):
+                print("Waiting for the first frame.")
+                time.sleep(0.5)
+            frame = cv2.cvtColor(self.now_screenshot, cv2.COLOR_BGRA2RGB)
+            return np.array(frame)
+
+    def _capture(self):
+        assert self.capture_thread is not None
+        while self.is_recording:
+            try:
+                with self.data_lock:
+                    frame = self.capture_thread.get_current_frame()
+                    if frame is not None:
+                        self.now_screenshot = frame.copy()
+                        self.frame_buffer.add_frame(self.now_screenshot)
+            except Exception as e:
+                logger.warning(f"Fail to capture frame: {e}")
+            time.sleep(1.0 / config.video_fps)
+
+    def save_video(self, record_path: str) -> dict:
+        """Stops recording and saves the video to the file system.
+
+        Returns:
+            dict: Metadata about the saved video.
+        """
+        os.makedirs(os.path.dirname(record_path), exist_ok=True)
+        assert (
+            self.is_recording and self.frame_buffer is not None
+        ), "No recording in progress."
+        self.is_recording = False
+        self.stop_time = time.time()
+        writer = cv2.VideoWriter(
+            record_path,
+            cv2.VideoWriter.fourcc(*"mp4v"),
+            config.video_fps,
+            (self.video_width, self.video_height),
+        )
+        frames = self.frame_buffer.get_frames()
+        logger.info(f"Captured {len(frames)} frames with FPS={config.video_fps}")
+        for frame in frames:
+            writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+        writer.release()
+        self.frame_buffer.clear()
+
+        return {
+            "start_time": self.start_time,
+            "stop_time": self.stop_time,
+            "fps": config.video_fps,
+            "frame_count": len(frames),
+            "video_path": record_path,
+            "width": self.video_width,
+            "height": self.video_height,
+        }
+
 def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
     if response.status == "finished":
         return response
@@ -745,7 +848,7 @@ def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
         raise ValueError(f"Unknown status: {response.status}, {response.content}")
 
 
-def eval(args, interface: AgentMonitor | None = None) -> None:
+def eval(args, interface: GUI | NonGUI | None = None) -> None:
     # Setup agent
     agent = setup_agent(
         agent_name=args.agent,
@@ -758,7 +861,7 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
     Path(log_dir).mkdir(parents=True, exist_ok=True)
 
     # Setup tasks
-    task_configs_json = read_json(args.task_configs_path, args.start_idx, args.end_idx)
+    task_configs_json = read_task_jsons(args.task_configs_path)
     task_configs: list[TaskConfig] = []
     for task_config in task_configs_json:
         task_configs.append(TaskConfig.model_validate(task_config))
@@ -801,6 +904,9 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
             for t in range(task_config.max_steps):
                 logger.info(f"Step {t}")
                 if task_config.visual:
+                    assert (
+                        interface is not None
+                    ), "Interface has to be open for visual tasks."
                     obs = interface.get_screenshot()
                 else:
                     obs = None
@@ -864,9 +970,6 @@ def eval(args, interface: AgentMonitor | None = None) -> None:
                 feedback=feedback,
                 token_count=agent.get_token_count(),
                 video_meta=video_meta,
-                jsonl_name=os.path.basename(args.task_configs_path).replace(
-                    ".json", ".jsonl"
-                ),
             )
         except Exception as e:
             import traceback
@@ -888,8 +991,6 @@ def main():
     parser.add_argument("--model", type=str, help="Model name")
     parser.add_argument("--agent", type=str, default="direct", help="Agent type")
     parser.add_argument("--task_configs_path", type=str, help="Path to the task config")
-    parser.add_argument("--start_idx", type=int, default=0)
-    parser.add_argument("--end_idx", type=int, default=None)
     parser.add_argument(
         "--log_dir",
         type=str,
@@ -928,18 +1029,19 @@ def main():
         raise RuntimeError("A second screen is required for local annotation.")
 
     if not args.render:
-        eval(args)
+        interface = NonGUI(
+            args=args,
+            remote=args.remote,
+            window_width=args.window_width,
+            window_height=args.window_height,
+        )
+        eval(args, interface)
     else:
         try:
             # Setup tasks
-            task_configs_json = read_json(
-                args.task_configs_path, args.start_idx, args.end_idx
-            )
-            task_configs: list[TaskConfig] = []
-            for task_config in task_configs_json:
-                task_configs.append(TaskConfig.model_validate(task_config))
+            task_configs = read_task_jsons(args.task_configs_path)
             # Create the main interface.
-            interface = AgentMonitor(
+            interface = GUI(
                 args=args,
                 remote=args.remote,
                 task_configs=task_configs,

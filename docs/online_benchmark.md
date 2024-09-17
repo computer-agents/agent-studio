@@ -169,8 +169,8 @@ as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/level_2
 This setup is suitable for evaluating agents in visual tasks. For reproducibility, we use a Ubuntu docker container connected via VNC remote desktop.
 
 ```bash
-as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/level_3/desktop_hard.json --model gemini-1.5-flash-001 --remote --end_idx 1 --render
-as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/level_3/vscode.json --model gemini-1.5-flash-001 --remote ...
+as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/tasks/basic/vscode --model gemini-1.5-flash-001 --remote --render
+as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/tasks/basic/vscode --model gemini-1.5-flash-001 --remote ...
 ```
 
 ## Add more tasks

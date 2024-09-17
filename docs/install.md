@@ -28,7 +28,7 @@ docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t agent-studio:latest
 ### Run Docker
 
 ```bash
-docker run -d -e RESOLUTION=1024x768 -p 6080:80 -p 5900:5900 -p 8000:8000 -p 1025:1025 -p 8025:8025 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/home/ubuntu/agent_studio/agent_studio/config -v ${PWD}/evals/datasets/online_benchmarks/files:/home/ubuntu/agent_studio/data:ro agent-studio:latest
+docker run -d -e RESOLUTION=1024x768 -p 6080:80 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/home/ubuntu/agent_studio/agent_studio/config -v ${PWD}/evals/online_benchmarks/files:/home/ubuntu/agent_studio/data:ro agent-studio:latest
 ```
 
 You can also replace `-d` to `-it` to use interactive mode. If successful, you should see logs with a bunch of success followed by `INFO  Listening on http://localhost:6079` in the output.
@@ -40,5 +40,3 @@ You can browse `http://127.0.0.1:6080` to interact with the remote machine throu
 -   `80`: noVNC
 -   `5900`: VNC server
 -   `8000`: Agent Studio HTTP
--   `1025`: MailHog SMTP
--   `8025`: MailHog HTTP

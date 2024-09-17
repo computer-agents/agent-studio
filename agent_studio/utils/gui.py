@@ -18,6 +18,7 @@ class JSONEditor(Qsci.QsciScintilla):
         super().__init__(parent)
         self.setLexer(Qsci.QsciLexerJSON(self))
         self.setReadOnly(not editable)
+        self.setWrapMode(Qsci.QsciScintilla.WrapMode.WrapWord)
 
     def setText(self, text: str | dict):
         if isinstance(text, dict):
