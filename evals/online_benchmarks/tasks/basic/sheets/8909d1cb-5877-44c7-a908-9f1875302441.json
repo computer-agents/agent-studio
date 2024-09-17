@@ -1,0 +1,69 @@
+{
+  "task_id": "8909d1cb-5877-44c7-a908-9f1875302441",
+  "instruction": "Copy the \"Date\" and \"Revenue ($)\" values to a new sheet for the rows whose \"Sales Channel\" is \"E-mail Coupon\".",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"SummerSales.xlsx - LibreOffice Calc\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "data/8909d1cb-5877-44c7-a908-9f1875302441/2_SummerSales_gt1.xlsx",
+        "result": "~/SummerSales.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": 0,
+              "sheet_idx1": "EI0"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "cp data/8909d1cb-5877-44c7-a908-9f1875302441/SummerSales.xlsx ~/SummerSales.xlsx"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open ~/SummerSales.xlsx"
+      }
+    }
+  ]
+}

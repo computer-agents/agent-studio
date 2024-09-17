@@ -1,0 +1,69 @@
+{
+  "task_id": "42e0a640-4f19-4b28-973d-729602b5a4a7",
+  "instruction": "Compute the sum of \"Revenue\" and \"Total Expenses\" and put the results under two columns named \"Total Revenue\" and \"Total Expenses\" of a new sheet",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"NetIncome.xlsx - LibreOffice Calc\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "data/42e0a640-4f19-4b28-973d-729602b5a4a7/2_NetIncome_gt1.xlsx",
+        "result": "~/NetIncome.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RNSheet2",
+              "sheet_idx1": "ENSheet2"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "cp data/42e0a640-4f19-4b28-973d-729602b5a4a7/NetIncome.xlsx ~/NetIncome.xlsx"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open ~/NetIncome.xlsx"
+      }
+    }
+  ]
+}

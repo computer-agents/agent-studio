@@ -1,0 +1,77 @@
+{
+  "task_id": "0a2e43bf-b26c-4631-a966-af9dfa12c9e5",
+  "instruction": "Work out the monthly total sales in a new row called \"Total\" and then create a line chart to show the results (x-axis be Months).",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"SalesRep.xlsx - LibreOffice Calc\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "data/0a2e43bf-b26c-4631-a966-af9dfa12c9e5/5_SalesRep_gt1.xlsx",
+        "result": "~/SalesRep.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": 0,
+              "sheet_idx1": "EI0"
+            },
+            {
+              "type": "chart",
+              "sheet_idx0": 0,
+              "sheet_idx1": "EI0",
+              "chart_props": [
+                "type"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "cp data/0a2e43bf-b26c-4631-a966-af9dfa12c9e5/SalesRep.xlsx ~/SalesRep.xlsx"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open ~/SalesRep.xlsx"
+      }
+    }
+  ]
+}

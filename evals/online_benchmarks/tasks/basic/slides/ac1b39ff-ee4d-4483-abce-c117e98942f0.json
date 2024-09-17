@@ -1,0 +1,57 @@
+{
+  "task_id": "ac1b39ff-ee4d-4483-abce-c117e98942f0",
+  "instruction": "Move the table on Page 3 to the bottom of the slide.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"55_10.pptx - LibreOffice Impress\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "slides",
+      "function": "compare_pptx_files",
+      "params": {
+        "expected": "data/ac1b39ff-ee4d-4483-abce-c117e98942f0/55_10_Original.pptx",
+        "result": "data/ac1b39ff-ee4d-4483-abce-c117e98942f0/55_10.pptx",
+        "options": {
+          "examine_table_bottom_position": true,
+          "examine_shape": false
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open data/ac1b39ff-ee4d-4483-abce-c117e98942f0/55_10.pptx"
+      }
+    }
+  ]
+}
