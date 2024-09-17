@@ -1,0 +1,28 @@
+{
+  "task_id": "a097acff-6266-4291-9fbd-137af7ecd439",
+  "instruction": "Save the opened slides as `data/a097acff-6266-4291-9fbd-137af7ecd439/pre.pptx`",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "libreoffice_impress",
+      "function": "compare_pptx_files",
+      "params": {
+        "expected": "data/a097acff-6266-4291-9fbd-137af7ecd439/Secrets-of-Monetizing-Video.pptx",
+        "result": "data/a097acff-6266-4291-9fbd-137af7ecd439/pre.pptx",
+        "options": {
+          "examine_shape": false
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open data/a097acff-6266-4291-9fbd-137af7ecd439/Secrets-of-Monetizing-Video.pptx"
+      }
+    }
+  ]
+}

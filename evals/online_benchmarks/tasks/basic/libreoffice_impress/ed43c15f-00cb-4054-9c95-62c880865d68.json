@@ -1,0 +1,57 @@
+{
+  "task_id": "ed43c15f-00cb-4054-9c95-62c880865d68",
+  "instruction": "Move the picture on page 2 to slide top. Make textboxes underlined on slide 1 and 2.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"43_1.pptx - LibreOffice Impress\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "libreoffice_impress",
+      "function": "compare_pptx_files",
+      "params": {
+        "expected": "data/ed43c15f-00cb-4054-9c95-62c880865d68/43_1_Gold.pptx",
+        "result": "data/ed43c15f-00cb-4054-9c95-62c880865d68/43_1.pptx",
+        "options": {
+          "examine_shape": false,
+          "examine_top_position": true
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open data/ed43c15f-00cb-4054-9c95-62c880865d68/43_1.pptx"
+      }
+    }
+  ]
+}

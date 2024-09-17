@@ -76,7 +76,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/9ed02102-6b28-4946-8339-c028166e9512/BoomerangSales.xlsx ~/BoomerangSales.xlsx"
+        "command": "cp data/9ed02102-6b28-4946-8339-c028166e9512/BoomerangSales.xlsx ~/BoomerangSales.xlsx"
       }
     },
     {

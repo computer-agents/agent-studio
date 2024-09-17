@@ -70,7 +70,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/b6e9778c-11b3-455f-b720-655048787484/EntireSummerSales.xlsx ~/EntireSummerSales.xlsx"
+        "command": "cp data/b6e9778c-11b3-455f-b720-655048787484/EntireSummerSales.xlsx ~/EntireSummerSales.xlsx"
       }
     },
     {

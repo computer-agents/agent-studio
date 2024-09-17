@@ -55,7 +55,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/42e0a640-4f19-4b28-973d-729602b5a4a7/NetIncome.xlsx ~/NetIncome.xlsx"
+        "command": "cp data/42e0a640-4f19-4b28-973d-729602b5a4a7/NetIncome.xlsx ~/NetIncome.xlsx"
       }
     },
     {

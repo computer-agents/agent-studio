@@ -69,7 +69,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/a16d1eb7-941b-4edd-8c08-344213f939ad/GDPBreakdown.xlsx ~/GDPBreakdown.xlsx"
+        "command": "cp data/a16d1eb7-941b-4edd-8c08-344213f939ad/GDPBreakdown.xlsx ~/GDPBreakdown.xlsx"
       }
     },
     {

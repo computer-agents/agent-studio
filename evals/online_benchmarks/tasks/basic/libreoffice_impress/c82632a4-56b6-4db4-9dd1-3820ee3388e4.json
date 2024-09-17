@@ -1,0 +1,57 @@
+{
+  "task_id": "c82632a4-56b6-4db4-9dd1-3820ee3388e4",
+  "instruction": "Add an image \"none.png\" on the Desktop to slide 2 with 1cm*1cm size.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"31_2.pptx - LibreOffice Impress\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "libreoffice_impress",
+      "function": "compare_pptx_files",
+      "params": {
+        "expected": "data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/31_2_Gold.pptx",
+        "result": "data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/31_2.pptx",
+        "options": {
+          "examine_shape": false,
+          "examine_image_size": true
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/31_2.pptx"
+      }
+    }
+  ]
+}

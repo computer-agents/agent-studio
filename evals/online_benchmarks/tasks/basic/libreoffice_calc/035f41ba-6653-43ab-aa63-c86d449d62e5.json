@@ -60,7 +60,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/035f41ba-6653-43ab-aa63-c86d449d62e5/IncomeStatement2.xlsx ~/IncomeStatement2.xlsx"
+        "command": "cp data/035f41ba-6653-43ab-aa63-c86d449d62e5/IncomeStatement2.xlsx ~/IncomeStatement2.xlsx"
       }
     },
     {

@@ -55,7 +55,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/8909d1cb-5877-44c7-a908-9f1875302441/SummerSales.xlsx ~/SummerSales.xlsx"
+        "command": "cp data/8909d1cb-5877-44c7-a908-9f1875302441/SummerSales.xlsx ~/SummerSales.xlsx"
       }
     },
     {

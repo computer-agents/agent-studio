@@ -55,7 +55,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank.xlsx ~/Student_Level_Fill_Blank.xlsx"
+        "command": "cp data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank.xlsx ~/Student_Level_Fill_Blank.xlsx"
       }
     },
     {

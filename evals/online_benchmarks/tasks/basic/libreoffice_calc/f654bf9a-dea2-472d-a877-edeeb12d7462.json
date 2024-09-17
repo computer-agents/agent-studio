@@ -69,7 +69,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/f654bf9a-dea2-472d-a877-edeeb12d7462/SummerSales.xlsx ~/SummerSales.xlsx"
+        "command": "cp data/f654bf9a-dea2-472d-a877-edeeb12d7462/SummerSales.xlsx ~/SummerSales.xlsx"
       }
     },
     {

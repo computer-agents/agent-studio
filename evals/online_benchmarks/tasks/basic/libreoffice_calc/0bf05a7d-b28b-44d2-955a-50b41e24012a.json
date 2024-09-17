@@ -79,7 +79,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/0bf05a7d-b28b-44d2-955a-50b41e24012a/Customers_New_7digit_Id.xlsx ~/Customers_New_7digit_Id.xlsx"
+        "command": "cp data/0bf05a7d-b28b-44d2-955a-50b41e24012a/Customers_New_7digit_Id.xlsx ~/Customers_New_7digit_Id.xlsx"
       }
     },
     {

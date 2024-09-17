@@ -64,7 +64,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/0326d92d-d218-48a8-9ca1-981cd6d064c7/SalesRep.xlsx ~/SalesRep.xlsx"
+        "command": "cp data/0326d92d-d218-48a8-9ca1-981cd6d064c7/SalesRep.xlsx ~/SalesRep.xlsx"
       }
     },
     {

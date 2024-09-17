@@ -83,7 +83,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/4e6fcf72-daf3-439f-a232-c434ce416af6/Employee_Age_By_Birthday.xlsx ~/Employee_Age_By_Birthday.xlsx"
+        "command": "cp data/4e6fcf72-daf3-439f-a232-c434ce416af6/Employee_Age_By_Birthday.xlsx ~/Employee_Age_By_Birthday.xlsx"
       }
     },
     {

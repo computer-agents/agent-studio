@@ -55,7 +55,7 @@
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "mv data/a9f325aa-8c05-4e4f-8341-9e4358565f4f/Movie_title_garbage_clean.xlsx ~/Movie_title_garbage_clean.xlsx"
+        "command": "cp data/a9f325aa-8c05-4e4f-8341-9e4358565f4f/Movie_title_garbage_clean.xlsx ~/Movie_title_garbage_clean.xlsx"
       }
     },
     {
