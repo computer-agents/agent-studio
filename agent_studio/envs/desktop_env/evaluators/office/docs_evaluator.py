@@ -1,0 +1,449 @@
+import logging
+import re
+from typing import Any
+
+from docx import Document
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_TAB_ALIGNMENT
+from docx.shared import RGBColor
+from odf.opendocument import load
+from odf.text import P, Span
+from rapidfuzz import fuzz
+from skimage.color import deltaE_ciede2000, rgb2lab
+
+from agent_studio.config import Config
+from agent_studio.envs.desktop_env.evaluators.evaluator import (
+    Evaluator,
+    FeedbackException,
+    evaluation_handler,
+)
+
+config = Config()
+logger = logging.getLogger(__name__)
+
+
+def _compare_docx_files(file1, file2, **options):
+    ignore_blanks = options.get("ignore_blanks", True)
+    ignore_case = options.get("ignore_case", False)
+    ignore_order = options.get("ignore_order", False)
+    content_only = options.get("content_only", False)
+
+    if not file1 or not file2:
+        return 0
+
+    def get_paragraph_texts_odt(document):
+        paragraphs = document.getElementsByType(P)
+        paragraph_texts = []
+        for paragraph in paragraphs:
+            text_parts = []
+            for node in paragraph.childNodes:
+                if node.nodeType == node.TEXT_NODE:
+                    text_parts.append(node.data)
+                elif node.nodeType == node.ELEMENT_NODE and node.tagName == "text:span":
+                    # Assuming direct text content in <text:span>, for simplicity
+                    for child in node.childNodes:
+                        if child.nodeType == child.TEXT_NODE:
+                            text_parts.append(child.data)
+            paragraph_texts.append("".join(text_parts))
+        return paragraph_texts
+
+    # Determine file types and load documents
+    if file1.endswith(".docx") and file2.endswith(".docx"):
+        try:
+            doc1 = Document(file1)
+            doc2 = Document(file2)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return 0
+        doc1_paragraphs = [p.text for p in doc1.paragraphs]
+        doc2_paragraphs = [p.text for p in doc2.paragraphs]
+        if ignore_order:
+            doc1_paragraphs = sorted(doc1_paragraphs)
+            doc2_paragraphs = sorted(doc2_paragraphs)
+    elif file1.endswith(".odt") and file2.endswith(".odt"):
+        try:
+            doc1 = load(file1)
+            doc2 = load(file2)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return 0
+        doc1_paragraphs = get_paragraph_texts_odt(doc1)
+        doc2_paragraphs = get_paragraph_texts_odt(doc2)
+        if ignore_order:
+            doc1_paragraphs = sorted(doc1_paragraphs)
+            doc2_paragraphs = sorted(doc2_paragraphs)
+    else:
+        # Unsupported file types or mismatch
+        print("Unsupported file types or mismatch between file types.")
+        return 0
+
+    if content_only:
+        # Compare the content of the documents
+        text1 = re.sub(r"\s+", " ", "\n".join(doc1_paragraphs)).strip()
+        text2 = re.sub(r"\s+", " ", "\n".join(doc2_paragraphs)).strip()
+        if ignore_case:
+            text1, text2 = text1.lower(), text2.lower()
+        similarity = fuzz.ratio(text1, text2) / 100.0
+        return similarity
+
+    # Process and compare documents
+    if ignore_blanks:
+        text1 = re.sub(r"\s+", " ", "\n".join(doc1_paragraphs)).strip()
+        text2 = re.sub(r"\s+", " ", "\n".join(doc2_paragraphs)).strip()
+        if ignore_case:
+            text1, text2 = text1.lower(), text2.lower()
+        if text1 != text2:
+            return 0
+    else:
+        print("ignore_blanks=false")
+        if len(doc1_paragraphs) != len(doc2_paragraphs):
+            print(doc1_paragraphs)
+            print(doc2_paragraphs)
+            print(len(doc1_paragraphs))
+            print(len(doc2_paragraphs))
+            return 0
+        print("in compare")
+        # Compare each paragraph
+        for p1, p2 in zip(doc1_paragraphs, doc2_paragraphs):
+            if ignore_case:
+                p1, p2 = p1.lower(), p2.lower()
+            if p1 != p2:
+                print(p1)
+                print(p2)
+                return 0
+
+    return 1
+
+
+class DocsCalcEvaluator(Evaluator):
+    name: str = "docs"
+
+    @evaluation_handler("compare_line_spacing")
+    def compare_line_spacing(self, docx_file1, docx_file2):
+        if not _compare_docx_files(docx_file1, docx_file2):
+            raise FeedbackException("Documents are different")
+
+        try:
+            doc1 = Document(docx_file1)
+            doc2 = Document(docx_file2)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading documents")
+
+        if len(doc1.paragraphs) != len(doc2.paragraphs):
+            raise FeedbackException("Number of paragraphs is different")
+
+        # Compare each paragraph line spacing
+        for para1, para2 in zip(doc1.paragraphs, doc2.paragraphs):
+            spacing1 = para1.paragraph_format.line_spacing
+            spacing2 = para2.paragraph_format.line_spacing
+
+            if spacing1 != spacing2:
+                raise FeedbackException(
+                    f"Line spacing of paragraph '{para1.text}' is different"
+                )
+
+    @evaluation_handler("check_tabstops")
+    def check_tabstops(self, docx_file1, docx_file2, kwargs):
+        try:
+            doc1: Document = Document(docx_file1)
+            doc2: Document = Document(docx_file2)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading documents")
+
+        para1 = [p for p in doc1.paragraphs if p.text.strip()]
+        para2 = [p for p in doc2.paragraphs if p.text.strip()]
+        if len(para1) != len(para2):
+            return 0.0
+
+        if kwargs.get("word_number_split_by_tabstop", None) is not None:
+            number = kwargs["word_number_split_by_tabstop"]
+            index = kwargs.get("index", 0)
+            for p1 in para1:
+                splits = p1.text.split("\t")
+                if len(splits) == 0:
+                    return 0.0
+                words = list(
+                    filter(lambda x: x.strip(), re.split(r"\s", splits[index]))
+                )
+                if len(words) != number:
+                    return 0.0
+
+        section = doc2.sections[0]
+        paragraph_width = (
+            section.page_width - section.left_margin - section.right_margin
+        )
+        ignore_tabs = lambda x: x.alignment == WD_TAB_ALIGNMENT.CLEAR or (
+            x.alignment == WD_TAB_ALIGNMENT.LEFT and x.position == 0
+        )
+        minus = 0.0
+        for p1, p2 in zip(para1, para2):
+            # filter CLEAR tabstop and default left-0 tabstop
+            tabs1 = [
+                tst for tst in p1.paragraph_format.tab_stops if not ignore_tabs(tst)
+            ]
+            tabs2 = [
+                tst for tst in p2.paragraph_format.tab_stops if not ignore_tabs(tst)
+            ]
+            if len(tabs1) != len(tabs2):
+                return 0.0
+            difference = 0.0
+            for t1, t2 in zip(tabs1, tabs2):
+                if t1.alignment != t2.alignment:
+                    return 0.0
+                difference += abs(t1.position - t2.position)
+            minus += difference / paragraph_width
+        score = 1 - (minus / len(para1))
+        if not score:
+            raise FeedbackException("Tabstops are different")
+
+    @evaluation_handler("compare_subscript_contains")
+    def compare_subscript_contains(self, docx_file1, docx_file2):
+        try:
+            doc1 = Document(docx_file1)
+            doc2 = Document(docx_file2)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading documents")
+
+        for para1, para2 in zip(doc1.paragraphs, doc2.paragraphs):
+            for run1, run2 in zip(para1.runs, para2.runs):
+                # check if two paras both contain subscript
+                if run1.font.subscript and run2.font.subscript:
+                    return
+
+        raise FeedbackException("Subscript is missing")
+
+    @evaluation_handler("has_page_numbers_in_footers")
+    def has_page_numbers_in_footers(self, docx_file):
+        try:
+            doc = Document(docx_file)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading document")
+
+        for section in doc.sections:
+            footer = section.footer
+            if footer is None:
+                raise FeedbackException("Footer is missing")
+            footer_text = footer.paragraphs[0].text if footer.paragraphs else ""
+            if not any(char.isdigit() for char in footer_text):
+                # if no digit in footer, then no page number
+                raise FeedbackException("Page number is missing in footer")
+
+    @evaluation_handler("compare_font_names")
+    def compare_font_names(self, docx_file, rules: list[dict[str, Any]]):
+        try:
+            doc = Document(docx_file)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading document")
+
+        expected_font = rules["font_name"]
+
+        for paragraph in doc.paragraphs:
+            for run in paragraph.runs:
+                font_name = run.font.name
+                if font_name != expected_font:
+                    raise FeedbackException(f"Font name is not {expected_font}")
+
+    @evaluation_handler("is_first_line_centered")
+    def is_first_line_centered(self, docx_file):
+        try:
+            doc = Document(docx_file)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading document")
+
+        first_paragraph = doc.paragraphs[0]
+
+        # check if the first line is center justified
+        if first_paragraph.paragraph_format.alignment != WD_PARAGRAPH_ALIGNMENT.CENTER:
+            raise FeedbackException("First line is not center justified")
+
+    @evaluation_handler("compare_insert_equation")
+    def compare_insert_equation(self, docx_file1, docx_file2):
+        if not _compare_docx_files(docx_file1, docx_file2):
+            raise FeedbackException("Documents are different")
+
+        try:
+            doc1 = Document(docx_file1)
+            doc2 = Document(docx_file2)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading documents")
+
+        # Compare each paragraph if it contains equation
+        for para1, para2 in zip(doc1.paragraphs, doc2.paragraphs):
+            for run1, run2 in zip(para1.runs, para2.runs):
+                if run1.element.xpath(".//w:object") and run2.element.xpath(
+                    ".//w:object"
+                ):
+                    return 1
+        raise FeedbackException("Equation is missing")
+
+    @evaluation_handler("compare_docx_tables")
+    def compare_docx_tables(self, docx_file1, docx_file2):
+        try:
+            doc1 = Document(docx_file1)
+            doc2 = Document(docx_file2)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading documents")
+
+        # get list of tables in docx
+        tables1 = doc1.tables
+        tables2 = doc2.tables
+
+        if len(tables1) != len(tables2):
+            raise FeedbackException("Number of tables is different")
+
+        # Compare each table content
+        for table1, table2 in zip(tables1, tables2):
+            if len(table1.rows) != len(table2.rows) or len(table1.columns) != len(
+                table2.columns
+            ):
+                raise FeedbackException("Table structure is different")
+
+            # Compare each cell
+            for i in range(len(table1.rows)):
+                for j in range(len(table1.columns)):
+                    if table1.cell(i, j).text.strip() != table2.cell(i, j).text.strip():
+                        raise FeedbackException("Table content is different")
+
+    @evaluation_handler("check_highlighted_words")
+    def check_highlighted_words(self, file_path1, file_path2):
+        if not _compare_docx_files(file_path1, file_path2):
+            raise FeedbackException("Documents are different")
+
+        doc = load(file_path1)
+        highlighted = False
+
+        for span in doc.getElementsByType(Span):
+            style_name = span.getAttribute("stylename")
+            if style_name:
+                for automatic_style in doc.automaticstyles.childNodes:
+                    if automatic_style.getAttribute("name") == style_name:
+                        for property in automatic_style.childNodes:
+                            if property.getAttribute("backgroundcolor") == "#ffff00":
+                                highlighted = True
+                                break
+                if highlighted:
+                    break
+
+        if highlighted:
+            raise FeedbackException("Highlighted words are present")
+
+    @evaluation_handler("compare_contains_image")
+    def compare_contains_image(self, docx_file1, docx_file2):
+        try:
+            doc1 = Document(docx_file1)
+            doc2 = Document(docx_file2)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading documents")
+
+        for para1, para2 in zip(doc1.paragraphs, doc2.paragraphs):
+            for run1, run2 in zip(para1.runs, para2.runs):
+                if (
+                    "graphicData" in run1._element.xml
+                    and "graphicData" not in run2._element.xml
+                ) or (
+                    "graphicData" not in run1._element.xml
+                    and "graphicData" in run2._element.xml
+                ):
+                    raise FeedbackException("Image is missing")
+
+    @evaluation_handler("compare_docx_lines")
+    def compare_docx_lines(self, file1, file2):
+        # Read the text of the document, line by line
+        try:
+            doc1 = Document(file1)
+            doc2 = Document(file2)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading documents")
+
+        doc1_lines = [p.text.strip() for p in doc1.paragraphs if p.text.strip()]
+        doc2_lines = [p.text.strip() for p in doc2.paragraphs if p.text.strip()]
+
+        # Convert the list of lines to sets and compare
+        if set(doc1_lines) != set(doc2_lines):
+            raise FeedbackException("Documents are different")
+
+    @evaluation_handler("evaluate_strike_through_last_paragraph")
+    def evaluate_strike_through_last_paragraph(self, file_path1, file_path2):
+        if not _compare_docx_files(file_path1, file_path2):
+            raise FeedbackException("Documents are different")
+
+        try:
+            document = Document(file_path1)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading document")
+
+        # Get the last paragraph
+        last_paragraph = document.paragraphs[-1]
+
+        # Check if any run in the last paragraph has strike-through formatting
+        for run in last_paragraph.runs:
+            if not run.font.strike:
+                raise FeedbackException(
+                    "Strike-through formatting is missing"
+                )  # At least one word does not have strike-through formatting
+
+        # All words in the last paragraph have strike-through formatting
+
+    @evaluation_handler("evaluate_colored_words_in_tables")
+    def evaluate_colored_words_in_tables(self, file_path1, file_path2, kwargs):
+        if not _compare_docx_files(file_path1, file_path2):
+            raise FeedbackException("Documents are different")
+
+        try:
+            document = Document(file_path1)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading document")
+
+        threshold = kwargs.get("threshold", 3.5)
+
+        def _calculate_color_difference(rgb1, rgb2):
+            srgb1 = [rgb1[0] / 255.0, rgb1[1] / 255.0, rgb1[2] / 255.0]
+            srgb2 = [rgb2[0] / 255.0, rgb2[1] / 255.0, rgb2[2] / 255.0]
+            lab1, lab2 = rgb2lab(srgb1), rgb2lab(srgb2)
+            delta_e = deltaE_ciede2000(lab1, lab2)
+            return delta_e
+
+        for table in document.tables:
+            # Iterate through rows and cells in the table
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        for run in paragraph.runs:
+                            word = run.text
+                            if word:
+                                first_letter = word[0].lower()
+
+                                if (
+                                    first_letter in "aeiou"
+                                    and _calculate_color_difference(
+                                        run.font.color.rgb, RGBColor(255, 0, 0)
+                                    )
+                                    > threshold
+                                ):
+                                    return 0  # Vowel-colored words should be red
+                                elif (
+                                    first_letter not in "aeiou"
+                                    and _calculate_color_difference(
+                                        run.font.color.rgb, RGBColor(0, 0, 255)
+                                    )
+                                    > threshold
+                                ):
+                                    raise FeedbackException(
+                                        "Non-vowel-colored words should be blue"
+                                    )
+
+    @evaluation_handler("compare_docx_files")
+    def compare_docx_files(self, file1, file2, options):
+        if not _compare_docx_files(file1, file2, **options):
+            raise FeedbackException("Documents are different")

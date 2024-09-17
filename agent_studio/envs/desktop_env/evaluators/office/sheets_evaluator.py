@@ -114,7 +114,7 @@ class SheetsEvaluator(Evaluator):
     name: str = "sheets"
 
     @evaluation_handler("compare_table")
-    def compare_table(result: str, expected: str = None, **options) -> float:
+    def compare_table(self, result: str, expected: str, options) -> float:
         #  function compare_table {{{ #
         """
         Args:

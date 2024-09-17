@@ -18,7 +18,7 @@ class SlidesEvaluator(Evaluator):
     name: str = "slides"
 
     @evaluation_handler("compare_pptx_files")
-    def compare_pptx_files(file1_path, file2_path, **options):
+    def compare_pptx_files(self, file1_path, file2_path, options):
         # todo: not strictly match since not all information is compared because we cannot get the info through pptx  # noqa: E501
         prs1 = Presentation(file1_path)
         prs2 = Presentation(file2_path)

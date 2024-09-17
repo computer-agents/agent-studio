@@ -1,0 +1,60 @@
+{
+  "task_id": "6ada715d-3aae-4a32-a6a7-429b2e43fb93",
+  "instruction": "Copy the screenshot 1.png from the desktop to where my cursor is located",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "wmctrl -Fa \"Viewing_Your_Class_Schedule_and_Textbooks.docx - LibreOffice Writer\""
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 0.5
+      }
+    },
+    {
+      "evaluator": "docs",
+      "function": "compare_contains_image",
+      "params": {
+        "docx_file1": "data/6ada715d-3aae-4a32-a6a7-429b2e43fb93/Viewing_Your_Class_Schedule_and_Textbooks_Gold.docx",
+        "docx_file2": "data/6ada715d-3aae-4a32-a6a7-429b2e43fb93/Viewing_Your_Class_Schedule_and_Textbooks.docx"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open data/6ada715d-3aae-4a32-a6a7-429b2e43fb93/Viewing_Your_Class_Schedule_and_Textbooks.docx"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+          "command": "python3 -c import pyautogui; import time; time.sleep(5); pyautogui.press(\"down\", presses=8, interval=0.01); time.sleep(1); pyautogui.scroll(-2)"
+      }
+    }
+  ]
+}
