@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 from pydantic import BaseModel
@@ -27,7 +27,8 @@ class TaskConfig(BaseModel):
     visual: bool
     max_steps: int
     eval_procedure: list[Procedure]
-    reset_procedure: list[Procedure]
+    reset_procedure: Optional[list[Procedure]] = None
+    cleanup_procedure: Optional[list[Procedure]] = None
 
 
 class Action(BaseModel):

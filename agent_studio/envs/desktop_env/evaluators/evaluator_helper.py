@@ -94,7 +94,13 @@ def evaluator_router(
     evaluators: dict[str, Evaluator] = {}
     logger.info(f"Registered evaluators: {registered_evaluators.keys()}")
 
-    for procedure in task_config.eval_procedure + task_config.reset_procedure:
+    procedures = task_config.eval_procedure
+    if task_config.reset_procedure is not None:
+        procedures += task_config.reset_procedure
+    if task_config.cleanup_procedure is not None:
+        procedures += task_config.cleanup_procedure
+
+    for procedure in procedures:
         eval_type: str = procedure.evaluator
         if eval_type in registered_evaluators:
             if eval_type not in evaluators:

@@ -23,5 +23,6 @@ class SystemEvaluator(Evaluator):
         time.sleep(seconds)
 
     @reset_handler("exec")
-    def exec(self, command: str) -> None:
+    @evaluation_handler("exec")
+    def exec_rst(self, command: str) -> None:
         os.system(command)

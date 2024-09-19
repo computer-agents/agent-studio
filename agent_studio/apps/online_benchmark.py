@@ -166,21 +166,23 @@ class TaskThread(QThread):
         Path(log_dir).mkdir(parents=True, exist_ok=True)
         try:
             # Reset
-            if self.args.remote:
-                self.signals.status_bar_signal.emit("color: blue;", "Resetting Task...")
-                response_raw = requests.post(
-                    f"{REMOTE_SERVER_ADDR}/task/reset",
-                    json=AgentStudioResetRequest(
-                        task_config=self.task_config
-                    ).model_dump(),
-                )
-                response = AgentStudioStatusResponse(**response_raw.json())
-                response = self.wait_finish(is_eval=False, response=response)
-                assert (
-                    response.status == "finished" and response.content == "success"
-                ), f"Fail to reset task: {response.message}"
-            else:
-                raise ValueError("Local mode is not supported.")
+            if self.task_config.reset_procedure is not None:
+                if self.args.remote:
+                    self.signals.status_bar_signal.emit(
+                        "color: blue;", "Resetting Task...")
+                    response_raw = requests.post(
+                        f"{REMOTE_SERVER_ADDR}/task/reset",
+                        json=AgentStudioResetRequest(
+                            procedures=self.task_config.reset_procedure
+                        ).model_dump(),
+                    )
+                    response = AgentStudioStatusResponse(**response_raw.json())
+                    response = self.wait_finish(is_eval=False, response=response)
+                    assert (
+                        response.status == "finished" and response.content == "success"
+                    ), f"Fail to reset task: {response.message}"
+                else:
+                    raise ValueError("Local mode is not supported.")
 
             instruction = self.task_config.instruction
             logger.info(f"Task instruction: {instruction}")
@@ -243,7 +245,7 @@ class TaskThread(QThread):
                 response_raw = requests.post(
                     f"{REMOTE_SERVER_ADDR}/task/eval",
                     json=AgentStudioEvalRequest(
-                        task_config=self.task_config,
+                        procedures=self.task_config.eval_procedure,
                         kwargs=str(
                             jsonpickle.encode({"trejectory": self.agent.trajectory})
                         ),
@@ -290,6 +292,25 @@ class TaskThread(QThread):
 
             logger.error(f"[Unhandled Error] {repr(e)}]")
             logger.error(traceback.format_exc())
+        finally:
+            # Cleanup
+            if self.task_config.cleanup_procedure is not None:
+                if self.args.remote:
+                    self.signals.status_bar_signal.emit(
+                        "color: blue;", "Cleaning up Task...")
+                    response_raw = requests.post(
+                        f"{REMOTE_SERVER_ADDR}/task/reset",
+                        json=AgentStudioResetRequest(
+                            procedures=self.task_config.cleanup_procedure
+                        ).model_dump(),
+                    )
+                    response = AgentStudioStatusResponse(**response_raw.json())
+                    response = self.wait_finish(is_eval=False, response=response)
+                    assert (
+                        response.status == "finished" and response.content == "success"
+                    ), f"Fail to reset task: {response.message}"
+                else:
+                    raise ValueError("Local mode is not supported.")
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -828,6 +849,7 @@ class NonGUI():
             "height": self.video_height,
         }
 
+
 def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
     if response.status == "finished":
         return response
@@ -871,19 +893,21 @@ def eval(args, interface: GUI | NonGUI | None = None) -> None:
     for task_config in tqdm(task_configs, desc="Evaluating tasks"):
         try:
             # Reset
-            if args.remote:
-                response_raw = requests.post(
-                    f"{REMOTE_SERVER_ADDR}/task/reset",
-                    json=AgentStudioResetRequest(task_config=task_config).model_dump(),
-                )
-                response = AgentStudioStatusResponse(**response_raw.json())
-                response = wait_finish(is_eval=False, response=response)
-                assert (
-                    response.status == "finished" and response.content == "success"
-                ), f"Fail to reset task: {response.message}"
-            else:
-                evaluators = evaluator_router(task_config)
-                evaluators.reset(task_config.reset_procedure)
+            if task_config.reset_procedure is not None:
+                if args.remote:
+                    response_raw = requests.post(
+                        f"{REMOTE_SERVER_ADDR}/task/reset",
+                        json=AgentStudioResetRequest(
+                            procedures=task_config.reset_procedure).model_dump(),
+                    )
+                    response = AgentStudioStatusResponse(**response_raw.json())
+                    response = wait_finish(is_eval=False, response=response)
+                    assert (
+                        response.status == "finished" and response.content == "success"
+                    ), f"Fail to reset task: {response.message}"
+                else:
+                    evaluators = evaluator_router(task_config)
+                    evaluators.reset(task_config.reset_procedure)
 
             instruction = task_config.instruction
             logger.info(f"Task instruction: {instruction}")
@@ -937,7 +961,7 @@ def eval(args, interface: GUI | NonGUI | None = None) -> None:
                 response_raw = requests.post(
                     f"{REMOTE_SERVER_ADDR}/task/eval",
                     json=AgentStudioEvalRequest(
-                        task_config=task_config,
+                        procedures=task_config.eval_procedure,
                         kwargs=str(jsonpickle.encode({"trajectory": agent.trajectory})),
                     ).model_dump(),
                 )
@@ -976,6 +1000,23 @@ def eval(args, interface: GUI | NonGUI | None = None) -> None:
 
             logger.error(f"[Unhandled Error] {repr(e)}]")
             logger.error(traceback.format_exc())
+        finally:
+            # Clean up
+            if task_config.cleanup_procedure is not None:
+                if args.remote:
+                    response_raw = requests.post(
+                        f"{REMOTE_SERVER_ADDR}/task/reset",
+                        json=AgentStudioResetRequest(
+                            procedures=task_config.cleanup_procedure).model_dump(),
+                    )
+                    response = AgentStudioStatusResponse(**response_raw.json())
+                    response = wait_finish(is_eval=False, response=response)
+                    assert (
+                        response.status == "finished" and response.content == "success"
+                    ), f"Fail to reset task: {response.message}"
+                else:
+                    evaluators = evaluator_router(task_config)
+                    evaluators.reset(task_config.cleanup_procedure)
 
     agent.close()
     logger.info(

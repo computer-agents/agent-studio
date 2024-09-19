@@ -31,8 +31,11 @@ dependencies = [
     "urllib3 >= 2.2.3",
     "ipykernel",
     # "torch",
+    "scikit-image",
     "transformers",
     "PyQt6-QScintilla",
+    "python-docx",
+    "openpyxl",
 ]
 
 [tool.setuptools]
