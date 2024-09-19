@@ -12,9 +12,6 @@ from PIL import Image
 from agent_studio.agent.base_agent import TrajectoryInfo
 from agent_studio.llm.utils import decode_image
 from agent_studio.utils.types import TaskConfig
-from agent_studio.config import Config
-
-config = Config()
 
 
 def read_jsonl(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> list:
@@ -72,7 +69,7 @@ def read_json(
     return data
 
 
-def apply_env_vars(task_config: TaskConfig) -> TaskConfig:
+def apply_env_vars(task_config: TaskConfig, env_vars: dict) -> TaskConfig:
     def replace_placeholders(text, env_vars):
         # Regex to find patterns like ${VAR_NAME}
         pattern = re.compile(r"\$\{(\w+)\}")
@@ -97,7 +94,7 @@ def apply_env_vars(task_config: TaskConfig) -> TaskConfig:
             return obj
 
     json_dict = task_config.model_dump()
-    replaced_json = traverse_and_replace(json_dict, config.env_vars)
+    replaced_json = traverse_and_replace(json_dict, env_vars)
     return TaskConfig.model_validate(replaced_json)
 
 

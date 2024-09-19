@@ -62,7 +62,7 @@ from agent_studio.utils.gui import (
     InputDialog,
     JSONEditor,
 )
-from agent_studio.utils.json_utils import export_trajectories, read_task_jsons
+from agent_studio.utils.json_utils import export_trajectories, read_task_jsons, apply_env_vars
 from agent_studio.utils.types import TaskConfig
 
 config = Config()
@@ -113,7 +113,7 @@ class TaskThread(QThread):
         self.mutex = QMutex()
         self.wait_condition = QWaitCondition()
         self.agent: BaseAgent = agent
-        self.task_config = task_config
+        self.task_config: TaskConfig = task_config
         self.signals = signal
         self.args = args
         self.interface = interface
@@ -164,26 +164,37 @@ class TaskThread(QThread):
     def run(self):
         log_dir = f"{self.args.log_dir}/{self.args.model}/{self.args.agent}"
         Path(log_dir).mkdir(parents=True, exist_ok=True)
+        if not self.args.remote:
+            raise ValueError("Local mode is not supported.")
         try:
+            # Get remote env_vars
+            response_raw = requests.get(f"{REMOTE_SERVER_ADDR}/env_vars")
+            response = AgentStudioStatusResponse(**response_raw.json())
+            assert (
+                response.status == "success"
+            ), f"Fail to reset task: {response.message}"
+            env_vars = response.message
+            assert isinstance(env_vars, dict), "Invalid env_vars"
+            logger.debug(f"Env vars: {env_vars}")
+            logger.debug(f"Task config before: {self.task_config}")
+            self.task_config = apply_env_vars(self.task_config, env_vars)
+            logger.debug(f"Task config after: {self.task_config}")
             # Reset
             if self.task_config.reset_procedure is not None:
-                if self.args.remote:
-                    self.signals.status_bar_signal.emit(
-                        "color: blue;", "Resetting Task..."
-                    )
-                    response_raw = requests.post(
-                        f"{REMOTE_SERVER_ADDR}/task/reset",
-                        json=AgentStudioResetRequest(
-                            procedures=self.task_config.reset_procedure
-                        ).model_dump(),
-                    )
-                    response = AgentStudioStatusResponse(**response_raw.json())
-                    response = self.wait_finish(is_eval=False, response=response)
-                    assert (
-                        response.status == "finished" and response.content == "success"
-                    ), f"Fail to reset task: {response.message}"
-                else:
-                    raise ValueError("Local mode is not supported.")
+                self.signals.status_bar_signal.emit(
+                    "color: blue;", "Resetting Task..."
+                )
+                response_raw = requests.post(
+                    f"{REMOTE_SERVER_ADDR}/task/reset",
+                    json=AgentStudioResetRequest(
+                        procedures=self.task_config.reset_procedure
+                    ).model_dump(),
+                )
+                response = AgentStudioStatusResponse(**response_raw.json())
+                response = self.wait_finish(is_eval=False, response=response)
+                assert (
+                    response.status == "finished" and response.content == "success"
+                ), f"Fail to reset task: {response.message}, get response {response.content}"
 
             instruction = self.task_config.instruction
             logger.info(f"Task instruction: {instruction}")
@@ -242,29 +253,26 @@ class TaskThread(QThread):
                 video_meta = self.interface.save_video(video_path)
                 logger.info(f"Video saved to {video_path}")
 
-            if self.args.remote:
-                response_raw = requests.post(
-                    f"{REMOTE_SERVER_ADDR}/task/eval",
-                    json=AgentStudioEvalRequest(
-                        procedures=self.task_config.eval_procedure,
-                        kwargs=str(
-                            jsonpickle.encode({"trejectory": self.agent.trajectory})
-                        ),
-                    ).model_dump(),
-                )
-                response = AgentStudioStatusResponse(**response_raw.json())
-                response = self.wait_finish(is_eval=True, response=response)
-                if not (
-                    response.status == "finished"
-                    and isinstance(response.message, dict)  # noqa: E501
-                ):
-                    raise ValueError(f"Fail to evaluate task: {response.message}")
-                score, feedback = (
-                    response.message["score"],
-                    response.message["feedback"],
-                )
-            else:
-                raise ValueError("Local mode is not supported.")
+            response_raw = requests.post(
+                f"{REMOTE_SERVER_ADDR}/task/eval",
+                json=AgentStudioEvalRequest(
+                    procedures=self.task_config.eval_procedure,
+                    kwargs=str(
+                        jsonpickle.encode({"trejectory": self.agent.trajectory})
+                    ),
+                ).model_dump(),
+            )
+            response = AgentStudioStatusResponse(**response_raw.json())
+            response = self.wait_finish(is_eval=True, response=response)
+            if not (
+                response.status == "finished"
+                and isinstance(response.message, dict)  # noqa: E501
+            ):
+                raise ValueError(f"Fail to evaluate task: {response.message}")
+            score, feedback = (
+                response.message["score"],
+                response.message["feedback"],
+            )
 
             if score == 1.0:
                 logger.info(f"[Result] (PASS): {feedback}")
@@ -294,23 +302,20 @@ class TaskThread(QThread):
         finally:
             # Cleanup
             if self.task_config.cleanup_procedure is not None:
-                if self.args.remote:
-                    self.signals.status_bar_signal.emit(
-                        "color: blue;", "Cleaning up Task..."
-                    )
-                    response_raw = requests.post(
-                        f"{REMOTE_SERVER_ADDR}/task/reset",
-                        json=AgentStudioResetRequest(
-                            procedures=self.task_config.cleanup_procedure
-                        ).model_dump(),
-                    )
-                    response = AgentStudioStatusResponse(**response_raw.json())
-                    response = self.wait_finish(is_eval=False, response=response)
-                    assert (
-                        response.status == "finished" and response.content == "success"
-                    ), f"Fail to reset task: {response.message}"
-                else:
-                    raise ValueError("Local mode is not supported.")
+                self.signals.status_bar_signal.emit(
+                    "color: blue;", "Cleaning up Task..."
+                )
+                response_raw = requests.post(
+                    f"{REMOTE_SERVER_ADDR}/task/reset",
+                    json=AgentStudioResetRequest(
+                        procedures=self.task_config.cleanup_procedure
+                    ).model_dump(),
+                )
+                response = AgentStudioStatusResponse(**response_raw.json())
+                response = self.wait_finish(is_eval=False, response=response)
+                assert (
+                    response.status == "finished" and response.content == "success"
+                ), f"Fail to reset task: {response.message}"
             self.signals.finish_signal.emit()
             self.signals.status_bar_signal.emit("color: green;", "Ready")
 
@@ -892,6 +897,21 @@ def eval(args, interface: GUI | NonGUI | None = None) -> None:
     scores = {}
     for task_config in tqdm(task_configs, desc="Evaluating tasks"):
         try:
+            # Get remote env_vars
+            if args.remote:
+                response_raw = requests.get(f"{REMOTE_SERVER_ADDR}/env_vars")
+                response = AgentStudioStatusResponse(**response_raw.json())
+                assert (
+                    response.status == "success"
+                ), f"Fail to reset task: {response.message}"
+                env_vars = response.message
+                assert isinstance(env_vars, dict), "Invalid env_vars"
+            else:
+                env_vars = config.env_vars
+            logger.debug(f"Env vars: {env_vars}")
+            logger.debug(f"Task config before: {task_config}")
+            task_config = apply_env_vars(task_config, env_vars)
+            logger.debug(f"Task config after: {task_config}")
             # Reset
             if task_config.reset_procedure is not None:
                 if args.remote:

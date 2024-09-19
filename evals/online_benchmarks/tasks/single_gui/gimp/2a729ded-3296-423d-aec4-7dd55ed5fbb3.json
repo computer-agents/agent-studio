@@ -5,38 +5,39 @@
   "max_steps": 30,
   "eval_procedure": [
     {
-      "evaluator": "system",
-      "function": "exec",
+      "evaluator": "gimp",
+      "function": "check_structure_sim",
       "params": {
-          "command": "python3 -c import pyautogui; pyautogui.hotkey([\"shift\", \"ctrl\", \"e\"]);"
+        "src_path": "${AS_ROOT}/gimp_workspace/dog_without_background.png",
+        "tgt_path": "${AS_ROOT}/data/2a729ded-3296-423d-aec4-7dd55ed5fbb3/dog_cutout_gold.png"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
       }
     },
     {
-      "evaluator": "system",
-      "function": "sleep",
+      "evaluator": "filesystem",
+      "function": "copy",
       "params": {
-          "seconds": 0.5
+        "src": "${AS_ROOT}/data/2a729ded-3296-423d-aec4-7dd55ed5fbb3/dog_with_background.png",
+        "dest": "${AS_ROOT}/gimp_workspace/dog_without_background.png"
       }
     },
     {
-      "evaluator": "system",
-      "function": "exec",
+      "evaluator": "process",
+      "function": "create_process",
       "params": {
-          "command": "python3 -c import pyautogui; pyautogui.write(\"dog_without_background\");pyautogui.press([\"enter\"]);"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "sleep",
-      "params": {
-          "seconds": 2
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-          "command": "python3 -c import pyautogui; pyautogui.press([\"enter\"]);"
+        "cmd": [
+          "gimp",
+          "${AS_ROOT}/gimp_workspace/dog_without_background.png"
+        ],
+        "wait_for": "gimp"
       }
     },
     {
@@ -45,22 +46,21 @@
       "params": {
           "seconds": 5
       }
-    },
-    {
-      "evaluator": "gimp",
-      "function": "check_structure_sim",
-      "params": {
-        "src_path": "data/2a729ded-3296-423d-aec4-7dd55ed5fbb3/dog_without_background.png",
-        "tgt_path": "data/2a729ded-3296-423d-aec4-7dd55ed5fbb3/dog_cutout_gold.png"
-      }
     }
   ],
-  "reset_procedure": [
+  "cleanup_procedure": [
     {
-      "evaluator": "system",
-      "function": "exec",
+      "evaluator": "process",
+      "function": "pkill_by_name",
       "params": {
-        "command": "gimp data/2a729ded-3296-423d-aec4-7dd55ed5fbb3/dog_with_background.png"
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
       }
     }
   ]
