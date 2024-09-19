@@ -21,7 +21,7 @@ from agent_studio.utils.communication import (
     AgentStudioTextRequest,
 )
 from agent_studio.utils.task_status import StateEnum, StateInfo, TaskStatus
-from agent_studio.utils.types import Procedure
+from agent_studio.utils.types import Procedure, TaskConfig
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -167,15 +167,24 @@ async def reset_task(request: AgentStudioResetRequest) -> AgentStudioStatusRespo
         current_thread.join()
         task_status.reset_state()
 
-    logger.info(f"Reset task with procedures: {request.task_config.reset_procedure}")
+    logger.info(f"Reset task with procedures: {request.procedures}")
     try:
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
-        comb = evaluator_router(request.task_config)
+        fake_task_config = TaskConfig(
+            task_id="fake",
+            instruction="fake",
+            visual=False,
+            max_steps=100,
+            eval_procedure=[],
+            reset_procedure=request.procedures,
+            cleanup_procedure=[],
+        )
+        comb = evaluator_router(fake_task_config)
         current_thread = threading.Thread(
             target=reset_thread,
             args=(
                 comb,
-                request.task_config.reset_procedure,
+                request.procedures,
             ),
         )
         current_thread.start()
@@ -207,18 +216,27 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
         global current_thread
         if current_thread is not None:
             raise ValueError("Another task is in progress.")
-        logger.info(f"Start evaluating task: {request.task_config.eval_procedure}")
+        logger.info(f"Start evaluating task: {request.procedures}")
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
         kwargs = jsonpickle.decode(request.kwargs)
         if not isinstance(kwargs, dict):
             raise ValueError(f"kwargs is {type(kwargs)} instead of a dict")
 
-        comb = evaluator_router(request.task_config)
+        fake_task_config = TaskConfig(
+            task_id="fake",
+            instruction="fake",
+            visual=False,
+            max_steps=100,
+            eval_procedure=request.procedures,
+            reset_procedure=[],
+            cleanup_procedure=[],
+        )
+        comb = evaluator_router(fake_task_config)
         current_thread = threading.Thread(
             target=eval_task,
             args=(
                 comb,
-                request.task_config.eval_procedure,
+                request.procedures,
             ),
             kwargs=kwargs,
         )

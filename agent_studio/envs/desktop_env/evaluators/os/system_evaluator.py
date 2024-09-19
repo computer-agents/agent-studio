@@ -28,8 +28,12 @@ class SystemEvaluator(Evaluator):
     def sleep_eval(self, seconds: float) -> None:
         time.sleep(seconds)
 
+    @reset_handler("exec")
+    def exec_rst(self, command: str) -> None:
+        os.system(command)
+
     @evaluation_handler("diff")
-    def diff(self, file1: str, file2: str) -> None:
+    def diff_rst(self, file1: str, file2: str) -> None:
         result = subprocess.run(
             ["diff", file1, file2], stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
