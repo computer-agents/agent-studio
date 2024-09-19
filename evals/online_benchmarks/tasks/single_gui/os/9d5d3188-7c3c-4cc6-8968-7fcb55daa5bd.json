@@ -1,0 +1,41 @@
+{
+  "task_id": "9d5d3188-7c3c-4cc6-8968-7fcb55daa5bd",
+  "instruction": "Update the content of 'agenda.txt' in 'tmp/meetings/' to 'Updated Meeting Agenda'.z",
+  "visual": true,
+  "max_steps": 20,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/meetings/agenda.txt": "Updated Meeting Agenda"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp/meetings"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp/meetings"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/meetings/agenda.txt",
+        "content": "Initial Meeting Agenda"
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "task_id": "0b17a146-2934-46c7-8727-73ff6b6483e8",
+  "instruction": "Help me change the 2 in \"H2O\" to a subscript and save it.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "docs",
+      "function": "compare_docx_files",
+      "params": {
+        "docx_file1": "data/0b17a146-2934-46c7-8727-73ff6b6483e8/H2O_Factsheet_WA_Gold.docx",
+        "docx_file2": "data/0b17a146-2934-46c7-8727-73ff6b6483e8/H2O_Factsheet_WA.docx"
+      }
+    },
+    {
+      "evaluator": "docs",
+      "function": "compare_subscript_contains",
+      "params": {
+        "docx_file1": "data/0b17a146-2934-46c7-8727-73ff6b6483e8/H2O_Factsheet_WA_Gold.docx",
+        "docx_file2": "~/docs/H2O_Factsheet_WA.docx"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/0b17a146-2934-46c7-8727-73ff6b6483e8/H2O_Factsheet_WA.docx",
+        "dest": "~/docs"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open ~/docs/H2O_Factsheet_WA.docx"
+      }
+    }
+  ]
+}

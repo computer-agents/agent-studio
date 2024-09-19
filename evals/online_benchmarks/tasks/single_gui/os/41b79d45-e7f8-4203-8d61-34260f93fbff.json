@@ -1,0 +1,105 @@
+{
+  "task_id": "41b79d45-e7f8-4203-8d61-34260f93fbff",
+  "instruction": "In the 'tmp/downloads/' directory, move all '.jpg' files to 'tmp/downloads/images/' and all '.txt' files to 'tmp/downloads/texts/'.",
+  "visual": true,
+  "max_steps": 20,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/downloads/images/photo1.jpg": true,
+          "tmp/downloads/images/photo2.jpg": true,
+          "tmp/downloads/texts/document1.txt": true,
+          "tmp/downloads/texts/document2.txt": true,
+          "tmp/downloads/photo1.jpg": false,
+          "tmp/downloads/photo2.jpg": false,
+          "tmp/downloads/document1.txt": false,
+          "tmp/downloads/document2.txt": false
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/downloads/images/photo1.jpg": "",
+          "tmp/downloads/images/photo2.jpg": "",
+          "tmp/downloads/texts/document1.txt": "Text content 1",
+          "tmp/downloads/texts/document2.txt": "Text content 2"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp/downloads"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp/downloads/images/"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp/downloads/texts/"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/downloads/photo1.jpg",
+        "content": ""
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/downloads/photo2.jpg",
+        "content": ""
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/downloads/document1.txt",
+        "content": "Text content 1"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/downloads/document2.txt",
+        "content": "Text content 2"
+      }
+    }
+  ]
+}

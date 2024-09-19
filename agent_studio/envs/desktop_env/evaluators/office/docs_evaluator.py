@@ -1,12 +1,15 @@
 import logging
 import re
+from io import BytesIO
 from typing import Any
 
+import easyocr
 from docx import Document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_TAB_ALIGNMENT
 from docx.shared import RGBColor
 from odf.opendocument import load
 from odf.text import P, Span
+from PIL import Image
 from rapidfuzz import fuzz
 from skimage.color import deltaE_ciede2000, rgb2lab
 
@@ -447,3 +450,98 @@ class DocsCalcEvaluator(Evaluator):
     def compare_docx_files(self, file1, file2, options):
         if not _compare_docx_files(file1, file2, **options):
             raise FeedbackException("Documents are different")
+
+    @evaluation_handler("compare_image_text")
+    def compare_image_text(self, image_path, rule):
+        reader = easyocr.Reader(["en"])
+        result = reader.readtext(image_path)
+        extracted_text = " ".join([entry[1] for entry in result])
+        if rule["text"] not in extracted_text:
+            raise FeedbackException("Text not found in image")
+
+    @evaluation_handler("compare_docx_images")
+    def compare_docx_images(self, docx_file1, docx_file2):
+        try:
+            doc1 = Document(docx_file1)
+            doc2 = Document(docx_file2)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException("Error loading documents")
+
+        def extract_images(doc):
+            images = []
+            for rel in doc.part.rels.values():
+                if "image" in rel.reltype:
+                    img_data = rel.target_part.blob
+                    images.append(BytesIO(img_data))
+            return images
+
+        images1 = extract_images(doc1)
+        images2 = extract_images(doc2)
+        if len(images1) != len(images2):
+            raise FeedbackException("Number of images is different")
+        for img1, img2 in zip(images1, images2):
+            if Image.open(img1).tobytes() != Image.open(img2).tobytes():
+                raise FeedbackException("Images are different")
+
+    @evaluation_handler("compare_references")
+    def compare_references(self, file1, file2, options):
+        reference_indicator = options.get("reference_indicator", "References")
+        reference_base_result = options.get("reference_base_result", 0.5)
+
+        # Determine file types and load documents
+        if file1.endswith(".docx") and file2.endswith(".docx"):
+            try:
+                doc1 = Document(file1)
+                doc2 = Document(file2)
+            except Exception as e:
+                logger.error(f"Error: {e}")
+                raise FeedbackException("Error loading documents")
+
+            doc1_paragraphs = [p.text for p in doc1.paragraphs]
+            doc2_paragraphs = [p.text for p in doc2.paragraphs]
+        else:
+            # Unsupported file types or mismatch
+            print("Unsupported file types or mismatch between file types.")
+            raise FeedbackException(
+                "Unsupported file types or mismatch between file types."
+            )
+
+        # Find the references section in the paragraphs, find the idx of the last reference_indicator in the paragraph list  # noqa: E501
+        ref1_idx = (
+            doc1_paragraphs.index(reference_indicator)
+            if reference_indicator in doc1_paragraphs
+            else -1
+        )
+        ref2_idx = (
+            doc2_paragraphs.index(reference_indicator)
+            if reference_indicator in doc2_paragraphs
+            else -1
+        )
+
+        if ref1_idx == -1 and ref2_idx == -1:
+            return
+
+        if ref1_idx == -1 or ref2_idx == -1:
+            raise FeedbackException("References section is missing")
+
+        # split the reference section into reference items, and remove the empty string items  # noqa: E501
+        ref1 = [p for p in doc1_paragraphs[ref1_idx + 1 :] if p.strip()]
+        ref2 = [p for p in doc2_paragraphs[ref2_idx + 1 :] if p.strip()]
+
+        # Compare the references
+
+        if len(ref1) != len(ref2):
+            raise FeedbackException("Number of references is different")
+
+        total_similarity = 0
+        for r1, r2 in zip(ref1, ref2):
+            # fuzzy match the references
+            similarity = fuzz.ratio(r1, r2) / 100.0
+            total_similarity += similarity
+
+        result = total_similarity / len(ref1)
+        if result >= reference_base_result:
+            return (result - reference_base_result) / (1 - reference_base_result)
+        else:
+            raise FeedbackException("References are different")

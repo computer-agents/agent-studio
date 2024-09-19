@@ -1,0 +1,21 @@
+{
+  "task_id": "2c1ebcd7-9c6d-4c9a-afad-900e381ecd5e",
+  "instruction": "Could you please take a moment to review the 'case_study.docx' file located within the 'data/2c1ebcd7-9c6d-4c9a-afad-900e381ecd5e/student_work' folder? I'm particularly interested in ensuring that the references section at the end of the document adheres to the APA 7th edition formatting guidelines. Making the necessary adjustments if it turns out that the current formatting does not align with APA 7 standards or exists some errors.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "docs",
+      "function": "compare_references",
+      "params": {
+        "docx_file1": "data/2c1ebcd7-9c6d-4c9a-afad-900e381ecd5e/04_CHIN9505_EBook_Purchasing_info_2021_Jan_Gold.docx",
+        "docx_file2": "data/2c1ebcd7-9c6d-4c9a-afad-900e381ecd5e/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx",
+        "kwargs": {
+          "word_number_split_by_tabstop": 3,
+          "index": 0
+        }
+      }
+    }
+  ],
+  "reset_procedure": []
+}

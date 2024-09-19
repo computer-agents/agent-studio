@@ -1,0 +1,66 @@
+{
+  "task_id": "cc3553b2-93da-4a3d-a461-459a2cc030cb",
+  "instruction": "Move 'draft.txt' from 'tmp/' to 'tmp/archive/'.",
+  "visual": true,
+  "max_steps": 20,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/archive/draft.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/draft.txt": false
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/archive/draft.txt": "This is the only copy of the file"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp/archive"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/draft.txt",
+        "content": "This is the only copy of the file"
+      }
+    }
+  ]
+}

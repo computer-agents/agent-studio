@@ -722,7 +722,7 @@ class GUI(QMainWindow):
         exit(0)
 
 
-class NonGUI():
+class NonGUI:
     def __init__(
         self,
         args: argparse.Namespace,
@@ -761,9 +761,7 @@ class NonGUI():
         self.now_screenshot = np.zeros(
             (self.video_height, self.video_width, 4), dtype="uint8"
         )
-        self.recording_thread = threading.Thread(
-            target=self._capture
-        )
+        self.recording_thread = threading.Thread(target=self._capture)
         self.is_recording = True
         self.recording_thread.start()
 
@@ -827,6 +825,7 @@ class NonGUI():
             "width": self.video_width,
             "height": self.video_height,
         }
+
 
 def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
     if response.status == "finished":

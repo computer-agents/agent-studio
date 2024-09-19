@@ -1,0 +1,37 @@
+{
+  "task_id": "0a0faba3-5580-44df-965d-f562a99b291c",
+  "instruction": "I would like to make the first three words of the sentence left-aligned and the rest right-aligned. I basically want to have some empty space in the middle to add some photos. Assume that every sentence will have at least three words. Could you help me on alignment for me using tabstops and save it?",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "docs",
+      "function": "check_tabstops",
+      "params": {
+        "docx_file1": "data/0a0faba3-5580-44df-965d-f562a99b291c/04_CHIN9505_EBook_Purchasing_info_2021_Jan_Gold.docx",
+        "docx_file2": "~/docs/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx",
+        "kwargs": {
+          "word_number_split_by_tabstop": 3,
+          "index": 0
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/0a0faba3-5580-44df-965d-f562a99b291c/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx",
+        "dest": "~/docs"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "open ~/docs/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx"
+      }
+    }
+  ]
+}

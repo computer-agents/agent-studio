@@ -1,0 +1,59 @@
+{
+  "task_id": "ed52765c-494c-403a-95f3-dd862241fbed",
+  "instruction": "Rename 'old_report.txt' to 'new_report.txt' in 'tmp/reports/'.",
+  "visual": true,
+  "max_steps": 20,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/reports/new_report.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "tmp/reports/old_report.txt": false
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/reports/new_report.txt": "This is the only copy of the report"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp/reports"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp/reports"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/reports/old_report.txt",
+        "content": "This is the only copy of the report"
+      }
+    }
+  ]
+}

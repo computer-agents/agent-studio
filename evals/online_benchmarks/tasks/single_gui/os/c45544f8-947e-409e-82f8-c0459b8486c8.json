@@ -1,0 +1,57 @@
+{
+  "task_id": "c45544f8-947e-409e-82f8-c0459b8486c8",
+  "instruction": "There are three data files stored in 'tmp/data/'. Calculate the average of numbers in them and store it in 'average.txt' in 'tmp/data/'. The average should be rounded to the nearest whole number. Each data file contains a set of numbers separated by a newline character.",
+  "visual": true,
+  "max_steps": 20,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/data/average.txt": "30857"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp/data"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp/data"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/data/data1.txt",
+        "content": "74\n38"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/data/data2.txt",
+        "content": "271\n153848"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/data/data3.txt",
+        "content": "55"
+      }
+    }
+  ]
+}

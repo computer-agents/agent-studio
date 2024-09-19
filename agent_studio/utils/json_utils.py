@@ -68,9 +68,7 @@ def read_json(
     return data
 
 
-def read_task_jsons(
-    path: str
-) -> list[TaskConfig]:
+def read_task_jsons(path: str) -> list[TaskConfig]:
     """
     Read task configs from folder or file
     """

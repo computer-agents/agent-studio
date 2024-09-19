@@ -1,0 +1,41 @@
+{
+  "task_id": "1485713f-f55e-4a3b-95b2-84c5df6d5a31",
+  "instruction": "Increment the number in 'count.txt' in 'tmp/data/' by 1.",
+  "visual": true,
+  "max_steps": 20,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "tmp/data/count.txt": "2"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "tmp/data"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "tmp/data"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "tmp/data/count.txt",
+        "content": "1"
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "task_id": "227d2f97-562b-4ccb-ae47-a5ec9e142fbb",
+  "instruction": "I've stored my .xcf file in 'data/227d2f97-562b-4ccb-ae47-a5ec9e142fbb/QTdHniCqfJbBLJe3L3nijU-1200-80.xcf'. Can you assist me in copying the image and pasting it into a LibreOffice Writer document? Save the document as 'data/227d2f97-562b-4ccb-ae47-a5ec9e142fbb/image.docx'.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "docs",
+      "function": "compare_docx_images",
+      "params": {
+        "docx_file1": "data/227d2f97-562b-4ccb-ae47-a5ec9e142fbb/image_Gold.docx",
+        "docx_file2": "data/227d2f97-562b-4ccb-ae47-a5ec9e142fbb/image.docx"
+      }
+    }
+  ],
+  "reset_procedure": []
+}
