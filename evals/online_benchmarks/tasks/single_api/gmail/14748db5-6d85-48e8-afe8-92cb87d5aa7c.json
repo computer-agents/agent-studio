@@ -15,5 +15,17 @@
       }
     }
   ],
-  "reset_procedure": []
+  "reset_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "create_draft",
+      "params": {
+        "draft_info": {
+          "subject": "Automated draft",
+          "recipient": "gduser1@workspacesamples.dev",
+          "body": "This is automated draft mail"
+        }
+      }
+    }
+  ]
 }

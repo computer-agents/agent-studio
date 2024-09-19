@@ -16,5 +16,16 @@
       }
     }
   ],
-  "reset_procedure": []
+  "reset_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "send_message",
+      "params": {
+        "message_info": {
+          "subject": "Meeting reminder",
+          "body": "conference call"
+        }
+      }
+    }
+  ]
 }

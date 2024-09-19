@@ -1,6 +1,6 @@
 {
-  "task_id": "5f79b335-1cd8-4184-9401-3a5c0ac52ef5",
-  "instruction": "Check if there are any overlapping events with the 'Product Launch' event scheduled on 2024-08-25 from 1pm to 3pm in Google Calendar. Save hours of overlap to tmp/overlapping.txt if there are, otherwise save 'No'. You should keep the first two digits of the hours of overlap.",
+  "task_id": "8de89f53-78a6-4763-b49f-3d6ad63bd303",
+  "instruction": "List the summary of all events on 2024-07-04 in Google Calendar. Sort by start time and save summeries to tmp/answer.txt, line by line.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/overlapping.txt": true
+          "tmp/answer.txt": true
         }
       }
     },
@@ -18,7 +18,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "tmp/overlapping.txt": "1.50"
+          "tmp/answer.txt": "Independence Day Celebration\nFireworks Viewing"
         },
         "method": "strip"
       }
@@ -30,12 +30,12 @@
       "function": "delete_event",
       "params": {
         "event_info": {
-          "summary": "Product Launch",
+          "summary": "Independence Day Celebration",
           "start": {
-            "dateTime": "2024-08-25T13:00:00Z"
+            "dateTime": "2024-07-04T00:00:00Z"
           },
           "end": {
-            "dateTime": "2024-08-25T15:00:00Z"
+            "dateTime": "2024-07-04T23:59:00Z"
           }
         }
       }
@@ -45,12 +45,12 @@
       "function": "delete_event",
       "params": {
         "event_info": {
-          "summary": "Team Meeting",
+          "summary": "Fireworks Viewing",
           "start": {
-            "dateTime": "2024-08-25T13:30:00Z"
+            "dateTime": "2024-07-04T18:00:00Z"
           },
           "end": {
-            "dateTime": "2024-08-25T16:00:00Z"
+            "dateTime": "2024-07-04T19:00:00Z"
           }
         }
       }
@@ -60,12 +60,12 @@
       "function": "create_event",
       "params": {
         "event_info": {
-          "summary": "Product Launch",
+          "summary": "Independence Day Celebration",
           "start": {
-            "dateTime": "2024-08-25T13:00:00Z"
+            "dateTime": "2024-07-04T00:00:00Z"
           },
           "end": {
-            "dateTime": "2024-08-25T15:00:00Z"
+            "dateTime": "2024-07-04T23:59:00Z"
           }
         }
       }
@@ -75,12 +75,12 @@
       "function": "create_event",
       "params": {
         "event_info": {
-          "summary": "Team Meeting",
+          "summary": "Fireworks Viewing",
           "start": {
-            "dateTime": "2024-08-25T13:30:00Z"
+            "dateTime": "2024-07-04T18:00:00Z"
           },
           "end": {
-            "dateTime": "2024-08-25T16:00:00Z"
+            "dateTime": "2024-07-04T19:00:00Z"
           }
         }
       }

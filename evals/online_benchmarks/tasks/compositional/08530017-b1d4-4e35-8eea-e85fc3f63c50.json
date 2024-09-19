@@ -1,6 +1,6 @@
 {
   "task_id": "08530017-b1d4-4e35-8eea-e85fc3f63c50",
-  "instruction": "Check if there are any conflicting events with the 'Quarterly Planning Session' scheduled on 2024-09-20 from 1pm to 3pm in Google Calendar, and save the summary of conflicting events to tmp/conflicts.txt.",
+  "instruction": "Check if there are any conflicting events with the 'Quarterly Planning Session' scheduled on 2024-09-20 from 2pm to 3pm in Google Calendar. If so, save the summary of conflicting events to tmp/conflicts.txt.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -25,6 +25,36 @@
     }
   ],
   "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "delete_event",
+      "params": {
+        "event_info": {
+          "summary": "Quarterly Planning Session",
+          "start": {
+            "dateTime": "2024-09-20T14:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-09-20T15:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Quarterly Planning Session",
+          "start": {
+            "dateTime": "2024-09-20T14:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-09-20T15:00:00Z"
+          }
+        }
+      }
+    },
     {
       "evaluator": "google_calendar",
       "function": "delete_event",
