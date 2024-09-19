@@ -1,4 +1,6 @@
 import json
+import os
+from pathlib import Path
 
 from agent_studio.utils.singleton import ThreadSafeSingleton
 
@@ -49,6 +51,12 @@ class Config(metaclass=ThreadSafeSingleton):
 
     # QA config
     qa_answer_pattern: str = r"\[\[\[(.*?)\]\]\]"
+
+    env_vars: dict[str, str] = {
+        "AS_ROOT": Path(os.getcwd()).as_posix(),
+        "AS_HOME": Path(os.path.expanduser("~")).as_posix(),
+        "AS_TEST": "test",
+    }
 
     def __init__(self) -> None:
         with open(self.api_key_path, "r") as f:

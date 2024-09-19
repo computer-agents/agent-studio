@@ -22,6 +22,7 @@ from agent_studio.utils.communication import (
 )
 from agent_studio.utils.task_status import StateEnum, StateInfo, TaskStatus
 from agent_studio.utils.types import Procedure, TaskConfig
+from agent_studio.utils.json_utils import apply_env_vars
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -179,12 +180,15 @@ async def reset_task(request: AgentStudioResetRequest) -> AgentStudioStatusRespo
             reset_procedure=request.procedures,
             cleanup_procedure=[],
         )
+        logger.debug(f"Before applying env vars: {fake_task_config}")
+        fake_task_config = apply_env_vars(fake_task_config)
+        logger.debug(f"After applying env vars: {fake_task_config}")
         comb = evaluator_router(fake_task_config)
         current_thread = threading.Thread(
             target=reset_thread,
             args=(
                 comb,
-                request.procedures,
+                fake_task_config.reset_procedure,
             ),
         )
         current_thread.start()
@@ -231,12 +235,15 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
             reset_procedure=[],
             cleanup_procedure=[],
         )
+        logger.debug(f"Before applying env vars: {fake_task_config}")
+        fake_task_config = apply_env_vars(fake_task_config)
+        logger.debug(f"After applying env vars: {fake_task_config}")
         comb = evaluator_router(fake_task_config)
         current_thread = threading.Thread(
             target=eval_task,
             args=(
                 comb,
-                request.procedures,
+                fake_task_config.eval_procedure,
             ),
             kwargs=kwargs,
         )

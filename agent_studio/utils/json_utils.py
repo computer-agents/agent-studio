@@ -3,6 +3,7 @@ import json
 import os
 import uuid
 from typing import Any
+import re
 
 import cv2
 import numpy as np
@@ -11,6 +12,9 @@ from PIL import Image
 from agent_studio.agent.base_agent import TrajectoryInfo
 from agent_studio.llm.utils import decode_image
 from agent_studio.utils.types import TaskConfig
+from agent_studio.config import Config
+
+config = Config()
 
 
 def read_jsonl(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> list:
@@ -66,6 +70,35 @@ def read_json(
         else:
             data = json.load(file)[start_idx:end_idx]
     return data
+
+
+def apply_env_vars(task_config: TaskConfig) -> TaskConfig:
+    def replace_placeholders(text, env_vars):
+        # Regex to find patterns like ${VAR_NAME}
+        pattern = re.compile(r"\$\{(\w+)\}")
+
+        def replacer(match):
+            var_name = match.group(1)
+            if var_name in env_vars:
+                return env_vars[var_name]
+            else:
+                raise ValueError(
+                    f"Variable {var_name} not found in environment variables")
+        return pattern.sub(replacer, text)
+
+    def traverse_and_replace(obj, env_vars):
+        if isinstance(obj, dict):
+            return {k: traverse_and_replace(v, env_vars) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [traverse_and_replace(item, env_vars) for item in obj]
+        elif isinstance(obj, str):
+            return replace_placeholders(obj, env_vars)
+        else:
+            return obj
+
+    json_dict = task_config.model_dump()
+    replaced_json = traverse_and_replace(json_dict, config.env_vars)
+    return TaskConfig.model_validate(replaced_json)
 
 
 def read_task_jsons(path: str) -> list[TaskConfig]:

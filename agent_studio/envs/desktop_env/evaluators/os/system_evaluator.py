@@ -16,21 +16,15 @@ logger = logging.getLogger(__name__)
 class SystemEvaluator(Evaluator):
     name: str = "system"
 
-    @reset_handler("sleep")
-    def sleep(self, seconds: float) -> None:
-        time.sleep(seconds)
-
     @reset_handler("exec")
+    @evaluation_handler("exec")
     def exec(self, command: str) -> None:
         os.system(command)
 
+    @reset_handler("sleep")
     @evaluation_handler("sleep")
-    def sleep_eval(self, seconds: float) -> None:
+    def sleep(self, seconds: float) -> None:
         time.sleep(seconds)
-
-    @reset_handler("exec")
-    def exec_rst(self, command: str) -> None:
-        os.system(command)
 
     @evaluation_handler("diff")
     def diff_rst(self, file1: str, file2: str) -> None:
