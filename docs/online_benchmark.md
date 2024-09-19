@@ -124,11 +124,7 @@ This setup provides a comprehensive benchmark for testing various email operatio
 
 ## Example tasks
 
-The example task configurations are located in `evals/datasets/online_benchmarks`.
-
--   **Level 1**: `filesystem.json`
--   **Level 2**: `gcalendar.json`, `gdocs.json`, and `gmail.json`.
--   **Level 3**: `vscode.json`
+The example task configurations are located in `evals/online_benchmarks/tasks`.
 
 We also provide more auto-evaluators on other applications in `agent_studio/envs/desktop_env/evaluators`, such as Google Drive, Google Slides, etc.
 
@@ -138,7 +134,7 @@ We also provide more auto-evaluators on other applications in `agent_studio/envs
 
 You should note that the toolkit may do some **non-reversible actions**, such as deleting files, creating files, running commands, and deleting Google Calendar events. Please make sure you are hosting the toolkit in **a safe environment (E.g. virtual machine or docker) or have backups of your data.** Some tasks may require you to provide API keys. Before running the tasks, **please make sure the account doesn't have important data.**
 
-### Local
+### Run benchmark
 
 #### Non-GUI tasks
 
@@ -147,21 +143,21 @@ For Level-1 tasks without Google API usage (e.g., OS-related tasks), you can dir
 For example:
 
 ```bash
-as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/level_1/filesystem.json --model gemini-1.0-pro-001
+as-online-benchmark --task_configs_path evals/online_benchmarks/tasks/basic/filesystem --model gemini-1.0-pro-001
 ```
 
 You can set `need_human_confirmation` to True in `agent_studio/config/config.py` to do safety check before each action execution. You can add `--help` for more args.
 
 By default, you can check `logs` to see the full logs and result jsonl files.
 
-For Level-2 tasks requiring Google API usage, kindly enable Google APIs, configure OAuth, download the credentials following instructions [here](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), specify the credential path in `agent_studio/config/api_key.json`. When you run the benchmark for the first time, you will be prompted to visit several URLs to authorize Google Docs, Drives, etc. The corresponding token json files like `docs_token.json` will be saved in `agent_studio/config`.
+Google service related tasks requiring Google API usage, kindly enable Google APIs, configure OAuth, download the credentials following instructions [here](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), specify the credential path in `agent_studio/config/api_key.json`. When you run the benchmark for the first time, you will be prompted to visit several URLs to authorize Google Docs, Drives, etc. The corresponding token json files like `docs_token.json` will be saved in `agent_studio/config`.
 
 Start benchmarking:
 
 ```bash
-as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/level_2/gcalendar.json --model gemini-1.0-pro-001
-as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/level_2/gdocs.json --model gemini-1.0-pro-001
-as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/level_2/gmail.json --model gemini-1.0-pro-001
+as-online-benchmark --task_configs_path evals/online_benchmarks/tasks/basic/vscode/ --model gemini-1.0-pro-001
+as-online-benchmark --task_configs_path evals/online_benchmarks/tasks/basic/docs --model gemini-1.0-pro-001
+as-online-benchmark --task_configs_path evals/online_benchmarks/tasks/basic/filesystem --model gemini-1.0-pro-001
 ```
 
 #### GUI tasks
@@ -169,8 +165,18 @@ as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/level_2
 This setup is suitable for evaluating agents in visual tasks. For reproducibility, we use a Ubuntu docker container connected via VNC remote desktop.
 
 ```bash
-as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/tasks/basic/vscode --model gemini-1.5-flash-001 --remote --render
-as-online-benchmark --task_configs_path evals/datasets/online_benchmarks/tasks/basic/vscode --model gemini-1.5-flash-001 --remote ...
+as-online-benchmark --task_configs_path evals/online_benchmarks/tasks/basic/vscode/ --model gemini-1.5-flash-001 --remote --render
+as-online-benchmark --task_configs_path evals/online_benchmarks/tasks/basic/vscode/ --model gemini-1.5-flash-001 --remote ...
+```
+
+#### Human Evaluation
+
+In case you want to debug or evaluate human performance, this testsuite also supports human evaluation. To enter human evaluation mode, you should set `--agent` to `human` and set `--need_human_confirmation` to True. During the evaluation, the script will popup "Confirm when you finish" after resetting the task. You can now do the task manually in any vnc viewer. After finishing the task, you can confirm the popup message to see the evaluation result. **You should only confirm the popup message after you have finished the task.**
+
+Example command to start human evaluation on vscode tasks:
+
+```bash
+as-online-benchmark --task_configs_path evals/online_benchmarks/tasks/basic/vscode/ --model gemini-1.5-flash-001 --agent human --remote --render --need_human_confirmation
 ```
 
 ## Add more tasks
