@@ -1,6 +1,6 @@
 {
   "task_id": "a24ca1c4-7b92-41a1-8ba8-2565678e3be2",
-  "instruction": "Add 'jane@example.com' as attendees to the 'Project Kickoff' event on 2024-03-15 in Google Calendar.",
+  "instruction": "Add the email 'jane@example.com' as attendees to the 'Project Kickoff' event on 2024-03-15 in Google Calendar.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [

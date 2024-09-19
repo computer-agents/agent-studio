@@ -10,7 +10,7 @@
       "params": {
         "message_info": {
           "subject": "Forwarded travel plan",
-          "body": "This is automated draft mail"
+          "body": "This is automatically sent message"
         },
         "exists": true
       }

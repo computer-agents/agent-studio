@@ -1,6 +1,6 @@
 {
   "task_id": "77e47d98-4f75-46b3-b6d6-90665031a531",
-  "instruction": "Search for the most recent two drafts in Gmail that contains the word 'travel' in the subject line and forward it to '{GMAIL_RECIPIENT}' with title 'AutoPlan1' and 'AutoPlan2'.",
+  "instruction": "Search for the most recent two sent emails in Gmail that contains the word 'travel' in the subject. Forward the email with 'plan 1' and 'plan 2' in contents to '{GMAIL_RECIPIENT}' with title 'AutoPlan1' and 'AutoPlan2', respectively.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
