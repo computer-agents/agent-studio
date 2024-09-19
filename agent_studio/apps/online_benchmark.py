@@ -286,8 +286,6 @@ class TaskThread(QThread):
                 token_count=self.agent.get_token_count(),
                 video_meta=video_meta,
             )
-            self.signals.status_bar_signal.emit("color: green;", "Ready")
-            self.signals.finish_signal.emit()
         except Exception as e:
             import traceback
 
@@ -313,6 +311,8 @@ class TaskThread(QThread):
                     ), f"Fail to reset task: {response.message}"
                 else:
                     raise ValueError("Local mode is not supported.")
+            self.signals.finish_signal.emit()
+            self.signals.status_bar_signal.emit("color: green;", "Ready")
 
     def receive_user_input(self, text: str):
         self.mutex.lock()

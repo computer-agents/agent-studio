@@ -35,6 +35,9 @@ dependencies = [
     "transformers",
     "PyQt6-QScintilla",
     "python-docx",
+    "python-pptx",
+    "pandas",
+    "easyocr",
     "openpyxl",
 ]
 
