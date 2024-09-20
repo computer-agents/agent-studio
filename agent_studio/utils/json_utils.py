@@ -85,7 +85,7 @@ def apply_env_vars(task_config: TaskConfig, env_vars: dict) -> TaskConfig:
 
     def traverse_and_replace(obj, env_vars):
         if isinstance(obj, dict):
-            return {k: traverse_and_replace(v, env_vars) for k, v in obj.items()}
+            return {traverse_and_replace(k, env_vars): traverse_and_replace(v, env_vars) for k, v in obj.items()}
         elif isinstance(obj, list):
             return [traverse_and_replace(item, env_vars) for item in obj]
         elif isinstance(obj, str):
