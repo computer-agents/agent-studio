@@ -59,5 +59,6 @@
         "command": "open ${AS_ROOT}/sheets/BoomerangSales.xlsx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

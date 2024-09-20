@@ -29,5 +29,6 @@
         "command": "open ${AS_ROOT}/slides/Forests.pptx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

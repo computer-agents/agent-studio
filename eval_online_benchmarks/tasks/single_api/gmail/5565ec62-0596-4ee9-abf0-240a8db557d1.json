@@ -28,5 +28,6 @@
         "label_name": "Benchmarking Agent"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

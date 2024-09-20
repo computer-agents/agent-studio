@@ -31,5 +31,6 @@
         "path": "${AS_ROOT}/tmp/reports"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

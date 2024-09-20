@@ -49,5 +49,6 @@
         "content": "This is a test file."
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

@@ -37,5 +37,6 @@
         "command": "open ${AS_ROOT}/docs/Viewing_Your_Class_Schedule_and_Textbooks.docx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

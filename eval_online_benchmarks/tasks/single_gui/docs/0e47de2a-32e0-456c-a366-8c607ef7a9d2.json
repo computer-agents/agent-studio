@@ -28,5 +28,6 @@
         "command": "open ${AS_ROOT}/docs/LibreOffice_Open_Source_Word_Processing.docx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

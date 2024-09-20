@@ -31,5 +31,6 @@
         "path": "tmp/projects"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

@@ -31,5 +31,6 @@
         "path": "tmp/reports"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

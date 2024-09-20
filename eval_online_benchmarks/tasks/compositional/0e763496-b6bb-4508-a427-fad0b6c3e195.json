@@ -24,5 +24,6 @@
         "dest": "${AS_ROOT}/docs"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

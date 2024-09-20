@@ -47,5 +47,6 @@
         "command": "open ${AS_ROOT}/sheets/SalesRep.xlsx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

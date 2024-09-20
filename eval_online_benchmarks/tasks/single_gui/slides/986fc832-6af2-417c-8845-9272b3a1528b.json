@@ -30,5 +30,6 @@
         "command": "open ${AS_ROOT}/slides/154_3.pptx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

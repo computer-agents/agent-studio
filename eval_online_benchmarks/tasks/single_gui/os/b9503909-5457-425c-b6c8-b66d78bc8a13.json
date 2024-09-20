@@ -72,5 +72,6 @@
         "content": "This is the configuration file"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

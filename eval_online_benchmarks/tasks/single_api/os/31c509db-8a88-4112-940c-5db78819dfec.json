@@ -50,5 +50,6 @@
         "path": "${AS_ROOT}/tmp/data"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

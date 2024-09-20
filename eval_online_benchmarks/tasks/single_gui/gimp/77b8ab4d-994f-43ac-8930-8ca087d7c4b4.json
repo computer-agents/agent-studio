@@ -44,7 +44,7 @@
       "evaluator": "system",
       "function": "sleep",
       "params": {
-          "seconds": 5
+        "seconds": 5
       }
     }
   ],
@@ -63,5 +63,6 @@
         "path": "${AS_ROOT}/gimp_workspace"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

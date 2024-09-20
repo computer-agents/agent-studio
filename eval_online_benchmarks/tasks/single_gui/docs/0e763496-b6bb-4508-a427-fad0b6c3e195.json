@@ -31,5 +31,6 @@
         "command": "open ${AS_ROOT}/docs/Dublin_Zoo_Intro.docx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

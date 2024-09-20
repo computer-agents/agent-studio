@@ -46,5 +46,6 @@
         "content": "ERROR: Unauthorized access attempt\nERROR: Unauthorized access attempt\nINFO: Session closed"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

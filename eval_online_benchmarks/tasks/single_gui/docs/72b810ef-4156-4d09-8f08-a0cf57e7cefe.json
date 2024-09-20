@@ -29,5 +29,6 @@
         "command": "open ${AS_ROOT}/docs/GEOG2169_Course_Outline_2022-23.docx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

@@ -73,5 +73,6 @@
         "path": "${AS_ROOT}/gimp_workspace"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

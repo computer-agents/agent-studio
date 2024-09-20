@@ -37,5 +37,6 @@
         "command": "open ${AS_ROOT}/docs/Factoring_Perfect_Square_Trinomials.docx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

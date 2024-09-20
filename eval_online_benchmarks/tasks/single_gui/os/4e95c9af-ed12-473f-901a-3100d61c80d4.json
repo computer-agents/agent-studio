@@ -36,5 +36,6 @@
         "content": "[Database]\nmax_connections=100\n[User]\nname=admin"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

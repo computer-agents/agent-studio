@@ -22,5 +22,6 @@
         "dest": "${AS_ROOT}/docs/grammar_tests"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

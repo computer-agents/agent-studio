@@ -29,5 +29,6 @@
         "command": "open ${AS_ROOT}/docs/NOVEL_Submission_Guidelines.docx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

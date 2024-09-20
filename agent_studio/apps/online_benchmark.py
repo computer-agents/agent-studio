@@ -209,6 +209,7 @@ class TaskThread(QThread):
                 self.interface.start_recording()
 
             # Loop until the task is done or the max step is reached.
+            start_time = time.time()
             for t in range(self.task_config.max_steps):
                 logger.info(f"Step {t}")
                 if self.task_config.visual:
@@ -238,7 +239,7 @@ class TaskThread(QThread):
                 runtime_output, done = self.agent.step_action(confirmed)
                 self.signals.runtime_output_signal.emit(runtime_output)
                 time.sleep(config.min_action_interval)
-                if done:
+                if done or (self.args.use_time_limit and time.time() - start_time > self.task_config.max_time):
                     break
 
             self.signals.status_bar_signal.emit(
@@ -947,6 +948,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
                 interface.start_recording()
 
             # Loop until the task is done or the max step is reached.
+            start_time = time.time()
             for t in range(task_config.max_steps):
                 logger.info(f"Step {t}")
                 if task_config.visual:
@@ -968,7 +970,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     confirmed = True
                 _, done = agent.step_action(confirmed)
                 time.sleep(config.min_action_interval)
-                if done:
+                if done or (args.use_time_limit and time.time() - start_time > task_config.max_time):
                     break
 
             task_trajectory_path = Path(log_dir) / task_config.task_id
@@ -1077,6 +1079,9 @@ def main():
         "--need_human_confirmation",
         action="store_true",
         help="Need human confirmation for actions",
+    )
+    parser.add_argument(
+        "--use_time_limit", type=bool, default=True, help="Use time limit for tasks"
     )
     args = parser.parse_args()
     logger.info(f"Running with args: {args}")

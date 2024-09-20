@@ -101,5 +101,6 @@
         "content": "Text content 2"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

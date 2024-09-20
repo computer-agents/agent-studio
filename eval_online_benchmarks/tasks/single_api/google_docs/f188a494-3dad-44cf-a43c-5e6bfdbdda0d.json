@@ -31,5 +31,6 @@
         "content": "This is an important note."
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

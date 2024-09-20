@@ -53,5 +53,6 @@
         "command": "open ${AS_ROOT}/sheets/EntireSummerSales.xlsx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

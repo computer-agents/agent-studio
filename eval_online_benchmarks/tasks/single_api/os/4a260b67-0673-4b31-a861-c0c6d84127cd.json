@@ -31,5 +31,6 @@
         "path": "${AS_ROOT}/tmp/projects"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

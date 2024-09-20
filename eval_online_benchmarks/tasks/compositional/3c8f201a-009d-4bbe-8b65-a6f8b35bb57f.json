@@ -23,5 +23,6 @@
         "path": "${AS_ROOT}/compressed.jpeg"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

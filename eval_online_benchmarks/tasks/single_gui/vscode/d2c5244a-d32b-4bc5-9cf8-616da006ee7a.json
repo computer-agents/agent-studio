@@ -84,5 +84,6 @@
         "wait_for": "code"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

@@ -50,5 +50,6 @@
         "path": "tmp/data"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

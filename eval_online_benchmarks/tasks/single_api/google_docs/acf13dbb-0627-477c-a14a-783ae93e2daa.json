@@ -28,5 +28,6 @@
         "title": "Sample Document"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

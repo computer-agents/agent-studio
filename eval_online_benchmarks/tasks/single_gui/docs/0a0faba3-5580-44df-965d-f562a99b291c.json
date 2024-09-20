@@ -1,6 +1,6 @@
 {
   "task_id": "0a0faba3-5580-44df-965d-f562a99b291c",
-  "instruction": "I would like to make the first three words of the sentence left-aligned and the rest right-aligned. I basically want to have some empty space in the middle to add some photos. Assume that every sentence will have at least three words. Could you help me on alignment for me using tabstops and save it?",
+  "instruction": "I would like to make the first three words of the sentence left-aligned and the rest right-aligned. I basically want to have some empty space in the middle to add some photos. Assume that every sentence will have at least three words. Could you help me on alignment for me using tabstops and save it in-place?",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -20,18 +20,53 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
         "src": "${AS_ROOT}/data/0a0faba3-5580-44df-965d-f562a99b291c/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx",
-        "dest": "${AS_ROOT}/docs"
+        "dest": "${AS_ROOT}/docs/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/docs/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/docs/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx"
+        "seconds": 5
       }
     }
-  ]
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "libreoffice"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ],
+  "max_time": 30
 }

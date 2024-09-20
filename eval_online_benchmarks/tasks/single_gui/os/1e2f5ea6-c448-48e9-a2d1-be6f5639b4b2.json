@@ -36,5 +36,6 @@
         "path": "tmp/docs/temporary.docx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

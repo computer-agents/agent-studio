@@ -36,5 +36,6 @@
         "path": "${AS_ROOT}/tmp/docs/temporary.docx"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

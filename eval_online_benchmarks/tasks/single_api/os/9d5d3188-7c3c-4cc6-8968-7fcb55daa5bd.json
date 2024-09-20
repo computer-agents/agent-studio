@@ -37,5 +37,6 @@
         "content": "Initial Meeting Agenda"
       }
     }
-  ]
+  ],
+  "max_time": 30
 }

@@ -26,6 +26,7 @@ class TaskConfig(BaseModel):
     instruction: str
     visual: bool
     max_steps: int
+    max_time: float
     eval_procedure: list[Procedure]
     reset_procedure: Optional[list[Procedure]] = None
     cleanup_procedure: Optional[list[Procedure]] = None
