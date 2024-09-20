@@ -17,7 +17,7 @@
       "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/3ef2b351-8a84-4ff2-8724-d86eae9b842e/Constitution_Template_With_Guidelines.docx",
+        "src": "${AS_ROOT}/data/3ef2b351-8a84-4ff2-8724-d86eae9b842e/Constitution_Template_With_Guidelines.docx",
         "dest": "${AS_ROOT}/docs"
       }
     },

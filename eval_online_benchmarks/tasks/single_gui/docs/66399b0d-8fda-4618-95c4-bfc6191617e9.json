@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "compare_docx_tables",
       "params": {
-        "docx_file1": "data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions_Gold.docx",
+        "docx_file1": "${AS_ROOT}/data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions_Gold.docx",
         "docx_file2": "${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions.docx"
       }
     }
@@ -18,7 +18,7 @@
       "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions.docx",
+        "src": "${AS_ROOT}/data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions.docx",
         "dest": "${AS_ROOT}/docs"
       }
     },
@@ -26,7 +26,7 @@
       "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions_Gold.docx",
+        "src": "${AS_ROOT}/data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions_Gold.docx",
         "dest": "${AS_ROOT}/docs"
       }
     },

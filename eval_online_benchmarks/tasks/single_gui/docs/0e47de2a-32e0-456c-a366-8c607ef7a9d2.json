@@ -17,7 +17,7 @@
       "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/0e47de2a-32e0-456c-a366-8c607ef7a9d2/LibreOffice_Open_Source_Word_Processing.docx",
+        "src": "${AS_ROOT}/data/0e47de2a-32e0-456c-a366-8c607ef7a9d2/LibreOffice_Open_Source_Word_Processing.docx",
         "dest": "${AS_ROOT}/docs"
       }
     },

@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "compare_docx_files",
       "params": {
-        "docx_file1": "data/88fe4b2d-3040-4c70-9a70-546a47764b48/CCCH9003_Tutorial_guidelines_Gold.docx",
+        "docx_file1": "${AS_ROOT}/data/88fe4b2d-3040-4c70-9a70-546a47764b48/CCCH9003_Tutorial_guidelines_Gold.docx",
         "docx_file2": "${AS_ROOT}/docs/CCCH9003_Tutorial_guidelines.docx",
         "options": {
           "ignore_blanks": false
@@ -21,7 +21,7 @@
       "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/88fe4b2d-3040-4c70-9a70-546a47764b48/CCCH9003_Tutorial_guidelines.docx",
+        "src": "${AS_ROOT}/data/88fe4b2d-3040-4c70-9a70-546a47764b48/CCCH9003_Tutorial_guidelines.docx",
         "dest": "${AS_ROOT}/docs"
       }
     },

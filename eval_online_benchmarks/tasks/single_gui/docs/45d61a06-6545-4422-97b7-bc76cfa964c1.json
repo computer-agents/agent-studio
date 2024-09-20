@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "compare_insert_equation",
       "params": {
-        "docx_file1": "data/45d61a06-6545-4422-97b7-bc76cfa964c1/NOVEL_Submission_Guidelines_Gold.docx",
+        "docx_file1": "${AS_ROOT}/data/45d61a06-6545-4422-97b7-bc76cfa964c1/NOVEL_Submission_Guidelines_Gold.docx",
         "docx_file2": "${AS_ROOT}/docs/NOVEL_Submission_Guidelines.docx"
       }
     }
@@ -18,7 +18,7 @@
       "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/45d61a06-6545-4422-97b7-bc76cfa964c1/NOVEL_Submission_Guidelines.docx",
+        "src": "${AS_ROOT}/data/45d61a06-6545-4422-97b7-bc76cfa964c1/NOVEL_Submission_Guidelines.docx",
         "dest": "${AS_ROOT}/docs"
       }
     },

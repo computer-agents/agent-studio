@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "compare_docx_lines",
       "params": {
-        "file1": "data/6f81754e-285d-4ce0-b59e-af7edb02d108/HK_train_record_Gold.docx",
+        "file1": "${AS_ROOT}/data/6f81754e-285d-4ce0-b59e-af7edb02d108/HK_train_record_Gold.docx",
         "file2": "${AS_ROOT}/docs/HK_train_record.docx"
       }
     }
@@ -18,7 +18,7 @@
       "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/6f81754e-285d-4ce0-b59e-af7edb02d108/HK_train_record.docx",
+        "src": "${AS_ROOT}/data/6f81754e-285d-4ce0-b59e-af7edb02d108/HK_train_record.docx",
         "dest": "${AS_ROOT}/docs"
       }
     },
