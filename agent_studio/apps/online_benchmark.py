@@ -241,6 +241,9 @@ class TaskThread(QThread):
                 if done:
                     break
 
+            self.signals.status_bar_signal.emit(
+                "color: blue;", "Evaluating Task..."
+            )
             task_trajectory_path = Path(log_dir) / self.task_config.task_id
             video_meta = None
             if self.task_config.visual:
