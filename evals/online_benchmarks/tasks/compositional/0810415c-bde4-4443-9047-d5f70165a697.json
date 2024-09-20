@@ -1,0 +1,26 @@
+{
+  "task_id": "0810415c-bde4-4443-9047-d5f70165a697",
+  "instruction": "Make the line spacing of first two paragraph in '~/docs/Novels_Intro_Packet.docx' into double line spacing",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "docs",
+      "function": "compare_line_spacing",
+      "params": {
+        "docx_file1": "data/0810415c-bde4-4443-9047-d5f70165a697/Novels_Intro_Packet_Gold.docx",
+        "docx_file2": "~/docs/Novels_Intro_Packet.docx"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/0810415c-bde4-4443-9047-d5f70165a697/Novels_Intro_Packet.docx",
+        "dest": "~/docs"
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "task_id": "0e47de2a-32e0-456c-a366-8c607ef7a9d2",
-  "instruction": "Open data/0e47de2a-32e0-456c-a366-8c607ef7a9d2/LibreOffice_Open_Source_Word_Processing.docx and add page number for every page at the bottom left and save the doc.",
+  "instruction": "Open ~/docs/LibreOffice_Open_Source_Word_Processing.docx and add page number for every page at the bottom left and save the doc.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,9 +8,18 @@
       "evaluator": "docs",
       "function": "has_page_numbers_in_footers",
       "params": {
-        "docx_file": "data/0e47de2a-32e0-456c-a366-8c607ef7a9d2/LibreOffice_Open_Source_Word_Processing.docx"
+        "docx_file": "~/docs/LibreOffice_Open_Source_Word_Processing.docx"
       }
     }
   ],
-  "reset_procedure": []
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/0e47de2a-32e0-456c-a366-8c607ef7a9d2/LibreOffice_Open_Source_Word_Processing.docx",
+        "dest": "~/docs"
+      }
+    }
+  ]
 }

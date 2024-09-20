@@ -1,6 +1,6 @@
 {
   "task_id": "3ef2b351-8a84-4ff2-8724-d86eae9b842e",
-  "instruction": "Help me open data/3ef2b351-8a84-4ff2-8724-d86eae9b842e/Constitution_Template_With_Guidelines.docx and center align the heading in LibreOffice and save the doc.",
+  "instruction": "Help me open ~/docs/Constitution_Template_With_Guidelines.docx and center align the heading in LibreOffice and save the doc.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,9 +8,18 @@
       "evaluator": "docs",
       "function": "is_first_line_centered",
       "params": {
-        "docx_file": "data/3ef2b351-8a84-4ff2-8724-d86eae9b842e/Constitution_Template_With_Guidelines.docx"
+        "docx_file": "~/docs/Constitution_Template_With_Guidelines.docx"
       }
     }
   ],
-  "reset_procedure": []
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/3ef2b351-8a84-4ff2-8724-d86eae9b842e/Constitution_Template_With_Guidelines.docx",
+        "dest": "~/docs"
+      }
+    }
+  ]
 }

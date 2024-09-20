@@ -29,13 +29,6 @@
         "src": "data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions_Gold.docx",
         "dest": "~/docs"
       }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/docs/Table_Of_Work_Effort_Instructions.docx"
-      }
     }
   ]
 }
