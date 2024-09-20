@@ -1,6 +1,6 @@
 {
   "task_id": "20236825-b5df-46e7-89bf-62e1d640a897",
-  "instruction": "I am currently working on my algorithm practice using the document \"data/20236825-b5df-46e7-89bf-62e1d640a897/Bubble_Sort_tutorial.docx\". Please assist me in completing the 'bubbleSort' function within the 'bubbleSort.py' file (you need to unzip it from \"data/20236825-b5df-46e7-89bf-62e1d640a897/bubbleSort.zip\") and save the output as \"data/20236825-b5df-46e7-89bf-62e1d640a897/res.txt\".",
+  "instruction": "I am currently working on my algorithm practice using the document \"~/docs/bubbleSort/Bubble_Sort_tutorial.docx\". Please assist me in completing the 'bubbleSort' function within the 'bubbleSort.py' file (you need to unzip it from \"~/docs/bubbleSort/bubbleSort.zip\") and save the output as \"~/docs/bubbleSort/res.txt\".",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,9 +9,18 @@
       "function": "diff",
       "params": {
         "file1": "data/20236825-b5df-46e7-89bf-62e1d640a897/res_Gold.txt",
-        "file2": "data/20236825-b5df-46e7-89bf-62e1d640a897/res.txt"
+        "file2": "~/docs/bubbleSort/res.txt"
       }
     }
   ],
-  "reset_procedure": []
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/20236825-b5df-46e7-89bf-62e1d640a897",
+        "dest": "~/docs/bubbleSort"
+      }
+    }
+  ]
 }
