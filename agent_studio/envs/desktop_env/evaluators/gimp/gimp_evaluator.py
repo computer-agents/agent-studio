@@ -95,6 +95,10 @@ class GIMPEvaluator(Evaluator):
         """
         Check the brightness of src is lower than tgt and the structures are similar.
         """
+        if not os.path.exists(src_path):
+            raise FeedbackException(f"The source image {src_path} does not exist.")
+        if not os.path.exists(tgt_path):
+            raise FeedbackException(f"The target image {tgt_path} does not exist.")
         img_src = Image.open(src_path)
         img_tgt = Image.open(tgt_path)
 
@@ -119,6 +123,10 @@ class GIMPEvaluator(Evaluator):
         """
         Check the saturation of src is higher than tgt and the structures are similar.
         """
+        if not os.path.exists(src_path):
+            raise FeedbackException(f"The source image {src_path} does not exist.")
+        if not os.path.exists(tgt_path):
+            raise FeedbackException(f"The target image {tgt_path} does not exist.")
         img_src = Image.open(src_path)
         hsv_img_src = img_src.convert("HSV")
         img_tgt = Image.open(tgt_path)
@@ -170,6 +178,8 @@ class GIMPEvaluator(Evaluator):
         """
         Check if the triangle is in the middle of the image.
         """
+        if not os.path.exists(tgt_path):
+            raise FeedbackException(f"The target image {tgt_path} does not exist.")
         # Load the image
         img = Image.open(tgt_path)
         img_array = np.array(img)
@@ -208,6 +218,10 @@ class GIMPEvaluator(Evaluator):
         """
         Check if the structure of the two images are similar.
         """
+        if not os.path.exists(src_path):
+            raise FeedbackException(f"The source image {src_path} does not exist.")
+        if not os.path.exists(tgt_path):
+            raise FeedbackException(f"The target image {tgt_path} does not exist.")
         img_src = Image.open(src_path)
         img_tgt = Image.open(tgt_path)
         structure_same = structure_check_by_ssim(img_src, img_tgt)
@@ -219,6 +233,10 @@ class GIMPEvaluator(Evaluator):
         """
         Check if the structure of the two images are similar after resizing.
         """
+        if not os.path.exists(src_path):
+            raise FeedbackException(f"The source image {src_path} does not exist.")
+        if not os.path.exists(tgt_path):
+            raise FeedbackException(f"The target image {tgt_path} does not exist.")
         img_src = Image.open(src_path)
         img_tgt = Image.open(tgt_path)
 
@@ -235,6 +253,10 @@ class GIMPEvaluator(Evaluator):
         """
         Check if the src image has higher contrast than the tgt image and the structures are similar.  # noqa: E501
         """
+        if not os.path.exists(src_path):
+            raise FeedbackException(f"The source image {src_path} does not exist.")
+        if not os.path.exists(tgt_path):
+            raise FeedbackException(f"The target image {tgt_path} does not exist.")
         # Load images
         source_image = Image.open(src_path)
         target_image = Image.open(tgt_path)
@@ -260,6 +282,8 @@ class GIMPEvaluator(Evaluator):
         Check if the size of the src image is correct.
         """
         # Load the image
+        if not os.path.exists(src_path):
+            raise FeedbackException(f"The source image {src_path} does not exist.")
         img = Image.open(src_path)
 
         # Check the size
@@ -281,6 +305,10 @@ class GIMPEvaluator(Evaluator):
         Check if the src image is palette-based and the structure of the two images are similar.  # noqa: E501
         """
         # Check if the source image is palette-based
+        if not os.path.exists(src_path):
+            raise FeedbackException(f"The source image {src_path} does not exist.")
+        if not os.path.exists(tgt_path):
+            raise FeedbackException(f"The target image {tgt_path} does not exist.")
         source_image = Image.open(src_path)
         palette_based = source_image.mode == "P"
 
@@ -298,6 +326,8 @@ class GIMPEvaluator(Evaluator):
         """
         Check if the textbox is on the left side of the image.
         """
+        if not os.path.exists(src_path):
+            raise FeedbackException(f"The source image {src_path} does not exist.")
         source_image = Image.open(src_path)
         gray_image = source_image.convert("L")
         width, height = source_image.size
@@ -320,6 +350,10 @@ class GIMPEvaluator(Evaluator):
         """
         Check if the image is mirrored.
         """
+        if not os.path.exists(src_path):
+            raise FeedbackException(f"The source image {src_path} does not exist.")
+        if not os.path.exists(tgt_path):
+            raise FeedbackException(f"The target image {tgt_path} does not exist.")
         # Load images
         source_image = Image.open(src_path)
         target_image = Image.open(tgt_path)
@@ -335,6 +369,10 @@ class GIMPEvaluator(Evaluator):
     def check_green_background(self, src_path: str, tgt_path: str):
         """Check if the background of the source image is green."""
         # Load images
+        if not os.path.exists(src_path):
+            raise FeedbackException(f"The source image {src_path} does not exist.")
+        if not os.path.exists(tgt_path):
+            raise FeedbackException(f"The target image {tgt_path} does not exist.")
         source_image = Image.open(src_path)
         target_image = Image.open(tgt_path)
 
