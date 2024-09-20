@@ -1081,7 +1081,7 @@ def main():
         help="Need human confirmation for actions",
     )
     parser.add_argument(
-        "--use_time_limit", type=bool, default=True, help="Use time limit for tasks"
+        "--use_time_limit", action="store_true", help="Use time limit for tasks"
     )
     args = parser.parse_args()
     logger.info(f"Running with args: {args}")
