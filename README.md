@@ -28,9 +28,18 @@ Comparisons with existing work:
 
 **Mar 30, 2024**: We release the beta version of AgentStudio.
 
-## Install
+## Installation
 
-Please see [docs/install.md](docs/install.md) for more details. We are going to create a packed release for out-of-box usage.
+Install requirements:
+
+```bash
+apt-get install gnome-screenshot xclip xdotool  # If using Ubuntu 22.04
+conda create --name agent-studio python=3.11 -y
+conda activate agent-studio
+pip install -e .
+```
+
+All confidential API keys should be stored in `agent_studio/config/api_key.json`, e.g., OpenAI API key, Claude API key, Gemini API key, etc. We have provided an example config in `agent_studio/config/api_key_template.json`.
 
 ## Benchmarks for Fundamental Agent Abilities
 

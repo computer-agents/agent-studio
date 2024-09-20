@@ -37,7 +37,6 @@ dependencies = [
     "python-docx",
     "python-pptx",
     "pandas",
-    "easyocr",
     "openpyxl",
 ]
 

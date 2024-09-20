@@ -171,8 +171,10 @@ vscode_workspace/
 
 raw_data
 results*
-evals/datasets/
-evals/gui_grounding_v1
+eval_agent_desiderata/datasets/gui_grounding/images/
+eval_agent_desiderata/datasets/image*
+eval_agent_desiderata/datasets/*.jpg
+eval_agent_desiderata/gui_grounding_v1
 training_data
 results*
 trajectories
