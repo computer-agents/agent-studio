@@ -8,7 +8,7 @@
       "evaluator": "filesystem",
       "function": "check_json_settings",
       "params": {
-        "path": "${AS_ROOT}/.config/Code/User/settings.json",
+        "path": "${AS_HOME}/.config/Code/User/settings.json",
         "settings": {
           "python.analysis.diagnosticSeverityOverrides": {
             "reportMissingImports": "none"
@@ -22,14 +22,14 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "${AS_ROOT}/.config/Code/User"
+        "path": "${AS_HOME}/.config/Code/User"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "${AS_ROOT}/.config/Code/User"
+        "path": "${AS_HOME}/.config/Code/User"
       }
     },
     {
