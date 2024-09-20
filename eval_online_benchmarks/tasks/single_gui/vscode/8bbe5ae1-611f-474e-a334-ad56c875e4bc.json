@@ -51,7 +51,7 @@
       "params": {
         "cmd": [
           "code",
-          "vscode_workspace"
+          "${AS_ROOT}/vscode_workspace"
         ],
         "wait_for": "code"
       }

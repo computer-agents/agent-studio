@@ -9,7 +9,7 @@
       "function": "match_file",
       "params": {
         "file_to_check": {
-          "vscode_workspace/example_file.txt": "data/1c0ab6a9-2bde-49e7-9b9c-ab579ab3eab7/ref_file.txt"
+          "${AS_ROOT}/vscode_workspace/example_file.txt": "data/1c0ab6a9-2bde-49e7-9b9c-ab579ab3eab7/ref_file.txt"
         }
       }
     }
@@ -19,7 +19,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "vscode_workspace"
+        "path": "${AS_ROOT}/vscode_workspace"
       }
     },
     {
@@ -33,7 +33,7 @@
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "vscode_workspace"
+        "path": "${AS_ROOT}/vscode_workspace"
       }
     },
     {
@@ -41,7 +41,7 @@
       "function": "copy",
       "params": {
         "src": "data/1c0ab6a9-2bde-49e7-9b9c-ab579ab3eab7/example_file.txt",
-        "dest": "vscode_workspace/example_file.txt"
+        "dest": "${AS_ROOT}/vscode_workspace/example_file.txt"
       }
     },
     {
@@ -57,7 +57,7 @@
       "params": {
         "cmd": [
           "code",
-          "vscode_workspace/example_file.txt"
+          "${AS_ROOT}/vscode_workspace/example_file.txt"
         ],
         "wait_for": "code"
       }

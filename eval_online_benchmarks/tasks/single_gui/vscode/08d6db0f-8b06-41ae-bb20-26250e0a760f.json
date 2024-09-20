@@ -1,6 +1,6 @@
 {
   "task_id": "08d6db0f-8b06-41ae-bb20-26250e0a760f",
-  "instruction": "Install the VSCode extension provided in the file located at 'vscode_workspace/extensions/my_extension.vsix'.",
+  "instruction": "Install the VSCode extension provided in the file located at '${AS_ROOT}/vscode_workspace/extensions/my_extension.vsix'.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -31,7 +31,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "vscode_workspace"
+        "path": "${AS_ROOT}/vscode_workspace"
       }
     },
     {
@@ -45,7 +45,7 @@
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "vscode_workspace/extensions"
+        "path": "${AS_ROOT}/vscode_workspace/extensions"
       }
     },
     {
@@ -53,7 +53,7 @@
       "function": "copy",
       "params": {
         "src": "data/08d6db0f-8b06-41ae-bb20-26250e0a760f/eamodio.gitlens-2024.3.604.vsix",
-        "dest": "vscode_workspace/extensions/my_extension.vsix"
+        "dest": "${AS_ROOT}/vscode_workspace/extensions/my_extension.vsix"
       }
     },
     {

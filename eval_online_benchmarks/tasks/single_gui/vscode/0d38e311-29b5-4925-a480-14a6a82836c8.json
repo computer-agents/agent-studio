@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "vscode_workspace/api.py": false
+          "${AS_ROOT}/vscode_workspace/api.py": false
         }
       }
     }
@@ -19,7 +19,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "vscode_workspace"
+        "path": "${AS_ROOT}/vscode_workspace"
       }
     },
     {
@@ -27,7 +27,7 @@
       "function": "copy",
       "params": {
         "src": "data/0d38e311-29b5-4925-a480-14a6a82836c8/simple-project",
-        "dest": "vscode_workspace"
+        "dest": "${AS_ROOT}/vscode_workspace"
       }
     },
     {
@@ -43,7 +43,7 @@
       "params": {
         "cmd": [
           "code",
-          "vscode_workspace"
+          "${AS_ROOT}/vscode_workspace"
         ],
         "wait_for": "code"
       }
