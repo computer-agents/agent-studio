@@ -1,6 +1,6 @@
 {
   "task_id": "814353b2-504e-46b3-8f98-34043a21e406",
-  "instruction": "Merge the contents of all '.txt' files located in 'tmp/notes/' into a new file named 'combined_notes.txt' in the 'tmp/' directory. You should merge files in order of their file name. You should not add any extra characters to the merged file.",
+  "instruction": "Merge the contents of all '.txt' files located in '${AS_ROOT}/tmp/notes/' into a new file named 'combined_notes.txt' in the '${AS_ROOT}/tmp/' directory. You should merge files in order of their file name. You should not add any extra characters to the merged file.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/combined_notes.txt": true
+          "${AS_ROOT}/tmp/combined_notes.txt": true
         }
       }
     },
@@ -18,7 +18,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "tmp/combined_notes.txt": "First note content.\nSecond note content.\n"
+          "${AS_ROOT}/tmp/combined_notes.txt": "First note content.\nSecond note content.\n"
         }
       }
     }
@@ -35,14 +35,14 @@
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "tmp/notes"
+        "path": "${AS_ROOT}/tmp/notes"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "tmp/notes/note1.txt",
+        "path": "${AS_ROOT}/tmp/notes/note1.txt",
         "content": "First note content.\n"
       }
     },
@@ -50,7 +50,7 @@
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "tmp/notes/note2.txt",
+        "path": "${AS_ROOT}/tmp/notes/note2.txt",
         "content": "Second note content.\n"
       }
     }

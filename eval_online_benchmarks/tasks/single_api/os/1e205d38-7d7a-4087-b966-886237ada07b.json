@@ -1,6 +1,6 @@
 {
   "task_id": "1e205d38-7d7a-4087-b966-886237ada07b",
-  "instruction": "Create a file named 'notes.txt' in the 'tmp/' directory with the content 'Meeting at 10am'.",
+  "instruction": "Create a file named 'notes.txt' in the '${AS_ROOT}/tmp/' directory with the content 'Meeting at 10am'.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/notes.txt": true
+          "${AS_ROOT}/tmp/notes.txt": true
         }
       }
     },
@@ -18,7 +18,7 @@
       "function": "type_check",
       "params": {
         "file_to_check": {
-          "tmp/notes.txt": "file"
+          "${AS_ROOT}/tmp/notes.txt": "file"
         }
       }
     },
@@ -27,7 +27,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "tmp/notes.txt": "Meeting at 10am"
+          "${AS_ROOT}/tmp/notes.txt": "Meeting at 10am"
         }
       }
     }

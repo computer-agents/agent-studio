@@ -1,6 +1,6 @@
 {
   "task_id": "cc3553b2-93da-4a3d-a461-459a2cc030cb",
-  "instruction": "Move 'draft.txt' from 'tmp/' to 'tmp/archive/'.",
+  "instruction": "Move 'draft.txt' from '${AS_ROOT}/tmp/' to '${AS_ROOT}/tmp/archive/'.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/archive/draft.txt": true
+          "${AS_ROOT}/tmp/archive/draft.txt": true
         }
       }
     },
@@ -18,7 +18,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/draft.txt": false
+          "${AS_ROOT}/tmp/draft.txt": false
         }
       }
     },
@@ -27,7 +27,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "tmp/archive/draft.txt": "This is the only copy of the file"
+          "${AS_ROOT}/tmp/archive/draft.txt": "This is the only copy of the file"
         }
       }
     }
@@ -51,14 +51,14 @@
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "tmp/archive"
+        "path": "${AS_ROOT}/tmp/archive"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "tmp/draft.txt",
+        "path": "${AS_ROOT}/tmp/draft.txt",
         "content": "This is the only copy of the file"
       }
     }
