@@ -1,6 +1,6 @@
 {
   "task_id": "72f83cdc-bf76-4531-9a1b-eb893a13f8aa",
-  "instruction": "Rotate my figure in GIMP to mirror it horizontally and save the image.",
+  "instruction": "Rotate my figure in GIMP to mirror it horizontally and save the image to ${AS_ROOT}/gimp_workspace/mirror_berry.jpeg.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,7 +8,7 @@
       "evaluator": "gimp",
       "function": "check_image_mirror",
       "params": {
-        "src_path": "${AS_ROOT}/gimp_workspace/berry.jpeg",
+        "src_path": "${AS_ROOT}/gimp_workspace/mirror_berry.jpeg",
         "tgt_path": "${AS_ROOT}/data/72f83cdc-bf76-4531-9a1b-eb893a13f8aa/berry.jpeg"
       }
     }

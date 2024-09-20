@@ -1,65 +1,65 @@
 {
   "task_id": "e2dd0213-26db-4349-abe5-d5667bfd725c",
-  "instruction": "shift the text box to the left.",
+  "instruction": "Please shift the text box to the left and save the image as `${AS_ROOT}/gimp_workspace/leftside_textbox.png`",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
     {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-          "command": "python3 -c import pyautogui; pyautogui.hotkey([\"shift\", \"ctrl\", \"e\"]);"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "sleep",
-      "params": {
-          "seconds": 0.5
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-          "command": "python3 -c import pyautogui; pyautogui.write(\"leftside_textbox\");pyautogui.press([\"enter\"]);"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "sleep",
-      "params": {
-          "seconds": 2
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-          "command": "python3 -c import pyautogui; pyautogui.press([\"enter\"]);"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "sleep",
-      "params": {
-          "seconds": 5
-      }
-    },
-    {
       "evaluator": "gimp",
       "function": "check_textbox_on_leftside",
       "params": {
-        "src_path": "data/e2dd0213-26db-4349-abe5-d5667bfd725c/leftside_textbox.png"
+        "src_path": "${AS_ROOT}/gimp_workspace/leftside_textbox.png"
       }
     }
   ],
   "reset_procedure": [
     {
-      "evaluator": "system",
-      "function": "exec",
+      "evaluator": "filesystem",
+      "function": "mkdir",
       "params": {
-        "command": "gimp data/e2dd0213-26db-4349-abe5-d5667bfd725c/orange_background.xcf"
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/e2dd0213-26db-4349-abe5-d5667bfd725c/orange_background.xcf",
+        "dest": "${AS_ROOT}/gimp_workspace/orange_background.xcf"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "gimp",
+          "${AS_ROOT}/gimp_workspace/orange_background.xcf"
+        ],
+        "wait_for": "gimp"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
       }
     }
   ]

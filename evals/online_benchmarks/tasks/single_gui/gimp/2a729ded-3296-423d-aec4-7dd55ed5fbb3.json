@@ -1,6 +1,6 @@
 {
   "task_id": "2a729ded-3296-423d-aec4-7dd55ed5fbb3",
-  "instruction": "Make the background of the image in GIMP transparent",
+  "instruction": "Make the background of the image in GIMP transparent and export the png image as ${AS_ROOT}/gimp_workspace/dog_without_background.png.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -26,7 +26,7 @@
       "function": "copy",
       "params": {
         "src": "${AS_ROOT}/data/2a729ded-3296-423d-aec4-7dd55ed5fbb3/dog_with_background.png",
-        "dest": "${AS_ROOT}/gimp_workspace/dog_without_background.png"
+        "dest": "${AS_ROOT}/gimp_workspace/dog_with_background.png"
       }
     },
     {
@@ -35,7 +35,7 @@
       "params": {
         "cmd": [
           "gimp",
-          "${AS_ROOT}/gimp_workspace/dog_without_background.png"
+          "${AS_ROOT}/gimp_workspace/dog_with_background.png"
         ],
         "wait_for": "gimp"
       }

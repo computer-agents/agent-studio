@@ -8,17 +8,59 @@
       "evaluator": "gimp",
       "function": "check_file_exists_and_structure_sim",
       "params": {
-        "src_path": "data/77b8ab4d-994f-43ac-8930-8ca087d7c4b4/export.jpg",
-        "tgt_path": "data/77b8ab4d-994f-43ac-8930-8ca087d7c4b4/The_Lost_River_Of_Dreams.jpg"
+        "src_path": "${AS_ROOT}/gimp_workspace/export.jpg",
+        "tgt_path": "${AS_ROOT}/data/77b8ab4d-994f-43ac-8930-8ca087d7c4b4/The_Lost_River_Of_Dreams.jpg"
       }
     }
   ],
   "reset_procedure": [
     {
-      "evaluator": "system",
-      "function": "exec",
+      "evaluator": "filesystem",
+      "function": "mkdir",
       "params": {
-        "command": "gimp data/77b8ab4d-994f-43ac-8930-8ca087d7c4b4/The_Lost_River_Of_Dreams.jpg"
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/77b8ab4d-994f-43ac-8930-8ca087d7c4b4/The_Lost_River_Of_Dreams.jpg",
+        "dest": "${AS_ROOT}/gimp_workspace/The_Lost_River_Of_Dreams.jpg"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "gimp",
+          "${AS_ROOT}/gimp_workspace/The_Lost_River_Of_Dreams.jpg"
+        ],
+        "wait_for": "gimp"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+          "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
       }
     }
   ]
