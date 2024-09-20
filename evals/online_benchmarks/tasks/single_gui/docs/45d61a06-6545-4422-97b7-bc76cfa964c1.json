@@ -1,6 +1,6 @@
 {
   "task_id": "45d61a06-6545-4422-97b7-bc76cfa964c1",
-  "instruction": "Replace all newlines with paragraph marks in LibreOffice Writer",
+  "instruction": "Replace all newlines with paragraph marks in ~/docs/NOVEL_Submission_Guidelines.docx",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
