@@ -72,6 +72,7 @@
       "params": {
         "message_info": {
           "subject": "Automated travel agent",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "This is automatically sent message of plan 2"
         }
       }
@@ -92,6 +93,7 @@
       "params": {
         "message_info": {
           "subject": "Automated travel plan",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "This is automatically sent message of plan 1"
         }
       }
@@ -112,6 +114,7 @@
       "params": {
         "message_info": {
           "subject": "AutoPlan1",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "This is automatically sent message of plan 1"
         }
       }
@@ -132,6 +135,7 @@
       "params": {
         "message_info": {
           "subject": "AutoPlan2",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "This is automatically sent message of plan 2"
         }
       }
@@ -152,6 +156,7 @@
       "params": {
         "message_info": {
           "subject": "Automated Email",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "This is automatically sent message"
         }
       }

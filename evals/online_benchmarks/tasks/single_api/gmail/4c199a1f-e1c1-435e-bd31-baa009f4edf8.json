@@ -33,6 +33,7 @@
       "params": {
         "message_info": {
           "subject": "Meeting reminder",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "conference call"
         }
       }

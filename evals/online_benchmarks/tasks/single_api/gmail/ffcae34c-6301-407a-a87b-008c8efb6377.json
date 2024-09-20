@@ -33,6 +33,7 @@
       "params": {
         "message_info": {
           "subject": "Automated Email",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "This is automatically sent message"
         }
       }

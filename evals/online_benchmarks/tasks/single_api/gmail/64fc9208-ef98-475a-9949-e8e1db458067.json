@@ -1,6 +1,6 @@
 {
   "task_id": "64fc9208-ef98-475a-9949-e8e1db458067",
-  "instruction": "Send an email in Gmail with subject 'Automated Email', content 'This is automatically sent email', and recipient '{GMAIL_RECIPIENT}'",
+  "instruction": "Send an email in Gmail with subject 'Automated Email', content 'This is automatically sent email', and recipient '${AS_GMAIL_RECIPIENT}'",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [

@@ -1,6 +1,6 @@
 {
   "task_id": "4a72b7ed-2cd8-419d-9ab3-52ea40307e08",
-  "instruction": "Search for the most recent draft in Gmail that contains the word 'travel' in the subject line and forward it to '{GMAIL_RECIPIENT}' with new title 'Forwarded travel plan'.",
+  "instruction": "Search for the most recent draft in Gmail that contains the word 'travel' in the subject line and forward it to '${AS_GMAIL_RECIPIENT}' with new title 'Forwarded travel plan'.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -33,6 +33,7 @@
       "params": {
         "message_info": {
           "subject": "Automated travel plan",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "This is automatically sent message"
         }
       }

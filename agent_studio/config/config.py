@@ -38,7 +38,6 @@ class Config(metaclass=ThreadSafeSingleton):
     # Google API config
     google_credential_path: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
     google_calendar_id: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
-    gmail_recipient: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
 
     # VSCode config
     vscode_workspace_path: str = "vscode_workspace"
@@ -56,6 +55,7 @@ class Config(metaclass=ThreadSafeSingleton):
         "AS_ROOT": Path(os.getcwd()).as_posix(),
         "AS_HOME": Path(os.path.expanduser("~")).as_posix(),
         "AS_TEST": "test",
+        "AS_GMAIL_RECIPIENT": "ltzheng01@gmail.com",
     }
 
     def __init__(self) -> None:

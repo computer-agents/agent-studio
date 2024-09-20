@@ -198,10 +198,6 @@ class TaskThread(QThread):
 
             instruction = self.task_config.instruction
             logger.info(f"Task instruction: {instruction}")
-            if "GMAIL_RECIPIENT" in instruction:
-                gmail_recipient = config.gmail_recipient
-                assert len(gmail_recipient) > 0, "GMAIL_RECIPIENT is not set."
-                instruction = instruction.replace("GMAIL_RECIPIENT", gmail_recipient)
 
             # Reset the agent
             self.signals.status_bar_signal.emit("color: blue;", "Resetting Agent...")
@@ -932,10 +928,6 @@ def eval(args, interface: GUI | NonGUI | None = None) -> None:
 
             instruction = task_config.instruction
             logger.info(f"Task instruction: {instruction}")
-            if "GMAIL_RECIPIENT" in instruction:
-                gmail_recipient = config.gmail_recipient
-                assert len(gmail_recipient) > 0, "GMAIL_RECIPIENT is not set."
-                instruction = instruction.replace("GMAIL_RECIPIENT", gmail_recipient)
 
             # Reset the agent
             agent.reset(task_config=task_config)
