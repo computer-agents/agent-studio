@@ -3,7 +3,6 @@ import re
 from io import BytesIO
 from typing import Any
 
-import easyocr
 from docx import Document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_TAB_ALIGNMENT
 from docx.shared import RGBColor
@@ -450,14 +449,6 @@ class DocsCalcEvaluator(Evaluator):
     def compare_docx_files(self, file1, file2, options):
         if not _compare_docx_files(file1, file2, **options):
             raise FeedbackException("Documents are different")
-
-    @evaluation_handler("compare_image_text")
-    def compare_image_text(self, image_path, rule):
-        reader = easyocr.Reader(["en"])
-        result = reader.readtext(image_path)
-        extracted_text = " ".join([entry[1] for entry in result])
-        if rule["text"] not in extracted_text:
-            raise FeedbackException("Text not found in image")
 
     @evaluation_handler("compare_docx_images")
     def compare_docx_images(self, docx_file1, docx_file2):
