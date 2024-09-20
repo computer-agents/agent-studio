@@ -853,6 +853,12 @@ class NonGUI:
             "height": self.video_height,
         }
 
+    def close(self):
+        if self.capture_thread is not None:
+            self.capture_thread.stop()
+        self.is_recording = False
+        self.recording_thread.join()
+
 
 def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
     if response.status == "finished":
@@ -874,7 +880,7 @@ def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
         raise ValueError(f"Unknown status: {response.status}, {response.content}")
 
 
-def eval(args, interface: GUI | NonGUI | None = None) -> None:
+def eval(args, interface: NonGUI | None = None) -> None:
     # Setup agent
     agent = setup_agent(
         agent_name=args.agent,
@@ -1041,7 +1047,7 @@ def eval(args, interface: GUI | NonGUI | None = None) -> None:
         f"{sum(scores.values()) / max(len(scores), 1)}"
     )
     if interface is not None:
-        logger.info("Please close the interface to exit.")
+        interface.close()
 
 
 def main():
