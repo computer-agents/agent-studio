@@ -212,6 +212,9 @@ class TaskThread(QThread):
             start_time = time.time()
             for t in range(self.task_config.max_steps):
                 logger.info(f"Step {t}")
+                # If the time limit is reached, the action is not confirmed.
+                if (self.args.use_time_limit and time.time() - start_time > self.task_config.max_time):
+                    confirmed = False
                 if self.task_config.visual:
                     obs = self.interface.get_screenshot()
                 else:
@@ -239,7 +242,7 @@ class TaskThread(QThread):
                 runtime_output, done = self.agent.step_action(confirmed)
                 self.signals.runtime_output_signal.emit(runtime_output)
                 time.sleep(config.min_action_interval)
-                if done or (self.args.use_time_limit and time.time() - start_time > self.task_config.max_time):
+                if done:
                     break
 
             self.signals.status_bar_signal.emit(
@@ -789,12 +792,12 @@ class NonGUI:
         self.now_screenshot = np.zeros(
             (self.video_height, self.video_width, 4), dtype="uint8"
         )
-        self.recording_thread = threading.Thread(target=self._capture)
-        self.is_recording = True
-        self.recording_thread.start()
+        self.recording_thread: threading.Thread | None
 
     def start_recording(self):
         self.is_recording = True
+        self.recording_thread = threading.Thread(target=self._capture)
+        self.recording_thread.start()
         self.start_time = time.time()
         self.frame_buffer.clear()
 
@@ -827,10 +830,13 @@ class NonGUI:
         """
         os.makedirs(os.path.dirname(record_path), exist_ok=True)
         assert (
-            self.is_recording and self.frame_buffer is not None
+            self.is_recording and self.frame_buffer is not None and
+            self.recording_thread is not None
         ), "No recording in progress."
         self.is_recording = False
         self.stop_time = time.time()
+        self.recording_thread.join()
+        self.recording_thread = None
         writer = cv2.VideoWriter(
             record_path,
             cv2.VideoWriter.fourcc(*"mp4v"),
@@ -857,8 +863,9 @@ class NonGUI:
     def close(self):
         if self.capture_thread is not None:
             self.capture_thread.stop()
-        self.is_recording = False
-        self.recording_thread.join()
+        if self.recording_thread is not None:
+            self.is_recording = False
+            self.recording_thread.join()
 
 
 def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
@@ -951,6 +958,9 @@ def eval(args, interface: NonGUI | None = None) -> None:
             start_time = time.time()
             for t in range(task_config.max_steps):
                 logger.info(f"Step {t}")
+                # If the time limit is reached, the action is not confirmed.
+                if (args.use_time_limit and time.time() - start_time > task_config.max_time):
+                    confirmed = False
                 if task_config.visual:
                     assert (
                         interface is not None
@@ -970,7 +980,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     confirmed = True
                 _, done = agent.step_action(confirmed)
                 time.sleep(config.min_action_interval)
-                if done or (args.use_time_limit and time.time() - start_time > task_config.max_time):
+                if done:
                     break
 
             task_trajectory_path = Path(log_dir) / task_config.task_id
