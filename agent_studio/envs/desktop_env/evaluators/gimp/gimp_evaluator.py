@@ -249,7 +249,7 @@ class GIMPEvaluator(Evaluator):
             raise FeedbackException("The structures of the two images are not similar.")
 
     @evaluation_handler("check_contrast_increase_and_structure_sim")
-    def check_contrast_increase_and_structure_sim(src_path, tgt_path):
+    def check_contrast_increase_and_structure_sim(self, src_path, tgt_path):
         """
         Check if the src image has higher contrast than the tgt image and the structures are similar.  # noqa: E501
         """

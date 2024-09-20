@@ -312,8 +312,8 @@ class TaskThread(QThread):
                 assert (
                     response.status == "finished" and response.content == "success"
                 ), f"Fail to reset task: {response.message}"
-            self.signals.finish_signal.emit()
-            self.signals.status_bar_signal.emit("color: green;", "Ready")
+        self.signals.status_bar_signal.emit("color: green;", "Ready")
+        self.signals.finish_signal.emit()
 
     def receive_user_input(self, text: str):
         self.mutex.lock()

@@ -1,6 +1,6 @@
 {
   "task_id": "06ca5602-62ca-47f6-ad4f-da151cde54cc",
-  "instruction": "Set the image in GIMP to Palette-Based and save it.",
+  "instruction": "Set the image in GIMP to Palette-Based and export the png image as ${AS_ROOT}/gimp_workspace/palette_computer.png.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,8 +8,8 @@
       "evaluator": "gimp",
       "function": "check_palette_and_structure_sim",
       "params": {
-        "src_path": "${AS_ROOT}/gimp_workspace/computer.png",
-        "tgt_path": "${AS_ROOT}/data/06ca5602-62ca-47f6-ad4f-da151cde54cc/palette_computer.png"
+        "src_path": "${AS_ROOT}/gimp_workspace/palette_computer.png",
+        "tgt_path": "${AS_ROOT}/data/06ca5602-62ca-47f6-ad4f-da151cde54cc/computer.png"
       }
     }
   ],
