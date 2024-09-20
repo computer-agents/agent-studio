@@ -21,13 +21,6 @@
         "src": "data/af23762e-2bfd-4a1d-aada-20fa8de9ce07/Forests.pptx",
         "dest": "~/slides"
       }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/slides/Forests.pptx"
-      }
     }
   ]
 }

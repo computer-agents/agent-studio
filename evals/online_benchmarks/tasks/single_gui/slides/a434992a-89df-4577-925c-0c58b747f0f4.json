@@ -5,34 +5,6 @@
   "max_steps": 30,
   "eval_procedure": [
     {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "wmctrl -Fa \"16_2.pptx - LibreOffice Impress\""
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "sleep",
-      "params": {
-          "seconds": 0.5
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "sleep",
-      "params": {
-          "seconds": 0.5
-      }
-    },
-    {
       "evaluator": "slides",
       "function": "compare_pptx_files",
       "params": {
@@ -43,6 +15,14 @@
     }
   ],
   "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/0a2e43bf-b26c-4631-a966-af9dfa12c9e5/SalesRep.xlsx",
+        "dest": "~/slides"
+      }
+    },
     {
       "evaluator": "system",
       "function": "exec",

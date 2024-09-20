@@ -1,6 +1,6 @@
 {
   "task_id": "39be0d19-634d-4475-8768-09c130f5425d",
-  "instruction": "In the \"Features\" slide, insert a table with 5 rows and 2 columns.",
+  "instruction": "In the \"Features\" slide of '~/slides/41_3.pptx', insert a table with 5 rows and 2 columns.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -21,13 +21,6 @@
       "params": {
         "src": "data/39be0d19-634d-4475-8768-09c130f5425d/41_3.pptx",
         "dest": "~/slides"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/slides/41_3.pptx"
       }
     }
   ]

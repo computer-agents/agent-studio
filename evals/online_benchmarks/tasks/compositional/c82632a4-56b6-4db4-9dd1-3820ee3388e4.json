@@ -33,13 +33,6 @@
         "src": "data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/none.png",
         "dest": "~/slides"
       }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/slides/31_2.pptx"
-      }
     }
   ]
 }

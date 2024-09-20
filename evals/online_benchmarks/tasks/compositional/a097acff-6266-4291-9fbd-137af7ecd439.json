@@ -1,6 +1,6 @@
 {
   "task_id": "a097acff-6266-4291-9fbd-137af7ecd439",
-  "instruction": "Save the opened slides as `data/a097acff-6266-4291-9fbd-137af7ecd439/pre.pptx`",
+  "instruction": "Open ~/slides/Secrets-of-Monetizing-Video.pptx and save it as `data/a097acff-6266-4291-9fbd-137af7ecd439/pre.pptx`",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -23,13 +23,6 @@
       "params": {
         "src": "data/a097acff-6266-4291-9fbd-137af7ecd439/Secrets-of-Monetizing-Video.pptx",
         "dest": "~/slides"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/slides/Secrets-of-Monetizing-Video.pptx"
       }
     }
   ]

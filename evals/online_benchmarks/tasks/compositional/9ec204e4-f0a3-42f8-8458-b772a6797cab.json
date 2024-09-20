@@ -22,13 +22,6 @@
         "src": "data/9ec204e4-f0a3-42f8-8458-b772a6797cab/MLA_Workshop_061X_Works_Cited.pptx",
         "dest": "~/slides"
       }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/slides/MLA_Workshop_061X_Works_Cited.pptx"
-      }
     }
   ]
 }

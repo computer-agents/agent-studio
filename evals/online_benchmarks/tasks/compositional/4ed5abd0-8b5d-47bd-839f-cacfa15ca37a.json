@@ -1,6 +1,6 @@
 {
   "task_id": "4ed5abd0-8b5d-47bd-839f-cacfa15ca37a",
-  "instruction": "Set the color of titles in slides 2,3,5 as black and underline them.",
+  "instruction": "Open '~/slides/4_1.pptx', and set the color of titles in slides 2,3,5 as black and underline them.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -21,13 +21,6 @@
       "params": {
         "src": "data/4ed5abd0-8b5d-47bd-839f-cacfa15ca37a/4_1.pptx",
         "dest": "~/slides"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/slides/4_1.pptx"
       }
     }
   ]

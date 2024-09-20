@@ -1,6 +1,6 @@
 {
   "task_id": "ed43c15f-00cb-4054-9c95-62c880865d68",
-  "instruction": "Move the picture on page 2 to slide top. Make textboxes underlined on slide 1 and 2.",
+  "instruction": "Open ~/slides/43_1.pptx, and move the picture on page 2 to slide top. Make textboxes underlined on slide 1 and 2.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -24,13 +24,6 @@
       "params": {
         "src": "data/ed43c15f-00cb-4054-9c95-62c880865d68/43_1.pptx",
         "dest": "~/slides"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/slides/43_1.pptx"
       }
     }
   ]

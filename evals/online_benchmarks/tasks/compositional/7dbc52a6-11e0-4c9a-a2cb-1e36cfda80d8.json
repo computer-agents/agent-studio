@@ -22,13 +22,6 @@
         "src": "data/7dbc52a6-11e0-4c9a-a2cb-1e36cfda80d8/164_3.pptx",
         "dest": "~/slides"
       }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/slides/164_3.pptx"
-      }
     }
   ]
 }

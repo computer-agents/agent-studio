@@ -1,6 +1,6 @@
 {
   "task_id": "08aced46-45a2-48d7-993b-ed3fb5b32302",
-  "instruction": "In ~/slides/22_6.pptx, give the slide 2 the right aligned title, \"Note\".",
+  "instruction": "Open ~/slides/22_6.pptx, and give the slide 2 the right aligned title, \"Note\".",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -21,13 +21,6 @@
       "params": {
         "src": "data/08aced46-45a2-48d7-993b-ed3fb5b32302/22_6.pptx",
         "dest": "~/slides"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/slides/22_6.pptx"
       }
     }
   ]

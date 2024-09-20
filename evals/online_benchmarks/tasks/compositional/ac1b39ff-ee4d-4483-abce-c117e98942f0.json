@@ -25,13 +25,6 @@
         "src": "data/ac1b39ff-ee4d-4483-abce-c117e98942f0/55_10.pptx",
         "dest": "~/slides"
       }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/slides/55_10.pptx"
-      }
     }
   ]
 }
