@@ -55,6 +55,7 @@ def register_models(
 
 
 MODEL_PROVIDER_MAPPING = {
+    "gpt-4o-2024-08-06": "openai",
     "gpt-4o-2024-05-13": "openai",
     "gpt-4-turbo-2024-04-09": "openai",
     "gemini-pro-vision": "gemini",

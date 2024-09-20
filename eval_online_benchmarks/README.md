@@ -37,7 +37,9 @@ You should note that agents may do some **non-reversible actions**, such as dele
 Start benchmarking:
 
 ```bash
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/filesystem --model gemini-1.0-pro-001
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/os --model gpt-4o-2024-08-06 --remote
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/os --model gemini-1.5-flash-001 --remote
+
 ```
 
 > You can set `need_human_confirmation=True` in `agent_studio/config/config.py` to do safety check before each action execution. You can add `--help` to explore more args.
