@@ -21,8 +21,14 @@ We provide a lightweight Dockerfile for reproducing GUI tasks in the online benc
 
 ### Build Docker Image
 
+#### Build for Ubuntu 20.04
 ```bash
 docker build -f dockerfiles/Dockerfile.ubuntu.amd64 . -t agent-studio:latest
+```
+
+#### Build for Ubuntu 22.04
+```bash
+docker build -f dockerfiles/Dockerfile.ubuntu22.04.amd64 . -t agent-studio:latest
 ```
 
 ### Run Docker
