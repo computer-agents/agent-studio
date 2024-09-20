@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/9ed02102-6b28-4946-8339-c028166e9512/1_BoomerangSales_gt1.xlsx",
-        "result": "~/sheets/BoomerangSales.xlsx",
+        "result": "${AS_ROOT}/sheets/BoomerangSales.xlsx",
         "options": {
           "rules": [
             {
@@ -49,14 +49,14 @@
       "function": "copy",
       "params": {
         "src": "data/9ed02102-6b28-4946-8339-c028166e9512/BoomerangSales.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/sheets/BoomerangSales.xlsx"
+        "command": "open ${AS_ROOT}/sheets/BoomerangSales.xlsx"
       }
     }
   ]

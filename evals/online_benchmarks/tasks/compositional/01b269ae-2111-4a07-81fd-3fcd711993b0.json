@@ -1,6 +1,6 @@
 {
   "task_id": "01b269ae-2111-4a07-81fd-3fcd711993b0",
-  "instruction": "Open '~/sheets/Student_Level_Fill_Blank.xlsx'. Fill all the blank cells with the value in the cell above it",
+  "instruction": "Open '${AS_ROOT}/sheets/Student_Level_Fill_Blank.xlsx'. Fill all the blank cells with the value in the cell above it",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank_gold.xlsx",
-        "result": "~/sheets/Student_Level_Fill_Blank.xlsx",
+        "result": "${AS_ROOT}/sheets/Student_Level_Fill_Blank.xlsx",
         "options": {
           "rules": [
             {
@@ -28,7 +28,7 @@
       "function": "copy",
       "params": {
         "src": "data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     }
   ]

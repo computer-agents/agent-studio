@@ -8,7 +8,7 @@
       "evaluator": "filesystem",
       "function": "check_json_settings",
       "params": {
-        "path": "~/.config/Code/User/settings.json",
+        "path": "${AS_ROOT}/.config/Code/User/settings.json",
         "settings": {
           "workbench.colorTheme": "Visual Studio Dark"
         }
@@ -20,21 +20,21 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "~/.config/Code/User"
+        "path": "${AS_ROOT}/.config/Code/User"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "~/.config/Code/User"
+        "path": "${AS_ROOT}/.config/Code/User"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "~/.config/Code/User/settings.json",
+        "path": "${AS_ROOT}/.config/Code/User/settings.json",
         "content": "{\n\"workbench.colorTheme\": \"Visual Studio Light\"\n}"
       }
     },

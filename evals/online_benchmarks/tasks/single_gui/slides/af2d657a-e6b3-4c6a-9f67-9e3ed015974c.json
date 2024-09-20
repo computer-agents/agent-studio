@@ -9,7 +9,7 @@
       "function": "compare_pptx_files",
       "params": {
         "expected": "data/af2d657a-e6b3-4c6a-9f67-9e3ed015974c/9_1_Gold.pptx",
-        "result": "~/slides/9_1.pptx",
+        "result": "${AS_ROOT}/slides/9_1.pptx",
         "options": {
           "examine_aligment": false
         }
@@ -22,14 +22,14 @@
       "function": "copy",
       "params": {
         "src": "data/af2d657a-e6b3-4c6a-9f67-9e3ed015974c/9_1.pptx",
-        "dest": "~/slides"
+        "dest": "${AS_ROOT}/slides"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/slides/9_1.pptx"
+        "command": "open ${AS_ROOT}/slides/9_1.pptx"
       }
     }
   ]

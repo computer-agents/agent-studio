@@ -1,6 +1,6 @@
 {
   "task_id": "66399b0d-8fda-4618-95c4-bfc6191617e9",
-  "instruction": "Could you help me insert a 7(columns)*5(rows) empty table in '~/docs/Table_Of_Work_Effort_Instructions.docx'? I want the table to have exactly same coordinate as in '~/docs/Table_Of_Work_Effort_Instructions_Gold.docx'",
+  "instruction": "Could you help me insert a 7(columns)*5(rows) empty table in '${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions.docx'? I want the table to have exactly same coordinate as in '${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions_Gold.docx'",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_docx_tables",
       "params": {
         "docx_file1": "data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions_Gold.docx",
-        "docx_file2": "~/docs/Table_Of_Work_Effort_Instructions.docx"
+        "docx_file2": "${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions.docx"
       }
     }
   ],
@@ -19,7 +19,7 @@
       "function": "copy",
       "params": {
         "src": "data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions.docx",
-        "dest": "~/docs"
+        "dest": "${AS_ROOT}/docs"
       }
     },
     {
@@ -27,7 +27,7 @@
       "function": "copy",
       "params": {
         "src": "data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions_Gold.docx",
-        "dest": "~/docs"
+        "dest": "${AS_ROOT}/docs"
       }
     }
   ]

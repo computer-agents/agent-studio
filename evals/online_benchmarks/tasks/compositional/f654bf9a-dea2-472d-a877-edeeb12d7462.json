@@ -1,6 +1,6 @@
 {
   "task_id": "f654bf9a-dea2-472d-a877-edeeb12d7462",
-  "instruction": "Summarize revenue by week and display it as a line chart in '~/sheets/SummerSales.xlsx'.",
+  "instruction": "Summarize revenue by week and display it as a line chart in '${AS_ROOT}/sheets/SummerSales.xlsx'.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/f654bf9a-dea2-472d-a877-edeeb12d7462/7_SummerSales_gt1.xlsx",
-        "result": "~/sheets/SummerSales.xlsx",
+        "result": "${AS_ROOT}/sheets/SummerSales.xlsx",
         "options": {
           "rules": [
             {
@@ -42,7 +42,7 @@
       "function": "copy",
       "params": {
         "src": "data/f654bf9a-dea2-472d-a877-edeeb12d7462/SummerSales.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     }
   ]

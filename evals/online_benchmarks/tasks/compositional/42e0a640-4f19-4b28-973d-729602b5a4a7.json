@@ -1,6 +1,6 @@
 {
   "task_id": "42e0a640-4f19-4b28-973d-729602b5a4a7",
-  "instruction": "Compute the sum of \"Revenue\" and \"Total Expenses\" and put the results under two columns named \"Total Revenue\" and \"Total Expenses\" of '~/sheets/NetIncome.xlsx'",
+  "instruction": "Compute the sum of \"Revenue\" and \"Total Expenses\" and put the results under two columns named \"Total Revenue\" and \"Total Expenses\" of '${AS_ROOT}/sheets/NetIncome.xlsx'",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/42e0a640-4f19-4b28-973d-729602b5a4a7/2_NetIncome_gt1.xlsx",
-        "result": "~/sheets/NetIncome.xlsx",
+        "result": "${AS_ROOT}/sheets/NetIncome.xlsx",
         "options": {
           "rules": [
             {
@@ -28,7 +28,7 @@
       "function": "copy",
       "params": {
         "src": "data/42e0a640-4f19-4b28-973d-729602b5a4a7/NetIncome.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     }
   ]

@@ -1,6 +1,6 @@
 {
   "task_id": "3dcc6db1-7ca5-412d-b519-142724d41ef2",
-  "instruction": "Open VSCode with the file \"/home/ubuntu/vscode_workspace/README.md\".",
+  "instruction": "Open VSCode with the file \"${AS_ROOT}/vscode_workspace/README.md\".",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -24,28 +24,28 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "/home/ubuntu/vscode_workspace"
+        "path": "${AS_ROOT}/vscode_workspace"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "~/.config/Code/User"
+        "path": "${AS_ROOT}/.config/Code/User"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "/home/ubuntu/vscode_workspace"
+        "path": "${AS_ROOT}/vscode_workspace"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "/home/ubuntu/vscode_workspace/README.md",
+        "path": "${AS_ROOT}/vscode_workspace/README.md",
         "content": "This is a test file."
       }
     }

@@ -1,6 +1,6 @@
 {
   "task_id": "986fc832-6af2-417c-8845-9272b3a1528b",
-  "instruction": "In ~/slides/154_3.pptx, underline the content and make the font color on this slide (including the table) dark red 2.",
+  "instruction": "In ${AS_ROOT}/slides/154_3.pptx, underline the content and make the font color on this slide (including the table) dark red 2.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_pptx_files",
       "params": {
         "expected": "data/986fc832-6af2-417c-8845-9272b3a1528b/154_3_Gold.pptx",
-        "result": "~/slides/154_3.pptx",
+        "result": "${AS_ROOT}/slides/154_3.pptx",
         "options": {}
       }
     }
@@ -20,14 +20,14 @@
       "function": "copy",
       "params": {
         "src": "data/986fc832-6af2-417c-8845-9272b3a1528b/154_3.pptx",
-        "dest": "~/slides"
+        "dest": "${AS_ROOT}/slides"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/slides/154_3.pptx"
+        "command": "open ${AS_ROOT}/slides/154_3.pptx"
       }
     }
   ]

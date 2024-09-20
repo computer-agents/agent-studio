@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/4e6fcf72-daf3-439f-a232-c434ce416af6/Employee_Age_By_Birthday_gold.xlsx",
-        "result": "~/sheets/Employee_Age_By_Birthday.xlsx",
+        "result": "${AS_ROOT}/sheets/Employee_Age_By_Birthday.xlsx",
         "options": {
           "rules": [
             {
@@ -28,14 +28,14 @@
       "function": "copy",
       "params": {
         "src": "data/4e6fcf72-daf3-439f-a232-c434ce416af6/Employee_Age_By_Birthday.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/sheets/Employee_Age_By_Birthday.xlsx"
+        "command": "open ${AS_ROOT}/sheets/Employee_Age_By_Birthday.xlsx"
       }
     }
   ]

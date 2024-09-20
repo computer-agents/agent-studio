@@ -70,7 +70,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "~/.config/Code/User"
+        "path": "${AS_ROOT}/.config/Code/User"
       }
     },
     {

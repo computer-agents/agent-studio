@@ -1,6 +1,6 @@
 {
   "task_id": "04d9aeaf-7bed-4024-bedb-e10e6f00eb7f",
-  "instruction": "In '~/sheets/SmallBalanceSheet.xlsx' with 4 headers \"Year\", \"CA changes\", \"FA changes\", and \"OA changes\", calculate the annual changes for the Current Assets, Fixed Assets, and Other Assets columns. Set the results as percentage type.",
+  "instruction": "In '${AS_ROOT}/sheets/SmallBalanceSheet.xlsx' with 4 headers \"Year\", \"CA changes\", \"FA changes\", and \"OA changes\", calculate the annual changes for the Current Assets, Fixed Assets, and Other Assets columns. Set the results as percentage type.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/04d9aeaf-7bed-4024-bedb-e10e6f00eb7f/4_SmallBalanceSheet_gt1.xlsx",
-        "result": "~/sheets/SmallBalanceSheet.xlsx",
+        "result": "${AS_ROOT}/sheets/SmallBalanceSheet.xlsx",
         "options": {
           "rules": [
             {
@@ -28,7 +28,7 @@
       "function": "copy",
       "params": {
         "src": "data/04d9aeaf-7bed-4024-bedb-e10e6f00eb7f/SmallBalanceSheet.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     }
   ]

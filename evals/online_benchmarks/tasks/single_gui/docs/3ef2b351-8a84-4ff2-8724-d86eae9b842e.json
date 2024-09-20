@@ -1,6 +1,6 @@
 {
   "task_id": "3ef2b351-8a84-4ff2-8724-d86eae9b842e",
-  "instruction": "Help me center align the heading in ~/docs/Constitution_Template_With_Guidelines.docx and save the doc.",
+  "instruction": "Help me center align the heading in ${AS_ROOT}/docs/Constitution_Template_With_Guidelines.docx and save the doc.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "is_first_line_centered",
       "params": {
-        "docx_file": "~/docs/Constitution_Template_With_Guidelines.docx"
+        "docx_file": "${AS_ROOT}/docs/Constitution_Template_With_Guidelines.docx"
       }
     }
   ],
@@ -18,14 +18,14 @@
       "function": "copy",
       "params": {
         "src": "data/3ef2b351-8a84-4ff2-8724-d86eae9b842e/Constitution_Template_With_Guidelines.docx",
-        "dest": "~/docs"
+        "dest": "${AS_ROOT}/docs"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/docs/Constitution_Template_With_Guidelines.docx"
+        "command": "open ${AS_ROOT}/docs/Constitution_Template_With_Guidelines.docx"
       }
     }
   ]

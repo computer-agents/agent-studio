@@ -1,6 +1,6 @@
 {
   "task_id": "4ed5abd0-8b5d-47bd-839f-cacfa15ca37a",
-  "instruction": "Open '~/slides/4_1.pptx', and set the color of titles in slides 2,3,5 as black and underline them.",
+  "instruction": "Open '${AS_ROOT}/slides/4_1.pptx', and set the color of titles in slides 2,3,5 as black and underline them.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_pptx_files",
       "params": {
         "expected": "data/4ed5abd0-8b5d-47bd-839f-cacfa15ca37a/4_1_Gold.pptx",
-        "result": "~/slides/4_1.pptx",
+        "result": "${AS_ROOT}/slides/4_1.pptx",
         "options": {}
       }
     }
@@ -20,7 +20,7 @@
       "function": "copy",
       "params": {
         "src": "data/4ed5abd0-8b5d-47bd-839f-cacfa15ca37a/4_1.pptx",
-        "dest": "~/slides"
+        "dest": "${AS_ROOT}/slides"
       }
     }
   ]

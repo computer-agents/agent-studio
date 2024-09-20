@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "has_page_numbers_in_footers",
       "params": {
-        "docx_file": "~/docs/LibreOffice_Open_Source_Word_Processing.docx"
+        "docx_file": "${AS_ROOT}/docs/LibreOffice_Open_Source_Word_Processing.docx"
       }
     }
   ],
@@ -18,14 +18,14 @@
       "function": "copy",
       "params": {
         "src": "data/0e47de2a-32e0-456c-a366-8c607ef7a9d2/LibreOffice_Open_Source_Word_Processing.docx",
-        "dest": "~/docs"
+        "dest": "${AS_ROOT}/docs"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/docs/LibreOffice_Open_Source_Word_Processing.docx"
+        "command": "open ${AS_ROOT}/docs/LibreOffice_Open_Source_Word_Processing.docx"
       }
     }
   ]

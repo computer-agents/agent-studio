@@ -34,14 +34,14 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "~/.config/Code/User"
+        "path": "${AS_ROOT}/.config/Code/User"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "rm",
       "params": {
-        "path": "~/.vscode/extensions/extensions.json"
+        "path": "${AS_ROOT}/.vscode/extensions/extensions.json"
       }
     },
     {

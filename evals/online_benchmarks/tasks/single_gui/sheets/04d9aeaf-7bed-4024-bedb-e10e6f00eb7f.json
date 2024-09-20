@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/04d9aeaf-7bed-4024-bedb-e10e6f00eb7f/4_SmallBalanceSheet_gt1.xlsx",
-        "result": "~/sheets/SmallBalanceSheet.xlsx",
+        "result": "${AS_ROOT}/sheets/SmallBalanceSheet.xlsx",
         "options": {
           "rules": [
             {
@@ -28,14 +28,14 @@
       "function": "copy",
       "params": {
         "src": "data/04d9aeaf-7bed-4024-bedb-e10e6f00eb7f/SmallBalanceSheet.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/sheets/SmallBalanceSheet.xlsx"
+        "command": "open ${AS_ROOT}/sheets/SmallBalanceSheet.xlsx"
       }
     }
   ]

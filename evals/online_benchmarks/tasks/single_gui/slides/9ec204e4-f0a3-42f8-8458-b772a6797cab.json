@@ -1,6 +1,6 @@
 {
   "task_id": "9ec204e4-f0a3-42f8-8458-b772a6797cab",
-  "instruction": "Make a duplicate of the last two slides of ~/slides/MLA_Workshop_061X_Works_Cited.pptx.",
+  "instruction": "Make a duplicate of the last two slides of ${AS_ROOT}/slides/MLA_Workshop_061X_Works_Cited.pptx.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_pptx_files",
       "params": {
         "expected": "data/9ec204e4-f0a3-42f8-8458-b772a6797cab/MLA_Workshop_061X_Works_Cited_Gold.pptx",
-        "result": "~/slides/MLA_Workshop_061X_Works_Cited.pptx",
+        "result": "${AS_ROOT}/slides/MLA_Workshop_061X_Works_Cited.pptx",
         "options": {}
       }
     }
@@ -20,14 +20,14 @@
       "function": "copy",
       "params": {
         "src": "data/9ec204e4-f0a3-42f8-8458-b772a6797cab/MLA_Workshop_061X_Works_Cited.pptx",
-        "dest": "~/slides"
+        "dest": "${AS_ROOT}/slides"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/slides/MLA_Workshop_061X_Works_Cited.pptx"
+        "command": "open ${AS_ROOT}/slides/MLA_Workshop_061X_Works_Cited.pptx"
       }
     }
   ]

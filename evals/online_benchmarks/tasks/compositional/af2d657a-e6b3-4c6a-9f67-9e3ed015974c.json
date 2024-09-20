@@ -1,6 +1,6 @@
 {
   "task_id": "af2d657a-e6b3-4c6a-9f67-9e3ed015974c",
-  "instruction": "In the first slide of ~/slides/9_1.pptx, insert the title \"Happy Family\" and make the font style \"Microsoft JhengHei\".",
+  "instruction": "In the first slide of ${AS_ROOT}/slides/9_1.pptx, insert the title \"Happy Family\" and make the font style \"Microsoft JhengHei\".",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_pptx_files",
       "params": {
         "expected": "data/af2d657a-e6b3-4c6a-9f67-9e3ed015974c/9_1_Gold.pptx",
-        "result": "~/slides/9_1.pptx",
+        "result": "${AS_ROOT}/slides/9_1.pptx",
         "options": {
           "examine_aligment": false
         }
@@ -22,7 +22,7 @@
       "function": "copy",
       "params": {
         "src": "data/af2d657a-e6b3-4c6a-9f67-9e3ed015974c/9_1.pptx",
-        "dest": "~/slides"
+        "dest": "${AS_ROOT}/slides"
       }
     }
   ]

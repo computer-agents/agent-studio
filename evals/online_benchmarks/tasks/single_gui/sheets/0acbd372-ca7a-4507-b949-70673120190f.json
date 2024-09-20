@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/0acbd372-ca7a-4507-b949-70673120190f/1_NetIncome_gt1.xlsx",
-        "result": "~/sheets/NetIncome.xlsx",
+        "result": "${AS_ROOT}/sheets/NetIncome.xlsx",
         "options": {
           "rules": [
             {
@@ -28,14 +28,14 @@
       "function": "copy",
       "params": {
         "src": "data/0acbd372-ca7a-4507-b949-70673120190f/NetIncome.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/sheets/NetIncome.xlsx"
+        "command": "open ${AS_ROOT}/sheets/NetIncome.xlsx"
       }
     }
   ]

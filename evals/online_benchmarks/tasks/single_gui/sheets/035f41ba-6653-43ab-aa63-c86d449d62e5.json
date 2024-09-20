@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/035f41ba-6653-43ab-aa63-c86d449d62e5/5_IncomeStatement2_gt1.xlsx",
-        "result": "~/sheets/IncomeStatement2.xlsx",
+        "result": "${AS_ROOT}/sheets/IncomeStatement2.xlsx",
         "options": {
           "rules": [
             {
@@ -33,14 +33,14 @@
       "function": "copy",
       "params": {
         "src": "data/035f41ba-6653-43ab-aa63-c86d449d62e5/IncomeStatement2.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/sheets/IncomeStatement2.xlsx"
+        "command": "open ${AS_ROOT}/sheets/IncomeStatement2.xlsx"
       }
     }
   ]

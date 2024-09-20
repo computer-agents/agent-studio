@@ -1,6 +1,6 @@
 {
   "task_id": "7dbc52a6-11e0-4c9a-a2cb-1e36cfda80d8",
-  "instruction": "On page 2 of ~/slides/164_3.pptx, add a note same to the title into the slide. Make the font of title bold.",
+  "instruction": "On page 2 of ${AS_ROOT}/slides/164_3.pptx, add a note same to the title into the slide. Make the font of title bold.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_pptx_files",
       "params": {
         "expected": "data/7dbc52a6-11e0-4c9a-a2cb-1e36cfda80d8/164_3_Gold.pptx",
-        "result": "~/slides/164_3.pptx",
+        "result": "${AS_ROOT}/slides/164_3.pptx",
         "options": {}
       }
     }
@@ -20,14 +20,14 @@
       "function": "copy",
       "params": {
         "src": "data/7dbc52a6-11e0-4c9a-a2cb-1e36cfda80d8/164_3.pptx",
-        "dest": "~/slides"
+        "dest": "${AS_ROOT}/slides"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/slides/164_3.pptx"
+        "command": "open ${AS_ROOT}/slides/164_3.pptx"
       }
     }
   ]

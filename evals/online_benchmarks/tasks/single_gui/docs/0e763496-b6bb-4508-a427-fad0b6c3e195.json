@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "compare_font_names",
       "params": {
-        "docx_file": "~/docs/Dublin_Zoo_Intro.docx",
+        "docx_file": "${AS_ROOT}/docs/Dublin_Zoo_Intro.docx",
         "rules": {
           "font_name": "Times New Roman"
         }
@@ -21,14 +21,14 @@
       "function": "copy",
       "params": {
         "src": "data/0e763496-b6bb-4508-a427-fad0b6c3e195/Dublin_Zoo_Intro.docx",
-        "dest": "~/docs"
+        "dest": "${AS_ROOT}/docs"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/docs/Dublin_Zoo_Intro.docx"
+        "command": "open ${AS_ROOT}/docs/Dublin_Zoo_Intro.docx"
       }
     }
   ]

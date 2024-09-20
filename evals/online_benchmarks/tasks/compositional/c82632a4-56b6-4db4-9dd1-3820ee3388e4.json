@@ -1,6 +1,6 @@
 {
   "task_id": "c82632a4-56b6-4db4-9dd1-3820ee3388e4",
-  "instruction": "Add an image \"~/slides/none.png\" to slide 2 with 1cm*1cm size of \"~/slides/31_2.pptx\".",
+  "instruction": "Add an image \"${AS_ROOT}/slides/none.png\" to slide 2 with 1cm*1cm size of \"${AS_ROOT}/slides/31_2.pptx\".",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_pptx_files",
       "params": {
         "expected": "data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/31_2_Gold.pptx",
-        "result": "~/slides/31_2.pptx",
+        "result": "${AS_ROOT}/slides/31_2.pptx",
         "options": {
           "examine_shape": false,
           "examine_image_size": true
@@ -23,7 +23,7 @@
       "function": "copy",
       "params": {
         "src": "data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/31_2.pptx",
-        "dest": "~/slides"
+        "dest": "${AS_ROOT}/slides"
       }
     },
     {
@@ -31,7 +31,7 @@
       "function": "copy",
       "params": {
         "src": "data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/none.png",
-        "dest": "~/slides"
+        "dest": "${AS_ROOT}/slides"
       }
     }
   ]

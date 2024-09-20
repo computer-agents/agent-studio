@@ -1,6 +1,6 @@
 {
   "task_id": "663876c7-3471-43db-ba51-f410b13d9d7d",
-  "instruction": "Insert the equation \"(a + b)^2 = a^2 + 2 a b + b^2\" in '~/docs/Factoring_Perfect_Square_Trinomials.docx' to look like '~/docs/Factoring_Perfect_Square_Trinomials_Gold.docx'.",
+  "instruction": "Insert the equation \"(a + b)^2 = a^2 + 2 a b + b^2\" in '${AS_ROOT}/docs/Factoring_Perfect_Square_Trinomials.docx' to look like '${AS_ROOT}/docs/Factoring_Perfect_Square_Trinomials_Gold.docx'.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_insert_equation",
       "params": {
         "docx_file1": "data/663876c7-3471-43db-ba51-f410b13d9d7d/Factoring_Perfect_Square_Trinomials_Gold.docx",
-        "docx_file2": "~/docs/Factoring_Perfect_Square_Trinomials.docx"
+        "docx_file2": "${AS_ROOT}/docs/Factoring_Perfect_Square_Trinomials.docx"
       }
     }
   ],
@@ -19,7 +19,7 @@
       "function": "copy",
       "params": {
         "src": "data/663876c7-3471-43db-ba51-f410b13d9d7d/Factoring_Perfect_Square_Trinomials.docx",
-        "dest": "~/docs"
+        "dest": "${AS_ROOT}/docs"
       }
     },
     {
@@ -27,14 +27,14 @@
       "function": "copy",
       "params": {
         "src": "data/663876c7-3471-43db-ba51-f410b13d9d7d/Factoring_Perfect_Square_Trinomials_Gold.docx",
-        "dest": "~/docs"
+        "dest": "${AS_ROOT}/docs"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/docs/Factoring_Perfect_Square_Trinomials.docx"
+        "command": "open ${AS_ROOT}/docs/Factoring_Perfect_Square_Trinomials.docx"
       }
     }
   ]

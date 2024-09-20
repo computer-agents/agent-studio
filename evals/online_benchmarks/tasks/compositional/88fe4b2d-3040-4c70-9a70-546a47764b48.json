@@ -1,6 +1,6 @@
 {
   "task_id": "88fe4b2d-3040-4c70-9a70-546a47764b48",
-  "instruction": "I am making a guideline for students of my course in '~/docs/CCCH9003_Tutorial_guidelines.docx'. I would like to separate each sentence in the the first paragraph to improve readability. Please separate each sentence by creating one empty line space after each of them, as I am having hard time separating them one by one.",
+  "instruction": "I am making a guideline for students of my course in '${AS_ROOT}/docs/CCCH9003_Tutorial_guidelines.docx'. I would like to separate each sentence in the the first paragraph to improve readability. Please separate each sentence by creating one empty line space after each of them, as I am having hard time separating them one by one.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_docx_files",
       "params": {
         "docx_file1": "data/88fe4b2d-3040-4c70-9a70-546a47764b48/CCCH9003_Tutorial_guidelines_Gold.docx",
-        "docx_file2": "~/docs/CCCH9003_Tutorial_guidelines.docx",
+        "docx_file2": "${AS_ROOT}/docs/CCCH9003_Tutorial_guidelines.docx",
         "options": {
           "ignore_blanks": false
         }
@@ -22,7 +22,7 @@
       "function": "copy",
       "params": {
         "src": "data/88fe4b2d-3040-4c70-9a70-546a47764b48/CCCH9003_Tutorial_guidelines.docx",
-        "dest": "~/docs"
+        "dest": "${AS_ROOT}/docs"
       }
     }
   ]

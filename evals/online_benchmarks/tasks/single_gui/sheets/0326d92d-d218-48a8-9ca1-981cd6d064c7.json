@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/0326d92d-d218-48a8-9ca1-981cd6d064c7/2_SalesRep_gt1.xlsx",
-        "result": "~/sheets/SalesRep.xlsx",
+        "result": "${AS_ROOT}/sheets/SalesRep.xlsx",
         "options": {
           "rules": [
             {
@@ -37,14 +37,14 @@
       "function": "copy",
       "params": {
         "src": "data/0326d92d-d218-48a8-9ca1-981cd6d064c7/SalesRep.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/sheets/SalesRep.xlsx"
+        "command": "open ${AS_ROOT}/sheets/SalesRep.xlsx"
       }
     }
   ]

@@ -1,6 +1,6 @@
 {
   "task_id": "3b3098d8-6626-4d8d-a291-2ad19b73d0f2",
-  "instruction": "In VSCode, save the current opened file to '/home/ubuntu/vscode_workspace/README.md'.",
+  "instruction": "In VSCode, save the current opened file to '${AS_ROOT}/vscode_workspace/README.md'.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "/home/ubuntu/vscode_workspace/README.md": true
+          "${AS_ROOT}/vscode_workspace/README.md": true
         }
       }
     }
@@ -26,21 +26,21 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "/home/ubuntu/vscode_workspace"
+        "path": "${AS_ROOT}/vscode_workspace"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "/home/ubuntu/vscode_workspace"
+        "path": "${AS_ROOT}/vscode_workspace"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "~/.config/Code/User"
+        "path": "${AS_ROOT}/.config/Code/User"
       }
     },
     {
@@ -49,7 +49,7 @@
       "params": {
         "cmd": [
           "code",
-          "/home/ubuntu/vscode_workspace/README.md"
+          "${AS_ROOT}/vscode_workspace/README.md"
         ],
         "wait_for": "code"
       }

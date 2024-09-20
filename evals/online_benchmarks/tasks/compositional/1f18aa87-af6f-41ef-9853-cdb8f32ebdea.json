@@ -1,6 +1,6 @@
 {
   "task_id": "1f18aa87-af6f-41ef-9853-cdb8f32ebdea",
-  "instruction": "I've prepared some grammar tests and placed them in the '~/docs/grammar_tests' folder. I've already provided the multiple-choice answers for Test 1 in '~/docs/grammar_tests/Answer.docx'. Could you please follow the same format to write out the answers for the remaining two tests in the doc file? This way, I can distribute them to the students as a reference.",
+  "instruction": "I've prepared some grammar tests and placed them in the '${AS_ROOT}/docs/grammar_tests' folder. I've already provided the multiple-choice answers for Test 1 in '${AS_ROOT}/docs/grammar_tests/Answer.docx'. Could you please follow the same format to write out the answers for the remaining two tests in the doc file? This way, I can distribute them to the students as a reference.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_docx_files",
       "params": {
         "docx_file1": "data/1f18aa87-af6f-41ef-9853-cdb8f32ebdea/Answer_Gold.docx",
-        "docx_file2": "~/docs/grammar_tests/Answer.docx"
+        "docx_file2": "${AS_ROOT}/docs/grammar_tests/Answer.docx"
       }
     }
   ],
@@ -19,7 +19,7 @@
       "function": "copy",
       "params": {
         "src": "data/1f18aa87-af6f-41ef-9853-cdb8f32ebdea",
-        "dest": "~/docs/grammar_tests"
+        "dest": "${AS_ROOT}/docs/grammar_tests"
       }
     }
   ]

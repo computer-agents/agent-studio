@@ -1,6 +1,6 @@
 {
   "task_id": "72b810ef-4156-4d09-8f08-a0cf57e7cefe",
-  "instruction": "I am peer-reviewing my friend's course outline in '~/docs/GEOG2169_Course_Outline_2022-23.docx'. I think the last paragraph is redundant so I want to add strike-through on words in the last paragraph. Can you do this for me?",
+  "instruction": "I am peer-reviewing my friend's course outline in '${AS_ROOT}/docs/GEOG2169_Course_Outline_2022-23.docx'. I think the last paragraph is redundant so I want to add strike-through on words in the last paragraph. Can you do this for me?",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "evaluate_strike_through_last_paragraph",
       "params": {
         "docx_file1": "data/72b810ef-4156-4d09-8f08-a0cf57e7cefe/GEOG2169_Course_Outline_2022-23_Gold.docx",
-        "docx_file2": "~/docs/GEOG2169_Course_Outline_2022-23.docx"
+        "docx_file2": "${AS_ROOT}/docs/GEOG2169_Course_Outline_2022-23.docx"
       }
     }
   ],
@@ -19,7 +19,7 @@
       "function": "copy",
       "params": {
         "src": "data/72b810ef-4156-4d09-8f08-a0cf57e7cefe/GEOG2169_Course_Outline_2022-23.docx",
-        "dest": "~/docs"
+        "dest": "${AS_ROOT}/docs"
       }
     }
   ]

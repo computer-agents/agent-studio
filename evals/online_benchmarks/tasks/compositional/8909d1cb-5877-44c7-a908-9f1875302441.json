@@ -1,6 +1,6 @@
 {
   "task_id": "8909d1cb-5877-44c7-a908-9f1875302441",
-  "instruction": "Copy the \"Date\" and \"Revenue ($)\" values to '~/sheets/SummerSales.xlsx' for the rows whose \"Sales Channel\" is \"E-mail Coupon\".",
+  "instruction": "Copy the \"Date\" and \"Revenue ($)\" values to '${AS_ROOT}/sheets/SummerSales.xlsx' for the rows whose \"Sales Channel\" is \"E-mail Coupon\".",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/8909d1cb-5877-44c7-a908-9f1875302441/2_SummerSales_gt1.xlsx",
-        "result": "~/sheets/SummerSales.xlsx",
+        "result": "${AS_ROOT}/sheets/SummerSales.xlsx",
         "options": {
           "rules": [
             {
@@ -28,7 +28,7 @@
       "function": "copy",
       "params": {
         "src": "data/8909d1cb-5877-44c7-a908-9f1875302441/SummerSales.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     }
   ]

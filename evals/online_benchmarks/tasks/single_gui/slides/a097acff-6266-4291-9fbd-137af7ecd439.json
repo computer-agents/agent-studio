@@ -9,7 +9,7 @@
       "function": "compare_pptx_files",
       "params": {
         "expected": "data/a097acff-6266-4291-9fbd-137af7ecd439/Secrets-of-Monetizing-Video.pptx",
-        "result": "~/slides/pre.pptx",
+        "result": "${AS_ROOT}/slides/pre.pptx",
         "options": {
           "examine_shape": false
         }
@@ -22,14 +22,14 @@
       "function": "copy",
       "params": {
         "src": "data/a097acff-6266-4291-9fbd-137af7ecd439/Secrets-of-Monetizing-Video.pptx",
-        "dest": "~/slides"
+        "dest": "${AS_ROOT}/slides"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/slides/Secrets-of-Monetizing-Video.pptx"
+        "command": "open ${AS_ROOT}/slides/Secrets-of-Monetizing-Video.pptx"
       }
     }
   ]

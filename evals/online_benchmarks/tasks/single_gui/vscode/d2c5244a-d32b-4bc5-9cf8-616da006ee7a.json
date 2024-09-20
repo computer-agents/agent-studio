@@ -1,6 +1,6 @@
 {
   "task_id": "d2c5244a-d32b-4bc5-9cf8-616da006ee7a",
-  "instruction": "Please help me add folder \"/home/ubuntu/data1\" and folder \"/home/ubuntu/data2\" to the current workspace.",
+  "instruction": "Please help me add folder \"${AS_ROOT}/data1\" and folder \"${AS_ROOT}/data2\" to the current workspace.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,7 +8,7 @@
       "evaluator": "filesystem",
       "function": "check_json_settings",
       "params": {
-        "path": "/home/ubuntu/vscode_workspace/vscode_workspace.code-workspace",
+        "path": "${AS_ROOT}/vscode_workspace/vscode_workspace.code-workspace",
         "settings": {
           "folders": [
             {
@@ -27,28 +27,28 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "~/vscode_workspace"
+        "path": "${AS_ROOT}/vscode_workspace"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "~/data1"
+        "path": "${AS_ROOT}/data1"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "~/.config/Code/User"
+        "path": "${AS_ROOT}/.config/Code/User"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "~/vscode_workspace"
+        "path": "${AS_ROOT}/vscode_workspace"
       }
     },
     {
@@ -56,14 +56,14 @@
       "function": "copy",
       "params": {
         "src": "data/d2c5244a-d32b-4bc5-9cf8-616da006ee7a/vscode_workspace.code-workspace",
-        "dest": "~/vscode_workspace/vscode_workspace.code-workspace"
+        "dest": "${AS_ROOT}/vscode_workspace/vscode_workspace.code-workspace"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "~/data1"
+        "path": "${AS_ROOT}/data1"
       }
     },
     {
@@ -79,7 +79,7 @@
       "params": {
         "cmd": [
           "code",
-          "/home/ubuntu/vscode_workspace/vscode_workspace.code-workspace"
+          "${AS_ROOT}/vscode_workspace/vscode_workspace.code-workspace"
         ],
         "wait_for": "code"
       }

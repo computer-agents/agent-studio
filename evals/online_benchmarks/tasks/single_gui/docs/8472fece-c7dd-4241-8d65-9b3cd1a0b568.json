@@ -9,7 +9,7 @@
       "function": "evaluate_colored_words_in_tables",
       "params": {
         "docx_file1": "data/8472fece-c7dd-4241-8d65-9b3cd1a0b568-23/Dolch_Sight_Words_Primer_Gold.docx",
-        "docx_file2": "~/docs/Dolch_Sight_Words_Primer.docx"
+        "docx_file2": "${AS_ROOT}/docs/Dolch_Sight_Words_Primer.docx"
       }
     }
   ],
@@ -19,14 +19,14 @@
       "function": "copy",
       "params": {
         "src": "data/8472fece-c7dd-4241-8d65-9b3cd1a0b568-23/Dolch_Sight_Words_Primer.docx",
-        "dest": "~/docs"
+        "dest": "${AS_ROOT}/docs"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/docs/Dolch_Sight_Words_Primer.docx"
+        "command": "open ${AS_ROOT}/docs/Dolch_Sight_Words_Primer.docx"
       }
     }
   ]

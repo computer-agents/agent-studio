@@ -9,7 +9,7 @@
       "function": "compare_table",
       "params": {
         "expected": "data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank_gold.xlsx",
-        "result": "~/sheets/Student_Level_Fill_Blank.xlsx",
+        "result": "${AS_ROOT}/sheets/Student_Level_Fill_Blank.xlsx",
         "options": {
           "rules": [
             {
@@ -28,14 +28,14 @@
       "function": "copy",
       "params": {
         "src": "data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank.xlsx",
-        "dest": "~/sheets"
+        "dest": "${AS_ROOT}/sheets"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/sheets/Student_Level_Fill_Blank.xlsx"
+        "command": "open ${AS_ROOT}/sheets/Student_Level_Fill_Blank.xlsx"
       }
     }
   ]
