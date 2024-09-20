@@ -212,9 +212,6 @@ class TaskThread(QThread):
             start_time = time.time()
             for t in range(self.task_config.max_steps):
                 logger.info(f"Step {t}")
-                # If the time limit is reached, the action is not confirmed.
-                if (self.args.use_time_limit and time.time() - start_time > self.task_config.max_time):
-                    confirmed = False
                 if self.task_config.visual:
                     obs = self.interface.get_screenshot()
                 else:
@@ -236,6 +233,9 @@ class TaskThread(QThread):
                     confirmed = self.user_input.strip().lower() == "y"
                 else:
                     confirmed = True
+                # If the time limit is reached, the action is not confirmed.
+                if (self.args.use_time_limit and time.time() - start_time > self.task_config.max_time):
+                    confirmed = False
                 self.signals.status_bar_signal.emit(
                     "color: blue;", "Executing Command..."
                 )
@@ -958,9 +958,6 @@ def eval(args, interface: NonGUI | None = None) -> None:
             start_time = time.time()
             for t in range(task_config.max_steps):
                 logger.info(f"Step {t}")
-                # If the time limit is reached, the action is not confirmed.
-                if (args.use_time_limit and time.time() - start_time > task_config.max_time):
-                    confirmed = False
                 if task_config.visual:
                     assert (
                         interface is not None
@@ -978,6 +975,9 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     )
                 else:
                     confirmed = True
+                # If the time limit is reached, the action is not confirmed.
+                if (args.use_time_limit and time.time() - start_time > task_config.max_time):
+                    confirmed = False
                 _, done = agent.step_action(confirmed)
                 time.sleep(config.min_action_interval)
                 if done:
