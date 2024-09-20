@@ -1,6 +1,6 @@
 {
   "task_id": "01b269ae-2111-4a07-81fd-3fcd711993b0",
-  "instruction": "Fill all the blank cells with the value in the cell above it",
+  "instruction": "Open '~/sheets/Student_Level_Fill_Blank.xlsx'. Fill all the blank cells with the value in the cell above it",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -29,13 +29,6 @@
       "params": {
         "src": "data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank.xlsx",
         "dest": "~/sheets"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/sheets/Student_Level_Fill_Blank.xlsx"
       }
     }
   ]

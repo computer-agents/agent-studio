@@ -1,6 +1,6 @@
 {
   "task_id": "9ed02102-6b28-4946-8339-c028166e9512",
-  "instruction": "I want to calculate the revenue for each transaction in the sales table considering corresponding retail price and discount. Please help me do this in a new column with header \"Revenue\". Then create a pivot table to show the counts of the websites on which boomerangs were sold. Finally, plot a bar chart for the pivot table with chart title \"Sales frequency by website\" and without legends.",
+  "instruction": "I want to calculate the revenue for each transaction in the sales table '~/sheets/BoomerangSales.xlsx', considering corresponding retail price and discount. Please help me do this in a new column with header \"Revenue\". Then create a pivot table to show the counts of the websites on which boomerangs were sold. Finally, plot a bar chart for the pivot table with chart title \"Sales frequency by website\" and without legends.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -50,13 +50,6 @@
       "params": {
         "src": "data/9ed02102-6b28-4946-8339-c028166e9512/BoomerangSales.xlsx",
         "dest": "~/sheets"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/sheets/BoomerangSales.xlsx"
       }
     }
   ]

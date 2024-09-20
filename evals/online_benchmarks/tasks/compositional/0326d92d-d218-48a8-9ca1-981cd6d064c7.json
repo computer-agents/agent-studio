@@ -1,6 +1,6 @@
 {
-  "task_id": "0a2e43bf-b26c-4631-a966-af9dfa12c9e5",
-  "instruction": "Work out the monthly total sales in a new row called \"Total\" and then create a line chart to show the results (x-axis be Months).",
+  "task_id": "0326d92d-d218-48a8-9ca1-981cd6d064c7",
+  "instruction": "In ~/sheets/SalesRep.xlsx, calculate the total sales in an underneath row called \"Total\" and display the total of each month as bars. Then calculate the growth percentage between each pair of months in another row called \"Growth\" and show them in a line chart. Set the chart titles as the two row headers respectively.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,7 +8,7 @@
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
-        "expected": "data/0a2e43bf-b26c-4631-a966-af9dfa12c9e5/5_SalesRep_gt1.xlsx",
+        "expected": "data/0326d92d-d218-48a8-9ca1-981cd6d064c7/2_SalesRep_gt1.xlsx",
         "result": "~/sheets/SalesRep.xlsx",
         "options": {
           "rules": [
@@ -22,7 +22,8 @@
               "sheet_idx0": 0,
               "sheet_idx1": "EI0",
               "chart_props": [
-                "type"
+                "type",
+                "title"
               ]
             }
           ]
@@ -35,15 +36,8 @@
       "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/0a2e43bf-b26c-4631-a966-af9dfa12c9e5/SalesRep.xlsx",
+        "src": "data/0326d92d-d218-48a8-9ca1-981cd6d064c7/SalesRep.xlsx",
         "dest": "~/sheets"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/sheets/SalesRep.xlsx"
       }
     }
   ]

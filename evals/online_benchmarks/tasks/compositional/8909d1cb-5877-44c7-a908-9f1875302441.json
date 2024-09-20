@@ -30,13 +30,6 @@
         "src": "data/8909d1cb-5877-44c7-a908-9f1875302441/SummerSales.xlsx",
         "dest": "~/sheets"
       }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/sheets/SummerSales.xlsx"
-      }
     }
   ]
 }

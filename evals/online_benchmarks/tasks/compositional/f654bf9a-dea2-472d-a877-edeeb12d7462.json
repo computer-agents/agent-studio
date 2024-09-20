@@ -1,6 +1,6 @@
 {
-  "task_id": "b6e9778c-11b3-455f-b720-655048787484",
-  "instruction": "Summarize the revenue sum for each product in '~/sheets/EntireSummerSales.xlsx' and plot a pie chart that displays the summarized data. Show the product names as the legend on the right and revenues as the outside-end data labels.",
+  "task_id": "f654bf9a-dea2-472d-a877-edeeb12d7462",
+  "instruction": "Summarize revenue by week and display it as a line chart in '~/sheets/SummerSales.xlsx'.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,8 +8,8 @@
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
-        "expected": "data/b6e9778c-11b3-455f-b720-655048787484/11_EntireSummerSales_gt1.xlsx",
-        "result": "~/sheets/EntireSummerSales.xlsx",
+        "expected": "data/f654bf9a-dea2-472d-a877-edeeb12d7462/7_SummerSales_gt1.xlsx",
+        "result": "~/sheets/SummerSales.xlsx",
         "options": {
           "rules": [
             {
@@ -17,8 +17,7 @@
               "sheet_idx0": 0,
               "sheet_idx1": "EI0",
               "chart_props": [
-                "type",
-                "legend"
+                "type"
               ]
             },
             {
@@ -42,15 +41,8 @@
       "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/b6e9778c-11b3-455f-b720-655048787484/EntireSummerSales.xlsx",
+        "src": "data/f654bf9a-dea2-472d-a877-edeeb12d7462/SummerSales.xlsx",
         "dest": "~/sheets"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/sheets/EntireSummerSales.xlsx"
       }
     }
   ]

@@ -45,13 +45,6 @@
         "src": "data/b6e9778c-11b3-455f-b720-655048787484/EntireSummerSales.xlsx",
         "dest": "~/sheets"
       }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/sheets/EntireSummerSales.xlsx"
-      }
     }
   ]
 }

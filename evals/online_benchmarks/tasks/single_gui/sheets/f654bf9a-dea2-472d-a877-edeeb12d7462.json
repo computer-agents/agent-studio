@@ -1,43 +1,15 @@
 {
   "task_id": "f654bf9a-dea2-472d-a877-edeeb12d7462",
-  "instruction": "Summarize revenue by week in a new sheet and display it as a line chart in the new sheet.",
+  "instruction": "Summarize revenue by week and display it as a line chart.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "wmctrl -Fa \"SummerSales.xlsx - LibreOffice Calc\""
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "sleep",
-      "params": {
-          "seconds": 0.5
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "sleep",
-      "params": {
-          "seconds": 0.5
-      }
-    },
     {
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
         "expected": "data/f654bf9a-dea2-472d-a877-edeeb12d7462/7_SummerSales_gt1.xlsx",
-        "result": "~/SummerSales.xlsx",
+        "result": "~/sheets/SummerSales.xlsx",
         "options": {
           "rules": [
             {
@@ -66,17 +38,18 @@
   ],
   "reset_procedure": [
     {
-      "evaluator": "system",
-      "function": "exec",
+      "evaluator": "filesystem",
+      "function": "copy",
       "params": {
-        "command": "cp data/f654bf9a-dea2-472d-a877-edeeb12d7462/SummerSales.xlsx ~/SummerSales.xlsx"
+        "src": "data/f654bf9a-dea2-472d-a877-edeeb12d7462/SummerSales.xlsx",
+        "dest": "~/sheets"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/SummerSales.xlsx"
+        "command": "open ~/sheets/SummerSales.xlsx"
       }
     }
   ]

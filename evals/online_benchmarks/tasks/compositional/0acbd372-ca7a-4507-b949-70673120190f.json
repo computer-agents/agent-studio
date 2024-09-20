@@ -1,6 +1,6 @@
 {
   "task_id": "0acbd372-ca7a-4507-b949-70673120190f",
-  "instruction": "Calculate Net Income in a new column with header \"Net Income\" and format all data as accounting number type.",
+  "instruction": "Open '~/sheets/NetIncome.xlsx'. Calculate Net Income in a new column with header \"Net Income\" and format all data as accounting number type.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -29,13 +29,6 @@
       "params": {
         "src": "data/0acbd372-ca7a-4507-b949-70673120190f/NetIncome.xlsx",
         "dest": "~/sheets"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/sheets/NetIncome.xlsx"
       }
     }
   ]

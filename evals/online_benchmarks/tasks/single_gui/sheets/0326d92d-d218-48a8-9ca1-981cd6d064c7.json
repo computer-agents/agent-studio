@@ -5,39 +5,11 @@
   "max_steps": 30,
   "eval_procedure": [
     {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "wmctrl -Fa \"SalesRep.xlsx - LibreOffice Calc\""
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "sleep",
-      "params": {
-          "seconds": 0.5
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-          "command": "python3 -c import pyautogui; pyautogui.hotkey(\"ctrl\", \"s\");"
-      }
-    },
-    {
-      "evaluator": "system",
-      "function": "sleep",
-      "params": {
-          "seconds": 0.5
-      }
-    },
-    {
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
         "expected": "data/0326d92d-d218-48a8-9ca1-981cd6d064c7/2_SalesRep_gt1.xlsx",
-        "result": "~/SalesRep.xlsx",
+        "result": "~/sheets/SalesRep.xlsx",
         "options": {
           "rules": [
             {
@@ -61,17 +33,18 @@
   ],
   "reset_procedure": [
     {
-      "evaluator": "system",
-      "function": "exec",
+      "evaluator": "filesystem",
+      "function": "copy",
       "params": {
-        "command": "cp data/0326d92d-d218-48a8-9ca1-981cd6d064c7/SalesRep.xlsx ~/SalesRep.xlsx"
+        "src": "data/0326d92d-d218-48a8-9ca1-981cd6d064c7/SalesRep.xlsx",
+        "dest": "~/sheets"
       }
     },
     {
       "evaluator": "system",
       "function": "exec",
       "params": {
-        "command": "open ~/SalesRep.xlsx"
+        "command": "open ~/sheets/SalesRep.xlsx"
       }
     }
   ]

@@ -30,13 +30,6 @@
         "src": "data/42e0a640-4f19-4b28-973d-729602b5a4a7/NetIncome.xlsx",
         "dest": "~/sheets"
       }
-    },
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "open ~/sheets/NetIncome.xlsx"
-      }
     }
   ]
 }
