@@ -500,6 +500,9 @@ class UpdateType(Enum):
     #: Clipboard update.
     CLIPBOARD = 2
 
+    #: Cursor update.
+    CURSOR = 3
+
 
 @dataclass
 class VNCClient:
@@ -611,7 +614,7 @@ class VNCClient:
                 await self.video.read()
 
         else:
-            print(f"read update type error: type_id: {type_id}")
+            logger.warn(f"read update type error: type_id: {type_id}")
             await skip_to_eof(self.reader)
 
         return update_type
@@ -622,7 +625,7 @@ class VNCClient:
         y: int = 0,
         width: int | None = None,
         height: int | None = None,
-    ) -> np.ndarray:
+    ) -> np.ndarray | None:
         self.video.data = None
         self.video.refresh(x, y, width, height)
         while True:
@@ -630,6 +633,7 @@ class VNCClient:
             if update_type is UpdateType.VIDEO:
                 if self.video.is_complete():
                     return self.video.as_rgba()
+            return None
 
     async def disconnect(self) -> None:
         self.reader.feed_eof()
@@ -847,9 +851,10 @@ class VNCStreamer:
         while self.is_streaming:
             try:
                 frame = await self.vnc.screenshot()
-                frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
-                with self.streaming_lock:
-                    self.current_frame = frame.copy()
+                if frame is not None:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
+                    with self.streaming_lock:
+                        self.current_frame = frame.copy()
             except Exception as e:
                 logger.warning(f"Fail to capture frame: {e}")
         await self.vnc.disconnect()
