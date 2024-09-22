@@ -106,7 +106,7 @@ class TaskThread(QThread):
         task_config: TaskConfig,
         signal: WorkerSignals,
         args: argparse.Namespace,
-        log_dir: Path,
+        results_dir: Path,
         interface: GUI,
     ):
         super().__init__()
@@ -117,8 +117,8 @@ class TaskThread(QThread):
         self.signals = signal
         self.args = args
         self.interface = interface
-        self.log_dir = log_dir
-        self.log_dir.mkdir(parents=True, exist_ok=True)
+        self.results_dir = results_dir
+        self.results_dir.mkdir(parents=True, exist_ok=True)
 
     def wait_finish(self, is_eval: bool, response: AgentStudioStatusResponse):
         if response.status == "finished":
@@ -249,8 +249,9 @@ class TaskThread(QThread):
                 "color: blue;", "Evaluating Task..."
             )
             video_meta: VideoMeta | None = None
+            task_result_path = Path(self.results_dir) / self.task_config.task_id
             if self.task_config.visual:
-                video_folder = Path(self.log_dir) / self.task_config.task_id
+                video_folder = task_result_path
                 video_folder.mkdir(parents=True, exist_ok=True)
                 video_path = video_folder / "video.mp4"
                 video_meta = self.interface.save_video(video_path)
@@ -288,7 +289,6 @@ class TaskThread(QThread):
             self.signals.status_bar_signal.emit(
                 "color: blue;", "Exporting Trajectory..."
             )
-            task_result_path = Path(self.log_dir) / self.task_config.task_id
             export_trajectory(
                 task_config=self.task_config,
                 trajectory=self.agent.trajectory,
@@ -346,11 +346,11 @@ class GUI(QMainWindow):
         self.args = args
         self.is_recording = False
         self.remote = remote
-        self.log_dir = Path(f"{self.args.log_dir}/{self.args.model}/{self.args.agent}")
+        self.results_dir = Path(f"{self.args.log_dir}/{self.args.model}/{self.args.agent}")
         # Setup tasks
         if self.args.ignore_finished:
             self.task_configs: list[TaskConfig] = read_unfinished_tasks(
-                Path(args.task_configs_path), self.log_dir)
+                Path(args.task_configs_path), self.results_dir)
         else:
             self.task_configs: list[TaskConfig] = read_task_jsons(
                 Path(args.task_configs_path))
@@ -604,7 +604,7 @@ class GUI(QMainWindow):
             signal=signals,
             args=self.args,
             interface=self,
-            log_dir=self.log_dir,
+            results_dir=self.results_dir,
         )
         self.task_thread.start()
 
@@ -894,12 +894,12 @@ def eval(args, interface: NonGUI | None = None) -> None:
         runtime_server_addr=config.env_server_addr,
         runtime_server_port=config.env_server_port,
     )
-    log_dir = Path(f"{args.log_dir}/{args.model}/{args.agent}")
-    log_dir.mkdir(parents=True, exist_ok=True)
+    results_dir = Path(f"{args.log_dir}/{args.model}/{args.agent}")
+    results_dir.mkdir(parents=True, exist_ok=True)
 
     # Setup tasks
     if args.ignore_finished:
-        task_configs_json = read_unfinished_tasks(Path(args.task_configs_path), log_dir)
+        task_configs_json = read_unfinished_tasks(Path(args.task_configs_path), results_dir)
     else:
         task_configs_json = read_task_jsons(Path(args.task_configs_path))
     task_configs: list[TaskConfig] = []
@@ -983,7 +983,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
                 if done:
                     break
 
-            task_trajectory_path = log_dir / task_config.task_id
+            task_trajectory_path = results_dir / task_config.task_id
             video_meta: VideoMeta | None = None
             if task_config.visual:
                 task_trajectory_path.mkdir(parents=True, exist_ok=True)
@@ -1021,7 +1021,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
             else:
                 logger.info(f"[Result] (FAIL): {feedback}")
 
-            task_result_path = log_dir / task_config.task_id
+            task_result_path = results_dir / task_config.task_id
             export_trajectory(
                 task_config=task_config,
                 trajectory=agent.trajectory,

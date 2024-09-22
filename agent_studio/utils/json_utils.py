@@ -115,10 +115,10 @@ def read_task_jsons(path: Path) -> list[TaskConfig]:
     return task_configs
 
 
-def read_unfinished_tasks(task_configs_path: Path, task_logs_path: Path) -> list[TaskConfig]:
+def read_unfinished_tasks(task_configs_path: Path, results_dir: Path) -> list[TaskConfig]:
     """
     Read task configs from folder or file and read finished task logs from
-    `task_logs_path`. Remaining unfinished tasks are returned.
+    `results_dir`. Remaining unfinished tasks are returned.
     """
     task_configs: list[TaskConfig] = []
     if task_configs_path.is_dir():
@@ -131,7 +131,7 @@ def read_unfinished_tasks(task_configs_path: Path, task_logs_path: Path) -> list
         with open(task_configs_path, "r") as f:
             task_configs.append(TaskConfig.model_validate(json.load(f)))
 
-    finished_tasks = load_results(task_logs_path)
+    finished_tasks = load_results(results_dir)
     finished_task_ids = [task.task_id for task in finished_tasks]
     unfinished_tasks = []
     for task_config in task_configs:
