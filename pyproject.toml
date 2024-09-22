@@ -38,6 +38,7 @@ dependencies = [
     "python-pptx",
     "pandas",
     "openpyxl",
+    "asyncvnc",
 ]
 
 [tool.setuptools]

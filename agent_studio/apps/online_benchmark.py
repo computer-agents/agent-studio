@@ -385,10 +385,6 @@ class GUI(QMainWindow):
         else:
             self.capture_thread = LocalStreamer(config.monitor_idx)
 
-        # Start the capture thread to get video feed.
-        assert self.capture_thread is not None
-        self.capture_thread.start()
-
         # Initialize the screenshot as a blank image.
         self.video_height, self.video_width = (
             self.capture_thread.video_height,
@@ -659,7 +655,6 @@ class GUI(QMainWindow):
             )
         else:
             self.capture_thread = LocalStreamer(config.monitor_idx)
-        self.capture_thread.start()
         self.status_bar.showMessage(
             "Connected. Please go to the terminal to check outputs."
         )
@@ -786,10 +781,6 @@ class NonGUI:
         else:
             self.capture_thread = LocalStreamer(config.monitor_idx)
         self.data_lock = threading.Lock()
-
-        # Start the capture thread to get video feed.
-        assert self.capture_thread is not None
-        self.capture_thread.start()
 
         # Initialize the screenshot as a blank image.
         self.video_height, self.video_width = (
