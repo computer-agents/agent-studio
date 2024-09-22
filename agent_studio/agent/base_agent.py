@@ -8,23 +8,9 @@ import numpy as np
 from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.llm import ModelManager
 from agent_studio.llm.utils import extract_from_response
-from agent_studio.utils.types import MessageList, TaskConfig
+from agent_studio.utils.types import MessageList, TaskConfig, StepInfo
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class StepInfo:
-    obs: np.ndarray | None
-    prompt: MessageList | None
-    response: str | None
-    action: str
-    info: dict[str, Any]
-    result: dict[str, Any]
-    timestamp: float
-
-
-TrajectoryInfo = list[StepInfo]
 
 
 RUNTIME_INIT_CODE = """

@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
-import os
 import sys
 import threading
 import time
@@ -62,8 +61,8 @@ from agent_studio.utils.gui import (
     InputDialog,
     JSONEditor,
 )
-from agent_studio.utils.json_utils import export_trajectories, read_task_jsons, apply_env_vars
-from agent_studio.utils.types import TaskConfig
+from agent_studio.utils.json_utils import export_trajectory, read_unfinished_tasks, apply_env_vars, read_task_jsons
+from agent_studio.utils.types import TaskConfig, VideoMeta
 
 config = Config()
 
@@ -107,6 +106,7 @@ class TaskThread(QThread):
         task_config: TaskConfig,
         signal: WorkerSignals,
         args: argparse.Namespace,
+        log_dir: Path,
         interface: GUI,
     ):
         super().__init__()
@@ -117,6 +117,8 @@ class TaskThread(QThread):
         self.signals = signal
         self.args = args
         self.interface = interface
+        self.log_dir = log_dir
+        self.log_dir.mkdir(parents=True, exist_ok=True)
 
     def wait_finish(self, is_eval: bool, response: AgentStudioStatusResponse):
         if response.status == "finished":
@@ -162,8 +164,6 @@ class TaskThread(QThread):
             raise ValueError(f"Unknown status: {response.status}, {response.content}")
 
     def run(self):
-        log_dir = f"{self.args.log_dir}/{self.args.model}/{self.args.agent}"
-        Path(log_dir).mkdir(parents=True, exist_ok=True)
         if not self.args.remote:
             raise ValueError("Local mode is not supported.")
         try:
@@ -248,11 +248,11 @@ class TaskThread(QThread):
             self.signals.status_bar_signal.emit(
                 "color: blue;", "Evaluating Task..."
             )
-            task_trajectory_path = Path(log_dir) / self.task_config.task_id
-            video_meta = None
+            video_meta: VideoMeta | None = None
             if self.task_config.visual:
-                task_trajectory_path.mkdir(parents=True, exist_ok=True)
-                video_path = (task_trajectory_path / "video.mp4").as_posix()
+                video_folder = Path(self.log_dir) / self.task_config.task_id
+                video_folder.mkdir(parents=True, exist_ok=True)
+                video_path = video_folder / "video.mp4"
                 video_meta = self.interface.save_video(video_path)
                 logger.info(f"Video saved to {video_path}")
 
@@ -288,10 +288,11 @@ class TaskThread(QThread):
             self.signals.status_bar_signal.emit(
                 "color: blue;", "Exporting Trajectory..."
             )
-            export_trajectories(
+            task_result_path = Path(self.log_dir) / self.task_config.task_id
+            export_trajectory(
                 task_config=self.task_config,
                 trajectory=self.agent.trajectory,
-                record_path=log_dir,
+                path=task_result_path,
                 score=score,
                 feedback=feedback,
                 token_count=self.agent.get_token_count(),
@@ -336,7 +337,6 @@ class GUI(QMainWindow):
         self,
         args: argparse.Namespace,
         remote: bool,
-        task_configs: list[TaskConfig],
         window_width: int,
         window_height: int,
     ) -> None:
@@ -346,7 +346,14 @@ class GUI(QMainWindow):
         self.args = args
         self.is_recording = False
         self.remote = remote
-        self.task_configs = task_configs
+        self.log_dir = Path(f"{self.args.log_dir}/{self.args.model}/{self.args.agent}")
+        # Setup tasks
+        if self.args.ignore_finished:
+            self.task_configs: list[TaskConfig] = read_unfinished_tasks(
+                Path(args.task_configs_path), self.log_dir)
+        else:
+            self.task_configs: list[TaskConfig] = read_task_jsons(
+                Path(args.task_configs_path))
         self.selected_task: TaskConfig
         self.window_width = window_width
         self.window_height = window_height
@@ -601,6 +608,7 @@ class GUI(QMainWindow):
             signal=signals,
             args=self.args,
             interface=self,
+            log_dir=self.log_dir,
         )
         self.task_thread.start()
 
@@ -702,20 +710,19 @@ class GUI(QMainWindow):
         frame = cv2.cvtColor(self.now_screenshot, cv2.COLOR_BGRA2RGB)
         return np.array(frame)
 
-    def save_video(self, record_path: str) -> dict:
+    def save_video(self, video_path: Path) -> VideoMeta:
         """Stops recording and saves the video to the file system.
 
         Returns:
             dict: Metadata about the saved video.
         """
-        os.makedirs(os.path.dirname(record_path), exist_ok=True)
         assert (
             self.is_recording and self.frame_buffer is not None
         ), "No recording in progress."
         self.is_recording = False
         self.stop_time = time.time()
         writer = cv2.VideoWriter(
-            record_path,
+            video_path.as_posix(),
             cv2.VideoWriter.fourcc(*"mp4v"),
             config.video_fps,
             (self.video_width, self.video_height),
@@ -728,15 +735,15 @@ class GUI(QMainWindow):
         self.frame_buffer.clear()
         self.status_bar.showMessage("Recording stopped and video saved.")
 
-        return {
-            "start_time": self.start_time,
-            "stop_time": self.stop_time,
-            "fps": config.video_fps,
-            "frame_count": len(frames),
-            "video_path": record_path,
-            "width": self.video_width,
-            "height": self.video_height,
-        }
+        return VideoMeta(
+            start_time=self.start_time,
+            stop_time=self.stop_time,
+            fps=config.video_fps,
+            frame_count=len(frames),
+            video_path=f"file://{video_path.name}",
+            width=self.video_width,
+            height=self.video_height,
+        )
 
     def closeEvent(self, event):
         """Handles the close event by stopping the capture thread and timer.
@@ -822,13 +829,12 @@ class NonGUI:
                 logger.warning(f"Fail to capture frame: {e}")
             time.sleep(1.0 / config.video_fps)
 
-    def save_video(self, record_path: str) -> dict:
+    def save_video(self, video_path: Path) -> VideoMeta:
         """Stops recording and saves the video to the file system.
 
         Returns:
             dict: Metadata about the saved video.
         """
-        os.makedirs(os.path.dirname(record_path), exist_ok=True)
         assert (
             self.is_recording and self.frame_buffer is not None and
             self.recording_thread is not None
@@ -838,7 +844,7 @@ class NonGUI:
         self.recording_thread.join()
         self.recording_thread = None
         writer = cv2.VideoWriter(
-            record_path,
+            video_path.as_posix(),
             cv2.VideoWriter.fourcc(*"mp4v"),
             config.video_fps,
             (self.video_width, self.video_height),
@@ -850,15 +856,15 @@ class NonGUI:
         writer.release()
         self.frame_buffer.clear()
 
-        return {
-            "start_time": self.start_time,
-            "stop_time": self.stop_time,
-            "fps": config.video_fps,
-            "frame_count": len(frames),
-            "video_path": record_path,
-            "width": self.video_width,
-            "height": self.video_height,
-        }
+        return VideoMeta(
+            start_time=self.start_time,
+            stop_time=self.stop_time,
+            fps=config.video_fps,
+            frame_count=len(frames),
+            video_path=f"file://{video_path.name}",
+            width=self.video_width,
+            height=self.video_height,
+        )
 
     def close(self):
         if self.capture_thread is not None:
@@ -897,11 +903,14 @@ def eval(args, interface: NonGUI | None = None) -> None:
         runtime_server_addr=config.env_server_addr,
         runtime_server_port=config.env_server_port,
     )
-    log_dir = f"{args.log_dir}/{args.model}/{args.agent}"
-    Path(log_dir).mkdir(parents=True, exist_ok=True)
+    log_dir = Path(f"{args.log_dir}/{args.model}/{args.agent}")
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     # Setup tasks
-    task_configs_json = read_task_jsons(args.task_configs_path)
+    if args.ignore_finished:
+        task_configs_json = read_unfinished_tasks(Path(args.task_configs_path), log_dir)
+    else:
+        task_configs_json = read_task_jsons(Path(args.task_configs_path))
     task_configs: list[TaskConfig] = []
     for task_config in task_configs_json:
         task_configs.append(TaskConfig.model_validate(task_config))
@@ -983,11 +992,12 @@ def eval(args, interface: NonGUI | None = None) -> None:
                 if done:
                     break
 
-            task_trajectory_path = Path(log_dir) / task_config.task_id
-            video_meta = None
+            task_trajectory_path = log_dir / task_config.task_id
+            video_meta: VideoMeta | None = None
             if task_config.visual:
                 task_trajectory_path.mkdir(parents=True, exist_ok=True)
-                video_path = (task_trajectory_path / "video.mp4").as_posix()
+                video_path = task_trajectory_path / "video.mp4"
+                assert interface is not None
                 video_meta = interface.save_video(video_path)
                 logger.info(f"Video saved to {video_path}")
 
@@ -1020,10 +1030,11 @@ def eval(args, interface: NonGUI | None = None) -> None:
             else:
                 logger.info(f"[Result] (FAIL): {feedback}")
 
-            export_trajectories(
+            task_result_path = log_dir / task_config.task_id
+            export_trajectory(
                 task_config=task_config,
                 trajectory=agent.trajectory,
-                record_path=log_dir,
+                path=task_result_path,
                 score=score,
                 feedback=feedback,
                 token_count=agent.get_token_count(),
@@ -1093,6 +1104,9 @@ def main():
     parser.add_argument(
         "--use_time_limit", action="store_true", help="Use time limit for tasks"
     )
+    parser.add_argument(
+        "--ignore_finished", action="store_true", help="Only evaluate unfinished tasks"
+    )
     args = parser.parse_args()
     logger.info(f"Running with args: {args}")
     assert args.task_configs_path is not None, "Task config is not set."
@@ -1117,13 +1131,10 @@ def main():
         eval(args, interface)
     else:
         try:
-            # Setup tasks
-            task_configs = read_task_jsons(args.task_configs_path)
             # Create the main interface.
             interface = GUI(
                 args=args,
                 remote=args.remote,
-                task_configs=task_configs,
                 window_width=args.window_width,
                 window_height=args.window_height,
             )
