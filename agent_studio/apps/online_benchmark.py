@@ -819,6 +819,7 @@ class NonGUI:
             except Exception as e:
                 logger.warning(f"Fail to capture frame: {e}")
             time.sleep(1.0 / config.video_fps)
+        logger.info("Recording thread stopped")
 
     def save_video(self, video_path: Path) -> VideoMeta:
         """Stops recording and saves the video to the file system.
