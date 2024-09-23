@@ -22,14 +22,14 @@ class EvaluatorComb:
                 raise ValueError(f"Evaluator {procedure.evaluator} not found")
             self.evaluators[procedure.evaluator].reset(procedure)
 
-    def __call__(self, eval_procedure: list[Procedure], **kwargs) -> tuple[float, str]:
+    def __call__(self, eval_procedure: list[Procedure], **as_kwargs) -> tuple[float, str]:
         score = 1.0
         feedback = ""
         for procedure in eval_procedure:
             if procedure.evaluator not in self.evaluators:
                 raise ValueError(f"Evaluator {procedure.evaluator} not found")
             cur_score, cur_feedback = self.evaluators[procedure.evaluator](
-                procedure, kwargs=kwargs
+                procedure, as_kwargs=as_kwargs
             )
             score *= cur_score
             feedback += cur_feedback

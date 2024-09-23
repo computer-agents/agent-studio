@@ -53,6 +53,7 @@ class Handler:
     def __call__(self, **kwargs) -> None:
         target_params = {}
         for name, param in self.params.items():
+            logger.info(f"--------------[{self.name}] kwargs: {kwargs}")
             if name not in kwargs and param.default == inspect.Parameter.empty:
                 logger.error(f"Parameter {name} is missing in {name}.")
                 raise ValueError(f"Parameter {name} is missing in {name}.")
@@ -93,15 +94,6 @@ class Evaluator:
                         )
                     self.reset_handlers[name] = Handler(name, f)
 
-    # def reset(self) -> None:
-    #     """Reset the environment before task execution."""
-    #     for step in self.reset_procedure:
-    #         for action, params in step.items():
-    #             if action in self.reset_handlers:
-    #                 self.reset_handlers[action](**params)
-    #             else:
-    #                 raise ValueError(f"Action {action} is not supported for reset.")
-
     def reset(self, procedure: Procedure) -> None:
         """Reset the environment before task execution."""
         action = procedure.function
@@ -111,7 +103,7 @@ class Evaluator:
         else:
             raise ValueError(f"Action {action} is not supported for reset.")
 
-    def __call__(self, procedure: Procedure, **kwargs) -> tuple[float, str]:
+    def __call__(self, procedure: Procedure, **as_kwargs) -> tuple[float, str]:
         """Evaluate the outcome of the task."""
         score = 1.0
         feedback = ""
@@ -120,7 +112,7 @@ class Evaluator:
         assert self.name == procedure.evaluator
         if action in self.evaluation_handlers:
             try:
-                self.evaluation_handlers[action](**params, **kwargs)
+                self.evaluation_handlers[action](**params, **as_kwargs)
             except FeedbackException as e:
                 score = 0.0
                 feedback += e.message + "\n"
@@ -135,33 +127,33 @@ class Evaluator:
         return score, feedback
 
 
-class LocalEvaluator:
-    def __init__(self) -> None:
-        pass
+# class LocalEvaluator:
+#     def __init__(self) -> None:
+#         pass
 
-    def __call__(self, code: str) -> dict:
-        return {"output": [code]}
+#     def __call__(self, code: str) -> dict:
+#         return {"output": [code]}
 
 
-class RemoteEvaluator:
-    def __init__(self, env_server_addr: str, env_server_port: int):
-        self.env_server_addr = env_server_addr
-        self.env_server_port = env_server_port
+# class RemoteEvaluator:
+#     def __init__(self, env_server_addr: str, env_server_port: int):
+#         self.env_server_addr = env_server_addr
+#         self.env_server_port = env_server_port
 
-    def __call__(self, code: str) -> dict:
-        response = requests.post(
-            f"http://{self.env_server_addr}:{self.env_server_port}/execute",
-            json={"message": code},
-        )
-        return response.json()
+#     def __call__(self, code: str) -> dict:
+#         response = requests.post(
+#             f"http://{self.env_server_addr}:{self.env_server_port}/execute",
+#             json={"message": code},
+#         )
+#         return response.json()
 
-    def close(self) -> bool:
-        return True
+#     def close(self) -> bool:
+#         return True
 
-    def reset(self) -> bool:
-        if not self.close():
-            return False
-        response = requests.post(
-            f"http://{self.env_server_addr}:{self.env_server_port}/runtime/reset"
-        )
-        return response.json()["status"] == "success"
+#     def reset(self) -> bool:
+#         if not self.close():
+#             return False
+#         response = requests.post(
+#             f"http://{self.env_server_addr}:{self.env_server_port}/runtime/reset"
+#         )
+#         return response.json()["status"] == "success"

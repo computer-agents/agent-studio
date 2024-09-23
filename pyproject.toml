@@ -33,6 +33,7 @@ dependencies = [
     "rapidfuzz",
     "formulas",
     "cssselect",
+    "xmltodict",
 ]
 
 [tool.setuptools]

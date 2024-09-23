@@ -261,7 +261,7 @@ class TaskThread(QThread):
                 f"{REMOTE_SERVER_ADDR}/task/eval",
                 json=AgentStudioEvalRequest(
                     procedures=self.task_config.eval_procedure,
-                    kwargs=str(
+                    as_kwargs=str(
                         jsonpickle.encode({"trejectory": self.agent.trajectory})
                     ),
                 ).model_dump(),
@@ -998,7 +998,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     f"{REMOTE_SERVER_ADDR}/task/eval",
                     json=AgentStudioEvalRequest(
                         procedures=task_config.eval_procedure,
-                        kwargs=str(jsonpickle.encode({"trajectory": agent.trajectory})),
+                        as_kwargs=str(jsonpickle.encode({"trajectory": agent.trajectory})),
                     ).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())

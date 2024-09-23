@@ -33,4 +33,4 @@ class AgentStudioResetRequest(BaseModel):
 
 class AgentStudioEvalRequest(BaseModel):
     procedures: list[Procedure]
-    kwargs: str
+    as_kwargs: str

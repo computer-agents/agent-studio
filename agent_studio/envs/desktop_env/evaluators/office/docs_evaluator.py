@@ -151,7 +151,7 @@ class DocsCalcEvaluator(Evaluator):
             doc2: Document = Document(docx_file2)
         except Exception as e:
             logger.error(f"Error: {e}")
-            raise FeedbackException("Error loading documents")
+            raise FeedbackException(f"Error loading documents: {e}")
 
         para1 = [p for p in doc1.paragraphs if p.text.strip()]
         para2 = [p for p in doc2.paragraphs if p.text.strip()]

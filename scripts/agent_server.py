@@ -224,9 +224,9 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
             raise ValueError("Another task is in progress.")
         logger.info(f"Start evaluating task: {request.procedures}")
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
-        kwargs = jsonpickle.decode(request.kwargs)
-        if not isinstance(kwargs, dict):
-            raise ValueError(f"kwargs is {type(kwargs)} instead of a dict")
+        as_kwargs = jsonpickle.decode(request.as_kwargs)
+        if not isinstance(as_kwargs, dict):
+            raise ValueError(f"kwargs is {type(as_kwargs)} instead of a dict")
 
         fake_task_config = TaskConfig(
             task_id="fake",
@@ -239,13 +239,14 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
             cleanup_procedure=[],
         )
         comb = evaluator_router(fake_task_config)
+        logger.debug(f"Eval kwargs: {as_kwargs}")
         current_thread = threading.Thread(
             target=eval_task,
             args=(
                 comb,
                 fake_task_config.eval_procedure,
             ),
-            kwargs=kwargs,
+            kwargs=as_kwargs,
         )
         current_thread.start()
         return wait_for_state_shift(StateEnum.IN_PROGRESS)
