@@ -16,17 +16,58 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
         "src": "${AS_ROOT}/data/0810415c-bde4-4443-9047-d5f70165a697/Novels_Intro_Packet.docx",
-        "dest": "${AS_ROOT}/docs"
+        "dest": "${AS_ROOT}/docs/Novels_Intro_Packet.docx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/docs/Novels_Intro_Packet.docx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/docs/Novels_Intro_Packet.docx"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
       }
     }
   ],

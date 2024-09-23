@@ -16,17 +16,58 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
         "src": "${AS_ROOT}/data/8472fece-c7dd-4241-8d65-9b3cd1a0b568-23/Dolch_Sight_Words_Primer.docx",
-        "dest": "${AS_ROOT}/docs"
+        "dest": "${AS_ROOT}/docs/Dolch_Sight_Words_Primer.docx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/docs/Dolch_Sight_Words_Primer.docx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/docs/Dolch_Sight_Words_Primer.docx"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
       }
     }
   ],

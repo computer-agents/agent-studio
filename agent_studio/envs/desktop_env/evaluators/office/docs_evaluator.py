@@ -23,7 +23,7 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
-def _compare_docx_files(file1, file2, **options):
+def _compare_docx_files(file1, file2, options: dict = {}):
     ignore_blanks = options.get("ignore_blanks", True)
     ignore_case = options.get("ignore_case", False)
     ignore_order = options.get("ignore_order", False)
@@ -156,26 +156,29 @@ class DocsCalcEvaluator(Evaluator):
         para1 = [p for p in doc1.paragraphs if p.text.strip()]
         para2 = [p for p in doc2.paragraphs if p.text.strip()]
         if len(para1) != len(para2):
-            return 0.0
+            raise FeedbackException(
+                f"Number of paragraphs is different, {len(para1)} != {len(para2)}")
 
         if kwargs.get("word_number_split_by_tabstop", None) is not None:
             number = kwargs["word_number_split_by_tabstop"]
             index = kwargs.get("index", 0)
             for p1 in para1:
+                breakpoint()
                 splits = p1.text.split("\t")
                 if len(splits) == 0:
-                    return 0.0
+                    raise FeedbackException(f"Paragraph {p1.text} is empty")
                 words = list(
                     filter(lambda x: x.strip(), re.split(r"\s", splits[index]))
                 )
                 if len(words) != number:
-                    return 0.0
+                    raise FeedbackException(f"Words: [{splits[index]}] has {len(words)} words, not {number}")
 
         section = doc2.sections[0]
         paragraph_width = (
             section.page_width - section.left_margin - section.right_margin
         )
-        ignore_tabs = lambda x: x.alignment == WD_TAB_ALIGNMENT.CLEAR or (
+
+        def ignore_tabs(x): return x.alignment == WD_TAB_ALIGNMENT.CLEAR or (
             x.alignment == WD_TAB_ALIGNMENT.LEFT and x.position == 0
         )
         minus = 0.0
@@ -234,7 +237,7 @@ class DocsCalcEvaluator(Evaluator):
                 raise FeedbackException("Page number is missing in footer")
 
     @evaluation_handler("compare_font_names")
-    def compare_font_names(self, docx_file, rules: list[dict[str, Any]]):
+    def compare_font_names(self, docx_file, rules: dict[str, Any]):
         try:
             doc = Document(docx_file)
         except Exception as e:
@@ -446,8 +449,8 @@ class DocsCalcEvaluator(Evaluator):
                                     )
 
     @evaluation_handler("compare_docx_files")
-    def compare_docx_files(self, file1, file2, options):
-        if not _compare_docx_files(file1, file2, **options):
+    def compare_docx_files(self, docx_file1, docx_file2, options = {}):
+        if not _compare_docx_files(docx_file1, docx_file2, **options):
             raise FeedbackException("Documents are different")
 
     @evaluation_handler("compare_docx_images")
@@ -517,8 +520,8 @@ class DocsCalcEvaluator(Evaluator):
             raise FeedbackException("References section is missing")
 
         # split the reference section into reference items, and remove the empty string items  # noqa: E501
-        ref1 = [p for p in doc1_paragraphs[ref1_idx + 1 :] if p.strip()]
-        ref2 = [p for p in doc2_paragraphs[ref2_idx + 1 :] if p.strip()]
+        ref1 = [p for p in doc1_paragraphs[ref1_idx + 1:] if p.strip()]
+        ref2 = [p for p in doc2_paragraphs[ref2_idx + 1:] if p.strip()]
 
         # Compare the references
 

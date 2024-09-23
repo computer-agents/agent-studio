@@ -16,17 +16,58 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
         "src": "${AS_ROOT}/data/6a33f9b9-0a56-4844-9c3f-96ec3ffb3ba2/sample-recruitment-phone-script.docx",
-        "dest": "${AS_ROOT}/docs"
+        "dest": "${AS_ROOT}/docs/sample-recruitment-phone-script.odt"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/docs/sample-recruitment-phone-script.odt"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/docs/sample-recruitment-phone-script.odt"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
       }
     }
   ],

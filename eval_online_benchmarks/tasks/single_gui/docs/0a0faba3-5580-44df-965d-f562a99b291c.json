@@ -54,10 +54,17 @@
   ],
   "cleanup_procedure": [
     {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
       "evaluator": "process",
       "function": "pkill_by_name",
       "params": {
-        "name": "libreoffice"
+        "name": "soffice.*"
       }
     },
     {

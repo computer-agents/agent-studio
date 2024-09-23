@@ -16,10 +16,9 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
-      "function": "copy",
+      "function": "mkdir",
       "params": {
-        "src": "${AS_ROOT}/data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions.docx",
-        "dest": "${AS_ROOT}/docs"
+        "path": "${AS_ROOT}/docs"
       }
     },
     {
@@ -27,14 +26,56 @@
       "function": "copy",
       "params": {
         "src": "${AS_ROOT}/data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions_Gold.docx",
-        "dest": "${AS_ROOT}/docs"
+        "dest": "${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions_Gold.docx"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions.docx",
+        "dest": "${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions.docx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions.docx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions.docx"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
       }
     }
   ],

@@ -9,7 +9,7 @@
       "function": "compare_docx_files",
       "params": {
         "docx_file1": "${AS_ROOT}/data/0b17a146-2934-46c7-8727-73ff6b6483e8/H2O_Factsheet_WA_Gold.docx",
-        "docx_file2": "${AS_ROOT}/data/0b17a146-2934-46c7-8727-73ff6b6483e8/H2O_Factsheet_WA.docx"
+        "docx_file2": "${AS_ROOT}/docs/H2O_Factsheet_WA.docx"
       }
     },
     {
@@ -24,17 +24,58 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
         "src": "${AS_ROOT}/data/0b17a146-2934-46c7-8727-73ff6b6483e8/H2O_Factsheet_WA.docx",
-        "dest": "${AS_ROOT}/docs"
+        "dest": "${AS_ROOT}/docs/H2O_Factsheet_WA.docx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/docs/H2O_Factsheet_WA.docx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/docs/H2O_Factsheet_WA.docx"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
       }
     }
   ],

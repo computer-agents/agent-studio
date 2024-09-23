@@ -53,7 +53,6 @@ class Handler:
     def __call__(self, **kwargs) -> None:
         target_params = {}
         for name, param in self.params.items():
-            logger.info(f"--------------[{self.name}] kwargs: {kwargs}")
             if name not in kwargs and param.default == inspect.Parameter.empty:
                 logger.error(f"Parameter {name} is missing in {name}.")
                 raise ValueError(f"Parameter {name} is missing in {name}.")
