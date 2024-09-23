@@ -2,6 +2,12 @@
 
 We provide 205 single-API, single-GUI, and compositional tasks for online benchmarking. We provide a Docker image for reproducible and reliable online benchmarks. Our tools also allow for convenient task customization.
 
+**Before You Start:** You should note that agents may do some **non-reversible actions**, such as deleting files, creating files, running commands, and deleting Google Calendar events. Please make sure you have backups of your data. Some tasks may require you to provide API keys. Before running the tasks, **please make sure the account doesn't have important data.**
+
+Google service related tasks requiring Google API usage, kindly enable Google APIs, configure OAuth, download the credentials following instructions [here](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), specify the credential path in `agent_studio/config/api_key.json`. When you run the benchmark for the first time, you will be prompted to visit several URLs to authorize Google Docs, Drives, etc. The corresponding token json files like `docs_token.json` will be saved in `agent_studio/config`. Alternatively, you can authorize all Google services before experiments by running `python scripts/setup_api_keys.py`.
+
+> If you want to benchmark google services, you need to do the above steps before running the Docker image.
+
 ## Setup Docker Image
 
 First, please follow the instructions in the [README](../README.md) to install the AgentStudio python package and setup API keys.
@@ -28,17 +34,27 @@ The tasks are located in `eval_online_benchmarks/tasks`, and the associated file
 
 ## Start Evaluation
 
-### Before You Start
-
-You should note that agents may do some **non-reversible actions**, such as deleting files, creating files, running commands, and deleting Google Calendar events. Please make sure you have backups of your data. Some tasks may require you to provide API keys. Before running the tasks, **please make sure the account doesn't have important data.**
-
 ### Single-API Tasks
 
 Start benchmarking:
 
 ```bash
 as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/os --model gpt-4o-2024-08-06 --remote
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/google_docs --model gpt-4o-2024-08-06 --remote
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/google_calendar --model gpt-4o-2024-08-06 --remote
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/gmail --model gpt-4o-2024-08-06 --remote
+
 as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/os --model gemini-1.5-flash-001 --remote
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/google_docs --model gemini-1.5-flash-001 --remote
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/google_calendar --model gemini-1.5-flash-001 --remote
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/gmail --model gemini-1.5-flash-001 --remote
+
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_gui/os --model gpt-4o-2024-08-06 --remote --use_time_limit
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_gui/os --model gemini-1.5-flash-001 --remote --use_time_limit
+
+
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/docs --model gemini-1.0-pro-001
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/filesystem --model gemini-1.0-pro-001
 
 ```
 
@@ -46,19 +62,12 @@ as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/
 
 By default, you can check `logs` to see the full logs and result jsonl files.
 
-> Google service related tasks requiring Google API usage, kindly enable Google APIs, configure OAuth, download the credentials following instructions [here](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), specify the credential path in `agent_studio/config/api_key.json`. When you run the benchmark for the first time, you will be prompted to visit several URLs to authorize Google Docs, Drives, etc. The corresponding token json files like `docs_token.json` will be saved in `agent_studio/config`.
-
-```bash
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/vscode/ --model gemini-1.0-pro-001
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/docs --model gemini-1.0-pro-001
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/filesystem --model gemini-1.0-pro-001
-```
-
 ### Single-GUI Tasks
 
-This setup is suitable for evaluating agents in visual tasks. For reproducibility, we use a Ubuntu docker container connected via VNC remote desktop.
-
 ```bash
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_gui/gimp --model gpt-4o-2024-08-06 --remote
+
+
 as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/vscode/ --model gemini-1.5-flash-001 --remote --render
 as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/vscode/ --model gemini-1.5-flash-001 --remote ...
 ```
