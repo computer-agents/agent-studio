@@ -3,7 +3,7 @@ import re
 from io import BytesIO
 from typing import Any
 
-from docx import Document
+from docx import Document, document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_TAB_ALIGNMENT
 from docx.shared import RGBColor
 from odf.opendocument import load
@@ -147,8 +147,8 @@ class DocsCalcEvaluator(Evaluator):
     @evaluation_handler("check_tabstops")
     def check_tabstops(self, docx_file1, docx_file2, kwargs):
         try:
-            doc1: Document = Document(docx_file1)
-            doc2: Document = Document(docx_file2)
+            doc1: document.Document = Document(docx_file1)
+            doc2: document.Document = Document(docx_file2)
         except Exception as e:
             logger.error(f"Error: {e}")
             raise FeedbackException(f"Error loading documents: {e}")
@@ -174,6 +174,12 @@ class DocsCalcEvaluator(Evaluator):
                     raise FeedbackException(f"Words: [{splits[index]}] has {len(words)} words, not {number}")
 
         section = doc2.sections[0]
+        if section.page_width is None:
+            raise FeedbackException("Page width is None")
+        if section.left_margin is None:
+            raise FeedbackException("Left margin is None")
+        if section.right_margin is None:
+            raise FeedbackException("Right margin is None")
         paragraph_width = (
             section.page_width - section.left_margin - section.right_margin
         )
