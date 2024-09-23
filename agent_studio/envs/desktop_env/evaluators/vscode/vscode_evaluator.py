@@ -114,7 +114,7 @@ class VSCodeEvaluator(Evaluator):
 
         # Check if the file exists
         if not os.path.exists(vscode_state_db):
-            raise FileNotFoundError("VSCode state file not found")
+            raise FeedbackException("VSCode state file not found")
 
         # Connect to the SQLite database
         conn = sqlite3.connect(vscode_state_db)

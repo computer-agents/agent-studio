@@ -180,4 +180,5 @@ results*
 trajectories
 *.tar.gz
 gpt4v_som
+logs/*
 logs/

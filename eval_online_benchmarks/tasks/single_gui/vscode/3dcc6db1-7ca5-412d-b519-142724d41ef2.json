@@ -31,7 +31,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "${AS_ROOT}/.config/Code/User"
+        "path": "${AS_HOME}/.config/Code/User"
       }
     },
     {

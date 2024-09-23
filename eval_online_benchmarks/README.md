@@ -89,7 +89,7 @@ In case you want to debug or evaluate human performance, this testsuite also sup
 Example command to start human evaluation on vscode tasks:
 
 ```bash
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/vscode/ --model gemini-1.5-flash-001 --agent human --remote --render --need_human_confirmation
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_gui/vscode/ --agent human --remote --render --need_human_confirmation
 ```
 
 ## Add more tasks
