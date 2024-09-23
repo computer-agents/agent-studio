@@ -48,7 +48,7 @@ class Handler:
         self.params: dict[str, inspect.Parameter] = dict(
             inspect.signature(fun).parameters
         )
-        logging.info(f"[{self.name}] Params: {self.params}")
+        logging.debug(f"[{self.name}] Params: {self.params}")
 
     def __call__(self, **kwargs) -> None:
         target_params = {}

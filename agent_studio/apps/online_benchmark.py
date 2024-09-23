@@ -1033,10 +1033,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
                 video_meta=video_meta,
             )
         except Exception as e:
-            import traceback
-
             logger.error(f"[Unhandled Error] {repr(e)}]")
-            logger.error(traceback.format_exc())
         finally:
             # Clean up
             if task_config.cleanup_procedure is not None:

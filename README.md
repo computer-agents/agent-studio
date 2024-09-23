@@ -36,7 +36,7 @@ Install requirements:
 apt-get install gnome-screenshot xclip xdotool  # If using Ubuntu 22.04
 conda create --name agent-studio python=3.11 -y
 conda activate agent-studio
-pip install -e .
+pip install -e .[client]
 ```
 
 All confidential API keys should be stored in `agent_studio/config/api_key.json`, e.g., OpenAI API key, Claude API key, Gemini API key, etc. We have provided an example config in `agent_studio/config/api_key_template.json`.

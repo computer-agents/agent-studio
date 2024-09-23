@@ -15,7 +15,7 @@ docker build -f dockerfiles/Dockerfile.ubuntu22.04.amd64 . -t agent-studio:lates
 Run Docker:
 
 ```bash
-docker run -d -e RESOLUTION=1024x768 -p 6080:80 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/agent_studio/config/:/home/ubuntu/agent_studio/agent_studio/config -v ${PWD}/eval_online_benchmarks/files:/home/ubuntu/agent_studio/data:ro agent-studio:latest
+docker run -d -e RESOLUTION=1024x768 -p 6080:80 -p 5900:5900 -p 8000:8000 -e VNC_PASSWORD=123456 -v /dev/shm:/dev/shm -v ${PWD}/scripts/agent_server.py:/home/ubuntu/agent_studio/scripts/agent_server.py:ro -v ${PWD}/agent_studio:/home/ubuntu/agent_studio/agent_studio:ro -v ${PWD}/eval_online_benchmarks/files:/home/ubuntu/agent_studio/data:ro agent-studio:latest
 ```
 
 > You can also replace `-d` to `-it` to use interactive mode. If successful, you should see logs with a bunch of success followed by `INFO  Listening on http://localhost:6079` in the output.

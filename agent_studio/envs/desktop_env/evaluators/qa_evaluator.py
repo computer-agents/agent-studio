@@ -1,7 +1,7 @@
 import logging
 import re
 
-from agent_studio.agent.base_agent import TrajectoryInfo
+from agent_studio.utils.types import TrajectoryInfo
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
     Evaluator,
