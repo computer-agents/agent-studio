@@ -145,10 +145,10 @@ class DocsCalcEvaluator(Evaluator):
                 )
 
     @evaluation_handler("check_tabstops")
-    def check_tabstops(self, docx_file1, docx_file2, kwargs):
+    def check_tabstops(self, docx_ref, docx_file, kwargs):
         try:
-            doc1: document.Document = Document(docx_file1)
-            doc2: document.Document = Document(docx_file2)
+            doc1: document.Document = Document(docx_ref)
+            doc2: document.Document = Document(docx_file)
         except Exception as e:
             logger.error(f"Error: {e}")
             raise FeedbackException(f"Error loading documents: {e}")
@@ -162,11 +162,10 @@ class DocsCalcEvaluator(Evaluator):
         if kwargs.get("word_number_split_by_tabstop", None) is not None:
             number = kwargs["word_number_split_by_tabstop"]
             index = kwargs.get("index", 0)
-            for p1 in para1:
-                breakpoint()
-                splits = p1.text.split("\t")
+            for p2 in para2:
+                splits = p2.text.split("\t")
                 if len(splits) == 0:
-                    raise FeedbackException(f"Paragraph {p1.text} is empty")
+                    raise FeedbackException(f"Paragraph {p2.text} is empty")
                 words = list(
                     filter(lambda x: x.strip(), re.split(r"\s", splits[index]))
                 )
