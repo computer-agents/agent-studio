@@ -2,7 +2,7 @@ import json
 from typing import Callable
 
 from PyQt6 import Qsci
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import (
     QDialog,
     QHBoxLayout,
@@ -11,6 +11,37 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
 )
+
+
+class TimerLabel(QLabel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_time)
+        self.timer.start(100)  # Update every 100ms for smoother display
+        self.elapsed_time = 0.0
+        self.setText(f"Time: {self.elapsed_time:.1f}s")
+        self.is_running = False
+        self.setStyleSheet("color: green;")
+
+    def update_time(self):
+        if self.is_running:
+            self.elapsed_time += 0.1
+            self.setText(f"Time: {self.elapsed_time:.1f}s")
+
+    def stop(self):
+        self.is_running = False
+        self.setStyleSheet("color: green;")
+
+    def start(self):
+        self.elapsed_time = 0.0
+        self.setText(f"Time: {self.elapsed_time:.1f}s")
+        self.is_running = True
+        self.setStyleSheet("color: blue;")
+
+    def pause(self):
+        self.is_running = False
+        self.setStyleSheet("color: yellow;")
 
 
 class JSONEditor(Qsci.QsciScintilla):

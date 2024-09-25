@@ -60,6 +60,7 @@ from agent_studio.utils.gui import (
     ChoiceDialogPython,
     InputDialog,
     JSONEditor,
+    TimerLabel,
 )
 from agent_studio.utils.json_utils import export_trajectory, read_unfinished_tasks, apply_env_vars, read_task_jsons
 from agent_studio.utils.types import TaskConfig, VideoMeta
@@ -95,7 +96,8 @@ class WorkerSignals(QObject):
     show_input_dialog_signal = pyqtSignal(str, str)
     runtime_output_signal = pyqtSignal(dict)
     evaluation_result_signal = pyqtSignal(str)
-    finish_signal = pyqtSignal()
+    exec_finish_signal = pyqtSignal()
+    eval_finish_signal = pyqtSignal()
     status_bar_signal = pyqtSignal(str, str)
 
 
@@ -245,6 +247,7 @@ class TaskThread(QThread):
                 if done:
                     break
 
+            self.signals.exec_finish_signal.emit()
             self.signals.status_bar_signal.emit(
                 "color: blue;", "Evaluating Task..."
             )
@@ -321,7 +324,7 @@ class TaskThread(QThread):
                     response.status == "finished" and response.content == "success"
                 ), f"Fail to reset task: {response.message}"
         self.signals.status_bar_signal.emit("color: green;", "Ready")
-        self.signals.finish_signal.emit()
+        self.signals.eval_finish_signal.emit()
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -427,11 +430,20 @@ class GUI(QMainWindow):
             )
             left_layout.addWidget(self.vnc_frame)
 
+            button_timer_layout = QHBoxLayout()
+            button_timer_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
             self.reconnect_button = QPushButton("Re-connect")
             self.reconnect_button.clicked.connect(self.reconnect)
             self.reconnect_button.setFixedWidth(150)
             self.reconnect_button.setFixedHeight(50)
-            left_layout.addWidget(self.reconnect_button)
+            button_timer_layout.addWidget(self.reconnect_button)
+
+            self.timer_label = TimerLabel(self)
+            button_timer_layout.addWidget(self.timer_label)
+
+            # Add the horizontal layout to the main left layout
+            left_layout.addLayout(button_timer_layout)
 
             vnc_widget = QWidget()
             vnc_widget.setLayout(left_layout)
@@ -596,7 +608,8 @@ class GUI(QMainWindow):
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
         signals.runtime_output_signal.connect(self.output_display.setText)
         signals.evaluation_result_signal.connect(self.evaluation_display.setPlainText)
-        signals.finish_signal.connect(self.task_finished)
+        signals.exec_finish_signal.connect(self.exec_finished)
+        signals.eval_finish_signal.connect(self.task_finished)
         signals.status_bar_signal.connect(self.set_task_status_bar_text)
         self.task_thread = TaskThread(
             agent=self.agent,
@@ -607,6 +620,10 @@ class GUI(QMainWindow):
             results_dir=self.results_dir,
         )
         self.task_thread.start()
+        self.timer_label.start()
+
+    def exec_finished(self):
+        self.timer_label.stop()
 
     def task_finished(self):
         if self.task_thread is not None:
@@ -617,12 +634,12 @@ class GUI(QMainWindow):
 
     def reset(self) -> None:
         """Resets the UI elements to their default state."""
-        self.vnc_frame.reset()
         self.refresh_timer.start()
         # set widgets to default state
         self.interrupt_button.setEnabled(True)
         self.start_button.setEnabled(False)
         self.instruction_selection.setEnabled(True)
+        self.timer_label.stop()
         # clear displays and selections
         self.instruction_selection.clearSelection()
         self.output_display.clear()
