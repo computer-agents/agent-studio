@@ -170,7 +170,8 @@ class DocsCalcEvaluator(Evaluator):
                     filter(lambda x: x.strip(), re.split(r"\s", splits[index]))
                 )
                 if len(words) != number:
-                    raise FeedbackException(f"Words: [{splits[index]}] has {len(words)} words, not {number}")
+                    raise FeedbackException(
+                        f"Words: [{splits[index]}] has {len(words)} words, not {number}")
 
         section = doc2.sections[0]
         if section.page_width is None:
@@ -454,7 +455,7 @@ class DocsCalcEvaluator(Evaluator):
                                     )
 
     @evaluation_handler("compare_docx_files")
-    def compare_docx_files(self, docx_file1, docx_file2, options = {}):
+    def compare_docx_files(self, docx_file1, docx_file2, options={}):
         if not _compare_docx_files(docx_file1, docx_file2, **options):
             raise FeedbackException("Documents are different")
 

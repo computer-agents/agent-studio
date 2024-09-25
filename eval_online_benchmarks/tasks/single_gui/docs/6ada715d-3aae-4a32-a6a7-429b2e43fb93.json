@@ -72,6 +72,13 @@
       }
     },
     {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "pcmanfm"
+      }
+    },
+    {
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
