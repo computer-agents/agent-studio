@@ -49,6 +49,17 @@
       }
     },
     {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/docs/Factoring_Perfect_Square_Trinomials_Gold.docx"
+        ],
+        "wait_for": "libreoffice"
+      }
+    },
+    {
       "evaluator": "system",
       "function": "sleep",
       "params": {

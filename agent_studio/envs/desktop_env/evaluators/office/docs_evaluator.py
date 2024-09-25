@@ -28,9 +28,8 @@ def _compare_docx_files(file1, file2, options: dict = {}):
     ignore_case = options.get("ignore_case", False)
     ignore_order = options.get("ignore_order", False)
     content_only = options.get("content_only", False)
+    similarity_threshold = options.get("similarity_threshold", 1.0)
 
-    if not file1 or not file2:
-        return 0
 
     def get_paragraph_texts_odt(document):
         paragraphs = document.getElementsByType(P)
@@ -67,7 +66,7 @@ def _compare_docx_files(file1, file2, options: dict = {}):
             doc2 = load(file2)
         except Exception as e:
             logger.error(f"Error: {e}")
-            return 0
+            raise FeedbackException(f"Error loading documents: {e}")
         doc1_paragraphs = get_paragraph_texts_odt(doc1)
         doc2_paragraphs = get_paragraph_texts_odt(doc2)
         if ignore_order:
@@ -75,8 +74,7 @@ def _compare_docx_files(file1, file2, options: dict = {}):
             doc2_paragraphs = sorted(doc2_paragraphs)
     else:
         # Unsupported file types or mismatch
-        print("Unsupported file types or mismatch between file types.")
-        return 0
+        raise FeedbackException("Unsupported file types or mismatch between file types.")
 
     if content_only:
         # Compare the content of the documents
@@ -85,7 +83,8 @@ def _compare_docx_files(file1, file2, options: dict = {}):
         if ignore_case:
             text1, text2 = text1.lower(), text2.lower()
         similarity = fuzz.ratio(text1, text2) / 100.0
-        return similarity
+        if similarity < similarity_threshold:
+            raise FeedbackException(f"Documents are different, Text similarity is {similarity:.2f}, {text1} != {text2}")
 
     # Process and compare documents
     if ignore_blanks:
@@ -94,26 +93,16 @@ def _compare_docx_files(file1, file2, options: dict = {}):
         if ignore_case:
             text1, text2 = text1.lower(), text2.lower()
         if text1 != text2:
-            return 0
+            raise FeedbackException(f"Documents are different, {text1} != {text2}")
     else:
-        print("ignore_blanks=false")
         if len(doc1_paragraphs) != len(doc2_paragraphs):
-            print(doc1_paragraphs)
-            print(doc2_paragraphs)
-            print(len(doc1_paragraphs))
-            print(len(doc2_paragraphs))
-            return 0
-        print("in compare")
+            raise FeedbackException(f"Number of paragraphs is different, {len(doc1_paragraphs)} != {len(doc2_paragraphs)}")
         # Compare each paragraph
         for p1, p2 in zip(doc1_paragraphs, doc2_paragraphs):
             if ignore_case:
                 p1, p2 = p1.lower(), p2.lower()
             if p1 != p2:
-                print(p1)
-                print(p2)
-                return 0
-
-    return 1
+                raise FeedbackException(f"Documents are different, {p1} != {p2}")
 
 
 class DocsCalcEvaluator(Evaluator):
@@ -121,8 +110,7 @@ class DocsCalcEvaluator(Evaluator):
 
     @evaluation_handler("compare_line_spacing")
     def compare_line_spacing(self, docx_file1, docx_file2):
-        if not _compare_docx_files(docx_file1, docx_file2):
-            raise FeedbackException("Documents are different")
+        _compare_docx_files(docx_file1, docx_file2)
 
         try:
             doc1 = Document(docx_file1)
@@ -274,8 +262,7 @@ class DocsCalcEvaluator(Evaluator):
 
     @evaluation_handler("compare_insert_equation")
     def compare_insert_equation(self, docx_file1, docx_file2):
-        if not _compare_docx_files(docx_file1, docx_file2):
-            raise FeedbackException("Documents are different")
+        _compare_docx_files(docx_file1, docx_file2)
 
         try:
             doc1 = Document(docx_file1)
@@ -285,13 +272,28 @@ class DocsCalcEvaluator(Evaluator):
             raise FeedbackException("Error loading documents")
 
         # Compare each paragraph if it contains equation
-        for para1, para2 in zip(doc1.paragraphs, doc2.paragraphs):
-            for run1, run2 in zip(para1.runs, para2.runs):
-                if run1.element.xpath(".//w:object") and run2.element.xpath(
-                    ".//w:object"
-                ):
-                    return 1
-        raise FeedbackException("Equation is missing")
+        equ_list1 = []
+        equ_list2 = []
+        for para1 in doc1.paragraphs:
+            para_xml = para1._element.xml
+            if "<m:oMath" in para_xml:
+                equ_list1.append(para_xml)
+
+        for para2 in doc2.paragraphs:
+            para_xml = para2._element.xml
+            if "<m:oMath" in para_xml:
+                equ_list2.append(para_xml)
+
+        if not equ_list1 or not equ_list2:
+            raise FeedbackException("Equation is missing")
+
+        # Compare equations
+        # TODO: compare the content of the equations
+        if len(equ_list1) != len(equ_list2):
+            raise FeedbackException(f"Number of equations is different, {len(equ_list1)} != {len(equ_list2)}")
+        # for equ1, equ2 in zip(equ_list1, equ_list2):
+        #     if equ1 != equ2:
+        #         raise FeedbackException(f"Equations are different, {equ1} != {equ2}")
 
     @evaluation_handler("compare_docx_tables")
     def compare_docx_tables(self, docx_file1, docx_file2):
@@ -324,8 +326,7 @@ class DocsCalcEvaluator(Evaluator):
 
     @evaluation_handler("check_highlighted_words")
     def check_highlighted_words(self, file_path1, file_path2):
-        if not _compare_docx_files(file_path1, file_path2):
-            raise FeedbackException("Documents are different")
+        _compare_docx_files(file_path1, file_path2)
 
         doc = load(file_path1)
         highlighted = False
@@ -356,14 +357,9 @@ class DocsCalcEvaluator(Evaluator):
 
         for para1, para2 in zip(doc1.paragraphs, doc2.paragraphs):
             for run1, run2 in zip(para1.runs, para2.runs):
-                if (
-                    "graphicData" in run1._element.xml
-                    and "graphicData" not in run2._element.xml
-                ) or (
-                    "graphicData" not in run1._element.xml
-                    and "graphicData" in run2._element.xml
-                ):
-                    raise FeedbackException("Image is missing")
+                if ("graphicData" in run1._element.xml) != ("graphicData" in run2._element.xml):
+                    raise FeedbackException(
+                        f"Image is missing, {run1._element.xml} != {run2._element.xml}")
 
     @evaluation_handler("compare_docx_lines")
     def compare_docx_lines(self, file1, file2):
@@ -383,12 +379,11 @@ class DocsCalcEvaluator(Evaluator):
             raise FeedbackException("Documents are different")
 
     @evaluation_handler("evaluate_strike_through_last_paragraph")
-    def evaluate_strike_through_last_paragraph(self, file_path1, file_path2):
-        if not _compare_docx_files(file_path1, file_path2):
-            raise FeedbackException("Documents are different")
+    def evaluate_strike_through_last_paragraph(self, docx_ref, docx_file):
+        _compare_docx_files(docx_ref, docx_file)
 
         try:
-            document = Document(file_path1)
+            document = Document(docx_ref)
         except Exception as e:
             logger.error(f"Error: {e}")
             raise FeedbackException("Error loading document")
@@ -406,24 +401,19 @@ class DocsCalcEvaluator(Evaluator):
         # All words in the last paragraph have strike-through formatting
 
     @evaluation_handler("evaluate_colored_words_in_tables")
-    def evaluate_colored_words_in_tables(self, file_path1, file_path2, kwargs):
-        if not _compare_docx_files(file_path1, file_path2):
-            raise FeedbackException("Documents are different")
+    def evaluate_colored_words_in_tables(self, docx_ref, docx_file):
+        _compare_docx_files(docx_ref, docx_file)
 
         try:
-            document = Document(file_path1)
+            document = Document(docx_file)
         except Exception as e:
             logger.error(f"Error: {e}")
             raise FeedbackException("Error loading document")
 
-        threshold = kwargs.get("threshold", 3.5)
-
         def _calculate_color_difference(rgb1, rgb2):
             srgb1 = [rgb1[0] / 255.0, rgb1[1] / 255.0, rgb1[2] / 255.0]
             srgb2 = [rgb2[0] / 255.0, rgb2[1] / 255.0, rgb2[2] / 255.0]
-            lab1, lab2 = rgb2lab(srgb1), rgb2lab(srgb2)
-            delta_e = deltaE_ciede2000(lab1, lab2)
-            return delta_e
+            return srgb1.index(max(srgb1)) != srgb2.index(max(srgb2))
 
         for table in document.tables:
             # Iterate through rows and cells in the table
@@ -435,29 +425,28 @@ class DocsCalcEvaluator(Evaluator):
                             if word:
                                 first_letter = word[0].lower()
 
-                                if (
+                                if run.font.color.rgb is None or (
                                     first_letter in "aeiou"
                                     and _calculate_color_difference(
-                                        run.font.color.rgb, RGBColor(255, 0, 0)
+                                        run.font.color.rgb, [255, 0, 0]
                                     )
-                                    > threshold
-                                ):
-                                    return 0  # Vowel-colored words should be red
-                                elif (
-                                    first_letter not in "aeiou"
-                                    and _calculate_color_difference(
-                                        run.font.color.rgb, RGBColor(0, 0, 255)
-                                    )
-                                    > threshold
                                 ):
                                     raise FeedbackException(
-                                        "Non-vowel-colored words should be blue"
+                                        f"Vowel-colored words should be red, {run.font.color.rgb} != {[255, 0, 0]}, Word: {word}"
+                                    )
+                                elif run.font.color.rgb is None or (
+                                    first_letter not in "aeiou"
+                                    and _calculate_color_difference(
+                                        run.font.color.rgb, [0, 0, 255]
+                                    )
+                                ):
+                                    raise FeedbackException(
+                                        f"Non-vowel-colored words should be blue, {run.font.color.rgb} != {[0, 0, 255]}, Word: {word}"
                                     )
 
     @evaluation_handler("compare_docx_files")
     def compare_docx_files(self, docx_file1, docx_file2, options={}):
-        if not _compare_docx_files(docx_file1, docx_file2, **options):
-            raise FeedbackException("Documents are different")
+        _compare_docx_files(docx_file1, docx_file2, options)
 
     @evaluation_handler("compare_docx_images")
     def compare_docx_images(self, docx_file1, docx_file2):

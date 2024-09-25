@@ -1,12 +1,12 @@
 {
   "task_id": "45d61a06-6545-4422-97b7-bc76cfa964c1",
-  "instruction": "Replace all newlines with paragraph marks in ${AS_ROOT}/docs/NOVEL_Submission_Guidelines.docx",
+  "instruction": "Change line space of ${AS_ROOT}/docs/NOVEL_Submission_Guidelines.docx from 1.0 to 2.0",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
     {
       "evaluator": "docs",
-      "function": "compare_insert_equation",
+      "function": "compare_line_spacing",
       "params": {
         "docx_file1": "${AS_ROOT}/data/45d61a06-6545-4422-97b7-bc76cfa964c1/NOVEL_Submission_Guidelines_Gold.docx",
         "docx_file2": "${AS_ROOT}/docs/NOVEL_Submission_Guidelines.docx"
