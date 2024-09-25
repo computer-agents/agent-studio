@@ -328,10 +328,19 @@ class FilesystemEvaluator(Evaluator):
     @reset_handler("copy")
     def copy(src: str, dest: str) -> None:
         """
-        Copy file or directory to destination.
+        Copy file or directory to destination, replacing if it exists.
         """
         src = os.path.expanduser(src)
         dest = os.path.expanduser(dest)
+
+        @confirm_action(f"Overwrite {dest}?")
+        def _rm(path: str) -> None:
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+        if os.path.exists(dest):
+            _rm(dest)
         if os.path.isdir(src):
             shutil.copytree(src, dest)
         else:

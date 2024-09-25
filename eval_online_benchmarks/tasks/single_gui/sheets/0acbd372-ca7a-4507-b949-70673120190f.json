@@ -8,7 +8,7 @@
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
-        "expected": "data/0acbd372-ca7a-4507-b949-70673120190f/1_NetIncome_gt1.xlsx",
+        "expected": "${AS_ROOT}/data/0acbd372-ca7a-4507-b949-70673120190f/1_NetIncome_gt1.xlsx",
         "result": "${AS_ROOT}/sheets/NetIncome.xlsx",
         "options": {
           "rules": [
@@ -25,17 +25,58 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/0acbd372-ca7a-4507-b949-70673120190f/NetIncome.xlsx",
-        "dest": "${AS_ROOT}/sheets"
+        "src": "${AS_ROOT}/data/0acbd372-ca7a-4507-b949-70673120190f/NetIncome.xlsx",
+        "dest": "${AS_ROOT}/sheets/NetIncome.xlsx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/sheets/NetIncome.xlsx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/sheets/NetIncome.xlsx"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
       }
     }
   ],

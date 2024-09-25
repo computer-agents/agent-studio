@@ -22,7 +22,7 @@ from PyQt6.QtCore import (
     QWaitCondition,
     pyqtSignal,
 )
-from PyQt6.QtGui import QImage
+from PyQt6.QtGui import QImage, QAction
 from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
@@ -37,6 +37,8 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
+    QFileDialog,
+    QMessageBox,
 )
 from tqdm import tqdm
 
@@ -347,16 +349,12 @@ class GUI(QMainWindow):
         super().__init__()
         self.frame_buffer: FrameBuffer = FrameBuffer()
         self.args = args
-        self.is_recording = False
         self.remote = remote
-        self.results_dir = Path(f"{self.args.log_dir}/{self.args.model}/{self.args.agent}")
+        self.results_dir = Path(
+            f"{self.args.log_dir}/{self.args.model}/{self.args.agent}")
+        self.task_config_path = Path(self.args.task_configs_path)
         # Setup tasks
-        if self.args.ignore_finished:
-            self.task_configs: list[TaskConfig] = read_unfinished_tasks(
-                Path(args.task_configs_path), self.results_dir)
-        else:
-            self.task_configs: list[TaskConfig] = read_task_jsons(
-                Path(args.task_configs_path))
+        self.load_task_configs()
         self.selected_task: TaskConfig
         self.window_width = window_width
         self.window_height = window_height
@@ -388,6 +386,9 @@ class GUI(QMainWindow):
         else:
             self.capture_thread = LocalStreamer(config.monitor_idx)
 
+        self.is_recording = False
+        self.recording_thread: threading.Thread | None = None
+
         # Initialize the screenshot as a blank image.
         self.video_height, self.video_width = (
             self.capture_thread.video_height,
@@ -401,10 +402,39 @@ class GUI(QMainWindow):
 
         self.reset()
 
+    def load_task_configs(self):
+        try:
+            if self.args.ignore_finished:
+                self.task_configs: list[TaskConfig] = read_unfinished_tasks(
+                    Path(self.task_config_path), self.results_dir)
+            else:
+                self.task_configs: list[TaskConfig] = read_task_jsons(
+                    Path(self.task_config_path))
+        except Exception as e:
+            logger.error(f"Failed to load task configs: {e}")
+            self.task_configs = []
+            self.status_bar.showMessage("Failed to load task configs", 3000)
+
     def setup_ui(self):
         """Sets up the UI, including the VNC frame (left) and the right layout."""
         # Setup the user interface for the application.
         self.setWindowTitle("Agent Monitor")
+
+        # Create menu bar
+        menubar = self.menuBar()
+        assert menubar is not None
+        file_menu = menubar.addMenu('File')
+        assert file_menu is not None
+
+        # Open Task Config
+        open_file_action = QAction('Open Config', self)
+        open_file_action.triggered.connect(self.open_task_config)
+        file_menu.addAction(open_file_action)
+
+        # Reload Task Configs
+        reload_action = QAction('Reload Configs', self)
+        reload_action.triggered.connect(self.reload_task_configs)
+        file_menu.addAction(reload_action)
 
         # Central widget to hold the main layout.
         central_widget = QWidget(self)
@@ -527,6 +557,24 @@ class GUI(QMainWindow):
         # End of agent layout #
 
         self.setMouseTracking(True)
+
+    def reload_task_configs(self):
+        self.load_task_configs()
+        self.populate_instruction_selection_widget()
+        self.status_bar.showMessage("Task configs reloaded", 3000)
+
+    def open_task_config(self):
+        folder_path = QFileDialog.getExistingDirectory(self, "Open Task Config Folder")
+        if folder_path:
+            self.task_config_path = Path(folder_path)
+            try:
+                self.load_task_configs()
+                self.populate_instruction_selection_widget()
+                self.status_bar.showMessage(
+                    f"Task configs added from: {folder_path}", 3000)
+            except Exception as e:
+                QMessageBox.critical(
+                    self, "Error", f"Failed to load task configs: {str(e)}")
 
     def show_input_dialog(self, title: str, message: str):
         assert self.task_thread is not None
@@ -653,6 +701,10 @@ class GUI(QMainWindow):
         if self.task_thread is not None:
             self.task_thread.terminate()
             self.task_thread = None
+        self.is_recording = False
+        if self.recording_thread is not None:
+            self.recording_thread.join()
+            self.recording_thread = None
         # reset status bar
         self.set_task_status_bar_text("color: green;", "Ready")
         self.status_bar.showMessage(
@@ -732,6 +784,9 @@ class GUI(QMainWindow):
             self.is_recording and self.frame_buffer is not None
         ), "No recording in progress."
         self.is_recording = False
+        if self.recording_thread is not None:
+            self.recording_thread.join()
+            self.recording_thread = None
         self.stop_time = time.time()
         writer = cv2.VideoWriter(
             video_path.as_posix(),
@@ -917,7 +972,8 @@ def eval(args, interface: NonGUI | None = None) -> None:
 
     # Setup tasks
     if args.ignore_finished:
-        task_configs_json = read_unfinished_tasks(Path(args.task_configs_path), results_dir)
+        task_configs_json = read_unfinished_tasks(
+            Path(args.task_configs_path), results_dir)
     else:
         task_configs_json = read_task_jsons(Path(args.task_configs_path))
     task_configs: list[TaskConfig] = []
@@ -1015,7 +1071,8 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     f"{REMOTE_SERVER_ADDR}/task/eval",
                     json=AgentStudioEvalRequest(
                         procedures=task_config.eval_procedure,
-                        as_kwargs=str(jsonpickle.encode({"trajectory": agent.trajectory})),
+                        as_kwargs=str(jsonpickle.encode(
+                            {"trajectory": agent.trajectory})),
                     ).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())

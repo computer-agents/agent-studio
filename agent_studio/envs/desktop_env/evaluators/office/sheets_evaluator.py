@@ -82,11 +82,10 @@ def _parse_sheet_idx(
 SHEET = Union[pd.DataFrame, Worksheet, List[str]]
 
 
-def _load_sheet(book: BOOK, index: str) -> SHEET:
+def _load_sheet(book: BOOK, index: str) -> SHEET | None:
     #  function _load_sheet {{{ #
     try:
         if isinstance(book, str):
-            book: str = cast(str, book)
             csv_name: str = "{:}-{:}.csv".format(os.path.splitext(book)[0], index)
 
             with open(csv_name) as f:
@@ -103,9 +102,8 @@ def _load_sheet(book: BOOK, index: str) -> SHEET:
             return book[index]
         logger.error("Not supported workbook format")
         raise NotImplementedError("Not supported workbook format")
-    except NotImplementedError as e:
-        raise e
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to load sheet: %s", e)
         return None
     #  }}} function _load_sheet #
 
@@ -156,6 +154,7 @@ class SheetsEvaluator(Evaluator):
 
         passes = True
         for r in options["rules"]:
+            metric = True
             if r["type"] == "sheet_name":
                 #  Compare Sheet Names {{{ #
                 metric: bool = worksheetr_names == worksheete_names
@@ -178,14 +177,20 @@ class SheetsEvaluator(Evaluator):
                     *parse_idx(r["sheet_idx0"], pdworkbookr, pdworkbooke)
                 )
                 if sheet1 is None:
-                    return 0.0
+                    raise FeedbackException(
+                        f"rule {r['type']} failed, cannot load sheet {r['sheet_idx0']}")
                 sheet2: pd.DataFrame = _load_sheet(
                     *parse_idx(r["sheet_idx1"], pdworkbookr, pdworkbooke)
                 )
+                if sheet2 is None:
+                    raise FeedbackException(
+                        f"rule {r['type']} failed, cannot load sheet {r['sheet_idx1']}")
 
                 sheet1 = sheet1.round(error_limit)
                 sheet2 = sheet2.round(error_limit)
-                metric: bool = sheet1.equals(sheet2)
+                if not sheet1.equals(sheet2):
+                    raise FeedbackException(
+                        f"rule {r['type']} failed, {str(sheet1)} != {str(sheet2)}")
                 logger.debug("Sheet1: \n%s", str(sheet1))
                 logger.debug("Sheet2: \n%s", str(sheet2))
                 try:
@@ -196,7 +201,6 @@ class SheetsEvaluator(Evaluator):
                     "Assertion: %s =v= %s - %s",
                     r["sheet_idx0"],
                     r["sheet_idx1"],
-                    metric,
                 )
                 #  }}} Compare Sheet Data by Internal Value #
 
@@ -217,12 +221,13 @@ class SheetsEvaluator(Evaluator):
                 if r.get("ignore_case", False):
                     sheet1 = [line.lower() for line in sheet1]
                     sheet2 = [line.lower() for line in sheet2]
-                metric: bool = sheet1 == sheet2
+                if sheet1 != sheet2:
+                    raise FeedbackException(
+                        f"rule {r['type']} failed, {str(sheet1)} != {str(sheet2)}")
                 logger.debug(
                     "Assertion: %s =p= %s - %s",
                     r["sheet_idx0"],
                     r["sheet_idx1"],
-                    metric,
                 )
                 #  }}} Compare Sheet Data by Printed Value #
 
@@ -328,12 +333,13 @@ class SheetsEvaluator(Evaluator):
                 charts2: Dict[str, Any] = load_charts(
                     *parse_idx(r["sheet_idx1"], xlworkbookr, xlworkbooke), **r
                 )
-                metric: bool = charts1 == charts2
+                if charts1 != charts2:
+                    raise FeedbackException(
+                        f"rule {r['type']} failed, {str(charts1)} != {str(charts2)}, Sheet index: [{r['sheet_idx0']}] and [{r['sheet_idx1']}]")
                 logger.debug(
                     "Assertion: %s[chart] == %s[chart] - %s",
                     r["sheet_idx0"],
                     r["sheet_idx1"],
-                    metric,
                 )
                 #  }}} Compare Charts #
 
@@ -382,14 +388,15 @@ class SheetsEvaluator(Evaluator):
                 sheet2: Worksheet = _load_sheet(
                     *parse_idx(r["sheet_idx1"], xlworkbookr, xlworkbooke)
                 )
-                metric: bool = sheet1.freeze_panes == sheet2.freeze_panes
+                if sheet1.freeze_panes != sheet2.freeze_panes:
+                    raise FeedbackException(
+                        f"rule {r['type']} failed, {str(sheet1.freeze_panes)} != {str(sheet2.freeze_panes)}, Sheet index: [{r['sheet_idx0']}] and [{r['sheet_idx1']}]")
                 logger.debug(
                     "Assertion: %s.freeze(%s) == %s.freeze(%s) - %s",
                     r["sheet_idx0"],
                     sheet1.freeze_panes,
                     r["sheet_idx1"],
                     sheet2.freeze_panes,
-                    metric,
                 )
                 #  }}} Compare Freezing #
 
@@ -550,12 +557,13 @@ class SheetsEvaluator(Evaluator):
                 pivots2: Dict[str, Any] = load_pivot_tables(
                     *parse_idx(r["sheet_idx1"], xlworkbookr, xlworkbooke), **r
                 )
-                metric: bool = pivots1 == pivots2
+                if pivots1 == {} or pivots2 == {} or pivots1 != pivots2:
+                    raise FeedbackException(
+                        f"rule {r['type']} failed, {str(pivots1)} != {str(pivots2)}, Sheet index: [{r['sheet_idx0']}] and [{r['sheet_idx1']}]")
                 logger.debug(
                     "Assertion: %s[pivot]==%s[pivot] - %s",
                     r["sheet_idx0"],
                     r["sheet_idx1"],
-                    metric,
                 )
                 #  }}} Compare Pivot Tables #
 

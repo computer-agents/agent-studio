@@ -8,8 +8,8 @@
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
-        "expected": "data/a9f325aa-8c05-4e4f-8341-9e4358565f4f/Movie_title_garbage_clean_gold.xlsx",
-        "result": "${AS_ROOT}/sheets/Movie_title_garbage_clean.xlsx",
+        "expected": "${AS_ROOT}/data/a9f325aa-8c05-4e4f-8341-9e4358565f4f/Movie_titles_garbage_clean_gold.xlsx",
+        "result": "${AS_ROOT}/sheets/Movie_titles_garbage_clean.xlsx",
         "options": {
           "rules": [
             {
@@ -25,17 +25,58 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/a9f325aa-8c05-4e4f-8341-9e4358565f4f/Movie_title_garbage_clean.xlsx",
-        "dest": "${AS_ROOT}/sheets"
+        "src": "${AS_ROOT}/data/a9f325aa-8c05-4e4f-8341-9e4358565f4f/Movie_titles_garbage_clean.xlsx",
+        "dest": "${AS_ROOT}/sheets/Movie_titles_garbage_clean.xlsx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/sheets/Movie_titles_garbage_clean.xlsx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/sheets/Movie_title_garbage_clean.xlsx"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
       }
     }
   ],

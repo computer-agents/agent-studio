@@ -1,6 +1,6 @@
 {
   "task_id": "42e0a640-4f19-4b28-973d-729602b5a4a7",
-  "instruction": "Compute the sum of \"Revenue\" and \"Total Expenses\" and put the results under two columns named \"Total Revenue\" and \"Total Expenses\" of '${AS_ROOT}/sheets/NetIncome.xlsx'",
+  "instruction": "In the opened window, compute the sum of \"Revenue\" and \"Total Expenses\", create a new sheet called \"Sheet2\", put the results under column A1 and B1 and name column as \"Total Revenue\" and \"Total Expenses\" respectively",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,7 +8,7 @@
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
-        "expected": "data/42e0a640-4f19-4b28-973d-729602b5a4a7/2_NetIncome_gt1.xlsx",
+        "expected": "${AS_ROOT}/data/42e0a640-4f19-4b28-973d-729602b5a4a7/2_NetIncome_gt1.xlsx",
         "result": "${AS_ROOT}/sheets/NetIncome.xlsx",
         "options": {
           "rules": [
@@ -25,17 +25,58 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/42e0a640-4f19-4b28-973d-729602b5a4a7/NetIncome.xlsx",
-        "dest": "${AS_ROOT}/sheets"
+        "src": "${AS_ROOT}/data/42e0a640-4f19-4b28-973d-729602b5a4a7/NetIncome.xlsx",
+        "dest": "${AS_ROOT}/sheets/NetIncome.xlsx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/sheets/NetIncome.xlsx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/sheets/NetIncome.xlsx"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
       }
     }
   ],

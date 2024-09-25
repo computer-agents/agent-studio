@@ -1,6 +1,6 @@
 {
   "task_id": "b6e9778c-11b3-455f-b720-655048787484",
-  "instruction": "Summarize the revenue sum for each product in '${AS_ROOT}/sheets/EntireSummerSales.xlsx' and plot a pie chart that displays the summarized data. Show the product names as the legend on the right and revenues as the outside-end data labels.",
+  "instruction": "Use pivot table to summarize the revenue sum for each product in a new sheet. Put the sheet as the first sheet in the workbook.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,22 +8,13 @@
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
-        "expected": "data/b6e9778c-11b3-455f-b720-655048787484/11_EntireSummerSales_gt1.xlsx",
+        "expected": "${AS_ROOT}/data/b6e9778c-11b3-455f-b720-655048787484/11_EntireSummerSales_gt1.xlsx",
         "result": "${AS_ROOT}/sheets/EntireSummerSales.xlsx",
         "options": {
           "rules": [
             {
-              "type": "chart",
-              "sheet_idx0": 0,
-              "sheet_idx1": "EI0",
-              "chart_props": [
-                "type",
-                "legend"
-              ]
-            },
-            {
               "type": "pivot_table",
-              "sheet_idx0": 0,
+              "sheet_idx0": "RI0",
               "sheet_idx1": "EI0",
               "pivot_props": [
                 "col_fields",
@@ -40,17 +31,58 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/b6e9778c-11b3-455f-b720-655048787484/EntireSummerSales.xlsx",
-        "dest": "${AS_ROOT}/sheets"
+        "src": "${AS_ROOT}/data/b6e9778c-11b3-455f-b720-655048787484/EntireSummerSales.xlsx",
+        "dest": "${AS_ROOT}/sheets/EntireSummerSales.xlsx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/sheets/EntireSummerSales.xlsx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/sheets/EntireSummerSales.xlsx"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
       }
     }
   ],
