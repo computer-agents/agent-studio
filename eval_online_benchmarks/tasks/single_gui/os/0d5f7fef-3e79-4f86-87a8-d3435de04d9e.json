@@ -38,7 +38,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/reports"
+        "path": "{AS_ROOT}/tmp"
       }
     }
   ]
