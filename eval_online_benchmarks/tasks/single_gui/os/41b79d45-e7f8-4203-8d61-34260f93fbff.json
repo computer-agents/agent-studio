@@ -1,8 +1,9 @@
 {
-  "task_id": "41b79d45-e7f8-4203-8d61-34260f93fbff",
+  "task_id": "edb19d3f-135f-4f93-b052-3e7789454411",
   "instruction": "In the '{AS_ROOT}/tmp/downloads/' directory, move all '.jpg' files to '{AS_ROOT}/tmp/downloads/images/' and all '.txt' files to '{AS_ROOT}/tmp/downloads/texts/'.",
   "visual": true,
   "max_steps": 20,
+  "max_time": 60.0,
   "eval_procedure": [
     {
       "evaluator": "filesystem",
@@ -102,5 +103,5 @@
       }
     }
   ],
-  "max_time": 60
+  "cleanup_procedure": null
 }

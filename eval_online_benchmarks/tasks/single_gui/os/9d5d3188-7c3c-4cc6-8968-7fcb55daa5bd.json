@@ -1,8 +1,9 @@
 {
-  "task_id": "9d5d3188-7c3c-4cc6-8968-7fcb55daa5bd",
+  "task_id": "49e457e8-9ed9-416a-8b79-69be26794ed7",
   "instruction": "Update the content of 'agenda.txt' in '{AS_ROOT}/tmp/meetings/' to 'Updated Meeting Agenda'.z",
   "visual": true,
   "max_steps": 20,
+  "max_time": 60.0,
   "eval_procedure": [
     {
       "evaluator": "filesystem",
@@ -38,5 +39,5 @@
       }
     }
   ],
-  "max_time": 60
+  "cleanup_procedure": null
 }

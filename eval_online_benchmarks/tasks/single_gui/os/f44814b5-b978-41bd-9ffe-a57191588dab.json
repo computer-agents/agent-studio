@@ -1,8 +1,9 @@
 {
-  "task_id": "f44814b5-b978-41bd-9ffe-a57191588dab",
+  "task_id": "3ff19bd5-923f-4301-9c51-ae444aa8dcfe",
   "instruction": "Create a directory named 'projects' inside the '{AS_ROOT}/tmp/' directory.",
   "visual": true,
   "max_steps": 20,
+  "max_time": 60.0,
   "eval_procedure": [
     {
       "evaluator": "filesystem",
@@ -32,5 +33,5 @@
       }
     }
   ],
-  "max_time": 60
+  "cleanup_procedure": null
 }

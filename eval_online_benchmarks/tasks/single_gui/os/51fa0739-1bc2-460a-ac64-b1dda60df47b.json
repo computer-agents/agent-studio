@@ -1,8 +1,9 @@
 {
-  "task_id": "51fa0739-1bc2-460a-ac64-b1dda60df47b",
+  "task_id": "3d62bbd1-dcfa-4df8-8703-4bfd682d0051",
   "instruction": "Increment the number in 'count.txt' in '{AS_ROOT}/tmp/data/' by 1.",
   "visual": true,
   "max_steps": 20,
+  "max_time": 60.0,
   "eval_procedure": [
     {
       "evaluator": "filesystem",
@@ -38,5 +39,5 @@
       }
     }
   ],
-  "max_time": 60
+  "cleanup_procedure": null
 }

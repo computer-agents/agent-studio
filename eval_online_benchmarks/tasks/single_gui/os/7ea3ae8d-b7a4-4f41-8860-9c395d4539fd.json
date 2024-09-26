@@ -1,8 +1,9 @@
 {
-  "task_id": "7ea3ae8d-b7a4-4f41-8860-9c395d4539fd",
+  "task_id": "c37e0210-3777-4953-a3ef-2d1476995545",
   "instruction": "In the '{AS_ROOT}/tmp/logs/' directory, find all '.log' files and replace any instance of 'ERROR' with 'WARN'.",
   "visual": true,
   "max_steps": 20,
+  "max_time": 60.0,
   "eval_procedure": [
     {
       "evaluator": "filesystem",
@@ -47,5 +48,5 @@
       }
     }
   ],
-  "max_time": 60
+  "cleanup_procedure": null
 }

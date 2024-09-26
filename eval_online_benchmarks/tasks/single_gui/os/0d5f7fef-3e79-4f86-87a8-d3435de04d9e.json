@@ -1,8 +1,9 @@
 {
-  "task_id": "0d5f7fef-3e79-4f86-87a8-d3435de04d9e",
+  "task_id": "d8d0768a-9b97-48aa-851c-16b6b952e3d6",
   "instruction": "Create a 1024 byte-size file 'summary.txt' in '{AS_ROOT}/tmp/reports/'.",
   "visual": true,
   "max_steps": 20,
+  "max_time": 60.0,
   "eval_procedure": [
     {
       "evaluator": "filesystem",
@@ -40,6 +41,5 @@
         "path": "{AS_ROOT}/tmp/reports"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }
