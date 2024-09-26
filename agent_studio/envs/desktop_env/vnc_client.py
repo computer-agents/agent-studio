@@ -1,15 +1,15 @@
-import asyncio
 import logging
 import platform
 import threading
 from dataclasses import dataclass
 
-import asyncvnc
+from vncdotool import api
+from PIL import Image
 import cv2
 import mss
 import numpy as np
-from PyQt6.QtCore import QPoint, QRect, QSize, Qt
-from PyQt6.QtGui import QColor, QCursor, QFont, QPainter, QPen, QPixmap
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QLabel
 
 logger = logging.getLogger(__name__)
@@ -61,19 +61,27 @@ class VNCStreamer:
         self.vnc_password = vnc_password
         self.is_streaming = True
         self.streaming_thread = threading.Thread(
-            target=self._between_callback, name="Screen Stream"
+            target=self._capture_screen, name="Screen Stream"
         )
         self.streaming_lock = threading.Lock()
-        self.condition = threading.Condition()
         self.video_height = 0
         self.video_width = 0
         self.current_frame = np.zeros(
             (self.video_height, self.video_width, 3), dtype="uint8"
         )
+        self.client = api.connect(
+            f"{self.env_server_addr}::{self.vnc_port}", password=self.vnc_password)
+        self.client.refreshScreen(False)
         self.streaming_thread.start()
-        with self.condition:
-            if self.video_height == 0 or self.video_width == 0:
-                self.condition.wait()
+
+        init_image: Image.Image = self.client.screen
+        self.current_frame = np.array(init_image)
+        self.video_width, self.video_height = init_image.size
+        logger.info(f"VNC Frame size: {self.video_height}x{self.video_width}")
+        if self.video_height == 0 or self.video_width == 0:
+            logger.error("Fail to get vnc screen")
+            self.stop()
+            raise RuntimeError("Fail to get vnc screen")
 
     def stop(self):
         if not self.streaming_thread.is_alive():
@@ -81,46 +89,26 @@ class VNCStreamer:
         else:
             self.is_streaming = False
             self.streaming_thread.join()
-
-    async def _connect_vnc(self):
-        """Connects to VNC server."""
-        self.streaming_thread = threading.Thread(
-            target=self._between_callback, name="Screen Stream"
-        )
-        self.streaming_thread.start()
-
-    def _between_callback(self):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-        loop.run_until_complete(self._capture_screen())
-        loop.close()
-
-    async def reconnect(self):
-        self.stop()
-        await self._connect_vnc()
+            self.client.disconnect()
+            api.shutdown()
+            logger.info("VNC Client disconnected")
 
     def get_current_frame(self) -> np.ndarray | None:
         with self.streaming_lock:
             return self.current_frame
 
-    async def _capture_screen(self):
+    def _capture_screen(self):
         logger.info("VNC Streamer started")
-        async with asyncvnc.connect(
-            host=self.env_server_addr,
-            port=self.vnc_port,
-            password=self.vnc_password,
-        ) as vnc:
+        try:
             while self.is_streaming:
-                frame = await vnc.screenshot()
-                if frame is not None:
-                    frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
-                    with self.streaming_lock:
-                        self.current_frame = frame.copy()
-                        self.video_height, self.video_width = frame.shape[:2]
-                        with self.condition:
-                            self.condition.notify_all()
-        logger.info("VNC Streamer stopped")
+                self.client.refreshScreen(True)
+                frame = np.array(self.client.screen)
+                with self.streaming_lock:
+                    self.current_frame = frame.copy()
+                    self.video_height, self.video_width = frame.shape[:2]
+        except Exception as e:
+            logger.warning(f"Fail to capture frame: {e}")
+        logger.info("VNC Streaming thread stopped")
 
 
 class LocalStreamer:

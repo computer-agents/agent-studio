@@ -463,12 +463,6 @@ class GUI(QMainWindow):
             button_timer_layout = QHBoxLayout()
             button_timer_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            self.reconnect_button = QPushButton("Re-connect")
-            self.reconnect_button.clicked.connect(self.reconnect)
-            self.reconnect_button.setFixedWidth(150)
-            self.reconnect_button.setFixedHeight(50)
-            button_timer_layout.addWidget(self.reconnect_button)
-
             self.timer_label = TimerLabel(self)
             button_timer_layout.addWidget(self.timer_label)
 
@@ -707,23 +701,6 @@ class GUI(QMainWindow):
             self.recording_thread = None
         # reset status bar
         self.set_task_status_bar_text("color: green;", "Ready")
-        self.status_bar.showMessage(
-            "Connected. Please go to the terminal to check outputs."
-        )
-
-    def reconnect(self):
-        self.status_bar.showMessage("Reconnecting")
-        self.now_screenshot = np.zeros(
-            (self.video_height, self.video_width, 4), dtype="uint8"
-        )
-        if self.capture_thread is not None:
-            self.capture_thread.stop()
-        if self.remote:
-            self.capture_thread = VNCStreamer(
-                config.env_server_addr, config.vnc_port, config.vnc_password
-            )
-        else:
-            self.capture_thread = LocalStreamer(config.monitor_idx)
         self.status_bar.showMessage(
             "Connected. Please go to the terminal to check outputs."
         )

@@ -59,7 +59,7 @@ server = [
 ]
 client = [
     "backoff",
-    "asyncvnc",
+    "vncdotool",
     "transformers",
     "anthropic",
     "openai",

@@ -37,7 +37,8 @@ chown -R "$USER":"$USER" "${HOME}"
 sed -i -e "s|%USER%|$USER|" -e "s|%HOME%|$HOME|" /etc/supervisor/conf.d/supervisord.conf
 
 # Modify VNC server to run as ubuntu user
-sed -i 's/^command=x11vnc.*/command=su - ubuntu -c "x11vnc -xkb -noxrecord -noshm -noxfixes -noxdamage -display :1 -rfbauth \/.password2 -shared -forever"/' /etc/supervisor/conf.d/supervisord.conf
+sed -i 's/^command=x11vnc.*/command=x11vnc -xkb -noshm -display :1 -shared -forever -repeat -capslock/' /etc/supervisor/conf.d/supervisord.conf
+sed -i '/^command=x11vnc/a user=ubuntu' /etc/supervisor/conf.d/supervisord.conf
 
 # home folder
 if [ ! -x "$HOME/.config/pcmanfm/LXDE/" ]; then
