@@ -798,6 +798,8 @@ class GUI(QMainWindow):
         self.agent.close()
 
         self.refresh_timer.stop()
+        if self.recording_thread is not None:
+            self.recording_thread.join()
         if self.capture_thread is not None:
             self.capture_thread.stop()
 
@@ -849,10 +851,10 @@ class NonGUI:
         self.frame_buffer.clear()
 
     def get_screenshot(self):
+        while np.all(self.now_screenshot == 0):
+            print("Waiting for the first frame.")
+            time.sleep(0.5)
         with self.data_lock:
-            while np.all(self.now_screenshot == 0):
-                print("Waiting for the first frame.")
-                time.sleep(0.5)
             frame = cv2.cvtColor(self.now_screenshot, cv2.COLOR_BGRA2RGB)
             return np.array(frame)
 
@@ -908,11 +910,11 @@ class NonGUI:
         )
 
     def close(self):
-        if self.capture_thread is not None:
-            self.capture_thread.stop()
         if self.recording_thread is not None:
             self.is_recording = False
             self.recording_thread.join()
+        if self.capture_thread is not None:
+            self.capture_thread.stop()
 
 
 def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
