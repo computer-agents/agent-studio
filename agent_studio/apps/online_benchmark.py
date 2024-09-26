@@ -841,7 +841,7 @@ class NonGUI:
         self.now_screenshot = np.zeros(
             (self.video_height, self.video_width, 4), dtype="uint8"
         )
-        self.recording_thread: threading.Thread | None
+        self.recording_thread: threading.Thread | None = None
 
     def start_recording(self):
         self.is_recording = True
