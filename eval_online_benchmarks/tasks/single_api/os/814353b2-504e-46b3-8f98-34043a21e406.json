@@ -28,7 +28,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     },
     {

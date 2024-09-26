@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp": true,
+          "${AS_ROOT}/tmp": true,
           "${AS_ROOT}/tmp/new_file.txt": true
         }
       }
@@ -20,7 +20,7 @@
       "params": {
         "file_to_check": {
           "${AS_ROOT}/tmp/new_file.txt": "file",
-          "tmp": "folder"
+          "${AS_ROOT}/tmp": "folder"
         }
       }
     },
@@ -39,14 +39,14 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ],
