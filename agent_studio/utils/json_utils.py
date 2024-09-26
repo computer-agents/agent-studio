@@ -188,6 +188,29 @@ def export_trajectory(
         file_path=(path / "result.jsonl").as_posix(),
     )
 
+def make_report(task_config_dir: Path, result_dir: Path) -> dict:
+    """Make a report from the results"""
+    task_configs = read_task_jsons(task_config_dir)
+    unfinished_tasks = read_unfinished_tasks(task_config_dir, result_dir)
+    results_all = load_results(result_dir)
+    task_config_ids = [task.task_id for task in task_configs]
+    results = [result for result in results_all if result.task_id in task_config_ids]
+    scores = [result.score for result in results]
+    average_score = sum(scores) / len(scores) if len(scores) > 0 else 0
+    return {
+        "average_score": average_score,
+        "total_task_count": len(task_configs),
+        "finished_task_count": len(results),
+        "unfinished_task_count": len(unfinished_tasks),
+        "succ_task_count": len([result for result in results if result.score > 0]),
+        "fail_task_count": len([result for result in results if result.score == 0]),
+        "total_task_ids": [task.task_id for task in task_configs],
+        "finished_task_ids": [result.task_id for result in results],
+        "unfinished_task_ids": [task.task_id for task in unfinished_tasks],
+        "succ_task_ids": [result.task_id for result in results if result.score > 0],
+        "fail_task_ids": [result.task_id for result in results if result.score == 0],
+    }
+
 
 def load_result(result_dir: Path) -> TaskResult:
     """Load result from result_dir
