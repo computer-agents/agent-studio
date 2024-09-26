@@ -4,7 +4,7 @@ import logging
 import os
 import os.path
 from numbers import Number
-from typing import Any, Callable, Dict, List, Set, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Set, Tuple, Union
 
 import openpyxl
 import pandas as pd
@@ -132,13 +132,16 @@ class SheetsEvaluator(Evaluator):
             xlworkbookr: Workbook = openpyxl.load_workbook(filename=result)
             pdworkbookr = pd.ExcelFile(result)
         except Exception:
-            return 0.0
+            raise FeedbackException(f"Failed to load workbook {result}")
         worksheetr_names: List[str] = pdworkbookr.sheet_names
 
         if expected is not None:
-            xlworkbooke: Workbook = openpyxl.load_workbook(filename=expected)
-            pdworkbooke = pd.ExcelFile(expected)
-            worksheete_names: List[str] = pdworkbooke.sheet_names
+            try:
+                xlworkbooke: Workbook = openpyxl.load_workbook(filename=expected)
+                pdworkbooke = pd.ExcelFile(expected)
+                worksheete_names: List[str] = pdworkbooke.sheet_names
+            except Exception:
+                raise FeedbackException(f"Failed to load workbook {expected}")
         else:
             xlworkbooke: Workbook = None
             pdworkbooke = None

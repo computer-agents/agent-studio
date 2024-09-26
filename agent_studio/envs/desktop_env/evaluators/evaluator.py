@@ -54,8 +54,8 @@ class Handler:
         target_params = {}
         for name, param in self.params.items():
             if name not in kwargs and param.default == inspect.Parameter.empty:
-                logger.error(f"Parameter {name} is missing in {name}.")
-                raise ValueError(f"Parameter {name} is missing in {name}.")
+                logger.error(f"Parameter {name} is missing in {self.name}.")
+                raise ValueError(f"Parameter {name} is missing in {self.name}.")
             target_params[name] = kwargs[name] if name in kwargs else param.default
         self.fun(**target_params)
 
