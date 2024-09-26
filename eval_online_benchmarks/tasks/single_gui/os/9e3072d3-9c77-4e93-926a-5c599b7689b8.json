@@ -1,6 +1,6 @@
 {
   "task_id": "8d931c00-e4e2-4533-8768-10418f64108c",
-  "instruction": "Create an empty file named 'new_file.txt' in the '{AS_ROOT}/tmp/' directory.",
+  "instruction": "Create an empty file named 'new_file.txt' in the '${AS_ROOT}/tmp/' directory.",
   "visual": true,
   "max_steps": 20,
   "max_time": 60.0,
@@ -10,8 +10,8 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp": true,
-          "{AS_ROOT}/tmp/new_file.txt": true
+          "${AS_ROOT}/tmp": true,
+          "${AS_ROOT}/tmp/new_file.txt": true
         }
       }
     },
@@ -20,8 +20,8 @@
       "function": "type_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/new_file.txt": "file",
-          "{AS_ROOT}/tmp": "folder"
+          "${AS_ROOT}/tmp/new_file.txt": "file",
+          "${AS_ROOT}/tmp": "folder"
         }
       }
     },
@@ -30,7 +30,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/new_file.txt": ""
+          "${AS_ROOT}/tmp/new_file.txt": ""
         }
       }
     }
@@ -56,7 +56,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ]

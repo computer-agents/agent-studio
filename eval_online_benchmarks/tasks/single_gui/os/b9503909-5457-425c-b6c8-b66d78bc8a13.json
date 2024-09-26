@@ -1,6 +1,6 @@
 {
   "task_id": "c8285e0b-a713-4459-a634-edde3d41f6ed",
-  "instruction": "Copy 'config.json' from '{AS_ROOT}/tmp/settings/' to '{AS_ROOT}/tmp/backup/'.",
+  "instruction": "Copy 'config.json' from '${AS_ROOT}/tmp/settings/' to '${AS_ROOT}/tmp/backup/'.",
   "visual": true,
   "max_steps": 20,
   "max_time": 60.0,
@@ -10,8 +10,8 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/settings/config.json": true,
-          "{AS_ROOT}/tmp/backup/config.json": true
+          "${AS_ROOT}/tmp/settings/config.json": true,
+          "${AS_ROOT}/tmp/backup/config.json": true
         }
       }
     },
@@ -20,8 +20,8 @@
       "function": "type_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/settings/config.json": "file",
-          "{AS_ROOT}/tmp/backup/config.json": "file"
+          "${AS_ROOT}/tmp/settings/config.json": "file",
+          "${AS_ROOT}/tmp/backup/config.json": "file"
         }
       }
     },
@@ -30,8 +30,8 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/settings/config.json": "This is the configuration file",
-          "{AS_ROOT}/tmp/backup/config.json": "This is the configuration file"
+          "${AS_ROOT}/tmp/settings/config.json": "This is the configuration file",
+          "${AS_ROOT}/tmp/backup/config.json": "This is the configuration file"
         }
       }
     }
@@ -41,35 +41,35 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/backup"
+        "path": "${AS_ROOT}/tmp/backup"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/backup"
+        "path": "${AS_ROOT}/tmp/backup"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/settings"
+        "path": "${AS_ROOT}/tmp/settings"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/settings"
+        "path": "${AS_ROOT}/tmp/settings"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "{AS_ROOT}/tmp/settings/config.json",
+        "path": "${AS_ROOT}/tmp/settings/config.json",
         "content": "This is the configuration file"
       }
     }
@@ -79,7 +79,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ]

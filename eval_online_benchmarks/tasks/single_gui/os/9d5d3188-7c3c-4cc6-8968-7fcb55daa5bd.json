@@ -1,6 +1,6 @@
 {
   "task_id": "49e457e8-9ed9-416a-8b79-69be26794ed7",
-  "instruction": "Update the content of 'agenda.txt' in '{AS_ROOT}/tmp/meetings/' to 'Updated Meeting Agenda'.z",
+  "instruction": "Update the content of 'agenda.txt' in '${AS_ROOT}/tmp/meetings/' to 'Updated Meeting Agenda'.z",
   "visual": true,
   "max_steps": 20,
   "max_time": 60.0,
@@ -10,7 +10,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/meetings/agenda.txt": "Updated Meeting Agenda"
+          "${AS_ROOT}/tmp/meetings/agenda.txt": "Updated Meeting Agenda"
         }
       }
     }
@@ -20,21 +20,21 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/meetings"
+        "path": "${AS_ROOT}/tmp/meetings"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/meetings"
+        "path": "${AS_ROOT}/tmp/meetings"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "{AS_ROOT}/tmp/meetings/agenda.txt",
+        "path": "${AS_ROOT}/tmp/meetings/agenda.txt",
         "content": "Initial Meeting Agenda"
       }
     }
@@ -44,7 +44,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ]

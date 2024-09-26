@@ -1,6 +1,6 @@
 {
   "task_id": "6701f987-3609-4c87-ab8a-8546d6bab134",
-  "instruction": "Rename 'old_report.txt' to 'new_report.txt' in '{AS_ROOT}/tmp/reports/'.",
+  "instruction": "Rename 'old_report.txt' to 'new_report.txt' in '${AS_ROOT}/tmp/reports/'.",
   "visual": true,
   "max_steps": 20,
   "max_time": 60.0,
@@ -10,7 +10,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/reports/new_report.txt": true
+          "${AS_ROOT}/tmp/reports/new_report.txt": true
         }
       }
     },
@@ -19,7 +19,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/reports/old_report.txt": false
+          "${AS_ROOT}/tmp/reports/old_report.txt": false
         }
       }
     },
@@ -28,7 +28,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/reports/new_report.txt": "This is the only copy of the report"
+          "${AS_ROOT}/tmp/reports/new_report.txt": "This is the only copy of the report"
         }
       }
     }
@@ -38,21 +38,21 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/reports"
+        "path": "${AS_ROOT}/tmp/reports"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/reports"
+        "path": "${AS_ROOT}/tmp/reports"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "{AS_ROOT}/tmp/reports/old_report.txt",
+        "path": "${AS_ROOT}/tmp/reports/old_report.txt",
         "content": "This is the only copy of the report"
       }
     }
@@ -62,7 +62,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ]

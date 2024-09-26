@@ -1,6 +1,6 @@
 {
   "task_id": "0139a355-8ee2-4cfd-8e11-73529f064cd9",
-  "instruction": "Create two files in '{AS_ROOT}/tmp/data/' directory: 'report1.txt' with content 'Report 1 data' and 'report2.txt' with content 'Report 2 data'.",
+  "instruction": "Create two files in '${AS_ROOT}/tmp/data/' directory: 'report1.txt' with content 'Report 1 data' and 'report2.txt' with content 'Report 2 data'.",
   "visual": true,
   "max_steps": 20,
   "max_time": 60.0,
@@ -10,8 +10,8 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/data/report1.txt": true,
-          "{AS_ROOT}/tmp/data/report2.txt": true
+          "${AS_ROOT}/tmp/data/report1.txt": true,
+          "${AS_ROOT}/tmp/data/report2.txt": true
         }
       }
     },
@@ -20,8 +20,8 @@
       "function": "type_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/data/report1.txt": "file",
-          "{AS_ROOT}/tmp/data/report2.txt": "file"
+          "${AS_ROOT}/tmp/data/report1.txt": "file",
+          "${AS_ROOT}/tmp/data/report2.txt": "file"
         }
       }
     },
@@ -30,8 +30,8 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/data/report1.txt": "Report 1 data",
-          "{AS_ROOT}/tmp/data/report2.txt": "Report 2 data"
+          "${AS_ROOT}/tmp/data/report1.txt": "Report 1 data",
+          "${AS_ROOT}/tmp/data/report2.txt": "Report 2 data"
         }
       }
     }
@@ -41,14 +41,14 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/data"
+        "path": "${AS_ROOT}/tmp/data"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/data"
+        "path": "${AS_ROOT}/tmp/data"
       }
     }
   ],
@@ -57,7 +57,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ]

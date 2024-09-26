@@ -1,6 +1,6 @@
 {
   "task_id": "a69dfc50-2478-483a-af4c-a02a1b186c10",
-  "instruction": "Create a file named 'notes.txt' in the '{AS_ROOT}/tmp/' directory with the content 'Meeting at 10am'.",
+  "instruction": "Create a file named 'notes.txt' in the '${AS_ROOT}/tmp/' directory with the content 'Meeting at 10am'.",
   "visual": true,
   "max_steps": 20,
   "max_time": 60.0,
@@ -10,7 +10,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/notes.txt": true
+          "${AS_ROOT}/tmp/notes.txt": true
         }
       }
     },
@@ -19,7 +19,7 @@
       "function": "type_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/notes.txt": "file"
+          "${AS_ROOT}/tmp/notes.txt": "file"
         }
       }
     },
@@ -28,7 +28,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/notes.txt": "Meeting at 10am"
+          "${AS_ROOT}/tmp/notes.txt": "Meeting at 10am"
         }
       }
     }
@@ -38,14 +38,14 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "{AS_ROOT}/tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ],
@@ -54,7 +54,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ]

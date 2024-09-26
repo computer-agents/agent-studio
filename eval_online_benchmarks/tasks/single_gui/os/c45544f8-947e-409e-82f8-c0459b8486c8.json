@@ -1,6 +1,6 @@
 {
   "task_id": "366bac7a-1d46-4676-bf3d-2a5f1c54e2a6",
-  "instruction": "There are three data files stored in '{AS_ROOT}/tmp/data/'. Calculate the average of numbers in them and store it in 'average.txt' in '{AS_ROOT}/tmp/data/'. The average should be rounded to the nearest whole number. Each data file contains a set of numbers separated by a newline character.",
+  "instruction": "There are three data files stored in '${AS_ROOT}/tmp/data/'. Calculate the average of numbers in them and store it in 'average.txt' in '${AS_ROOT}/tmp/data/'. The average should be rounded to the nearest whole number. Each data file contains a set of numbers separated by a newline character.",
   "visual": true,
   "max_steps": 20,
   "max_time": 60.0,
@@ -10,7 +10,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/data/average.txt": "30857"
+          "${AS_ROOT}/tmp/data/average.txt": "30857"
         }
       }
     }
@@ -20,21 +20,21 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/data"
+        "path": "${AS_ROOT}/tmp/data"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/data"
+        "path": "${AS_ROOT}/tmp/data"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "{AS_ROOT}/tmp/data/data1.txt",
+        "path": "${AS_ROOT}/tmp/data/data1.txt",
         "content": "74\n38"
       }
     },
@@ -42,7 +42,7 @@
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "{AS_ROOT}/tmp/data/data2.txt",
+        "path": "${AS_ROOT}/tmp/data/data2.txt",
         "content": "271\n153848"
       }
     },
@@ -50,7 +50,7 @@
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "{AS_ROOT}/tmp/data/data3.txt",
+        "path": "${AS_ROOT}/tmp/data/data3.txt",
         "content": "55"
       }
     }
@@ -60,7 +60,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ]

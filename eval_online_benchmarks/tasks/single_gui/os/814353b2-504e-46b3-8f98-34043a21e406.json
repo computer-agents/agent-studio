@@ -1,6 +1,6 @@
 {
   "task_id": "2cac2f16-ed18-41d5-aa9e-361e0474429b",
-  "instruction": "Merge the contents of all '.txt' files located in '{AS_ROOT}/tmp/notes/' into a new file named 'combined_notes.txt' in the '{AS_ROOT}/tmp/' directory. You should merge files in order of their file name. You should not add any extra characters to the merged file.",
+  "instruction": "Merge the contents of all '.txt' files located in '${AS_ROOT}/tmp/notes/' into a new file named 'combined_notes.txt' in the '${AS_ROOT}/tmp/' directory. You should merge files in order of their file name. You should not add any extra characters to the merged file.",
   "visual": true,
   "max_steps": 20,
   "max_time": 60.0,
@@ -10,7 +10,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/combined_notes.txt": true
+          "${AS_ROOT}/tmp/combined_notes.txt": true
         }
       }
     },
@@ -19,7 +19,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/combined_notes.txt": "First note content.\nSecond note content.\n"
+          "${AS_ROOT}/tmp/combined_notes.txt": "First note content.\nSecond note content.\n"
         }
       }
     }
@@ -36,14 +36,14 @@
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/notes"
+        "path": "${AS_ROOT}/tmp/notes"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "{AS_ROOT}/tmp/notes/note1.txt",
+        "path": "${AS_ROOT}/tmp/notes/note1.txt",
         "content": "First note content.\n"
       }
     },
@@ -51,7 +51,7 @@
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "{AS_ROOT}/tmp/notes/note2.txt",
+        "path": "${AS_ROOT}/tmp/notes/note2.txt",
         "content": "Second note content.\n"
       }
     }
@@ -61,7 +61,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ]

@@ -1,6 +1,6 @@
 {
   "task_id": "d8d0768a-9b97-48aa-851c-16b6b952e3d6",
-  "instruction": "Create a 1024 byte-size file 'summary.txt' in '{AS_ROOT}/tmp/reports/'.",
+  "instruction": "Create a 1024 byte-size file 'summary.txt' in '${AS_ROOT}/tmp/reports/'.",
   "visual": true,
   "max_steps": 20,
   "max_time": 60.0,
@@ -10,7 +10,7 @@
       "function": "metadata_check",
       "params": {
         "file_to_check": {
-          "{AS_ROOT}/tmp/reports/summary.txt": {
+          "${AS_ROOT}/tmp/reports/summary.txt": {
             "size": 1024
           }
         }
@@ -22,14 +22,14 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/reports"
+        "path": "${AS_ROOT}/tmp/reports"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "{AS_ROOT}/tmp/reports"
+        "path": "${AS_ROOT}/tmp/reports"
       }
     }
   ],
@@ -38,7 +38,7 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "{AS_ROOT}/tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ]
