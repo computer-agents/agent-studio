@@ -56,5 +56,14 @@
       }
     }
   ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
   "max_time": 30
 }
