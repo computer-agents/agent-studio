@@ -1,6 +1,6 @@
 {
   "task_id": "af2d657a-e6b3-4c6a-9f67-9e3ed015974c",
-  "instruction": "In the first slide, insert the title \"Happy Family\" and make the font style \"Microsoft JhengHei\".",
+  "instruction": "In the first slide, insert the title \"Happy Family\" and make the font style \"Times New Roman\".",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,10 +8,10 @@
       "evaluator": "slides",
       "function": "compare_pptx_files",
       "params": {
-        "expected": "data/af2d657a-e6b3-4c6a-9f67-9e3ed015974c/9_1_Gold.pptx",
+        "expected": "${AS_ROOT}/data/af2d657a-e6b3-4c6a-9f67-9e3ed015974c/9_1_Gold.pptx",
         "result": "${AS_ROOT}/slides/9_1.pptx",
         "options": {
-          "examine_aligment": false
+          "examine_alignment": false
         }
       }
     }
@@ -19,17 +19,58 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/af2d657a-e6b3-4c6a-9f67-9e3ed015974c/9_1.pptx",
-        "dest": "${AS_ROOT}/slides"
+        "src": "${AS_ROOT}/data/af2d657a-e6b3-4c6a-9f67-9e3ed015974c/9_1.pptx",
+        "dest": "${AS_ROOT}/slides/9_1.pptx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/slides/9_1.pptx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/slides/9_1.pptx"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
       }
     }
   ],

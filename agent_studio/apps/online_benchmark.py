@@ -861,14 +861,11 @@ class NonGUI:
     def _capture(self):
         assert self.capture_thread is not None
         while self.is_recording:
-            try:
-                with self.data_lock:
-                    frame = self.capture_thread.get_current_frame()
-                    if frame is not None:
-                        self.now_screenshot = frame.copy()
-                        self.frame_buffer.add_frame(self.now_screenshot)
-            except Exception as e:
-                logger.warning(f"Fail to capture frame: {e}")
+            with self.data_lock:
+                frame = self.capture_thread.get_current_frame()
+                if frame is not None:
+                    self.now_screenshot = frame.copy()
+                    self.frame_buffer.add_frame(self.now_screenshot)
             time.sleep(1.0 / config.video_fps)
         logger.info("Recording thread stopped")
 

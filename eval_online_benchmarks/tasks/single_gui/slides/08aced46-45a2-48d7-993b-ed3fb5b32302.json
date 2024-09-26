@@ -1,6 +1,6 @@
 {
   "task_id": "08aced46-45a2-48d7-993b-ed3fb5b32302",
-  "instruction": "In ${AS_ROOT}/slides/22_6.pptx, give the slide 2 the right aligned title, \"Note\".",
+  "instruction": "Give the slide 2 a right aligned title, \"Note\".",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,7 +8,7 @@
       "evaluator": "slides",
       "function": "compare_pptx_files",
       "params": {
-        "expected": "data/08aced46-45a2-48d7-993b-ed3fb5b32302/22_6_Gold.pptx",
+        "expected": "${AS_ROOT}/data/08aced46-45a2-48d7-993b-ed3fb5b32302/22_6_Gold.pptx",
         "result": "${AS_ROOT}/slides/22_6.pptx",
         "options": {}
       }
@@ -17,17 +17,58 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/08aced46-45a2-48d7-993b-ed3fb5b32302/22_6.pptx",
-        "dest": "${AS_ROOT}/slides"
+        "src": "${AS_ROOT}/data/08aced46-45a2-48d7-993b-ed3fb5b32302/22_6.pptx",
+        "dest": "${AS_ROOT}/slides/22_6.pptx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/slides/22_6.pptx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/slides/22_6.pptx"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
       }
     }
   ],

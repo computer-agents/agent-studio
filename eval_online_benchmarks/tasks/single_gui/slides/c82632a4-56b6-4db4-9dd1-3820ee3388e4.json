@@ -8,7 +8,7 @@
       "evaluator": "slides",
       "function": "compare_pptx_files",
       "params": {
-        "expected": "data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/31_2_Gold.pptx",
+        "expected": "${AS_ROOT}/data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/31_2_Gold.pptx",
         "result": "${AS_ROOT}/slides/31_2.pptx",
         "options": {
           "examine_shape": false,
@@ -20,25 +20,66 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
-      "function": "copy",
+      "function": "mkdir",
       "params": {
-        "src": "data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/31_2.pptx",
-        "dest": "${AS_ROOT}/slides"
+        "path": "${AS_ROOT}/slides"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/none.png",
-        "dest": "${AS_ROOT}/slides"
+        "src": "${AS_ROOT}/data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/none.png",
+        "dest": "${AS_ROOT}/slides/none.png"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/31_2.pptx",
+        "dest": "${AS_ROOT}/slides/31_2.pptx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/slides/31_2.pptx"
+        ],
+        "wait_for": "libreoffice"
       }
     },
     {
       "evaluator": "system",
-      "function": "exec",
+      "function": "sleep",
       "params": {
-        "command": "open ${AS_ROOT}/slides/31_2.pptx"
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
       }
     }
   ],

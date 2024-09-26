@@ -8,7 +8,9 @@ RUN apt update \
     && add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" \
     && apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated python3.11 build-essential python3.11-dev python3.11-tk libevdev-dev software-properties-common apt-transport-https \
-    && apt install -y --no-install-recommends --allow-unauthenticated libreoffice code gimp ttf-mscorefonts-installer \
+    && apt install -y --no-install-recommends --allow-unauthenticated libreoffice code gimp \
+    && echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections \
+    && apt-get install -y --no-install-recommends --allow-unauthenticated ttf-mscorefonts-installer \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
