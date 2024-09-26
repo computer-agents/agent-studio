@@ -1,6 +1,6 @@
 {
   "task_id": "1e2f5ea6-c448-48e9-a2d1-be6f5639b4b2",
-  "instruction": "Delete the file 'temporary.docx' in the 'tmp/docs/' directory.",
+  "instruction": "Delete the file 'temporary.docx' in the '{AS_ROOT}/tmp/docs/' directory.",
   "visual": true,
   "max_steps": 20,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/docs/temporary.docx": false
+          "{AS_ROOT}/tmp/docs/temporary.docx": false
         }
       }
     }
@@ -19,21 +19,21 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "tmp/docs"
+        "path": "{AS_ROOT}/tmp/docs"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "tmp/docs"
+        "path": "{AS_ROOT}/tmp/docs"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "tmp/docs/temporary.docx"
+        "path": "{AS_ROOT}/tmp/docs/temporary.docx"
       }
     }
   ],

@@ -1,6 +1,6 @@
 {
   "task_id": "314cad7b-f4d1-43c4-a332-605cbc948592",
-  "instruction": "There are three data files stored in 'tmp/data/'. Calculate the average of numbers in 'data1.txt', 'data2.txt', and 'data3.txt' and store it in 'average.txt' in 'tmp/data/'. The average should be rounded to the nearest whole number. Each data file contains a set of numbers separated by a newline character.",
+  "instruction": "There are three data files stored in '{AS_ROOT}/tmp/data/'. Calculate the average of numbers in 'data1.txt', 'data2.txt', and 'data3.txt' and store it in 'average.txt' in '{AS_ROOT}/tmp/data/'. The average should be rounded to the nearest whole number. Each data file contains a set of numbers separated by a newline character.",
   "visual": true,
   "max_steps": 20,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "tmp/data/average.txt": "196"
+          "{AS_ROOT}/tmp/data/average.txt": "196"
         }
       }
     }
@@ -19,21 +19,21 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "tmp/data"
+        "path": "{AS_ROOT}/tmp/data"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "tmp/data"
+        "path": "{AS_ROOT}/tmp/data"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "tmp/data/data1.txt",
+        "path": "{AS_ROOT}/tmp/data/data1.txt",
         "content": "265\n733"
       }
     },
@@ -41,7 +41,7 @@
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "tmp/data/data2.txt",
+        "path": "{AS_ROOT}/tmp/data/data2.txt",
         "content": "2\n82\n41"
       }
     },
@@ -49,7 +49,7 @@
       "evaluator": "filesystem",
       "function": "create_file",
       "params": {
-        "path": "tmp/data/data3.txt",
+        "path": "{AS_ROOT}/tmp/data/data3.txt",
         "content": "55"
       }
     }

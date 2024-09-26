@@ -1,6 +1,6 @@
 {
   "task_id": "31c509db-8a88-4112-940c-5db78819dfec",
-  "instruction": "Create two files in 'tmp/data/' directory: 'report1.txt' with content 'Report 1 data' and 'report2.txt' with content 'Report 2 data'.",
+  "instruction": "Create two files in '{AS_ROOT}/tmp/data/' directory: 'report1.txt' with content 'Report 1 data' and 'report2.txt' with content 'Report 2 data'.",
   "visual": true,
   "max_steps": 20,
   "eval_procedure": [
@@ -9,8 +9,8 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/data/report1.txt": true,
-          "tmp/data/report2.txt": true
+          "{AS_ROOT}/tmp/data/report1.txt": true,
+          "{AS_ROOT}/tmp/data/report2.txt": true
         }
       }
     },
@@ -19,8 +19,8 @@
       "function": "type_check",
       "params": {
         "file_to_check": {
-          "tmp/data/report1.txt": "file",
-          "tmp/data/report2.txt": "file"
+          "{AS_ROOT}/tmp/data/report1.txt": "file",
+          "{AS_ROOT}/tmp/data/report2.txt": "file"
         }
       }
     },
@@ -29,8 +29,8 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "tmp/data/report1.txt": "Report 1 data",
-          "tmp/data/report2.txt": "Report 2 data"
+          "{AS_ROOT}/tmp/data/report1.txt": "Report 1 data",
+          "{AS_ROOT}/tmp/data/report2.txt": "Report 2 data"
         }
       }
     }
@@ -40,14 +40,14 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
-        "path": "tmp/data"
+        "path": "{AS_ROOT}/tmp/data"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "tmp/data"
+        "path": "{AS_ROOT}/tmp/data"
       }
     }
   ],

@@ -1,6 +1,6 @@
 {
   "task_id": "9e3072d3-9c77-4e93-926a-5c599b7689b8",
-  "instruction": "Create an empty file named 'new_file.txt' in the 'tmp/' directory.",
+  "instruction": "Create an empty file named 'new_file.txt' in the '{AS_ROOT}/tmp/' directory.",
   "visual": true,
   "max_steps": 20,
   "eval_procedure": [
@@ -9,8 +9,8 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp": true,
-          "tmp/new_file.txt": true
+          "{AS_ROOT}/tmp": true,
+          "{AS_ROOT}/tmp/new_file.txt": true
         }
       }
     },
@@ -19,8 +19,8 @@
       "function": "type_check",
       "params": {
         "file_to_check": {
-          "tmp/new_file.txt": "file",
-          "tmp": "folder"
+          "{AS_ROOT}/tmp/new_file.txt": "file",
+          "{AS_ROOT}/tmp": "folder"
         }
       }
     },
@@ -29,7 +29,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "tmp/new_file.txt": ""
+          "{AS_ROOT}/tmp/new_file.txt": ""
         }
       }
     }
