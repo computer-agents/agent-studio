@@ -110,7 +110,7 @@ class BaseAgent:
             logger.debug(f"Code to execute:\n{code}\n")
             result = self.runtime(code)
         else:
-            result["content"] = "Cancelled by user."
+            result["content"] = "Cancelled by human."
             done = True
 
         self.step_info.result = result

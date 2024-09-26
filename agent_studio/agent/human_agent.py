@@ -51,4 +51,21 @@ class HumanAgent(BaseAgent):
         return "Confirm when you finish"
 
     def step_action(self, confirmed: bool) -> tuple[dict, bool]:
+        step_info = StepInfo(
+            obs=None,
+            prompt=None,
+            response=None,
+            action="Executed by human",
+            info={},
+            result={},
+            timestamp=time.time(),
+        )
+        if confirmed:
+            step_info.result["content"] = "Confirmed by human."
+        else:
+            step_info.result["content"] = "Cancelled by human."
+
+        self.trajectory.append(step_info)
+        logger.info(f"Output: {step_info.result}")
+
         return {}, True
