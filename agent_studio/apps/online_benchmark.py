@@ -938,181 +938,185 @@ def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
 
 
 def eval(args, interface: NonGUI | None = None) -> None:
-    # Setup agent
-    agent = setup_agent(
-        agent_name=args.agent,
-        model=args.model,
-        remote=args.remote,
-        runtime_server_addr=config.env_server_addr,
-        runtime_server_port=config.env_server_port,
-    )
-    results_dir = Path(f"{args.log_dir}/{args.model}/{args.agent}")
-    results_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        # Setup agent
+        agent = setup_agent(
+            agent_name=args.agent,
+            model=args.model,
+            remote=args.remote,
+            runtime_server_addr=config.env_server_addr,
+            runtime_server_port=config.env_server_port,
+        )
+        results_dir = Path(f"{args.log_dir}/{args.model}/{args.agent}")
+        results_dir.mkdir(parents=True, exist_ok=True)
 
-    # Setup tasks
-    if args.ignore_finished:
-        task_configs_json = read_unfinished_tasks(
-            Path(args.task_configs_path), results_dir)
-    else:
-        task_configs_json = read_task_jsons(Path(args.task_configs_path))
-    task_configs: list[TaskConfig] = []
-    for task_config in task_configs_json:
-        task_configs.append(TaskConfig.model_validate(task_config))
+        # Setup tasks
+        if args.ignore_finished:
+            task_configs_json = read_unfinished_tasks(
+                Path(args.task_configs_path), results_dir)
+        else:
+            task_configs_json = read_task_jsons(Path(args.task_configs_path))
+        task_configs: list[TaskConfig] = []
+        for task_config in task_configs_json:
+            task_configs.append(TaskConfig.model_validate(task_config))
 
-    # Run evaluation
-    scores = {}
-    for task_config in tqdm(task_configs, desc="Evaluating tasks"):
-        try:
-            # Get remote env_vars
-            if args.remote:
-                response_raw = requests.get(f"{REMOTE_SERVER_ADDR}/env_vars")
-                response = AgentStudioStatusResponse(**response_raw.json())
-                assert (
-                    response.status == "success"
-                ), f"Fail to reset task: {response.message}"
-                env_vars = response.message
-                assert isinstance(env_vars, dict), "Invalid env_vars"
-            else:
-                env_vars = config.env_vars
-            logger.debug(f"Env vars: {env_vars}")
-            logger.debug(f"Task config before: {task_config}")
-            task_config = apply_env_vars(task_config, env_vars)
-            logger.debug(f"Task config after: {task_config}")
-            # Reset
-            if task_config.reset_procedure is not None:
+        # Run evaluation
+        scores = {}
+        for task_config in tqdm(task_configs, desc="Evaluating tasks"):
+            try:
+                # Get remote env_vars
                 if args.remote:
-                    response_raw = requests.post(
-                        f"{REMOTE_SERVER_ADDR}/task/reset",
-                        json=AgentStudioResetRequest(
-                            procedures=task_config.reset_procedure
-                        ).model_dump(),
-                    )
+                    response_raw = requests.get(f"{REMOTE_SERVER_ADDR}/env_vars")
                     response = AgentStudioStatusResponse(**response_raw.json())
-                    response = wait_finish(is_eval=False, response=response)
                     assert (
-                        response.status == "finished" and response.content == "success"
+                        response.status == "success"
                     ), f"Fail to reset task: {response.message}"
+                    env_vars = response.message
+                    assert isinstance(env_vars, dict), "Invalid env_vars"
                 else:
-                    evaluators = evaluator_router(task_config)
-                    evaluators.reset(task_config.reset_procedure)
+                    env_vars = config.env_vars
+                logger.debug(f"Env vars: {env_vars}")
+                logger.debug(f"Task config before: {task_config}")
+                task_config = apply_env_vars(task_config, env_vars)
+                logger.debug(f"Task config after: {task_config}")
+                # Reset
+                if task_config.reset_procedure is not None:
+                    if args.remote:
+                        response_raw = requests.post(
+                            f"{REMOTE_SERVER_ADDR}/task/reset",
+                            json=AgentStudioResetRequest(
+                                procedures=task_config.reset_procedure
+                            ).model_dump(),
+                        )
+                        response = AgentStudioStatusResponse(**response_raw.json())
+                        response = wait_finish(is_eval=False, response=response)
+                        assert (
+                            response.status == "finished" and response.content == "success"
+                        ), f"Fail to reset task: {response.message}"
+                    else:
+                        evaluators = evaluator_router(task_config)
+                        evaluators.reset(task_config.reset_procedure)
 
-            instruction = task_config.instruction
-            logger.info(f"Task instruction: {instruction}")
+                instruction = task_config.instruction
+                logger.info(f"Task instruction: {instruction}")
 
-            # Reset the agent
-            agent.reset(task_config=task_config)
-            if task_config.visual:
-                assert (
-                    interface is not None
-                ), "Interface has to be open for visual tasks."
-                interface.start_recording()
-
-            # Loop until the task is done or the max step is reached.
-            start_time = time.time()
-            for t in range(task_config.max_steps):
-                logger.info(f"Step {t}")
+                # Reset the agent
+                agent.reset(task_config=task_config)
                 if task_config.visual:
                     assert (
                         interface is not None
                     ), "Interface has to be open for visual tasks."
-                    obs = interface.get_screenshot()
-                else:
-                    obs = None
-                action = agent.generate_action(obs=obs, model_name=args.model)
-                if config.need_human_confirmation:
-                    confirmed = (
-                        input(f"Action:\n{action}\nConfirm action (y/n): ")
-                        .strip()
-                        .lower()
-                        == "y"
-                    )
-                else:
-                    confirmed = True
-                # If the time limit is reached, the action is not confirmed.
-                if (args.use_time_limit and time.time() - start_time > task_config.max_time):
-                    confirmed = False
-                _, done = agent.step_action(confirmed)
-                time.sleep(config.min_action_interval)
-                if done:
-                    break
+                    interface.start_recording()
 
-            task_trajectory_path = results_dir / task_config.task_id
-            video_meta: VideoMeta | None = None
-            if task_config.visual:
-                task_trajectory_path.mkdir(parents=True, exist_ok=True)
-                video_path = task_trajectory_path / "video.mp4"
-                assert interface is not None
-                video_meta = interface.save_video(video_path)
-                logger.info(f"Video saved to {video_path}")
+                # Loop until the task is done or the max step is reached.
+                start_time = time.time()
+                for t in range(task_config.max_steps):
+                    logger.info(f"Step {t}")
+                    if task_config.visual:
+                        assert (
+                            interface is not None
+                        ), "Interface has to be open for visual tasks."
+                        obs = interface.get_screenshot()
+                    else:
+                        obs = None
+                    action = agent.generate_action(obs=obs, model_name=args.model)
+                    if config.need_human_confirmation:
+                        confirmed = (
+                            input(f"Action:\n{action}\nConfirm action (y/n): ")
+                            .strip()
+                            .lower()
+                            == "y"
+                        )
+                    else:
+                        confirmed = True
+                    # If the time limit is reached, the action is not confirmed.
+                    if (args.use_time_limit and time.time() - start_time > task_config.max_time):
+                        confirmed = False
+                    _, done = agent.step_action(confirmed)
+                    time.sleep(config.min_action_interval)
+                    if done:
+                        break
 
-            if args.remote:
-                response_raw = requests.post(
-                    f"{REMOTE_SERVER_ADDR}/task/eval",
-                    json=AgentStudioEvalRequest(
-                        procedures=task_config.eval_procedure,
-                        as_kwargs=str(jsonpickle.encode(
-                            {"trajectory": agent.trajectory})),
-                    ).model_dump(),
-                )
-                response = AgentStudioStatusResponse(**response_raw.json())
-                response = wait_finish(is_eval=True, response=response)
-                if not (
-                    response.status == "finished"
-                    and isinstance(response.message, dict)  # noqa: E501
-                ):
-                    raise ValueError(f"Fail to evaluate task: {response.message}")
-                score, feedback = (
-                    response.message["score"],
-                    response.message["feedback"],
-                )
-            else:
-                logger.info("Start evaluation")
-                score, feedback = evaluators(task_config.eval_procedure)
+                task_trajectory_path = results_dir / task_config.task_id
+                video_meta: VideoMeta | None = None
+                if task_config.visual:
+                    task_trajectory_path.mkdir(parents=True, exist_ok=True)
+                    video_path = task_trajectory_path / "video.mp4"
+                    assert interface is not None
+                    video_meta = interface.save_video(video_path)
+                    logger.info(f"Video saved to {video_path}")
 
-            scores[task_config.task_id] = score
-            if score == 1.0:
-                logger.info(f"[Result] (PASS): {feedback}")
-            else:
-                logger.info(f"[Result] (FAIL): {feedback}")
-
-            task_result_path = results_dir / task_config.task_id
-            export_trajectory(
-                task_config=task_config,
-                trajectory=agent.trajectory,
-                path=task_result_path,
-                score=score,
-                feedback=feedback,
-                token_count=agent.get_token_count(),
-                video_meta=video_meta,
-            )
-        except Exception as e:
-            logger.error(f"[Unhandled Error] {repr(e)}]")
-        finally:
-            # Clean up
-            if task_config.cleanup_procedure is not None:
                 if args.remote:
                     response_raw = requests.post(
-                        f"{REMOTE_SERVER_ADDR}/task/reset",
-                        json=AgentStudioResetRequest(
-                            procedures=task_config.cleanup_procedure
+                        f"{REMOTE_SERVER_ADDR}/task/eval",
+                        json=AgentStudioEvalRequest(
+                            procedures=task_config.eval_procedure,
+                            as_kwargs=str(jsonpickle.encode(
+                                {"trajectory": agent.trajectory})),
                         ).model_dump(),
                     )
                     response = AgentStudioStatusResponse(**response_raw.json())
-                    response = wait_finish(is_eval=False, response=response)
-                    assert (
-                        response.status == "finished" and response.content == "success"
-                    ), f"Fail to reset task: {response.message}"
+                    response = wait_finish(is_eval=True, response=response)
+                    if not (
+                        response.status == "finished"
+                        and isinstance(response.message, dict)  # noqa: E501
+                    ):
+                        raise ValueError(f"Fail to evaluate task: {response.message}")
+                    score, feedback = (
+                        response.message["score"],
+                        response.message["feedback"],
+                    )
                 else:
-                    evaluators = evaluator_router(task_config)
-                    evaluators.reset(task_config.cleanup_procedure)
+                    logger.info("Start evaluation")
+                    score, feedback = evaluators(task_config.eval_procedure)
 
-    agent.close()
-    logger.info(
-        f"Average score: {sum(scores.values())}/{len(scores)}="
-        f"{sum(scores.values()) / max(len(scores), 1)}"
-    )
-    if interface is not None:
-        interface.close()
+                scores[task_config.task_id] = score
+                if score == 1.0:
+                    logger.info(f"[Result] (PASS): {feedback}")
+                else:
+                    logger.info(f"[Result] (FAIL): {feedback}")
+
+                task_result_path = results_dir / task_config.task_id
+                export_trajectory(
+                    task_config=task_config,
+                    trajectory=agent.trajectory,
+                    path=task_result_path,
+                    score=score,
+                    feedback=feedback,
+                    token_count=agent.get_token_count(),
+                    video_meta=video_meta,
+                )
+            except Exception as e:
+                logger.error(f"[Unhandled Error] {repr(e)}]")
+            finally:
+                # Clean up
+                if task_config.cleanup_procedure is not None:
+                    if args.remote:
+                        response_raw = requests.post(
+                            f"{REMOTE_SERVER_ADDR}/task/reset",
+                            json=AgentStudioResetRequest(
+                                procedures=task_config.cleanup_procedure
+                            ).model_dump(),
+                        )
+                        response = AgentStudioStatusResponse(**response_raw.json())
+                        response = wait_finish(is_eval=False, response=response)
+                        assert (
+                            response.status == "finished" and response.content == "success"
+                        ), f"Fail to reset task: {response.message}"
+                    else:
+                        evaluators = evaluator_router(task_config)
+                        evaluators.reset(task_config.cleanup_procedure)
+
+        agent.close()
+        logger.info(
+            f"Average score: {sum(scores.values())}/{len(scores)}="
+            f"{sum(scores.values()) / max(len(scores), 1)}"
+        )
+    except KeyboardInterrupt:
+        logger.info("Interrupted by user.")
+    finally:
+        if interface is not None:
+            interface.close()
 
 
 def main():
