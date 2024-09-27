@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "compare_insert_equation",
       "params": {
-        "docx_file1": "data/663876c7-3471-43db-ba51-f410b13d9d7d/Factoring_Perfect_Square_Trinomials_Gold.docx",
+        "docx_file1": "${AS_ROOT}/data/663876c7-3471-43db-ba51-f410b13d9d7d/Factoring_Perfect_Square_Trinomials_Gold.docx",
         "docx_file2": "${AS_ROOT}/docs/Factoring_Perfect_Square_Trinomials.docx"
       }
     }
@@ -16,20 +16,50 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
-      "function": "copy",
+      "function": "mkdir",
       "params": {
-        "src": "data/663876c7-3471-43db-ba51-f410b13d9d7d/Factoring_Perfect_Square_Trinomials.docx",
-        "dest": "${AS_ROOT}/docs"
+        "path": "${AS_ROOT}/docs"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/663876c7-3471-43db-ba51-f410b13d9d7d/Factoring_Perfect_Square_Trinomials_Gold.docx",
-        "dest": "${AS_ROOT}/docs"
+        "src": "${AS_ROOT}/data/663876c7-3471-43db-ba51-f410b13d9d7d/Factoring_Perfect_Square_Trinomials_Gold.docx",
+        "dest": "${AS_ROOT}/docs/Factoring_Perfect_Square_Trinomials_Gold.docx"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/663876c7-3471-43db-ba51-f410b13d9d7d/Factoring_Perfect_Square_Trinomials.docx",
+        "dest": "${AS_ROOT}/docs/Factoring_Perfect_Square_Trinomials.docx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ],
+  "max_time": 60
 }

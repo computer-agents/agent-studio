@@ -1,6 +1,6 @@
 {
   "task_id": "6a33f9b9-0a56-4844-9c3f-96ec3ffb3ba2",
-  "instruction": "Edit my document '${AS_ROOT}/docs/sample-recruitment-phone-script.odt' and some words that needed to be rewritten are highlighted in yellow. As I fixed those words, please help me remove all highlight. I want to make sure that there is no highlight word.",
+  "instruction": "I have been editing my document and some words that needed to be rewritten are highlighted in yellow. As I fixed those words, please help me remove all highlight. I want to make sure that there is no highlight word. Can you help me? Please open and edit '${AS_ROOT}/docs/sample-recruitment-phone-script.odt'.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "check_highlighted_words",
       "params": {
-        "file_path1": "data/6a33f9b9-0a56-4844-9c3f-96ec3ffb3ba2/sample-recruitment-phone-script_Gold.odt",
+        "file_path1": "${AS_ROOT}/data/6a33f9b9-0a56-4844-9c3f-96ec3ffb3ba2/sample-recruitment-phone-script_Gold.odt",
         "file_path2": "${AS_ROOT}/docs/sample-recruitment-phone-script.odt"
       }
     }
@@ -16,12 +16,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/6a33f9b9-0a56-4844-9c3f-96ec3ffb3ba2/sample-recruitment-phone-script.docx",
-        "dest": "${AS_ROOT}/docs"
+        "src": "${AS_ROOT}/data/6a33f9b9-0a56-4844-9c3f-96ec3ffb3ba2/sample-recruitment-phone-script.odt",
+        "dest": "${AS_ROOT}/docs/sample-recruitment-phone-script.odt"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ],
+  "max_time": 60
 }

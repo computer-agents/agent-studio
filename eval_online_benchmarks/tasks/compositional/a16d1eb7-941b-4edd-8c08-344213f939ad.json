@@ -1,6 +1,6 @@
 {
   "task_id": "a16d1eb7-941b-4edd-8c08-344213f939ad",
-  "instruction": "I would like you to extract a breakdown of the data based on three criteria and place it into '${AS_ROOT}/sheets/GDPBreakdown.xlsx'. The criteria are as follows: (1) \"Gross Domestic Product (GDP)\" from the IndicatorName field, (2) only the countries listed in sheet 2 should be included, and (3) Data from 2000 to 2002 are not needed. Create a stacked area chart with title \"GDP Growth\" to display the GDP over time for the listed countries. Finally, freeze the first two columns.",
+  "instruction": "Please open the file '${AS_ROOT}/sheets/GDPBreakdown.xlsx'. I would like you to extract a breakdown of the data based on three criteria and place it into \"Sheet3\". The criteria are as follows: (1) \"Gross Domestic Product (GDP)\" from the IndicatorName field, (2) only the countries listed in sheet 2 should be included, and (3) Data from 2000 to 2002 are not needed. The first row in Sheet3 should be \"Country\", \"IndicatorName\" and year 2003 to 2013. Create a stacked area chart with title \"GDP Growth\" to display the GDP over time for the listed countries. Finally, freeze the first two columns.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,19 +8,14 @@
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
-        "expected": "data/a16d1eb7-941b-4edd-8c08-344213f939ad/1_GDPBreakdown_gt1.xlsx",
+        "expected": "${AS_ROOT}/data/a16d1eb7-941b-4edd-8c08-344213f939ad/1_GDPBreakdown_gt1.xlsx",
         "result": "${AS_ROOT}/sheets/GDPBreakdown.xlsx",
         "options": {
           "rules": [
             {
-              "type": "sheet_data",
-              "sheet_idx0": 0,
-              "sheet_idx1": "EI0"
-            },
-            {
               "type": "chart",
-              "sheet_idx0": 0,
-              "sheet_idx1": "EI0",
+              "sheet_idx0": "RNSheet3",
+              "sheet_idx1": "ENSheet3",
               "chart_props": [
                 "type",
                 "title"
@@ -28,8 +23,8 @@
             },
             {
               "type": "freeze",
-              "sheet_idx0": 0,
-              "sheet_idx1": "EI0"
+              "sheet_idx0": "RNSheet3",
+              "sheet_idx1": "ENSheet3"
             }
           ]
         }
@@ -39,12 +34,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/a16d1eb7-941b-4edd-8c08-344213f939ad/GDPBreakdown.xlsx",
-        "dest": "${AS_ROOT}/sheets"
+        "src": "${AS_ROOT}/data/a16d1eb7-941b-4edd-8c08-344213f939ad/GDPBreakdown.xlsx",
+        "dest": "${AS_ROOT}/sheets/GDPBreakdown.xlsx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ],
+  "max_time": 60
 }

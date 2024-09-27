@@ -1,6 +1,6 @@
 {
   "task_id": "08530017-b1d4-4e35-8eea-e85fc3f63c50",
-  "instruction": "Check if there are any conflicting events with the 'Quarterly Planning Session' scheduled on 2024-09-20 from 2pm to 3pm in Google Calendar. If so, save the summary of conflicting events to tmp/conflicts.txt.",
+  "instruction": "Check if there are any conflicting events with the 'Quarterly Planning Session' scheduled on 2024-09-20 from 2pm to 3pm in Google Calendar. If so, save the summary of conflicting events to '${AS_ROOT}/tmp/conflicts.txt'.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/conflicts.txt": true
+          "${AS_ROOT}/tmp/conflicts.txt": true
         }
       }
     },
@@ -18,7 +18,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "tmp/conflicts.txt": "Department Heads Meeting"
+          "${AS_ROOT}/tmp/conflicts.txt": "Department Heads Meeting"
         },
         "method": "strip"
       }
@@ -27,18 +27,8 @@
   "reset_procedure": [
     {
       "evaluator": "google_calendar",
-      "function": "delete_event",
-      "params": {
-        "event_info": {
-          "summary": "Quarterly Planning Session",
-          "start": {
-            "dateTime": "2024-09-20T14:00:00Z"
-          },
-          "end": {
-            "dateTime": "2024-09-20T15:00:00Z"
-          }
-        }
-      }
+      "function": "clear_calendar",
+      "params": {}
     },
     {
       "evaluator": "google_calendar",
@@ -46,21 +36,6 @@
       "params": {
         "event_info": {
           "summary": "Quarterly Planning Session",
-          "start": {
-            "dateTime": "2024-09-20T14:00:00Z"
-          },
-          "end": {
-            "dateTime": "2024-09-20T15:00:00Z"
-          }
-        }
-      }
-    },
-    {
-      "evaluator": "google_calendar",
-      "function": "delete_event",
-      "params": {
-        "event_info": {
-          "summary": "Department Heads Meeting",
           "start": {
             "dateTime": "2024-09-20T14:00:00Z"
           },
@@ -87,16 +62,30 @@
     },
     {
       "evaluator": "filesystem",
-      "function": "rmdir",
+      "function": "rm",
       "params": {
-        "path": "tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "tmp"
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ],

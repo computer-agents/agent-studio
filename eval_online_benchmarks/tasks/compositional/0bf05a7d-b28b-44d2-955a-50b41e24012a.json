@@ -1,16 +1,9 @@
 {
   "task_id": "0bf05a7d-b28b-44d2-955a-50b41e24012a",
-  "instruction": "Open ${AS_ROOT}/sheets/Customers_New_7digit_Id.xlsx. Pad all the numbers in the 'Old ID' column with zeros in front, and fill them up to seven digits in the 'New 7 Digit ID' column.",
+  "instruction": "Open ${AS_ROOT}/sheets/Customers_New_7digit_Id.xlsx, pad all the numbers in the 'Old ID' column with zeros in front, and fill them up to seven digits in the 'New 7 Digit ID' column.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
-    {
-      "evaluator": "system",
-      "function": "exec",
-      "params": {
-        "command": "libreoffice --convert-to csv:Text - txt - csv (StarCalc):44,34,UTF-8,,,,false,true,true,false,false,1 --outdir ${AS_ROOT}/sheets ${AS_ROOT}/sheets/Customers_New_7digit_Id.xlsx"
-      }
-    },
     {
       "evaluator": "sheets",
       "function": "compare_table",
@@ -32,7 +25,7 @@
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
-        "expected": "data/0bf05a7d-b28b-44d2-955a-50b41e24012a/Customers_New_7digit_Id_gold.csv",
+        "expected": "${AS_ROOT}/data/0bf05a7d-b28b-44d2-955a-50b41e24012a/Customers_New_7digit_Id_gold.csv",
         "result": "${AS_ROOT}/sheets/Customers_New_7digit_Id.csv",
         "options": {
           "rules": [
@@ -49,12 +42,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/0bf05a7d-b28b-44d2-955a-50b41e24012a/Customers_New_7digit_Id.xlsx",
-        "dest": "${AS_ROOT}/sheets"
+        "src": "${AS_ROOT}/data/0bf05a7d-b28b-44d2-955a-50b41e24012a/Customers_New_7digit_Id.xlsx",
+        "dest": "${AS_ROOT}/sheets/Customers_New_7digit_Id.xlsx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ],
+  "max_time": 60
 }

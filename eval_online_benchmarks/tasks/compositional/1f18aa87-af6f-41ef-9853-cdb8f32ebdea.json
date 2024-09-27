@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "compare_docx_files",
       "params": {
-        "docx_file1": "data/1f18aa87-af6f-41ef-9853-cdb8f32ebdea/Answer_Gold.docx",
+        "docx_file1": "${AS_ROOT}/data/1f18aa87-af6f-41ef-9853-cdb8f32ebdea/Answer_Gold.docx",
         "docx_file2": "${AS_ROOT}/docs/grammar_tests/Answer.docx"
       }
     }
@@ -16,10 +16,64 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs/grammar_tests"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/1f18aa87-af6f-41ef-9853-cdb8f32ebdea",
-        "dest": "${AS_ROOT}/docs/grammar_tests"
+        "src": "${AS_ROOT}/data/1f18aa87-af6f-41ef-9853-cdb8f32ebdea/Answer.docx",
+        "dest": "${AS_ROOT}/docs/grammar_tests/Answer.docx"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/1f18aa87-af6f-41ef-9853-cdb8f32ebdea/Grammar test 1.docx",
+        "dest": "${AS_ROOT}/docs/grammar_tests/Grammar test 1.docx"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/1f18aa87-af6f-41ef-9853-cdb8f32ebdea/Grammar test 2.docx",
+        "dest": "${AS_ROOT}/docs/grammar_tests/Grammar test 2.docx"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/1f18aa87-af6f-41ef-9853-cdb8f32ebdea/Grammar test 3.docx",
+        "dest": "${AS_ROOT}/docs/grammar_tests/Grammar test 3.docx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
       }
     }
   ],

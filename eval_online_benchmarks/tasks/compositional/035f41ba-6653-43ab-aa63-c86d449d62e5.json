@@ -1,6 +1,6 @@
 {
   "task_id": "035f41ba-6653-43ab-aa63-c86d449d62e5",
-  "instruction": "Help me fill in the Gross profit column in ${AS_ROOT}/sheets/IncomeStatement2.xlsx. Then under column A named \"Year_Profit\", display the Year Column in Sheet 1 as text appended by a \"_\" with the corresponding Gross Profit value.",
+  "instruction": "Help me fill in the Gross profit column in ${AS_ROOT}/sheets/IncomeStatement2.xlsx. Then create a new sheet called \"Sheet2\" and add a column under column A named \"Year_Profit\", display the Year Column in Sheet 1 as text appended by a \"_\" with the corresponding Gross Profit value. Gross profit is Sales minus the other miscellaneous expenses.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,7 +8,7 @@
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
-        "expected": "data/035f41ba-6653-43ab-aa63-c86d449d62e5/5_IncomeStatement2_gt1.xlsx",
+        "expected": "${AS_ROOT}/data/035f41ba-6653-43ab-aa63-c86d449d62e5/5_IncomeStatement2_gt1.xlsx",
         "result": "${AS_ROOT}/sheets/IncomeStatement2.xlsx",
         "options": {
           "rules": [
@@ -30,12 +30,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/035f41ba-6653-43ab-aa63-c86d449d62e5/IncomeStatement2.xlsx",
-        "dest": "${AS_ROOT}/sheets"
+        "src": "${AS_ROOT}/data/035f41ba-6653-43ab-aa63-c86d449d62e5/IncomeStatement2.xlsx",
+        "dest": "${AS_ROOT}/sheets/IncomeStatement2.xlsx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ],
+  "max_time": 60
 }

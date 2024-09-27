@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "compare_docx_lines",
       "params": {
-        "file1": "data/6f81754e-285d-4ce0-b59e-af7edb02d108/HK_train_record_Gold.docx",
+        "file1": "${AS_ROOT}/data/6f81754e-285d-4ce0-b59e-af7edb02d108/HK_train_record_Gold.docx",
         "file2": "${AS_ROOT}/docs/HK_train_record.docx"
       }
     }
@@ -16,12 +16,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/6f81754e-285d-4ce0-b59e-af7edb02d108/HK_train_record.docx",
-        "dest": "${AS_ROOT}/docs"
+        "src": "${AS_ROOT}/data/6f81754e-285d-4ce0-b59e-af7edb02d108/HK_train_record.docx",
+        "dest": "${AS_ROOT}/docs/HK_train_record.docx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ],
+  "max_time": 60
 }

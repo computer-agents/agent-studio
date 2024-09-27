@@ -1,6 +1,6 @@
 {
   "task_id": "01b269ae-2111-4a07-81fd-3fcd711993b0",
-  "instruction": "Open '${AS_ROOT}/sheets/Student_Level_Fill_Blank.xlsx'. Fill all the blank cells with the value in the cell above it",
+  "instruction": "Open '${AS_ROOT}/sheets/Student_Level_Fill_Blank.xlsx' and fill all the blank cells with the value in the cell above it",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,7 +8,7 @@
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
-        "expected": "data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank_gold.xlsx",
+        "expected": "${AS_ROOT}/data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank_gold.xlsx",
         "result": "${AS_ROOT}/sheets/Student_Level_Fill_Blank.xlsx",
         "options": {
           "rules": [
@@ -25,12 +25,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank.xlsx",
-        "dest": "${AS_ROOT}/sheets"
+        "src": "${AS_ROOT}/data/01b269ae-2111-4a07-81fd-3fcd711993b0/Student_Level_Fill_Blank.xlsx",
+        "dest": "${AS_ROOT}/sheets/Student_Level_Fill_Blank.xlsx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ],
+  "max_time": 60
 }

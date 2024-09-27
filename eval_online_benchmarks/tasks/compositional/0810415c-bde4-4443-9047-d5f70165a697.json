@@ -8,7 +8,7 @@
       "evaluator": "docs",
       "function": "compare_line_spacing",
       "params": {
-        "docx_file1": "data/0810415c-bde4-4443-9047-d5f70165a697/Novels_Intro_Packet_Gold.docx",
+        "docx_file1": "${AS_ROOT}/data/0810415c-bde4-4443-9047-d5f70165a697/Novels_Intro_Packet_Gold.docx",
         "docx_file2": "${AS_ROOT}/docs/Novels_Intro_Packet.docx"
       }
     }
@@ -16,12 +16,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/0810415c-bde4-4443-9047-d5f70165a697/Novels_Intro_Packet.docx",
-        "dest": "${AS_ROOT}/docs"
+        "src": "${AS_ROOT}/data/0810415c-bde4-4443-9047-d5f70165a697/Novels_Intro_Packet.docx",
+        "dest": "${AS_ROOT}/docs/Novels_Intro_Packet.docx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ],
+  "max_time": 60
 }

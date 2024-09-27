@@ -1,6 +1,6 @@
 {
   "task_id": "636bdcf7-f6a0-41f7-9427-441d2119e172",
-  "instruction": "Is there an 'Annual Review' event on 2024-03-20 in Google Calendar? Save 'Yes' to tmp/answer.txt if it exists. Otherwise, save 'No' to tmp/answer.txt",
+  "instruction": "Is there an 'Annual Review' event on 2024-03-20 in Google Calendar? Save 'Yes' to '${AS_ROOT}/tmp/answer.txt' if it exists. Otherwise, save 'No' to '${AS_ROOT}/tmp/answer.txt'",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/answer.txt": true
+          "${AS_ROOT}/tmp/answer.txt": true
         }
       }
     },
@@ -18,7 +18,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "tmp/answer.txt": "Yes"
+          "${AS_ROOT}/tmp/answer.txt": "Yes"
         },
         "method": "strip"
       }
@@ -27,18 +27,8 @@
   "reset_procedure": [
     {
       "evaluator": "google_calendar",
-      "function": "delete_event",
-      "params": {
-        "event_info": {
-          "summary": "Annual Review",
-          "start": {
-            "dateTime": "2024-03-20T10:00:00Z"
-          },
-          "end": {
-            "dateTime": "2024-03-20T11:00:00Z"
-          }
-        }
-      }
+      "function": "clear_calendar",
+      "params": {}
     },
     {
       "evaluator": "google_calendar",
@@ -57,7 +47,7 @@
     },
     {
       "evaluator": "filesystem",
-      "function": "rmdir",
+      "function": "rm",
       "params": {
         "path": "tmp"
       }
@@ -67,6 +57,20 @@
       "function": "mkdir",
       "params": {
         "path": "tmp"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ],

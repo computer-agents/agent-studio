@@ -1,6 +1,6 @@
 {
   "task_id": "e4ef0baf-4b52-4590-a47e-d4d464cca2d7",
-  "instruction": "The height of picture should be 20cm on slide 3 while the font size of all textboxes should be 40pt on slide 6 of ${AS_ROOT}/slides/42_2.pptx.",
+  "instruction": "Open file ${AS_ROOT}/slides/42_2.pptx. Follow the following instructions: The height of picture should be 20cmx20cm on slide 3 while the font size of all textboxes should be 40pt on slide 6.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,7 +8,7 @@
       "evaluator": "slides",
       "function": "compare_pptx_files",
       "params": {
-        "expected": "data/e4ef0baf-4b52-4590-a47e-d4d464cca2d7/42_2_Gold.pptx",
+        "expected": "${AS_ROOT}/data/e4ef0baf-4b52-4590-a47e-d4d464cca2d7/42_2_Gold.pptx",
         "result": "${AS_ROOT}/slides/42_2.pptx",
         "options": {}
       }
@@ -17,12 +17,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/e4ef0baf-4b52-4590-a47e-d4d464cca2d7/42_2.pptx",
-        "dest": "${AS_ROOT}/slides"
+        "src": "${AS_ROOT}/data/e4ef0baf-4b52-4590-a47e-d4d464cca2d7/42_2.pptx",
+        "dest": "${AS_ROOT}/slides/42_2.pptx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    }
+  ],
+  "max_time": 60
 }

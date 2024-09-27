@@ -8,7 +8,7 @@
       "evaluator": "system",
       "function": "diff",
       "params": {
-        "file1": "data/20236825-b5df-46e7-89bf-62e1d640a897/res_Gold.txt",
+        "file1": "${AS_ROOT}/data/20236825-b5df-46e7-89bf-62e1d640a897/res_Gold.txt",
         "file2": "${AS_ROOT}/docs/bubbleSort/res.txt"
       }
     }
@@ -16,10 +16,48 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs/bubbleSort"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/20236825-b5df-46e7-89bf-62e1d640a897",
-        "dest": "${AS_ROOT}/docs/bubbleSort"
+        "src": "${AS_ROOT}/data/20236825-b5df-46e7-89bf-62e1d640a897/bubbleSort.zip",
+        "dest": "${AS_ROOT}/docs/bubbleSort/bubbleSort.zip"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/20236825-b5df-46e7-89bf-62e1d640a897/Bubble_Sort_tutorial.docx",
+        "dest": "${AS_ROOT}/docs/bubbleSort/Bubble_Sort_tutorial.docx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
       }
     }
   ],

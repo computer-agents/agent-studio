@@ -15,12 +15,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/3ef2b351-8a84-4ff2-8724-d86eae9b842e/Constitution_Template_With_Guidelines.docx",
-        "dest": "${AS_ROOT}/docs"
+        "src": "${AS_ROOT}/data/3ef2b351-8a84-4ff2-8724-d86eae9b842e/Constitution_Template_With_Guidelines.docx",
+        "dest": "${AS_ROOT}/docs/Constitution_Template_With_Guidelines.docx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ],
+  "max_time": 60
 }

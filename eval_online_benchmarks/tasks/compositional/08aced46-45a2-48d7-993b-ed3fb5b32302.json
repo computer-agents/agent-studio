@@ -8,7 +8,7 @@
       "evaluator": "slides",
       "function": "compare_pptx_files",
       "params": {
-        "expected": "data/08aced46-45a2-48d7-993b-ed3fb5b32302/22_6_Gold.pptx",
+        "expected": "${AS_ROOT}/data/08aced46-45a2-48d7-993b-ed3fb5b32302/22_6_Gold.pptx",
         "result": "${AS_ROOT}/slides/22_6.pptx",
         "options": {}
       }
@@ -17,12 +17,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/08aced46-45a2-48d7-993b-ed3fb5b32302/22_6.pptx",
-        "dest": "${AS_ROOT}/slides"
+        "src": "${AS_ROOT}/data/08aced46-45a2-48d7-993b-ed3fb5b32302/22_6.pptx",
+        "dest": "${AS_ROOT}/slides/22_6.pptx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    }
+  ],
+  "max_time": 60
 }

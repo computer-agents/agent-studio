@@ -1,6 +1,6 @@
 {
   "task_id": "4c26e3f3-3a14-4d86-b44a-d3cedebbb487",
-  "instruction": "I've noticed that the image on the second slide is too dim. Can you please enhance its brightness for me? Save the adjusted image as \"${AS_ROOT}/background.png\". Thank you!",
+  "instruction": "I've noticed that the image on the second slide in file '${AS_ROOT}/slides/PPT-Template_widescreen.pptx' is too dim. Can you please enhance its brightness for me? Save the adjusted image as \"${AS_ROOT}/slides/background.png\". Thank you!",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,18 +8,56 @@
       "evaluator": "gimp",
       "function": "check_brightness_decrease_and_structure_sim",
       "params": {
-        "src_path": "${AS_ROOT}/background.jpeg",
-        "tgt_path": "data/4c26e3f3-3a14-4d86-b44a-d3cedebbb487/back.png"
+        "src_path": "${AS_ROOT}/data/4c26e3f3-3a14-4d86-b44a-d3cedebbb487/back.png",
+        "tgt_path": "${AS_ROOT}/slides/background.png",
+        "threshold": 0.10
       }
     }
   ],
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/4c26e3f3-3a14-4d86-b44a-d3cedebbb487/PPT-Template_widescreen.pptx",
-        "dest": "${AS_ROOT}/slides"
+        "src": "${AS_ROOT}/data/4c26e3f3-3a14-4d86-b44a-d3cedebbb487/PPT-Template_widescreen.pptx",
+        "dest": "${AS_ROOT}/slides/PPT-Template_widescreen.pptx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/slides"
       }
     }
   ],

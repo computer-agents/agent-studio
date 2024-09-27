@@ -1,6 +1,6 @@
 {
   "task_id": "0326d92d-d218-48a8-9ca1-981cd6d064c7",
-  "instruction": "In ${AS_ROOT}/sheets/SalesRep.xlsx, calculate the total sales in an underneath row called \"Total\" and display the total of each month as bars. Then calculate the growth percentage between each pair of months in another row called \"Growth\" and show them in a line chart. Set the chart titles as the two row headers respectively.",
+  "instruction": "In ${AS_ROOT}/sheets/SalesRep.xlsx, calculate the total sales in an underneath row called \"Total\" and display the total of each month in a bar chart (use \"Sales Rep\" row as the Y-axis). Then calculate the growth percentage between each pair of months in the next row called \"Growth\" (leave the first column blank) and show them in a line chart (use \"Sales Rep\" row as the X-axis). Set the chart titles as the two row headers respectively. When creating the charts, you should only include necessary cells.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,7 +8,7 @@
       "evaluator": "sheets",
       "function": "compare_table",
       "params": {
-        "expected": "data/0326d92d-d218-48a8-9ca1-981cd6d064c7/2_SalesRep_gt1.xlsx",
+        "expected": "${AS_ROOT}/data/0326d92d-d218-48a8-9ca1-981cd6d064c7/2_SalesRep_gt1.xlsx",
         "result": "${AS_ROOT}/sheets/SalesRep.xlsx",
         "options": {
           "rules": [
@@ -34,12 +34,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/0326d92d-d218-48a8-9ca1-981cd6d064c7/SalesRep.xlsx",
-        "dest": "${AS_ROOT}/sheets"
+        "src": "${AS_ROOT}/data/0326d92d-d218-48a8-9ca1-981cd6d064c7/SalesRep.xlsx",
+        "dest": "${AS_ROOT}/sheets/SalesRep.xlsx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ],
+  "max_time": 60
 }

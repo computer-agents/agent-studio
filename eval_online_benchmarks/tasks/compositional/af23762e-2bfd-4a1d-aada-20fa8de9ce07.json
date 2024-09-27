@@ -8,20 +8,51 @@
       "evaluator": "slides",
       "function": "compare_pptx_files",
       "params": {
-        "expected": "data/af23762e-2bfd-4a1d-aada-20fa8de9ce07/Forests_Gold.pptx",
-        "result": "${AS_ROOT}/slides/Forests.pptx"
+        "expected": "${AS_ROOT}/data/af23762e-2bfd-4a1d-aada-20fa8de9ce07/Forests_Gold.pptx",
+        "result": "${AS_ROOT}/slides/Forests.pptx",
+        "options": {}
       }
     }
   ],
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/af23762e-2bfd-4a1d-aada-20fa8de9ce07/Forests.pptx",
-        "dest": "${AS_ROOT}/slides"
+        "src": "${AS_ROOT}/data/af23762e-2bfd-4a1d-aada-20fa8de9ce07/Forests.pptx",
+        "dest": "${AS_ROOT}/slides/Forests.pptx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    }
+  ],
+  "max_time": 60
 }

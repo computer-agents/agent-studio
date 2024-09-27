@@ -18,12 +18,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/0e763496-b6bb-4508-a427-fad0b6c3e195/Dublin_Zoo_Intro.docx",
-        "dest": "${AS_ROOT}/docs"
+        "src": "${AS_ROOT}/data/0e763496-b6bb-4508-a427-fad0b6c3e195/Dublin_Zoo_Intro.docx",
+        "dest": "${AS_ROOT}/docs/Dublin_Zoo_Intro.docx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ],
+  "max_time": 60
 }

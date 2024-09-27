@@ -1,6 +1,6 @@
 {
   "task_id": "803a476e-41fd-4cf9-a68c-85b6d211b4c0",
-  "instruction": "What is the description for the 'Board Meeting' event on 2024-02-15 in Google Calendar? Save the description to tmp/answer.txt",
+  "instruction": "What is the description for the 'Board Meeting' event on 2024-02-15 in Google Calendar? Save the description to '${AS_ROOT}/tmp/answer.txt'",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/answer.txt": true
+          "${AS_ROOT}/tmp/answer.txt": true
         }
       }
     },
@@ -18,7 +18,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "tmp/answer.txt": "Please prepare the Q1 reports"
+          "${AS_ROOT}/tmp/answer.txt": "Please prepare the Q1 reports"
         },
         "method": "strip"
       }
@@ -27,19 +27,8 @@
   "reset_procedure": [
     {
       "evaluator": "google_calendar",
-      "function": "delete_event",
-      "params": {
-        "event_info": {
-          "summary": "Board Meeting",
-          "start": {
-            "dateTime": "2024-02-15T15:00:00Z"
-          },
-          "end": {
-            "dateTime": "2024-02-15T16:00:00Z"
-          },
-          "description": "Please prepare the Q1 reports"
-        }
-      }
+      "function": "clear_calendar",
+      "params": {}
     },
     {
       "evaluator": "google_calendar",
@@ -59,16 +48,30 @@
     },
     {
       "evaluator": "filesystem",
-      "function": "rmdir",
+      "function": "rm",
       "params": {
-        "path": "tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "tmp"
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ],

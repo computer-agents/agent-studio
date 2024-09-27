@@ -1,6 +1,6 @@
 {
   "task_id": "0e47de2a-32e0-456c-a366-8c607ef7a9d2",
-  "instruction": "Open ${AS_ROOT}/docs/LibreOffice_Open_Source_Word_Processing.docx and add page number for every page at the bottom left and save the doc.",
+  "instruction": "Open ${AS_ROOT}/docs/LibreOffice_Open_Source_Word_Processing.docx, add page number for every page at the bottom left and save the doc.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -15,12 +15,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/0e47de2a-32e0-456c-a366-8c607ef7a9d2/LibreOffice_Open_Source_Word_Processing.docx",
-        "dest": "${AS_ROOT}/docs"
+        "src": "${AS_ROOT}/data/0e47de2a-32e0-456c-a366-8c607ef7a9d2/LibreOffice_Open_Source_Word_Processing.docx",
+        "dest": "${AS_ROOT}/docs/LibreOffice_Open_Source_Word_Processing.docx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ],
+  "max_time": 60
 }

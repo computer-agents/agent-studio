@@ -1,6 +1,6 @@
 {
   "task_id": "07f3d2d3-71a9-4fd2-851c-f1ef4cdf872d",
-  "instruction": "Check if there are any conflicting events with the 'Quarterly Planning Session' scheduled on 2024-09-20 from 1pm to 2pm in Google Calendar. If so, save the summary of conflicting events to tmp/conflicts.txt. Otherwise, do not do any thing.",
+  "instruction": "Check if there are any conflicting events with the 'Quarterly Planning Session' scheduled on 2024-09-20 from 1pm to 2pm in Google Calendar. If so, save the summary of conflicting events to '${AS_ROOT}/tmp/conflicts.txt'. Otherwise, do not do any thing.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/conflicts.txt": false
+          "${AS_ROOT}/tmp/conflicts.txt": false
         }
       }
     }
@@ -17,18 +17,8 @@
   "reset_procedure": [
     {
       "evaluator": "google_calendar",
-      "function": "delete_event",
-      "params": {
-        "event_info": {
-          "summary": "Department Heads Meeting",
-          "start": {
-            "dateTime": "2024-09-20T14:00:00Z"
-          },
-          "end": {
-            "dateTime": "2024-09-20T15:00:00Z"
-          }
-        }
-      }
+      "function": "clear_calendar",
+      "params": {}
     },
     {
       "evaluator": "google_calendar",
@@ -47,16 +37,30 @@
     },
     {
       "evaluator": "filesystem",
-      "function": "rmdir",
+      "function": "rm",
       "params": {
-        "path": "tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "tmp"
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ],

@@ -1,6 +1,6 @@
 {
   "task_id": "520dd852-9649-456d-b054-d17e8147210a",
-  "instruction": "Check if there are any overlapping events with the 'Product Launch' event scheduled on 2024-08-25 from 1pm to 3pm in Google Calendar. Save 'Yes' to tmp/overlapping.txt if there are, otherwise 'No'.",
+  "instruction": "Check if there are any overlapping events with the 'Product Launch' event scheduled on 2024-08-25 from 1pm to 3pm in Google Calendar. Save 'Yes' to '${AS_ROOT}/tmp/overlapping.txt' if there are, otherwise 'No'.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "exists",
       "params": {
         "file_to_check": {
-          "tmp/overlapping.txt": true
+          "${AS_ROOT}/tmp/overlapping.txt": true
         }
       }
     },
@@ -18,7 +18,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "tmp/overlapping.txt": "Yes"
+          "${AS_ROOT}/tmp/overlapping.txt": "Yes"
         },
         "method": "strip"
       }
@@ -27,33 +27,8 @@
   "reset_procedure": [
     {
       "evaluator": "google_calendar",
-      "function": "delete_event",
-      "params": {
-        "event_info": {
-          "summary": "Product Launch",
-          "start": {
-            "dateTime": "2024-08-25T13:00:00Z"
-          },
-          "end": {
-            "dateTime": "2024-08-25T15:00:00Z"
-          }
-        }
-      }
-    },
-    {
-      "evaluator": "google_calendar",
-      "function": "delete_event",
-      "params": {
-        "event_info": {
-          "summary": "Team Meeting",
-          "start": {
-            "dateTime": "2024-08-25T14:00:00Z"
-          },
-          "end": {
-            "dateTime": "2024-08-25T15:00:00Z"
-          }
-        }
-      }
+      "function": "clear_calendar",
+      "params": {}
     },
     {
       "evaluator": "google_calendar",
@@ -87,16 +62,30 @@
     },
     {
       "evaluator": "filesystem",
-      "function": "rmdir",
+      "function": "rm",
       "params": {
-        "path": "tmp"
+        "path": "${AS_ROOT}/tmp"
       }
     },
     {
       "evaluator": "filesystem",
       "function": "mkdir",
       "params": {
-        "path": "tmp"
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ],

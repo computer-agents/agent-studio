@@ -1,6 +1,6 @@
 {
   "task_id": "0a0faba3-5580-44df-965d-f562a99b291c",
-  "instruction": "Open the doc '${AS_ROOT}/docs/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx'. I would like to make the first three words of the sentence left-aligned and the rest right-aligned. I basically want to have some empty space in the middle to add some photos. Assume that every sentence will have at least three words. Could you help me on alignment for me using tabstops? Remeber to save the doc after you finish.",
+  "instruction": "I would like to make the first three words of the sentence left-aligned and the rest right-aligned. I basically want to have some empty space in the middle to add some photos. Assume that every sentence will have at least three words. Could you help me on alignment for me using tabstops and save it in-place? You should open the doc '${AS_ROOT}/docs/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx' first.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -8,8 +8,8 @@
       "evaluator": "docs",
       "function": "check_tabstops",
       "params": {
-        "docx_file1": "data/0a0faba3-5580-44df-965d-f562a99b291c/04_CHIN9505_EBook_Purchasing_info_2021_Jan_Gold.docx",
-        "docx_file2": "${AS_ROOT}/docs/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx",
+        "docx_ref": "${AS_ROOT}/data/0a0faba3-5580-44df-965d-f562a99b291c/04_CHIN9505_EBook_Purchasing_info_2021_Jan_Gold.docx",
+        "docx_file": "${AS_ROOT}/docs/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx",
         "kwargs": {
           "word_number_split_by_tabstop": 3,
           "index": 0
@@ -20,12 +20,42 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
       "function": "copy",
       "params": {
-        "src": "data/0a0faba3-5580-44df-965d-f562a99b291c/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx",
-        "dest": "${AS_ROOT}/docs"
+        "src": "${AS_ROOT}/data/0a0faba3-5580-44df-965d-f562a99b291c/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx",
+        "dest": "${AS_ROOT}/docs/04_CHIN9505_EBook_Purchasing_info_2021_Jan.docx"
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ],
+  "max_time": 60
 }
