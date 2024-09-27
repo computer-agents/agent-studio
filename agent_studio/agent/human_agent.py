@@ -5,7 +5,7 @@ from typing import Any  # noqa: F401
 import numpy as np
 
 from agent_studio.agent.base_agent import RUNTIME_INIT_CODE, BaseAgent, StepInfo
-from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
+from agent_studio.utils.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.config import Config
 from agent_studio.utils.types import TaskConfig
 

@@ -8,7 +8,6 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import Response
 
-from agent_studio.agent.runtime import PythonRuntime
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator_helper import (
     EvaluatorComb,
@@ -22,6 +21,7 @@ from agent_studio.utils.communication import (
 )
 from agent_studio.utils.task_status import StateEnum, StateInfo, TaskStatus
 from agent_studio.utils.types import Procedure, TaskConfig
+from agent_studio.utils.runtime import PythonRuntime
 
 config = Config()
 logger = logging.getLogger(__name__)

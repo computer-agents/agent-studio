@@ -5,7 +5,7 @@ from typing import Any
 
 import numpy as np
 
-from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
+from agent_studio.utils.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.llm import ModelManager
 from agent_studio.llm.utils import extract_from_response
 from agent_studio.utils.types import MessageList, TaskConfig, StepInfo
