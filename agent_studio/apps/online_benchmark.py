@@ -307,9 +307,8 @@ class TaskThread(QThread):
             )
         except Exception as e:
             import traceback
-
             logger.error(f"[Unhandled Error] {repr(e)}]")
-            logger.error(traceback.format_exc())
+            traceback.print_exc()
         finally:
             # Cleanup
             if self.task_config.cleanup_procedure is not None:
@@ -1037,6 +1036,8 @@ def eval(args, interface: NonGUI | None = None) -> None:
                         break
 
                 task_trajectory_path = results_dir / task_config.task_id
+                if not task_trajectory_path.exists():
+                    task_trajectory_path.mkdir(parents=True, exist_ok=True)
                 video_meta: VideoMeta | None = None
                 if task_config.visual:
                     task_trajectory_path.mkdir(parents=True, exist_ok=True)
@@ -1086,7 +1087,9 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     video_meta=video_meta,
                 )
             except Exception as e:
+                import traceback
                 logger.error(f"[Unhandled Error] {repr(e)}]")
+                traceback.print_exc()
             finally:
                 # Clean up
                 if task_config.cleanup_procedure is not None:
