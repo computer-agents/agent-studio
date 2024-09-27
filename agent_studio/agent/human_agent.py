@@ -50,7 +50,7 @@ class HumanAgent(BaseAgent):
     def generate_action(self, obs: np.ndarray | None, model_name: str) -> str:
         return "Confirm when you finish"
 
-    def step_action(self, confirmed: bool) -> tuple[dict, bool]:
+    def step_action(self, failure_msg: str | None) -> tuple[dict, bool]:
         step_info = StepInfo(
             obs=None,
             prompt=None,
@@ -60,7 +60,7 @@ class HumanAgent(BaseAgent):
             result={},
             timestamp=time.time(),
         )
-        if confirmed:
+        if not failure_msg:
             step_info.result["content"] = "Confirmed by human."
         else:
             step_info.result["content"] = "Cancelled by human."

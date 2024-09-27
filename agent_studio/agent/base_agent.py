@@ -1,7 +1,5 @@
 import logging
 import time
-from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 
@@ -94,12 +92,14 @@ class BaseAgent:
 
         return action
 
-    def step_action(self, confirmed: bool) -> tuple[dict, bool]:
-        """Execute the code if confirmed and record the result."""
+    def step_action(self, failure_msg: str | None) -> tuple[dict, bool]:
+        """Execute the code if confirmed and record the result.
+        If failure_msg is not None, the action is cancelled.
+        """
         if self.step_info is None:
             raise ValueError("Invalid step_info")
         result = {}
-        if confirmed:
+        if not failure_msg:
             code_clean = self.step_info.action
             done = code_clean.endswith("exit()")
             if done:
@@ -110,7 +110,7 @@ class BaseAgent:
             logger.debug(f"Code to execute:\n{code}\n")
             result = self.runtime(code)
         else:
-            result["content"] = "Cancelled by human."
+            result["content"] = failure_msg
             done = True
 
         self.step_info.result = result

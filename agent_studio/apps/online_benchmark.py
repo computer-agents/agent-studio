@@ -199,7 +199,8 @@ class TaskThread(QThread):
                 if not (
                     response.status == "finished" and response.content == "success"
                 ):
-                    raise ValueError(f"Fail to reset task: {response.message}, get response {response.content}")
+                    raise ValueError(
+                        f"Fail to reset task: {response.message}, get response {response.content}")
 
             instruction = self.task_config.instruction
             logger.info(f"Task instruction: {instruction}")
@@ -215,8 +216,10 @@ class TaskThread(QThread):
 
             # Loop until the task is done or the max step is reached.
             start_time = time.time()
-            for t in range(self.task_config.max_steps):
-                logger.info(f"Step {t}")
+            current_step = 0
+            action_memory = []
+            while True:
+                logger.info(f"Step {current_step}")
                 if self.task_config.visual:
                     obs = self.interface.get_screenshot()
                 else:
@@ -225,6 +228,9 @@ class TaskThread(QThread):
                     "color: blue;", "Generating Action..."
                 )
                 action = self.agent.generate_action(obs=obs, model_name=self.args.model)
+                action_memory.append(action)
+
+                failure_msg: None | str = None
                 if config.need_human_confirmation:
                     self.mutex.lock()
                     self.signals.status_bar_signal.emit(
@@ -235,20 +241,31 @@ class TaskThread(QThread):
                     )
                     self.wait_condition.wait(self.mutex)
                     self.mutex.unlock()
-                    confirmed = self.user_input.strip().lower() == "y"
-                else:
-                    confirmed = True
-                # If the time limit is reached, the action is not confirmed.
-                if (self.args.use_time_limit and time.time() - start_time > self.task_config.max_time):
-                    confirmed = False
+                    if self.user_input.strip().lower() != "y":
+                        failure_msg = "Cancelled by human."
+                # If the time limit is reached.
+                elif (self.args.use_time_limit and time.time() - start_time > self.task_config.max_time):
+                    failure_msg = "Time limit reached."
+                # If the max step is reached.
+                elif current_step >= self.task_config.max_steps:
+                    failure_msg = "Max step reached."
+                # If the action is empty.
+                elif action == '':
+                    failure_msg = "Failed to generate action."
+                # If the action is the same as the previous two actions.
+                elif len(action_memory) >= 3 and action_memory[-1] == action_memory[-2] == action_memory[-3]:
+                    failure_msg = "Repeated action."
                 self.signals.status_bar_signal.emit(
                     "color: blue;", "Executing Command..."
                 )
-                runtime_output, done = self.agent.step_action(confirmed)
+                runtime_output, done = self.agent.step_action(
+                    failure_msg=failure_msg)
                 self.signals.runtime_output_signal.emit(runtime_output)
+                # Wait for the action to be executed
                 time.sleep(config.min_action_interval)
                 if done:
                     break
+                current_step += 1
 
             self.signals.exec_finish_signal.emit()
             self.signals.status_bar_signal.emit(
@@ -1011,8 +1028,10 @@ def eval(args, interface: NonGUI | None = None) -> None:
 
                 # Loop until the task is done or the max step is reached.
                 start_time = time.time()
-                for t in range(task_config.max_steps):
-                    logger.info(f"Step {t}")
+                current_step = 0
+                action_memory = []
+                while True:
+                    logger.info(f"Step {current_step}")
                     if task_config.visual:
                         assert (
                             interface is not None
@@ -1021,22 +1040,33 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     else:
                         obs = None
                     action = agent.generate_action(obs=obs, model_name=args.model)
-                    if config.need_human_confirmation:
-                        confirmed = (
-                            input(f"Action:\n{action}\nConfirm action (y/n): ")
-                            .strip()
-                            .lower()
-                            == "y"
-                        )
-                    else:
-                        confirmed = True
+                    action_memory.append(action)
+
+                    failure_msg: None | str = None
+                    if config.need_human_confirmation and (
+                        input(f"Action:\n{action}\nConfirm action (y/n): ")
+                        .strip()
+                        .lower()
+                        != "y"
+                    ):
+                        failure_msg = "Cancelled by human."
                     # If the time limit is reached, the action is not confirmed.
-                    if (args.use_time_limit and time.time() - start_time > task_config.max_time):
-                        confirmed = False
-                    _, done = agent.step_action(confirmed)
+                    elif (args.use_time_limit and time.time() - start_time > task_config.max_time):
+                        failure_msg = "Time limit reached."
+                    # If the max step is reached.
+                    elif current_step >= task_config.max_steps:
+                        failure_msg = "Max step reached."
+                    # If the action is empty.
+                    elif action == '':
+                        failure_msg = "Failed to generate action."
+                    # If the action is the same as the previous two actions.
+                    elif len(action_memory) >= 3 and action_memory[-1] == action_memory[-2] == action_memory[-3]:
+                        failure_msg = "Repeated action."
+                    _, done = agent.step_action(failure_msg=failure_msg)
                     time.sleep(config.min_action_interval)
                     if done:
                         break
+                    current_step += 1
 
                 task_trajectory_path = results_dir / task_config.task_id
                 if not task_trajectory_path.exists():
