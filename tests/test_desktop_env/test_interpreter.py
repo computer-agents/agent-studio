@@ -1,6 +1,6 @@
 import pytest
 
-from agent_studio.agent.runtime import PythonRuntime
+from agent_studio.utils.runtime import PythonRuntime
 
 
 @pytest.fixture(scope="function")
