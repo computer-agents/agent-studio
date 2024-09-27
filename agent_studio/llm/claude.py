@@ -23,7 +23,7 @@ class AnthropicProvider(BaseModel):
         self.client = Anthropic(api_key=config.anthropic_api_key)
         self.system_prompt = None
 
-    def format_messages(
+    def _format_messages(
         self,
         raw_messages: MessageList,
     ) -> list[dict[str, Any]]:
@@ -70,7 +70,7 @@ class AnthropicProvider(BaseModel):
             raise ValueError("Model name is not set")
         temperature = kwargs.get("temperature", config.temperature)
         max_tokens = kwargs.get("max_tokens", config.max_tokens)
-        model_message = self.format_messages(raw_messages=messages)
+        model_message = self._format_messages(raw_messages=messages)
         logger.info(f"Creating chat completion with model {model}.")
 
         @backoff.on_exception(

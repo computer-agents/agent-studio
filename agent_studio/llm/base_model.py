@@ -8,7 +8,7 @@ class BaseModel:
 
     name: str = "base"
 
-    def format_messages(
+    def _format_messages(
         self,
         raw_messages: MessageList,
     ) -> Any:

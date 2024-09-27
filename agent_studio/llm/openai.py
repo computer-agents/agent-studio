@@ -22,7 +22,7 @@ class OpenAIProvider(BaseModel):
         super().__init__()
         self.client = OpenAI(api_key=config.openai_api_key)
 
-    def format_messages(
+    def _format_messages(
         self,
         raw_messages: MessageList,
     ) -> list[dict[str, Any]]:
@@ -62,7 +62,7 @@ class OpenAIProvider(BaseModel):
             raise ValueError("Model name is not set")
         temperature = kwargs.get("temperature", config.temperature)
         max_tokens = kwargs.get("max_tokens", config.max_tokens)
-        model_message = self.format_messages(raw_messages=messages)
+        model_message = self._format_messages(raw_messages=messages)
         logger.info(f"Creating chat completion with model {model}.")
 
         @backoff.on_exception(
