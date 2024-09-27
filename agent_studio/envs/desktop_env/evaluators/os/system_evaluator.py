@@ -28,6 +28,10 @@ class SystemEvaluator(Evaluator):
 
     @evaluation_handler("diff")
     def diff_rst(self, file1: str, file2: str) -> None:
+        if not os.path.exists(file1):
+            raise FeedbackException(f"File {file1} does not exist")
+        if not os.path.exists(file2):
+            raise FeedbackException(f"File {file2} does not exist")
         result = subprocess.run(
             ["diff", file1, file2], stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )

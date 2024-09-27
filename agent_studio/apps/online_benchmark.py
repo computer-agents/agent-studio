@@ -196,9 +196,10 @@ class TaskThread(QThread):
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
                 response = self.wait_finish(is_eval=False, response=response)
-                assert (
+                if not (
                     response.status == "finished" and response.content == "success"
-                ), f"Fail to reset task: {response.message}, get response {response.content}"
+                ):
+                    raise ValueError(f"Fail to reset task: {response.message}, get response {response.content}")
 
             instruction = self.task_config.instruction
             logger.info(f"Task instruction: {instruction}")
@@ -323,11 +324,12 @@ class TaskThread(QThread):
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
                 response = self.wait_finish(is_eval=False, response=response)
-                assert (
+                if not (
                     response.status == "finished" and response.content == "success"
-                ), f"Fail to reset task: {response.message}"
-        self.signals.status_bar_signal.emit("color: green;", "Ready")
-        self.signals.eval_finish_signal.emit()
+                ):
+                    logger.error(f"Fail to cleanup task: {response.message}")
+            self.signals.status_bar_signal.emit("color: green;", "Ready")
+            self.signals.eval_finish_signal.emit()
 
     def receive_user_input(self, text: str):
         self.mutex.lock()

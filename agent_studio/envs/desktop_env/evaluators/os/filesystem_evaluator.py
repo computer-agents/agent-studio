@@ -294,10 +294,14 @@ class FilesystemEvaluator(Evaluator):
     @staticmethod
     @reset_handler("rm")
     def rm(path: str) -> None:
+        """ Remove file or directory """
         @confirm_action(f"Removing {path}")
         def _rm(path: str) -> None:
-            if os.path.exists(path) and os.path.isfile(path):
-                os.remove(path)
+            if os.path.exists(path):
+                if os.path.isfile(path):
+                    os.remove(path)
+                elif os.path.isdir(path):
+                    shutil.rmtree(path)
             logger.debug(f"{path} removed")
 
         path = os.path.expanduser(path)

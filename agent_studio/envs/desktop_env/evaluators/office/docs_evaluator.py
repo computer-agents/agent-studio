@@ -299,10 +299,14 @@ class DocsCalcEvaluator(Evaluator):
     def compare_docx_tables(self, docx_file1, docx_file2):
         try:
             doc1 = Document(docx_file1)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException(f"Error loading documents: {e}")
+        try:
             doc2 = Document(docx_file2)
         except Exception as e:
             logger.error(f"Error: {e}")
-            raise FeedbackException("Error loading documents")
+            raise FeedbackException(f"Error loading documents: {e}")
 
         # get list of tables in docx
         tables1 = doc1.tables
@@ -452,10 +456,14 @@ class DocsCalcEvaluator(Evaluator):
     def compare_docx_images(self, docx_file1, docx_file2):
         try:
             doc1 = Document(docx_file1)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            raise FeedbackException(f"Error loading documents: {e}")
+        try:
             doc2 = Document(docx_file2)
         except Exception as e:
             logger.error(f"Error: {e}")
-            raise FeedbackException("Error loading documents")
+            raise FeedbackException(f"Error loading documents: {e}")
 
         def extract_images(doc):
             images = []
@@ -474,15 +482,15 @@ class DocsCalcEvaluator(Evaluator):
                 raise FeedbackException("Images are different")
 
     @evaluation_handler("compare_references")
-    def compare_references(self, file1, file2, options):
+    def compare_references(self, docx_file1, docx_file2, options={}):
         reference_indicator = options.get("reference_indicator", "References")
         reference_base_result = options.get("reference_base_result", 0.5)
 
         # Determine file types and load documents
-        if file1.endswith(".docx") and file2.endswith(".docx"):
+        if docx_file1.endswith(".docx") and docx_file2.endswith(".docx"):
             try:
-                doc1 = Document(file1)
-                doc2 = Document(file2)
+                doc1 = Document(docx_file1)
+                doc2 = Document(docx_file2)
             except Exception as e:
                 logger.error(f"Error: {e}")
                 raise FeedbackException("Error loading documents")
@@ -508,9 +516,6 @@ class DocsCalcEvaluator(Evaluator):
             else -1
         )
 
-        if ref1_idx == -1 and ref2_idx == -1:
-            return
-
         if ref1_idx == -1 or ref2_idx == -1:
             raise FeedbackException("References section is missing")
 
@@ -530,7 +535,6 @@ class DocsCalcEvaluator(Evaluator):
             total_similarity += similarity
 
         result = total_similarity / len(ref1)
-        if result >= reference_base_result:
-            return (result - reference_base_result) / (1 - reference_base_result)
-        else:
-            raise FeedbackException("References are different")
+        if result < reference_base_result:
+            raise FeedbackException(f"References are different, {result} < {reference_base_result}")
+            # return (result - reference_base_result) / (1 - reference_base_result)

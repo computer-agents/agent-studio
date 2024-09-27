@@ -188,6 +188,7 @@ def export_trajectory(
         file_path=(path / "result.jsonl").as_posix(),
     )
 
+
 def make_report(task_config_dir: Path, result_dir: Path) -> dict:
     """Make a report from the results"""
     task_configs = read_task_jsons(task_config_dir)
@@ -212,6 +213,47 @@ def make_report(task_config_dir: Path, result_dir: Path) -> dict:
     }
 
 
+def make_report2(task_config_dir: Path, result_dir: Path, depth: int = 0) -> dict:
+    """Make a report from the results"""
+    results_all = load_results(result_dir)
+    result = {
+        "average_score": 0.0,
+        "total_task_count": 0,
+        "finished_task_count": 0,
+        "unfinished_task_count": 0,
+        "succ_task_count": 0,
+        "fail_task_count": 0
+    }
+    for dir in task_config_dir.iterdir():
+        if dir.is_dir():
+            report = make_report2(dir, result_dir, depth + 1)
+            result["total_task_count"] += report["total_task_count"]
+            result["finished_task_count"] += report["finished_task_count"]
+            result["unfinished_task_count"] += report["unfinished_task_count"]
+            result["succ_task_count"] += report["succ_task_count"]
+            result["fail_task_count"] += report["fail_task_count"]
+        else:
+            task_configs = read_task_jsons(dir)
+            assert len(task_configs) == 1, "Task config dir should contain only one file"
+            task_config = task_configs[0]
+            task_id = task_config.task_id
+            results = [result for result in results_all if result.task_id == task_id]
+            result["total_task_count"] += 1
+            if len(results) == 0:
+                result["unfinished_task_count"] += 1
+            else:
+                result["finished_task_count"] += 1
+                if results[0].score > 0:
+                    result["succ_task_count"] += 1
+                else:
+                    result["fail_task_count"] += 1
+    result["average_score"] = result["succ_task_count"] / \
+        result["finished_task_count"] if result["finished_task_count"] > 0 else 0
+    indent = "    " * depth
+    print(f"{indent}{task_config_dir.name: <20}: score: {result['average_score']: <10.2f}, finished: {result['finished_task_count']: <10}, succ: {result['succ_task_count']: <10}, fail: {result['fail_task_count']: <10}, unfinished: {result['unfinished_task_count']: <10}")
+    return result
+
+
 def load_result(result_dir: Path) -> TaskResult:
     """Load result from result_dir
         result_dir: directory containing the result
@@ -222,6 +264,7 @@ def load_result(result_dir: Path) -> TaskResult:
     result_raw = read_jsonl((result_dir / "result.jsonl").as_posix())
     saved_trajectory = TaskResult.model_validate(result_raw[0])
     return saved_trajectory
+
 
 def load_results(results_dir: Path) -> list[TaskResult]:
     """Load results from result_dir
