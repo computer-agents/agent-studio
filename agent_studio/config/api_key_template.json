@@ -4,7 +4,7 @@
     "anthropic_api_key": "",
     "google_credential_path": "agent_studio/config/credentials.json",
     "google_calendar_id": "primary",
-    "gmail_recipient": "ltzheng01@gmail.com",
+    "gmail_recipient": "",
     "telegram_api_id": "",
     "telegram_api_hash": ""
 }
