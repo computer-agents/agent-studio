@@ -280,7 +280,8 @@ def load_results(results_dir: Path) -> list[TaskResult]:
             result = load_result(dir)
             results.append(result)
         except Exception as e:
-            print(f"Error loading result from {dir}: {e}")
+            # print(f"Error loading result from {dir}: {e}")
+            pass
     return results
 
 

@@ -30,7 +30,6 @@ def _compare_docx_files(file1, file2, options: dict = {}):
     content_only = options.get("content_only", False)
     similarity_threshold = options.get("similarity_threshold", 1.0)
 
-
     def get_paragraph_texts_odt(document):
         paragraphs = document.getElementsByType(P)
         paragraph_texts = []
@@ -74,7 +73,8 @@ def _compare_docx_files(file1, file2, options: dict = {}):
             doc2_paragraphs = sorted(doc2_paragraphs)
     else:
         # Unsupported file types or mismatch
-        raise FeedbackException("Unsupported file types or mismatch between file types.")
+        raise FeedbackException(
+            "Unsupported file types or mismatch between file types.")
 
     if content_only:
         # Compare the content of the documents
@@ -84,7 +84,8 @@ def _compare_docx_files(file1, file2, options: dict = {}):
             text1, text2 = text1.lower(), text2.lower()
         similarity = fuzz.ratio(text1, text2) / 100.0
         if similarity < similarity_threshold:
-            raise FeedbackException(f"Documents are different, Text similarity is {similarity:.2f}, {text1} != {text2}")
+            raise FeedbackException(
+                f"Documents are different, Text similarity is {similarity:.2f}, {text1} != {text2}")
 
     # Process and compare documents
     if ignore_blanks:
@@ -96,7 +97,8 @@ def _compare_docx_files(file1, file2, options: dict = {}):
             raise FeedbackException(f"Documents are different, {text1} != {text2}")
     else:
         if len(doc1_paragraphs) != len(doc2_paragraphs):
-            raise FeedbackException(f"Number of paragraphs is different, {len(doc1_paragraphs)} != {len(doc2_paragraphs)}")
+            raise FeedbackException(
+                f"Number of paragraphs is different, {len(doc1_paragraphs)} != {len(doc2_paragraphs)}")
         # Compare each paragraph
         for p1, p2 in zip(doc1_paragraphs, doc2_paragraphs):
             if ignore_case:
@@ -290,7 +292,8 @@ class DocsCalcEvaluator(Evaluator):
         # Compare equations
         # TODO: compare the content of the equations
         if len(equ_list1) != len(equ_list2):
-            raise FeedbackException(f"Number of equations is different, {len(equ_list1)} != {len(equ_list2)}")
+            raise FeedbackException(
+                f"Number of equations is different, {len(equ_list1)} != {len(equ_list2)}")
         # for equ1, equ2 in zip(equ_list1, equ_list2):
         #     if equ1 != equ2:
         #         raise FeedbackException(f"Equations are different, {equ1} != {equ2}")
@@ -329,11 +332,10 @@ class DocsCalcEvaluator(Evaluator):
                         raise FeedbackException("Table content is different")
 
     @evaluation_handler("check_highlighted_words")
-    def check_highlighted_words(self, file_path1, file_path2):
-        _compare_docx_files(file_path1, file_path2)
+    def check_highlighted_words(self, docx_ref, docx_file):
+        _compare_docx_files(docx_ref, docx_file)
 
-        doc = load(file_path1)
-        highlighted = False
+        doc = load(docx_file)
 
         for span in doc.getElementsByType(Span):
             style_name = span.getAttribute("stylename")
@@ -341,14 +343,9 @@ class DocsCalcEvaluator(Evaluator):
                 for automatic_style in doc.automaticstyles.childNodes:
                     if automatic_style.getAttribute("name") == style_name:
                         for property in automatic_style.childNodes:
-                            if property.getAttribute("backgroundcolor") == "#ffff00":
-                                highlighted = True
-                                break
-                if highlighted:
-                    break
-
-        if highlighted:
-            raise FeedbackException("Highlighted words are present")
+                            if property.getAttribute("backgroundcolor") not in ["transparent", None]:
+                                raise FeedbackException(
+                                    f"Highlighted words are present, {property.getAttribute('backgroundcolor')} != transparent\n span: {span}")
 
     @evaluation_handler("compare_contains_image")
     def compare_contains_image(self, docx_file1, docx_file2):
@@ -387,7 +384,7 @@ class DocsCalcEvaluator(Evaluator):
         _compare_docx_files(docx_ref, docx_file)
 
         try:
-            document = Document(docx_ref)
+            document = Document(docx_file)
         except Exception as e:
             logger.error(f"Error: {e}")
             raise FeedbackException("Error loading document")
@@ -536,5 +533,6 @@ class DocsCalcEvaluator(Evaluator):
 
         result = total_similarity / len(ref1)
         if result < reference_base_result:
-            raise FeedbackException(f"References are different, {result} < {reference_base_result}")
+            raise FeedbackException(
+                f"References are different, {result} < {reference_base_result}")
             # return (result - reference_base_result) / (1 - reference_base_result)
