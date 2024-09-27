@@ -4,9 +4,9 @@ We provide 205 single-API, single-GUI, and compositional tasks for online benchm
 
 **Before You Start:** You should note that agents may do some **non-reversible actions**, such as deleting files, creating files, running commands, and deleting Google Calendar events. Please make sure you have backups of your data. Some tasks may require you to provide API keys. Before running the tasks, **please make sure the account doesn't have important data.**
 
-Google service related tasks requiring Google API usage, kindly enable Google APIs, configure OAuth, download the credentials following instructions [here](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), specify the credential path in `agent_studio/config/api_key.json`. When you run the benchmark for the first time, you will be prompted to visit several URLs to authorize Google Docs, Drives, etc. The corresponding token json files like `docs_token.json` will be saved in `agent_studio/config`. Alternatively, you can authorize all Google services before experiments by running `python scripts/setup_api_keys.py`.
+Google Workspace tasks require Google API usage. Kindly enable Google APIs, configure OAuth, download the credentials following instructions [here](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), and specify the credential path in `agent_studio/config/api_key.json`. When you run the benchmark for the first time, you will be prompted to visit several URLs to authorize Google Docs, Drives, etc. The corresponding token json files like `docs_token.json` will be saved in `agent_studio/config`. Alternatively, you can authorize all Google services before experiments by running `python scripts/setup_api_keys.py`.
 
-> If you want to benchmark google services, you need to do the above steps before running the Docker image.
+> If you want to benchmark Google Workspace, you need to do the above steps before running the Docker image.
 
 ## Setup Docker Image
 
@@ -80,17 +80,23 @@ We also provide more auto-evaluators on other applications in `agent_studio/envs
 as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/compositional --model gemini-1.0-pro-001
 ```
 
-## Add Tasks
+## Human Validation & Evaluation
 
-### Human Evaluation
+In order to 1) validate the correctness of task implementation or 2) evaluate human performance on these tasks, we provide this tool for human evaluation.
 
-In case you want to debug or evaluate human performance, this testsuite also supports human evaluation. To enter human evaluation mode, you should set `--agent` to `human` and set `--need_human_confirmation` to True. During the evaluation, the script will popup "Confirm when you finish" after resetting the task. You can now do the task manually in any vnc viewer. After finishing the task, you can confirm the popup message to see the evaluation result. **You should only confirm the popup message after you have finished the task.**
+Step 1: Start the Agent Monitor GUI
 
 Example command to start human evaluation on vscode tasks:
 
 ```bash
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_gui/vscode/ --agent human --remote --render --need_human_confirmation
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_gui/vscode --agent human --remote --render --need_human_confirmation
 ```
+
+Step 2: Open http://localhost:6080/ in the browser (or any VNC viewer)
+
+Step 3: Double click a task in the Task Selection of the Agent Monitor, and click on the start button. You may be prompted to confirm some resetting actions. The script will popup "Confirm when you finish" after reset
+
+Step 4: Complete the task in the browser (or VNC viewer). After finishing the task, you can confirm the popup message to see the evaluation result. If you find it hard to complete, click on the "reject" button
 
 ## Add more tasks
 
