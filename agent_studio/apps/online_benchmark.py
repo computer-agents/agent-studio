@@ -255,6 +255,8 @@ class TaskThread(QThread):
             )
             video_meta: VideoMeta | None = None
             task_result_path = Path(self.results_dir) / self.task_config.task_id
+            if not task_result_path.exists():
+                task_result_path.mkdir(parents=True, exist_ok=True)
             if self.task_config.visual:
                 video_folder = task_result_path
                 video_folder.mkdir(parents=True, exist_ok=True)
