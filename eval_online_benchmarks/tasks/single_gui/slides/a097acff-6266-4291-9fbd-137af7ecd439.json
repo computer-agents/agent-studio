@@ -1,6 +1,6 @@
 {
   "task_id": "a097acff-6266-4291-9fbd-137af7ecd439",
-  "instruction": "Save the opened slides as `${AS_ROOT}/data/a097acff-6266-4291-9fbd-137af7ecd439/pre.pptx`",
+  "instruction": "Save the opened slides as `${AS_ROOT}/slides/pre.pptx`",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
