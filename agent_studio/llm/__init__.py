@@ -2,6 +2,7 @@ import ast
 import importlib
 import logging
 import os
+from pathlib import Path
 
 from agent_studio.llm.base_model import BaseModel
 from agent_studio.utils.singleton import ThreadSafeSingleton
@@ -10,13 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 def register_models(
-    base_path: str = "agent_studio/llm",
+    base_path: Path = Path("agent_studio/llm"),
 ) -> dict[str, type[BaseModel]]:
     registered_classes = {}
-    for file in os.listdir(base_path):
-        if file.endswith(".py"):
-            file_path = os.path.join(base_path, file)
-
+    for file_path in base_path.iterdir():
+        if file_path.name.endswith(".py"):
             # Parse the Python file
             with open(file_path, "r") as f:
                 file_contents = f.read()
@@ -26,10 +25,10 @@ def register_models(
                 logger.error(f"Error parsing {file_path}. Skipping...")
                 continue
             # Check each class definition in the file
+            module_name = (
+                file_path.as_posix().replace("/", ".").replace(".py", "")
+            )
             for node in ast.walk(tree):
-                module_name = (
-                    os.path.relpath(file_path, ".").replace(os.sep, ".").rstrip(".py")
-                )
                 if isinstance(node, ast.ClassDef):
                     for base in node.bases:
                         if isinstance(base, ast.Name) and base.id == "BaseModel":

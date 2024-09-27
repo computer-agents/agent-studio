@@ -20,7 +20,7 @@ class DummyProvider(BaseModel):
         """Creates a chat completion using the Gemini API."""
 
         model_name = kwargs.get("model", None)
-        if model_name is not "dummy":
+        if model_name != "dummy":
             raise ValueError("Please use model name 'dummy'.")
         logger.info(f"Creating chat completion with model {model_name}.")
 
