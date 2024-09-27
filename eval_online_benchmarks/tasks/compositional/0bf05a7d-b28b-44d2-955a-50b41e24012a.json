@@ -1,8 +1,9 @@
 {
-  "task_id": "0bf05a7d-b28b-44d2-955a-50b41e24012a",
+  "task_id": "80ebd0f7-7de3-4985-9beb-59785fd7b944",
   "instruction": "Open ${AS_ROOT}/sheets/Customers_New_7digit_Id.xlsx, pad all the numbers in the 'Old ID' column with zeros in front, and fill them up to seven digits in the 'New 7 Digit ID' column.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -78,6 +79,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

@@ -1,8 +1,9 @@
 {
-  "task_id": "227d2f97-562b-4ccb-ae47-a5ec9e142fbb",
+  "task_id": "24857972-b024-454b-b3a1-302cdd701a19",
   "instruction": "First, create a document named 'image.docx' under path '${AS_ROOT}/image_docs/'. Second, I've stored my .xcf file in '${AS_ROOT}/image_docs/QTdHniCqfJbBLJe3L3nijU-1200-80.xcf'. Third, copy the image and pasting it into the document.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "docs",
@@ -59,6 +60,5 @@
         "path": "${AS_ROOT}/image_docs"
       }
     }
-  ],
-  "max_time": 30
+  ]
 }

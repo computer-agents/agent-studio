@@ -1,8 +1,9 @@
 {
-  "task_id": "a669ef01-ded5-4099-9ea9-25e99b569840",
+  "task_id": "854007a1-97bd-470f-9028-bfdc5dd22f20",
   "instruction": "I want to do something like the following on Page 3 of '${AS_ROOT}/slides/Writing-Outlines.pptx': make the \"continuation of the sub topics\" indented the same as \"first point of sub topics\". Could you help me with it?",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "slides",
@@ -55,6 +56,5 @@
         "path": "${AS_ROOT}/slides"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

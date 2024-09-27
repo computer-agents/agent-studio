@@ -1,8 +1,9 @@
 {
-  "task_id": "6ada715d-3aae-4a32-a6a7-429b2e43fb93",
+  "task_id": "17f39e5d-1660-4b6e-a45a-e75b154cc8c6",
   "instruction": "Copy the screenshot '${AS_ROOT}/docs/1.png' to '${AS_ROOT}/docs/Viewing_Your_Class_Schedule_and_Textbooks.docx' so it looks like '${AS_ROOT}/docs/Viewing_Your_Class_Schedule_and_Textbooks_Gold.docx'",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "docs",
@@ -67,6 +68,5 @@
         "path": "${AS_ROOT}/docs"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

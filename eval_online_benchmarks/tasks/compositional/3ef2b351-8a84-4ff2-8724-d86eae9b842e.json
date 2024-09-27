@@ -1,8 +1,9 @@
 {
-  "task_id": "3ef2b351-8a84-4ff2-8724-d86eae9b842e",
+  "task_id": "84723c8b-7f82-4b5c-9627-9a5dda60f24f",
   "instruction": "Help me open ${AS_ROOT}/docs/Constitution_Template_With_Guidelines.docx and center align the heading in LibreOffice and save the doc.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "docs",
@@ -51,6 +52,5 @@
         "path": "${AS_ROOT}/docs"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

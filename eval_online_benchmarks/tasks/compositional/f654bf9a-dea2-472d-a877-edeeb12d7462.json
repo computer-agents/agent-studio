@@ -1,8 +1,9 @@
 {
-  "task_id": "f654bf9a-dea2-472d-a877-edeeb12d7462",
+  "task_id": "29025c50-31b3-4efe-89ff-1e09d3ebfce8",
   "instruction": "Use pivot table to summarize revenue by week in file '${AS_ROOT}/sheets/SummerSales.xlsx'. Save the pivot table to a new sheet called \"Result\".",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -67,6 +68,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

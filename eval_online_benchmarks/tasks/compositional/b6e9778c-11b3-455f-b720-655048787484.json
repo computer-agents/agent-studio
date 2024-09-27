@@ -1,8 +1,9 @@
 {
-  "task_id": "b6e9778c-11b3-455f-b720-655048787484",
+  "task_id": "f792e3ae-3a05-451f-b4c4-b5faa1412cdb",
   "instruction": "Open file '${AS_ROOT}/sheets/EntireSummerSales.xlsx' and use pivot table to summarize the revenue sum for each product in a new sheet. Put the sheet as the first sheet in the workbook.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -67,6 +68,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

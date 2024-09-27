@@ -1,8 +1,9 @@
 {
-  "task_id": "7dbc52a6-11e0-4c9a-a2cb-1e36cfda80d8",
+  "task_id": "7481a5c2-11da-497d-b16e-c7cc716314be",
   "instruction": "On page 2 of ${AS_ROOT}/slides/164_3.pptx, add a note same to the title into the slide. Make the font of title bold.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "slides",
@@ -53,6 +54,5 @@
         "path": "${AS_ROOT}/slides"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

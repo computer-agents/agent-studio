@@ -1,8 +1,9 @@
 {
-  "task_id": "45d61a06-6545-4422-97b7-bc76cfa964c1",
+  "task_id": "0283d41d-9f4c-4b95-aea6-aa1e9918be91",
   "instruction": "Change line space of ${AS_ROOT}/docs/NOVEL_Submission_Guidelines.docx from 1.0 to 2.0",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "docs",
@@ -52,6 +53,5 @@
         "path": "${AS_ROOT}/docs"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

@@ -1,8 +1,9 @@
 {
-  "task_id": "803a476e-41fd-4cf9-a68c-85b6d211b4c0",
+  "task_id": "093e355b-4fed-4734-89d9-4b419767f6ff",
   "instruction": "What is the description for the 'Board Meeting' event on 2024-02-15 in Google Calendar? Save the description to '${AS_ROOT}/tmp/answer.txt'",
   "visual": false,
   "max_steps": 1,
+  "max_time": 30.0,
   "eval_procedure": [
     {
       "evaluator": "filesystem",
@@ -74,6 +75,5 @@
         "path": "${AS_ROOT}/tmp"
       }
     }
-  ],
-  "max_time": 30
+  ]
 }

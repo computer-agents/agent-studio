@@ -1,8 +1,9 @@
 {
-  "task_id": "0326d92d-d218-48a8-9ca1-981cd6d064c7",
+  "task_id": "bfb90564-daf4-4c1e-90ca-7028b93dd7b2",
   "instruction": "In ${AS_ROOT}/sheets/SalesRep.xlsx, calculate the total sales in an underneath row called \"Total\" and display the total of each month in a bar chart (use \"Sales Rep\" row as the Y-axis). Then calculate the growth percentage between each pair of months in the next row called \"Growth\" (leave the first column blank) and show them in a line chart (use \"Sales Rep\" row as the X-axis). Set the chart titles as the two row headers respectively. When creating the charts, you should only include necessary cells.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -70,6 +71,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

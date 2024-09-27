@@ -1,8 +1,9 @@
 {
-  "task_id": "a097acff-6266-4291-9fbd-137af7ecd439",
+  "task_id": "bc0872e2-ca66-487e-a3fa-3cf20d630c42",
   "instruction": "Open ${AS_ROOT}/slides/Secrets-of-Monetizing-Video.pptx and save it as `${AS_ROOT}/slides/pre.pptx`",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "slides",
@@ -55,6 +56,5 @@
         "path": "${AS_ROOT}/slides"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

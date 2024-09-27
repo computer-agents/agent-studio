@@ -1,8 +1,9 @@
 {
-  "task_id": "035f41ba-6653-43ab-aa63-c86d449d62e5",
+  "task_id": "3605a63c-20d6-4fec-9581-97570362ec6e",
   "instruction": "Help me fill in the Gross profit column in ${AS_ROOT}/sheets/IncomeStatement2.xlsx. Then create a new sheet called \"Sheet2\" and add a column under column A named \"Year_Profit\", display the Year Column in Sheet 1 as text appended by a \"_\" with the corresponding Gross Profit value. Gross profit is Sales minus the other miscellaneous expenses.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -66,6 +67,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

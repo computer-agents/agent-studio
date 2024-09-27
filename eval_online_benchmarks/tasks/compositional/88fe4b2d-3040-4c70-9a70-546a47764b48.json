@@ -1,8 +1,9 @@
 {
-  "task_id": "88fe4b2d-3040-4c70-9a70-546a47764b48",
+  "task_id": "2668faf4-8dd6-412e-9156-02559612b36c",
   "instruction": "I am making a guideline for students of my course in '${AS_ROOT}/docs/CCCH9003_Tutorial_guidelines.docx'. I would like to separate each sentence in the the first paragraph to improve readability. Please separate each sentence by creating one empty line space after each of them, as I am having hard time separating them one by one.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "docs",
@@ -56,6 +57,5 @@
         "path": "${AS_ROOT}/docs"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

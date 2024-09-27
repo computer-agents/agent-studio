@@ -1,8 +1,9 @@
 {
-  "task_id": "72b810ef-4156-4d09-8f08-a0cf57e7cefe",
+  "task_id": "fc5bb795-b395-4159-8c2b-b3b155671fe2",
   "instruction": "I am peer-reviewing my friend's course outline, which locates at '${AS_ROOT}/docs/GEOG2169_Course_Outline_2022-23.docx'. I think the last paragraph is redundant so I want to add strike-through on words in the last paragraph. Can you do this for me?",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "docs",
@@ -52,6 +53,5 @@
         "path": "${AS_ROOT}/docs"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

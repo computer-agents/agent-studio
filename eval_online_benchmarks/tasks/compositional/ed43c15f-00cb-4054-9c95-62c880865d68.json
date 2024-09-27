@@ -1,8 +1,9 @@
 {
-  "task_id": "ed43c15f-00cb-4054-9c95-62c880865d68",
+  "task_id": "9adcaecf-98ce-42ce-bd90-eb3a5d9ff97f",
   "instruction": "Open ${AS_ROOT}/slides/43_1.pptx, and move the picture on page 2 to slide top. Make textboxes underlined on slide 1 and 2.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "slides",
@@ -56,6 +57,5 @@
         "path": "${AS_ROOT}/slides"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

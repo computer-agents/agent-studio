@@ -1,8 +1,9 @@
 {
-  "task_id": "4e6fcf72-daf3-439f-a232-c434ce416af6",
+  "task_id": "07525ee8-24d1-43ec-a64f-1faff0b06f3b",
   "instruction": "Assume today is 2024-05-01. Please calculate the ages of the employees according to their birthday in the file '${AS_ROOT}/sheets/Employee_Age_By_Birthday.xlsx'.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -61,6 +62,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

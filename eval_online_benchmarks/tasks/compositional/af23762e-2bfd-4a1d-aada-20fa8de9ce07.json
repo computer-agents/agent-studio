@@ -1,8 +1,9 @@
 {
-  "task_id": "af23762e-2bfd-4a1d-aada-20fa8de9ce07",
+  "task_id": "9895f2a0-61b0-4af8-95cb-f8e7a64ce89d",
   "instruction": "I am making slides for presentation tomorrow (${AS_ROOT}/slides/Forests.pptx). I need to summarize contents on one slide use Impress \"Summary Slide\" feature. Could you make that for me?",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "slides",
@@ -53,6 +54,5 @@
         "path": "${AS_ROOT}/slides"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

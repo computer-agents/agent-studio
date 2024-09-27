@@ -1,8 +1,9 @@
 {
-  "task_id": "42e0a640-4f19-4b28-973d-729602b5a4a7",
+  "task_id": "6d6d5187-550e-4ccc-9fa3-0fd70b10f006",
   "instruction": "In the file '${AS_ROOT}/sheets/NetIncome.xlsx', compute the sum of \"Revenue\" and \"Total Expenses\", create a new sheet called \"Sheet2\", put the results under column A1 and B1 and name column as \"Total Revenue\" and \"Total Expenses\" respectively",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -61,6 +62,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

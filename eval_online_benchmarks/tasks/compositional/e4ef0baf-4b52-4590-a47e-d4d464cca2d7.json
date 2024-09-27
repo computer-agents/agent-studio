@@ -1,8 +1,9 @@
 {
-  "task_id": "e4ef0baf-4b52-4590-a47e-d4d464cca2d7",
+  "task_id": "88cd3105-205c-4ac3-ba10-003247fbc149",
   "instruction": "Open file ${AS_ROOT}/slides/42_2.pptx. Follow the following instructions: The height of picture should be 20cmx20cm on slide 3 while the font size of all textboxes should be 40pt on slide 6.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "slides",
@@ -53,6 +54,5 @@
         "path": "${AS_ROOT}/slides"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

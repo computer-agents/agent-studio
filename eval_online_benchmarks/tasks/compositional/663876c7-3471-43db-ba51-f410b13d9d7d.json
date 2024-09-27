@@ -1,8 +1,9 @@
 {
-  "task_id": "663876c7-3471-43db-ba51-f410b13d9d7d",
+  "task_id": "39e4c8f1-969a-43c2-8179-99c31f4af7eb",
   "instruction": "Insert the equation \"(a + b)^2 = a^2 + 2 a b + b^2\" in '${AS_ROOT}/docs/Factoring_Perfect_Square_Trinomials.docx' to look like '${AS_ROOT}/docs/Factoring_Perfect_Square_Trinomials_Gold.docx'.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "docs",
@@ -60,6 +61,5 @@
         "path": "${AS_ROOT}/docs"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

@@ -1,8 +1,9 @@
 {
-  "task_id": "c82632a4-56b6-4db4-9dd1-3820ee3388e4",
+  "task_id": "670af7de-7ca9-463d-9260-12beb1c095d6",
   "instruction": "Add an image \"${AS_ROOT}/slides/none.png\" to slide 2 with 1cm*1cm size of \"${AS_ROOT}/slides/31_2.pptx\".",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "slides",
@@ -64,6 +65,5 @@
         "path": "${AS_ROOT}/slides"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

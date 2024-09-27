@@ -1,8 +1,9 @@
 {
-  "task_id": "8de89f53-78a6-4763-b49f-3d6ad63bd303",
+  "task_id": "4f632a32-51e0-42c4-8439-a378929fd90b",
   "instruction": "List the summary of all events on 2024-07-04 in Google Calendar. Sort by start time and save summeries to '${AS_ROOT}/tmp/answer.txt', line by line.",
   "visual": false,
   "max_steps": 1,
+  "max_time": 30.0,
   "eval_procedure": [
     {
       "evaluator": "filesystem",
@@ -88,6 +89,5 @@
         "path": "${AS_ROOT}/tmp"
       }
     }
-  ],
-  "max_time": 30
+  ]
 }

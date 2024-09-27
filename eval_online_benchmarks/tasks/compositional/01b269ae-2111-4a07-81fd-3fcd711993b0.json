@@ -1,8 +1,9 @@
 {
-  "task_id": "01b269ae-2111-4a07-81fd-3fcd711993b0",
+  "task_id": "7e00720e-2287-4890-b5f3-9583629c057d",
   "instruction": "Open '${AS_ROOT}/sheets/Student_Level_Fill_Blank.xlsx' and fill all the blank cells with the value in the cell above it",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -61,6 +62,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

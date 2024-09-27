@@ -1,8 +1,9 @@
 {
-  "task_id": "986fc832-6af2-417c-8845-9272b3a1528b",
+  "task_id": "392caf3b-5c18-41ec-bdcd-6687c4cec2f5",
   "instruction": "Open ${AS_ROOT}/slides/154_3.pptx, and underline the content (not title or table) and make the font color on this slide (including the table) dark red 2.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "slides",
@@ -53,6 +54,5 @@
         "path": "${AS_ROOT}/slides"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

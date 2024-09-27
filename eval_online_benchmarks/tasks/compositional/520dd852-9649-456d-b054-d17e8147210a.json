@@ -1,8 +1,9 @@
 {
-  "task_id": "520dd852-9649-456d-b054-d17e8147210a",
+  "task_id": "73534944-d0d7-4f94-8e6c-08317a33023b",
   "instruction": "Check if there are any overlapping events with the 'Product Launch' event scheduled on 2024-08-25 from 1pm to 3pm in Google Calendar. Save 'Yes' to '${AS_ROOT}/tmp/overlapping.txt' if there are, otherwise 'No'.",
   "visual": false,
   "max_steps": 1,
+  "max_time": 30.0,
   "eval_procedure": [
     {
       "evaluator": "filesystem",
@@ -88,6 +89,5 @@
         "path": "${AS_ROOT}/tmp"
       }
     }
-  ],
-  "max_time": 30
+  ]
 }

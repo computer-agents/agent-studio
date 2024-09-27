@@ -1,8 +1,9 @@
 {
-  "task_id": "0810415c-bde4-4443-9047-d5f70165a697",
+  "task_id": "0889e861-1544-47d0-950b-405973744f98",
   "instruction": "Make the line spacing of first two paragraph in '${AS_ROOT}/docs/Novels_Intro_Packet.docx' into double line spacing",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "docs",
@@ -52,6 +53,5 @@
         "path": "${AS_ROOT}/docs"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

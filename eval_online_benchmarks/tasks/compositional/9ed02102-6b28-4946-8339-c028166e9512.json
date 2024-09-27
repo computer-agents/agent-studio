@@ -1,8 +1,9 @@
 {
-  "task_id": "9ed02102-6b28-4946-8339-c028166e9512",
+  "task_id": "4c5225e0-cf75-48ca-84f2-5d1245b8d846",
   "instruction": "I want to calculate the revenue for each transaction in the sales table '${AS_ROOT}/sheets/BoomerangSales.xlsx', considering corresponding retail price and discount. Please help me do this in a new column with header \"Revenue\" next to the discount column. Then create a pivot table to show the counts of the websites on which boomerangs were sold. The pivot table should be saved to a sheet called \"Result\".",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -72,6 +73,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

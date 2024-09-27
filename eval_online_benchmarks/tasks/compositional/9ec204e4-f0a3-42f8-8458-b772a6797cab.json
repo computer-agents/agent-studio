@@ -1,8 +1,9 @@
 {
-  "task_id": "9ec204e4-f0a3-42f8-8458-b772a6797cab",
+  "task_id": "9868053a-2343-4857-a62f-7bc80532c33e",
   "instruction": "Make a duplicate of the last two slides of ${AS_ROOT}/slides/MLA_Workshop_061X_Works_Cited.pptx.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "slides",
@@ -53,6 +54,5 @@
         "path": "${AS_ROOT}/slides"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

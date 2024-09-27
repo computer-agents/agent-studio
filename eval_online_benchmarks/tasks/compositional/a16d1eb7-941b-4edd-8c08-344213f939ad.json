@@ -1,8 +1,9 @@
 {
-  "task_id": "a16d1eb7-941b-4edd-8c08-344213f939ad",
+  "task_id": "c1b45900-3488-458d-927e-1789ed150903",
   "instruction": "Please open the file '${AS_ROOT}/sheets/GDPBreakdown.xlsx'. I would like you to extract a breakdown of the data based on three criteria and place it into \"Sheet3\". The criteria are as follows: (1) \"Gross Domestic Product (GDP)\" from the IndicatorName field, (2) only the countries listed in sheet 2 should be included, and (3) Data from 2000 to 2002 are not needed. The first row in Sheet3 should be \"Country\", \"IndicatorName\" and year 2003 to 2013. Create a stacked area chart with title \"GDP Growth\" to display the GDP over time for the listed countries. Finally, freeze the first two columns.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -70,6 +71,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

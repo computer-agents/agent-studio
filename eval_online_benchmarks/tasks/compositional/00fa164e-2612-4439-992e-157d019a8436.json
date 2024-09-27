@@ -1,8 +1,9 @@
 {
-  "task_id": "00fa164e-2612-4439-992e-157d019a8436",
+  "task_id": "41127d23-d7e9-4ccc-92d3-4bb23508666e",
   "instruction": "Include the experiment results from \"${AS_ROOT}/docs/results.xlsx\" into the report in \"${AS_ROOT}/docs/awe_desk_env.docx\" and save it. Specifically, extract the results of LLM-based models and insert a table into the \"Main Results\" section of the report.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "docs",
@@ -60,6 +61,5 @@
         "path": "${AS_ROOT}/docs"
       }
     }
-  ],
-  "max_time": 30
+  ]
 }

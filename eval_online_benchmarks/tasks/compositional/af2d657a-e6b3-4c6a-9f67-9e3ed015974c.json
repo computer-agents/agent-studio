@@ -1,8 +1,9 @@
 {
-  "task_id": "af2d657a-e6b3-4c6a-9f67-9e3ed015974c",
+  "task_id": "f5b74786-261a-4286-b1e0-3e951a1a9281",
   "instruction": "In the first slide of ${AS_ROOT}/slides/9_1.pptx, insert the title \"Happy Family\" and make the font style \"Times New Roman\".",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "slides",
@@ -55,6 +56,5 @@
         "path": "${AS_ROOT}/slides"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

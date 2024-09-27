@@ -1,8 +1,9 @@
 {
-  "task_id": "493c21d4-c536-47a0-bff0-7116cf3eeb3d",
+  "task_id": "a5cc15a9-38d4-4e2f-9fcf-8baf3d1ff9d8",
   "instruction": "Find all 'Client Meeting' events in Google Calendar between 2024-08-01 and 2024-08-31. Save the dates and start times of these events to '${AS_ROOT}/tmp/client_meetings.txt' in the format of 'YYYY-MM-DD HH:MM', separated by newlines.",
   "visual": false,
   "max_steps": 1,
+  "max_time": 30.0,
   "eval_procedure": [
     {
       "evaluator": "filesystem",
@@ -103,6 +104,5 @@
         "path": "${AS_ROOT}/tmp"
       }
     }
-  ],
-  "max_time": 30
+  ]
 }

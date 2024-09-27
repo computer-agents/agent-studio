@@ -1,8 +1,9 @@
 {
-  "task_id": "4ed5abd0-8b5d-47bd-839f-cacfa15ca37a",
+  "task_id": "3d7cf1db-5533-468a-aafe-e6441f427c4a",
   "instruction": "Open '${AS_ROOT}/slides/4_1.pptx', and set the color of titles in slides 2,3,5 as black and underline them.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "slides",
@@ -53,6 +54,5 @@
         "path": "${AS_ROOT}/slides"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

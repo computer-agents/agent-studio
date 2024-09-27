@@ -1,8 +1,9 @@
 {
-  "task_id": "66399b0d-8fda-4618-95c4-bfc6191617e9",
+  "task_id": "407f880e-c251-4d23-a37f-b81786f17deb",
   "instruction": "Could you help me insert a 7(columns)*5(rows) empty table at the end of '${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions.docx' file?",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "docs",
@@ -31,5 +32,5 @@
       }
     }
   ],
-  "max_time": 30
+  "cleanup_procedure": null
 }

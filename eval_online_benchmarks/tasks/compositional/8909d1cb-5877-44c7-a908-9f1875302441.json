@@ -1,8 +1,9 @@
 {
-  "task_id": "8909d1cb-5877-44c7-a908-9f1875302441",
+  "task_id": "f395ef38-5405-4926-a5b3-7dac253195ed",
   "instruction": "Open file '${AS_ROOT}/sheets/SummerSales.xlsx' and copy the \"Date\" and \"Revenue ($)\" values to \"Sheet2\" for the rows whose \"Sales Channel\" is \"E-mail Coupon\".",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -66,6 +67,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }

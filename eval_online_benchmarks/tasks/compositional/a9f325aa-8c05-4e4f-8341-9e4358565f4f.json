@@ -1,8 +1,9 @@
 {
-  "task_id": "a9f325aa-8c05-4e4f-8341-9e4358565f4f",
+  "task_id": "a4991e3c-ec1c-407c-862c-9b07dec35de5",
   "instruction": "Remove the adundant whitespaces and canonicalize the letter cases by capitalizing the first letter of each words and leave other letters as lower case in '${AS_ROOT}/sheets/Movie_title_garbage_clean.xlsx'.",
   "visual": true,
   "max_steps": 30,
+  "max_time": 60,
   "eval_procedure": [
     {
       "evaluator": "sheets",
@@ -61,6 +62,5 @@
         "path": "${AS_ROOT}/sheets"
       }
     }
-  ],
-  "max_time": 60
+  ]
 }
