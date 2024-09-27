@@ -1,6 +1,6 @@
 {
   "task_id": "0b29d03b-00e9-42d9-b0e1-162b839b0520",
-  "instruction": "Get the location of the event called 'Meeting with Team' on 2024-01-05 10am to 11am in Google Calendar and save it to '${AS_ROOT}/tmp/office_location.txt' file.",
+  "instruction": "Get the location of the event called 'Meeting with Team' on 2024-01-05 10am to 11am in Google Calendar and save it to '${AS_ROOT}/tmp/office_location.txt' file. The calendar id is '${AS_GCALENDAR_ID}'.",
   "visual": false,
   "max_steps": 1,
   "max_time": 30.0,

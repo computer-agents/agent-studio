@@ -1,6 +1,6 @@
 {
   "task_id": "093e355b-4fed-4734-89d9-4b419767f6ff",
-  "instruction": "What is the description for the 'Board Meeting' event on 2024-02-15 in Google Calendar? Save the description to '${AS_ROOT}/tmp/answer.txt'",
+  "instruction": "What is the description for the 'Board Meeting' event on 2024-02-15 in Google Calendar? Save the description to '${AS_ROOT}/tmp/answer.txt'. The calendar id is '${AS_GCALENDAR_ID}'.",
   "visual": false,
   "max_steps": 1,
   "max_time": 30.0,

@@ -1,6 +1,6 @@
 {
   "task_id": "238a3041-6bbe-460f-8782-38a25a46ec1e",
-  "instruction": "Check if there are any conflicting events with the 'Quarterly Planning Session' scheduled on 2024-09-20 from 1pm to 2pm in Google Calendar. If so, save the summary of conflicting events to '${AS_ROOT}/tmp/conflicts.txt'. Otherwise, delete the file '${AS_ROOT}/tmp/conflicts.txt'.",
+  "instruction": "Check if there are any conflicting events with the 'Quarterly Planning Session' scheduled on 2024-09-20 from 1pm to 2pm in Google Calendar. If so, save the summary of conflicting events to '${AS_ROOT}/tmp/conflicts.txt'. Otherwise, delete the file '${AS_ROOT}/tmp/conflicts.txt'. The calendar id is '${AS_GCALENDAR_ID}'.",
   "visual": false,
   "max_steps": 1,
   "max_time": 30.0,

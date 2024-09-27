@@ -1,6 +1,6 @@
 {
   "task_id": "95a47bdc-6ac6-4b52-ba3d-bedff89c373c",
-  "instruction": "Is there an 'Annual Review' event on 2024-03-20 in Google Calendar? Save 'Yes' to '${AS_ROOT}/tmp/answer.txt' if it exists. Otherwise, save 'No' to '${AS_ROOT}/tmp/answer.txt'",
+  "instruction": "Is there an 'Annual Review' event on 2024-03-20 in Google Calendar? Save 'Yes' to '${AS_ROOT}/tmp/answer.txt' if it exists. Otherwise, save 'No' to '${AS_ROOT}/tmp/answer.txt'. The calendar id is '${AS_GCALENDAR_ID}'.",
   "visual": false,
   "max_steps": 1,
   "max_time": 30.0,
