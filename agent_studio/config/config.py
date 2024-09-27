@@ -56,6 +56,7 @@ class Config(metaclass=ThreadSafeSingleton):
         "AS_HOME": Path(os.path.expanduser("~")).as_posix(),
         "AS_TEST": "test",
         "AS_GMAIL_RECIPIENT": "ltzheng01@gmail.com",
+        "AS_GCALENDAR_ID": json.load(open(api_key_path))["google_calendar_id"],
     }
 
     def __init__(self) -> None:

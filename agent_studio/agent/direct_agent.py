@@ -29,12 +29,6 @@ creds = credentials.Credentials.from_authorized_user_info(token, [
 service = build("drive", "v3", credentials=creds)
 service.files().get_media(fileId=xxxxxxx)
 ```
-If you want to use the Google Calendar API, you should only modify the calendar with the specified calendar_id, you can obtain the calendar_id with the following code:
-```python
-import json
-with open("agent_studio/config/api_key.json", "r") as f:
-    calendar_id = json.loads(f.read())["google_calendar_id"]
-```
 Also, you should assume the timezone is UTC+0 if there's no further specification."""  # noqa: E501
 
 

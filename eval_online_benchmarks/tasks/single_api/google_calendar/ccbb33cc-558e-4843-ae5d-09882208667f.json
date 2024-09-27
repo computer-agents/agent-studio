@@ -1,6 +1,6 @@
 {
   "task_id": "ccbb33cc-558e-4843-ae5d-09882208667f",
-  "instruction": "Cancel the 'Client Presentation' event scheduled on 2024-04-22 from 2pm to 3pm in Google Calendar.",
+  "instruction": "Cancel the 'Client Presentation' event scheduled on 2024-04-22 from 2pm to 3pm in Google Calendar. The calendar id is '${AS_GCALENDAR_ID}'.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -24,18 +24,8 @@
   "reset_procedure": [
     {
       "evaluator": "google_calendar",
-      "function": "delete_event",
-      "params": {
-        "event_info": {
-          "summary": "Client Presentation",
-          "start": {
-            "dateTime": "2024-04-22T14:00:00Z"
-          },
-          "end": {
-            "dateTime": "2024-04-22T15:00:00Z"
-          }
-        }
-      }
+      "function": "clear_calendar",
+      "params": {}
     },
     {
       "evaluator": "google_calendar",
@@ -51,6 +41,13 @@
           }
         }
       }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
     }
   ],
   "max_time": 30

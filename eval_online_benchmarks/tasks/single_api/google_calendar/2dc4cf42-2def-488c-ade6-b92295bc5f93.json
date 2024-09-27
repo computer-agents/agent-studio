@@ -1,6 +1,6 @@
 {
   "task_id": "2dc4cf42-2def-488c-ade6-b92295bc5f93",
-  "instruction": "Update the 'Board Meeting' event on 2024-02-15 from 3pm to 4pm to add a note: 'Please prepare the Q1 reports' in Google Calendar.",
+  "instruction": "Update the 'Board Meeting' event on 2024-02-15 from 3pm to 4pm to add a note: 'Please prepare the Q1 reports' in Google Calendar. The calendar id is '${AS_GCALENDAR_ID}'.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -25,19 +25,8 @@
   "reset_procedure": [
     {
       "evaluator": "google_calendar",
-      "function": "delete_event",
-      "params": {
-        "event_info": {
-          "summary": "Board Meeting",
-          "start": {
-            "dateTime": "2024-02-15T15:00:00Z"
-          },
-          "end": {
-            "dateTime": "2024-02-15T16:00:00Z"
-          },
-          "description": "Please prepare the Q1 reports"
-        }
-      }
+      "function": "clear_calendar",
+      "params": {}
     },
     {
       "evaluator": "google_calendar",
@@ -53,6 +42,13 @@
           }
         }
       }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
     }
   ],
   "max_time": 30
