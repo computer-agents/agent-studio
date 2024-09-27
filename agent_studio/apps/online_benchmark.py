@@ -411,6 +411,7 @@ class GUI(QMainWindow):
             else:
                 self.task_configs: list[TaskConfig] = read_task_jsons(
                     Path(self.task_config_path))
+            self.task_configs.sort(key=lambda x: x.instruction)
         except Exception as e:
             logger.error(f"Failed to load task configs: {e}")
             self.task_configs = []
