@@ -305,7 +305,7 @@ class GIMPEvaluator(Evaluator):
             raise FeedbackException("The size of the image is not correct.")
 
     @evaluation_handler("check_image_file_size")
-    def check_image_file_size(self, src_path, rule):
+    def check_image_file_size(self, src_path, rules):
         """
         Check if the size of the src image within 500KB
         """
@@ -314,7 +314,7 @@ class GIMPEvaluator(Evaluator):
             raise FeedbackException("The file does not exist.")
         # Check the size
         file_size = os.path.getsize(src_path)
-        if file_size >= rule["max_size"]:
+        if file_size >= rules["max_size"]:
             raise FeedbackException("The file size is too large.")
 
     @evaluation_handler("check_palette_and_structure_sim")

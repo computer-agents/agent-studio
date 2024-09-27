@@ -1,6 +1,6 @@
 {
   "task_id": "26ce1a5d-1d1e-444c-af84-299471c6252e",
-  "instruction": "Download the image from \"https://drive.google.com/uc?export=download&id=1VIwIhLpkRr72DTuJINsZQ-DDwHAtfddq\", and then use GIMP to compress it to under 600KB as \"compressed.jpeg\" to \"~\". Resize if needed.",
+  "instruction": "Use GIMP to compress the image in \"${AS_ROOT}/gimp/image.jpg\" to under 600KB and save the compressed image as \"${AS_ROOT}/gimp/compressed.jpg\". Resize if needed.",
   "visual": true,
   "max_steps": 30,
   "max_time": 60,
@@ -9,7 +9,7 @@
       "evaluator": "gimp",
       "function": "check_image_file_size",
       "params": {
-        "src_path": "${AS_ROOT}/compressed.jpeg",
+        "src_path": "${AS_ROOT}/gimp/compressed.jpg",
         "rules": {
           "max_size": 600000
         }
@@ -19,11 +19,27 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
-      "function": "rm",
+      "function": "mkdir",
       "params": {
-        "path": "${AS_ROOT}/compressed.jpeg"
+        "path": "${AS_ROOT}/gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/26ce1a5d-1d1e-444c-af84-299471c6252e/image.jpg",
+        "dest": "${AS_ROOT}/gimp/image.jpg"
       }
     }
   ],
-  "cleanup_procedure": null
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/gimp"
+      }
+    }
+  ]
 }
