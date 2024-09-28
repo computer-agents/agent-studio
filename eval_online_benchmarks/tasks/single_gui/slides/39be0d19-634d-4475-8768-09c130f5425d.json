@@ -1,6 +1,6 @@
 {
   "task_id": "39be0d19-634d-4475-8768-09c130f5425d",
-  "instruction": "In the \"Features\" slide, insert a table with 5 rows and 2 columns.",
+  "instruction": "In the \"Features\" slide, insert a table with 5 rows and 2 columns with the same size as in 'target_41_3.pptx'.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
@@ -28,6 +28,14 @@
       "params": {
         "src": "${AS_ROOT}/data/39be0d19-634d-4475-8768-09c130f5425d/41_3.pptx",
         "dest": "${AS_ROOT}/slides/41_3.pptx"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/39be0d19-634d-4475-8768-09c130f5425d/41_3_Gold.pptx",
+        "dest": "${AS_ROOT}/slides/target_41_3.pptx"
       }
     },
     {
