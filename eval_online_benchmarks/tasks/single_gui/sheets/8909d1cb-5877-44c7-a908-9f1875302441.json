@@ -1,6 +1,6 @@
 {
   "task_id": "8909d1cb-5877-44c7-a908-9f1875302441",
-  "instruction": "Copy the \"Date\" and \"Revenue ($)\" values to \"Sheet2\" for the rows whose \"Sales Channel\" is \"E-mail Coupon\".",
+  "instruction": "Copy the \"Date\" and \"Revenue ($)\" values to \"Sheet2\" for the rows whose \"Sales Channel\" is \"E-mail Coupon\". Remember to keep the column headers.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [
