@@ -1,6 +1,6 @@
 {
   "task_id": "49e457e8-9ed9-416a-8b79-69be26794ed7",
-  "instruction": "Update the content of 'agenda.txt' in '${AS_ROOT}/tmp/meetings/' to 'Updated Meeting Agenda'.z",
+  "instruction": "Update the content of 'agenda.txt' in '${AS_ROOT}/tmp/meetings/' to 'Updated Meeting Agenda'",
   "visual": true,
   "max_steps": 20,
   "max_time": 60.0,
