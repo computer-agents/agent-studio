@@ -1,4 +1,4 @@
-FROM thisiszy/ubuntu-22.04-desktop-lxde-vnc:latest
+FROM --platform=linux/amd64 thisiszy/ubuntu-22.04-desktop-lxde-vnc:latest
 
 RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add - \
     && wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
