@@ -295,8 +295,12 @@ class GmailEvaluator(Evaluator):
     ):
         """Checks if the email with the given ID exists in trash."""
         messages = self.search_messages(
-            message_info=message_info, message_type="messages"
+            message_info=message_info, message_type="messages", include_trash=True
         )
+        if len(messages) == 0:
+            raise FeedbackException(
+                f"Email {message_info} does not exist."
+            )
         for msg in messages:
             message = (
                 self.service.users()
@@ -367,10 +371,11 @@ class GmailEvaluator(Evaluator):
     def delete_sent_message(
         self,
         message_info: dict[str, Any],
+        include_trash: bool = False,
     ) -> None:
         """Deletes the sent message with the given criteria."""
         sent_messages = self.search_messages(
-            message_info=message_info, message_type="messages"
+            message_info=message_info, message_type="messages", include_trash=include_trash
         )
         for sent_message in sent_messages:
             logger.debug(
@@ -379,6 +384,18 @@ class GmailEvaluator(Evaluator):
             confirm_action(
                 f"Deleting sent message with subject {sent_message['subject']}"
             )(self.delete_sent_message_by_id)(sent_message["id"])
+
+    @reset_handler("trash_message")
+    def trash_message(
+        self,
+        message_info: dict[str, Any],
+    ) -> None:
+        """Moves an email to the trash."""
+        messages = self.search_messages(
+            message_info=message_info, message_type="messages"
+        )
+        for msg in messages:
+            self.trash_message_by_id(msg["id"])
 
     @reset_handler("send_message")
     def send_message(
@@ -446,7 +463,7 @@ class GmailEvaluator(Evaluator):
         return get_message_from_raw(raw_message)
 
     def search_messages(
-        self, message_info: dict[str, Any], message_type: str
+        self, message_info: dict[str, Any], message_type: str, include_trash: bool = False
     ) -> list[dict[str, Any]]:
         """Searches the messages that match the given criteria."""
         # Construct the search query
@@ -463,7 +480,7 @@ class GmailEvaluator(Evaluator):
                 search_result = (
                     self.service.users()
                     .messages()
-                    .list(userId="me", q=search_query)
+                    .list(userId="me", q=search_query, includeSpamTrash=include_trash)
                     .execute()
                 )
                 messages = []
@@ -502,3 +519,8 @@ class GmailEvaluator(Evaluator):
         """Deletes the sent message with the given ID."""
         self.service.users().messages().delete(userId="me", id=message_id).execute()
         logger.debug(f"Sent message with id {message_id} deleted successfully.")
+
+    def trash_message_by_id(self, message_id: str) -> None:
+        """Moves the message with the given ID to the trash."""
+        self.service.users().messages().trash(userId="me", id=message_id).execute()
+        logger.debug(f"Message with id {message_id} moved to trash successfully.")

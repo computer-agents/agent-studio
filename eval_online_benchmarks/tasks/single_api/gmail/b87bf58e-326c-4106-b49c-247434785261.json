@@ -24,7 +24,8 @@
         "message_info": {
           "subject": "Meeting reminder",
           "body_contains": "conference call"
-        }
+        },
+        "include_trash": true
       }
     },
     {
@@ -40,12 +41,25 @@
     },
     {
       "evaluator": "gmail",
-      "function": "add_email_to_trash",
+      "function": "trash_message",
       "params": {
         "message_info": {
           "subject": "Meeting reminder",
           "body_contains": "conference call"
         }
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Meeting reminder",
+          "body_contains": "conference call"
+        },
+        "include_trash": true
       }
     }
   ],
