@@ -405,7 +405,7 @@ class GmailEvaluator(Evaluator):
         """Creates and sends an email message."""
         message = EmailMessage()
         message.set_content(message_info["body"])
-        message["To"] = message_info.get("recipient", config.gmail_recipient)
+        message["To"] = message_info["recipient"]
         message["Subject"] = message_info["subject"]
         encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
         create_message = {"raw": encoded_message}
