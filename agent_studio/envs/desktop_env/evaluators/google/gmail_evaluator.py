@@ -62,6 +62,8 @@ def get_attachment_name(raw_message: dict[str, Any]) -> str | None:
 def get_body(raw_message: dict[str, Any]) -> str:
     """Decodes the body of the message."""
 
+    decoded_body = ""
+
     if raw_message["payload"]["body"]["size"] == 0:
         # Check if there are multiple parts
         if "parts" in raw_message["payload"]:
@@ -81,9 +83,6 @@ def get_body(raw_message: dict[str, Any]) -> str:
                             body_data.encode("ASCII")
                         ).decode()
                         return decoded_body
-        else:
-            # If the body is empty, return empty string
-            decoded_body = ""
     else:
         body_data = raw_message["payload"]["body"]["data"]
         decoded_body = base64.urlsafe_b64decode(body_data.encode("ASCII")).decode()
@@ -298,9 +297,7 @@ class GmailEvaluator(Evaluator):
             message_info=message_info, message_type="messages", include_trash=True
         )
         if len(messages) == 0:
-            raise FeedbackException(
-                f"Email {message_info} does not exist."
-            )
+            raise FeedbackException(f"Email {message_info} does not exist.")
         for msg in messages:
             message = (
                 self.service.users()
@@ -375,7 +372,9 @@ class GmailEvaluator(Evaluator):
     ) -> None:
         """Deletes the sent message with the given criteria."""
         sent_messages = self.search_messages(
-            message_info=message_info, message_type="messages", include_trash=include_trash
+            message_info=message_info,
+            message_type="messages",
+            include_trash=include_trash,
         )
         for sent_message in sent_messages:
             logger.debug(
@@ -463,7 +462,10 @@ class GmailEvaluator(Evaluator):
         return get_message_from_raw(raw_message)
 
     def search_messages(
-        self, message_info: dict[str, Any], message_type: str, include_trash: bool = False
+        self,
+        message_info: dict[str, Any],
+        message_type: str,
+        include_trash: bool = False,
     ) -> list[dict[str, Any]]:
         """Searches the messages that match the given criteria."""
         # Construct the search query
