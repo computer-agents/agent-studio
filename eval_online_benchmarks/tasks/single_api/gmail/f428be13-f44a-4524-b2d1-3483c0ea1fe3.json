@@ -61,9 +61,9 @@
       "function": "delete_sent_message",
       "params": {
         "message_info": {
-          "subject": "Automated travel agent",
-          "body": "This is automatically sent message of plan 2"
-        }
+          "recipient": "${AS_GMAIL_RECIPIENT}"
+        },
+        "include_trash": true
       }
     },
     {
@@ -79,31 +79,11 @@
     },
     {
       "evaluator": "gmail",
-      "function": "delete_sent_message",
-      "params": {
-        "message_info": {
-          "subject": "Automated travel plan",
-          "body": "This is automatically sent message of plan 1"
-        }
-      }
-    },
-    {
-      "evaluator": "gmail",
       "function": "send_message",
       "params": {
         "message_info": {
           "subject": "Automated travel plan",
           "recipient": "${AS_GMAIL_RECIPIENT}",
-          "body": "This is automatically sent message of plan 1"
-        }
-      }
-    },
-    {
-      "evaluator": "gmail",
-      "function": "delete_sent_message",
-      "params": {
-        "message_info": {
-          "subject": "AutoPlan1",
           "body": "This is automatically sent message of plan 1"
         }
       }
@@ -121,32 +101,12 @@
     },
     {
       "evaluator": "gmail",
-      "function": "delete_sent_message",
-      "params": {
-        "message_info": {
-          "subject": "AutoPlan2",
-          "body": "This is automatically sent message of plan 2"
-        }
-      }
-    },
-    {
-      "evaluator": "gmail",
       "function": "send_message",
       "params": {
         "message_info": {
           "subject": "AutoPlan2",
           "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "This is automatically sent message of plan 2"
-        }
-      }
-    },
-    {
-      "evaluator": "gmail",
-      "function": "delete_sent_message",
-      "params": {
-        "message_info": {
-          "subject": "Automated Email",
-          "body": "This is automatically sent message"
         }
       }
     },
@@ -159,6 +119,18 @@
           "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "This is automatically sent message"
         }
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "recipient": "${AS_GMAIL_RECIPIENT}"
+        },
+        "include_trash": true
       }
     }
   ],

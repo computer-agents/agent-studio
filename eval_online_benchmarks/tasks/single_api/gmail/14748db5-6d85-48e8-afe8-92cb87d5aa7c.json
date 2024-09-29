@@ -18,12 +18,43 @@
   "reset_procedure": [
     {
       "evaluator": "gmail",
+      "function": "delete_draft",
+      "params": {
+        "draft_info": {
+          "subject": "Automated draft",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
+          "body": "This is automated draft mail"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
       "function": "create_draft",
       "params": {
         "draft_info": {
           "subject": "Automated draft",
-          "recipient": "gduser1@workspacesamples.dev",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "This is automated draft mail"
+        }
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_draft",
+      "params": {
+        "draft_info": {
+          "recipient": "${AS_GMAIL_RECIPIENT}"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "recipient": "${AS_GMAIL_RECIPIENT}"
         }
       }
     }

@@ -30,22 +30,22 @@
     },
     {
       "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated draft",
+          "body": "This is automated draft email"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
       "function": "create_draft",
       "params": {
         "draft_info": {
           "subject": "Automated draft",
           "recipient": "${AS_GMAIL_RECIPIENT}",
           "body": "This is automated draft mail"
-        }
-      }
-    },
-    {
-      "evaluator": "gmail",
-      "function": "delete_sent_message",
-      "params": {
-        "message_info": {
-          "subject": "Automated draft",
-          "body": "This is automated draft email"
         }
       }
     }
@@ -56,9 +56,7 @@
       "function": "delete_draft",
       "params": {
         "draft_info": {
-          "subject": "Automated draft",
-          "recipient": "${AS_GMAIL_RECIPIENT}",
-          "content": "This is automated draft mail"
+          "recipient": "${AS_GMAIL_RECIPIENT}"
         }
       }
     },
@@ -67,8 +65,7 @@
       "function": "delete_sent_message",
       "params": {
         "message_info": {
-          "subject": "Automated draft",
-          "body": "This is automated draft email"
+          "recipient": "${AS_GMAIL_RECIPIENT}"
         }
       }
     }

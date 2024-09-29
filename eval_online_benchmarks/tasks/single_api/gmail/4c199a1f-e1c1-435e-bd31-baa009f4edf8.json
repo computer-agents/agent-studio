@@ -39,5 +39,18 @@
       }
     }
   ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Meeting reminder",
+          "body_contains": "conference call"
+        },
+        "include_trash": true
+      }
+    }
+  ],
   "max_time": 30
 }

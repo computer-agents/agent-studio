@@ -39,5 +39,27 @@
       }
     }
   ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel plan",
+          "body": "This is automatically sent message"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Forwarded travel plan",
+          "body": "This is automatically sent message"
+        }
+      }
+    }
+  ],
   "max_time": 30
 }

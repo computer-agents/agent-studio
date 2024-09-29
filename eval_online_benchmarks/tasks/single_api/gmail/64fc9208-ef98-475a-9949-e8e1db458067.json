@@ -22,8 +22,18 @@
       "function": "delete_sent_message",
       "params": {
         "message_info": {
-          "subject": "Automated Email",
-          "body": "This is automatically sent email"
+          "recipient": "${AS_GMAIL_RECIPIENT}"
+        }
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "recipient": "${AS_GMAIL_RECIPIENT}"
         }
       }
     }

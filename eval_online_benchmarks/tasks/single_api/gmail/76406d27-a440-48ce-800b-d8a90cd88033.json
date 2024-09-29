@@ -25,11 +25,18 @@
       "function": "delete_draft",
       "params": {
         "draft_info": {
-          "subject": "Automated draft",
-          "recipient": "gduser@workspacesamples.dev",
-          "body": "This is automated draft mail",
-          "attachment": "attachment.txt",
-          "cc": "gduser1@workspacesamples.dev"
+          "subject": "Automated draft"
+        }
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_draft",
+      "params": {
+        "draft_info": {
+          "subject": "Automated draft"
         }
       }
     }
