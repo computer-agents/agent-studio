@@ -171,6 +171,7 @@ class TaskThread(QThread):
         if not self.args.remote:
             raise ValueError("Local mode is not supported.")
         try:
+            logger.info(f"Start task: {self.task_config.task_id}")
             # Get remote env_vars
             response_raw = requests.get(f"{REMOTE_SERVER_ADDR}/env_vars")
             response = AgentStudioStatusResponse(**response_raw.json())
@@ -272,16 +273,17 @@ class TaskThread(QThread):
             self.signals.status_bar_signal.emit(
                 "color: blue;", "Evaluating Task..."
             )
-            video_meta: VideoMeta | None = None
-            task_result_path = Path(self.results_dir) / self.task_config.task_id
-            if not task_result_path.exists():
-                task_result_path.mkdir(parents=True, exist_ok=True)
-            if self.task_config.visual:
-                video_folder = task_result_path
-                video_folder.mkdir(parents=True, exist_ok=True)
-                video_path = video_folder / "video.mp4"
-                video_meta = self.interface.save_video(video_path)
-                logger.info(f"Video saved to {video_path}")
+            if not self.args.no_log:
+                video_meta: VideoMeta | None = None
+                task_result_path = Path(self.results_dir) / self.task_config.task_id
+                if not task_result_path.exists():
+                    task_result_path.mkdir(parents=True, exist_ok=True)
+                if self.task_config.visual:
+                    video_folder = task_result_path
+                    video_folder.mkdir(parents=True, exist_ok=True)
+                    video_path = video_folder / "video.mp4"
+                    video_meta = self.interface.save_video(video_path)
+                    logger.info(f"Video saved to {video_path}")
 
             response_raw = requests.post(
                 f"{REMOTE_SERVER_ADDR}/task/eval",
@@ -312,19 +314,20 @@ class TaskThread(QThread):
                 f"Score: {score}\nFeedback: {feedback}"
             )
 
-            self.signals.status_bar_signal.emit(
-                "color: blue;", "Exporting Trajectory..."
-            )
-            export_trajectory(
-                task_config=self.task_config,
-                trajectory=self.agent.trajectory,
-                path=task_result_path,
-                score=score,
-                feedback=feedback,
-                token_count=self.agent.get_token_count(),
-                time_cost=stop_time - start_time,
-                video_meta=video_meta,
-            )
+            if not self.args.no_log:
+                self.signals.status_bar_signal.emit(
+                    "color: blue;", "Exporting Trajectory..."
+                )
+                export_trajectory(
+                    task_config=self.task_config,
+                    trajectory=self.agent.trajectory,
+                    path=task_result_path,
+                    score=score,
+                    feedback=feedback,
+                    token_count=self.agent.get_token_count(),
+                    time_cost=stop_time - start_time,
+                    video_meta=video_meta,
+                )
         except Exception as e:
             import traceback
             logger.error(f"[Unhandled Error] {repr(e)}]")
@@ -975,6 +978,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
         # Run evaluation
         scores = {}
         for task_config in tqdm(task_configs, desc="Evaluating tasks"):
+            logger.info(f"Start task: {task_config.task_id}")
             try:
                 # Get remote env_vars
                 if args.remote:
@@ -1063,16 +1067,17 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     current_step += 1
                 stop_time = time.time()
 
-                task_trajectory_path = results_dir / task_config.task_id
-                if not task_trajectory_path.exists():
-                    task_trajectory_path.mkdir(parents=True, exist_ok=True)
-                video_meta: VideoMeta | None = None
-                if task_config.visual:
-                    task_trajectory_path.mkdir(parents=True, exist_ok=True)
-                    video_path = task_trajectory_path / "video.mp4"
-                    assert interface is not None
-                    video_meta = interface.save_video(video_path)
-                    logger.info(f"Video saved to {video_path}")
+                if not args.no_log:
+                    task_trajectory_path = results_dir / task_config.task_id
+                    if not task_trajectory_path.exists():
+                        task_trajectory_path.mkdir(parents=True, exist_ok=True)
+                    video_meta: VideoMeta | None = None
+                    if task_config.visual:
+                        task_trajectory_path.mkdir(parents=True, exist_ok=True)
+                        video_path = task_trajectory_path / "video.mp4"
+                        assert interface is not None
+                        video_meta = interface.save_video(video_path)
+                        logger.info(f"Video saved to {video_path}")
 
                 if args.remote:
                     response_raw = requests.post(
@@ -1104,17 +1109,18 @@ def eval(args, interface: NonGUI | None = None) -> None:
                 else:
                     logger.info(f"[Result] (FAIL): {feedback}")
 
-                task_result_path = results_dir / task_config.task_id
-                export_trajectory(
-                    task_config=task_config,
-                    trajectory=agent.trajectory,
-                    path=task_result_path,
-                    score=score,
-                    feedback=feedback,
-                    token_count=agent.get_token_count(),
-                    time_cost=stop_time - start_time,
-                    video_meta=video_meta,
-                )
+                if not args.no_log:
+                    task_result_path = results_dir / task_config.task_id
+                    export_trajectory(
+                        task_config=task_config,
+                        trajectory=agent.trajectory,
+                        path=task_result_path,
+                        score=score,
+                        feedback=feedback,
+                        token_count=agent.get_token_count(),
+                        time_cost=stop_time - start_time,
+                        video_meta=video_meta,
+                    )
             except Exception as e:
                 import traceback
                 logger.error(f"[Unhandled Error] {repr(e)}]")
@@ -1183,6 +1189,9 @@ def main():
     )
     parser.add_argument(
         "--ignore_finished", action="store_true", help="Only evaluate unfinished tasks"
+    )
+    parser.add_argument(
+        "--no_log", action="store_true", help="Do not log the results"
     )
     args = parser.parse_args()
     logger.info(f"Running with args: {args}")
