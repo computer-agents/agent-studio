@@ -63,8 +63,6 @@ class SavedStepInfo(BaseModel):
 
 
 class VideoMeta(BaseModel):
-    start_time: float
-    stop_time: float
     fps: int
     frame_count: int
     video_path: str
@@ -77,9 +75,10 @@ class TaskResult(BaseModel):
     instruction: str
     score: float
     feedback: str
-    trajectory: list[SavedStepInfo]
     token_count: int
+    time_cost: float
     video: Optional[VideoMeta]
+    trajectory: list[SavedStepInfo]
 
 
 class Action(BaseModel):

@@ -266,6 +266,7 @@ class TaskThread(QThread):
                 if done:
                     break
                 current_step += 1
+            stop_time = time.time()
 
             self.signals.exec_finish_signal.emit()
             self.signals.status_bar_signal.emit(
@@ -321,6 +322,7 @@ class TaskThread(QThread):
                 score=score,
                 feedback=feedback,
                 token_count=self.agent.get_token_count(),
+                time_cost=stop_time - start_time,
                 video_meta=video_meta,
             )
         except Exception as e:
@@ -760,7 +762,6 @@ class GUI(QMainWindow):
         """Starts recording the video."""
         assert not self.is_recording, "Recording is already in progress."
         self.is_recording = True
-        self.start_time = time.time()
         self.frame_buffer.clear()
         self.status_bar.showMessage("Recording started.")
 
@@ -785,7 +786,6 @@ class GUI(QMainWindow):
         if self.recording_thread is not None:
             self.recording_thread.join()
             self.recording_thread = None
-        self.stop_time = time.time()
         writer = cv2.VideoWriter(
             video_path.as_posix(),
             cv2.VideoWriter.fourcc(*"mp4v"),
@@ -801,8 +801,6 @@ class GUI(QMainWindow):
         self.status_bar.showMessage("Recording stopped and video saved.")
 
         return VideoMeta(
-            start_time=self.start_time,
-            stop_time=self.stop_time,
             fps=config.video_fps,
             frame_count=len(frames),
             video_path=f"file://{video_path.name}",
@@ -868,7 +866,6 @@ class NonGUI:
         self.is_recording = True
         self.recording_thread = threading.Thread(target=self._capture)
         self.recording_thread.start()
-        self.start_time = time.time()
         self.frame_buffer.clear()
 
     def get_screenshot(self):
@@ -901,7 +898,6 @@ class NonGUI:
             self.recording_thread is not None
         ), "No recording in progress."
         self.is_recording = False
-        self.stop_time = time.time()
         self.recording_thread.join()
         self.recording_thread = None
         writer = cv2.VideoWriter(
@@ -918,8 +914,6 @@ class NonGUI:
         self.frame_buffer.clear()
 
         return VideoMeta(
-            start_time=self.start_time,
-            stop_time=self.stop_time,
             fps=config.video_fps,
             frame_count=len(frames),
             video_path=f"file://{video_path.name}",
@@ -1067,6 +1061,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     if done:
                         break
                     current_step += 1
+                stop_time = time.time()
 
                 task_trajectory_path = results_dir / task_config.task_id
                 if not task_trajectory_path.exists():
@@ -1117,6 +1112,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     score=score,
                     feedback=feedback,
                     token_count=agent.get_token_count(),
+                    time_cost=stop_time - start_time,
                     video_meta=video_meta,
                 )
             except Exception as e:

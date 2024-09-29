@@ -168,6 +168,7 @@ def export_trajectory(
     score: float,
     feedback: str,
     token_count: int | None,
+    time_cost: float,
     video_meta: VideoMeta | None = None,
 ) -> None:
     """Exports the trajectory data to a .jsonl file."""
@@ -179,6 +180,7 @@ def export_trajectory(
         "token_count": token_count,
         "score": score,
         "feedback": feedback,
+        "time_cost": time_cost,
     }
     parse_and_save_objects(obj=result_dict, folder_path=path)
     # model check
