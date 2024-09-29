@@ -19,8 +19,16 @@
       "evaluator": "google_docs",
       "function": "delete_document",
       "params": {
-        "title": "Answer Document",
-        "content": "egalitarian"
+        "title": "Answer Document"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_docs",
+      "function": "delete_document",
+      "params": {
+        "title": "Answer Document"
       }
     }
   ],

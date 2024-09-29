@@ -29,5 +29,14 @@
       }
     }
   ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_docs",
+      "function": "delete_document",
+      "params": {
+        "title": "Sample Document"
+      }
+    }
+  ],
   "max_time": 30
 }

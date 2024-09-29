@@ -36,5 +36,14 @@
       }
     }
   ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_docs",
+      "function": "delete_document",
+      "params": {
+        "title": "Hyperlink Guide"
+      }
+    }
+  ],
   "max_time": 30
 }
