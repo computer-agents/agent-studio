@@ -252,7 +252,7 @@ def make_report2(task_config_dir: Path, result_dir: Path, depth: int = 0) -> dic
     result["average_score"] = 100 * result["succ_task_count"] / \
         result["finished_task_count"] if result["finished_task_count"] > 0 else 0
     indent = "    " * depth
-    print(f"{indent}{task_config_dir.name: <20}: score: {result['average_score']: <10.2f}, finished: {result['finished_task_count']: <10}, succ: {result['succ_task_count']: <10}, fail: {result['fail_task_count']: <10}, unfinished: {result['unfinished_task_count']: <10}")
+    print(f"{indent}{task_config_dir.name: <20}: score: {result['average_score']: <10.2f}, succ: {result['succ_task_count']: <10}, finished: {result['finished_task_count']: <10}, total: {result['total_task_count']: <10}")
     return result
 
 
