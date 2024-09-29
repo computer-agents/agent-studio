@@ -474,6 +474,8 @@ class GmailEvaluator(Evaluator):
             search_query += f'to:{message_info["recipient"]} '
         if "cc" in message_info:
             search_query += f'cc:{message_info["cc"]} '
+        if "in" in message_info:
+            search_query += f'in:{message_info["in"]} '
 
         match message_type:
             case "messages":
@@ -501,7 +503,7 @@ class GmailEvaluator(Evaluator):
                     msg["id"] = m["id"]
                     messages.append(msg)
             case _:
-                raise ValueError("message_type must be 'messages' or 'drafts'")
+                raise ValueError(f"message_type {message_type} is not supported.")
 
         matching_messages = []
         for msg in messages:
