@@ -16,7 +16,7 @@ For a clean start, you should create a new calendar for the benchmark. You can d
 
 For a clean start, you should specify a temporary email address for the benchmark. You can do so by going to [Temp-Mail](https://temp-mail.org/en/) and get a temporary email address. Specify the email address in `agent_studio/config/api_key.json` as `gmail_recipient`.
 
-> If you want to benchmark Google Workspace, you need to do the above steps before running the Docker image.
+> If you want to benchmark Google Workspace, you need to do the above steps before running the Evaluation scripts.
 
 ## Setup Docker Image
 
