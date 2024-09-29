@@ -22,5 +22,14 @@
       }
     }
   ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_label",
+      "params": {
+        "label_name": "Benchmarking Agent"
+      }
+    }
+  ],
   "max_time": 30
 }
