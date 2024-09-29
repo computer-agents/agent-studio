@@ -97,6 +97,13 @@
       "evaluator": "filesystem",
       "function": "rmdir",
       "params": {
+        "path": "${AS_ROOT}/data1"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
         "path": "${AS_HOME}/.config/Code/User"
       }
     },
