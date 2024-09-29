@@ -4,7 +4,17 @@ We provide 205 single-API, single-GUI, and compositional tasks for online benchm
 
 **Before You Start:** You should note that agents may do some **non-reversible actions**, such as deleting files, creating files, running commands, and deleting Google Calendar events. Please make sure you have backups of your data. Some tasks may require you to provide API keys. Before running the tasks, **please make sure the account doesn't have important data.**
 
-Google Workspace tasks require Google API usage. Kindly enable Google APIs, configure OAuth, download the credentials following instructions [here](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment), and specify the credential path in `agent_studio/config/api_key.json`. When you run the benchmark for the first time, you will be prompted to visit several URLs to authorize Google Docs, Drives, etc. The corresponding token json files like `docs_token.json` will be saved in `agent_studio/config`. Alternatively, you can authorize all Google services before experiments by running `python scripts/setup_api_keys.py`.
+## Google Account Setup
+
+Google Workspace tasks require Google API usage. Kindly enable Google APIs, configure OAuth, download the credentials following instructions [here](https://developers.google.com/docs/api/quickstart/python#set_up_your_environment). In Google Cloud Console, go to `APIs & Services` -> `Credentials` -> `Create Credentials` -> `OAuth client ID` to create a new credential and download the `credentials.json` file to local disk. Then specify the credential path in `agent_studio/config/api_key.json`. When you run the benchmark for the first time, you should authorize all Google services before experiments by running `python scripts/setup_api_keys.py`. You will be prompted to visit several URLs to authorize Google Docs, Drives, etc. The corresponding token json files like `docs_token.json` will be saved in `agent_studio/config`.
+
+### Google Calendar Setup
+
+For a clean start, you should create a new calendar for the benchmark. You can do so by going to [Google Calendar](https://calendar.google.com/calendar) and create a new calendar. Click the three dots in the right side of the calendar name and select `Settings and sharing`. Scroll down to `Integrate calendar` and copy the `Calendar ID`. Specify the calendar ID in `agent_studio/config/api_key.json` as `google_calendar_id`.
+
+### Gmail Setup
+
+For a clean start, you should specify a temporary email address for the benchmark. You can do so by going to [Temp-Mail](https://temp-mail.org/en/) and get a temporary email address. Specify the email address in `agent_studio/config/api_key.json` as `gmail_recipient`.
 
 > If you want to benchmark Google Workspace, you need to do the above steps before running the Docker image.
 
@@ -108,13 +118,12 @@ This guide provides instructions for creating a valid Task JSON file in accordan
 
 -   `task_id`: A unique identifier for the task.
 -   `instruction`: The task instuction.
--   `tags`: (optional) A list of tags to categorize the task.
--   `visual`:
--   `max_steps`:
--   `evals`: A list of evaluators to evaluate the task. Each object in the list should include:
-    -   `eval_type`: The type of evaluation to be conducted. This should match the name of the evaluator.
-    -   `eval_procedure`: (optional) Contains the evaluation procedure and the reference answers.
-    -   `reset_procedure`: (optional) A list of actions to reset environment before the task.
+-   `visual`: (boolean) Whether the task requires visual output.
+-   `max_steps`: (int) The maximum number of steps the agent can take.
+-   `max_time`: (float) A time limit for the task.
+-   `eval_procedure`: (list) Contains the evaluation procedure and the reference answers.
+-   `reset_procedure`: (optional list) A list of actions to reset environment before the task.
+-   `cleanup_procedure`: (optional list) A list of actions to clean up the environment after the task.
 
 Example task:
 
@@ -122,9 +131,9 @@ Example task:
 {
     "task_id": "uuid string",
     "instruction": "Task instruction for the agent to complete",
-    "tags": ["tag1", "tag2"],
     "visual": false,
     "max_steps": 1,
+    "max_time": 60,
     "eval_procedure": [
         {
             "evaluator": "evaluator1",
@@ -143,6 +152,29 @@ Example task:
                 "param2": "value2"
             }
         }
+    ],
+    "cleanup_procedure": [
+        {
+            "evaluator": "evaluator3",
+            "function": "function3",
+            "params": {
+                "param1": "value1"
+            }
+        }
     ]
 }
 ```
+
+## Debugging
+
+### Do I need to rebuild the docker image after modifying the evaluation related code?
+
+No, you don't need to rebuild the docker image. The agent studio code base is mounted into the docker image at `/home/ubuntu/agent_studio`. You can edit the code and restart the docker container to apply the changes. Or you can use `docker exec -it <container_id> /bin/bash` to enter the container and restart the server by executing `supervisordctl restart agent_server`.
+
+### When should I rebuild the docker image?
+
+You should rebuild the docker image when you modify the Dockerfile or the dependencies or `agent_studio/__init__.py`.
+
+### After modifying the evaluation related code, how to apply the changes to the running docker container?
+
+Since the agent studio code base is mounted into the docker image at `/home/ubuntu/agent_studio`. You can simply restart the docker container to apply the changes. Or if you don't want to restart the docker container, you can also use `docker exec -it <container_id> /bin/bash` to enter the container and restart the server by executing `supervisordctl restart agent_server`.
