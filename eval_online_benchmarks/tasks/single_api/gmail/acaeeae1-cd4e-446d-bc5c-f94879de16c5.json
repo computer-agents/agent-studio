@@ -1,6 +1,6 @@
 {
   "task_id": "acaeeae1-cd4e-446d-bc5c-f94879de16c5",
-  "instruction": "In Gmail, create a label named 'Benchmarking Agent'.",
+  "instruction": "In Gmail, delete the label named 'Benchmarking Agent'.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
@@ -9,7 +9,7 @@
       "function": "check_label_exists",
       "params": {
         "label_name": "Benchmarking Agent",
-        "exists": true
+        "exists": false
       }
     }
   ],

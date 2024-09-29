@@ -20,13 +20,6 @@
       "params": {
         "label_name": "Benchmarking Agent"
       }
-    },
-    {
-      "evaluator": "gmail",
-      "function": "create_label",
-      "params": {
-        "label_name": "Benchmarking Agent"
-      }
     }
   ],
   "max_time": 30
