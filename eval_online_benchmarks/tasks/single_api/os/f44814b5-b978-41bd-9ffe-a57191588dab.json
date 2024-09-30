@@ -26,16 +26,16 @@
   "reset_procedure": [
     {
       "evaluator": "filesystem",
-      "function": "rmdir",
+      "function": "rm",
       "params": {
-        "path": "${AS_ROOT}/tmp/projects"
+        "path": "${AS_ROOT}/tmp"
       }
     }
   ],
   "cleanup_procedure": [
     {
       "evaluator": "filesystem",
-      "function": "rmdir",
+      "function": "rm",
       "params": {
         "path": "${AS_ROOT}/tmp"
       }
