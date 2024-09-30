@@ -21,6 +21,7 @@ from PyQt6.QtCore import (
     QTimer,
     QWaitCondition,
     pyqtSignal,
+    QEvent,
 )
 from PyQt6.QtGui import QImage, QAction
 from PyQt6.QtWidgets import (
@@ -381,6 +382,7 @@ class GUI(QMainWindow):
         # Setup tasks
         self.load_task_configs()
         self.selected_task: TaskConfig
+        self.selected_task_idx: int | None = None
         self.window_width = window_width
         self.window_height = window_height
 
@@ -426,6 +428,9 @@ class GUI(QMainWindow):
         self.setup_ui()
 
         self.reset()
+
+        # Install event filter on the main window
+        self.installEventFilter(self)
 
     def load_task_configs(self):
         try:
@@ -578,6 +583,15 @@ class GUI(QMainWindow):
 
         self.setMouseTracking(True)
 
+        # Add keyboard shortcuts
+        self.start_button.setShortcut("Shift+Return")  # Shift + Enter to start task
+        self.show_trajectory_button.setShortcut("Ctrl+T")  # Ctrl + T to show trajectory
+        self.interrupt_button.setShortcut("Ctrl+C")  # Ctrl + C to interrupt
+        self.instruction_selection.setFocusPolicy(
+            Qt.FocusPolicy.StrongFocus)  # Ensure the list can receive focus
+        self.instruction_selection.installEventFilter(
+            self)  # Install event filter for key events
+
     def reload_task_configs(self):
         self.load_task_configs()
         self.populate_instruction_selection_widget()
@@ -651,8 +665,8 @@ class GUI(QMainWindow):
 
     def select_task_instruction(self, item):
         self.task_instruction = item.text()
-        selected_task_idx = self.instruction_selection.currentRow()
-        self.selected_task = self.task_configs[selected_task_idx]
+        self.selected_task_idx = self.instruction_selection.currentRow()
+        self.selected_task = self.task_configs[self.selected_task_idx]
         self.task_config_display.setText(self.selected_task.model_dump_json(indent=4))
         self.evaluation_display.clear()
         self.output_display.clear()
@@ -826,6 +840,29 @@ class GUI(QMainWindow):
             self.capture_thread.stop()
 
         exit(0)
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.Type.KeyPress:  # Change here
+            if event.key() == Qt.Key.Key_Return and event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+                # Ctrl + Enter to start next task
+                if self.selected_task_idx is None:
+                    if len(self.task_configs) > 0:
+                        self.instruction_selection.setCurrentRow(0)
+                        self.select_task_instruction(
+                            self.instruction_selection.item(0))
+                elif self.selected_task_idx < len(self.task_configs) - 1:
+                    self.instruction_selection.setCurrentRow(self.selected_task_idx + 1)
+                    self.select_task_instruction(
+                        self.instruction_selection.item(self.selected_task_idx + 1))
+                else:
+                    return True
+                self.start_button.click()
+            if source is self.instruction_selection:
+                if event.key() == Qt.Key.Key_Return:  # Enter to select item
+                    self.select_task_instruction(
+                        self.instruction_selection.currentItem())
+                    return True
+        return super().eventFilter(source, event)
 
 
 class NonGUI:
