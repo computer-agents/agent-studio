@@ -32,6 +32,28 @@ class Stat:
         for reason, count in reason_count:
             print(f"{reason}: {count}")
 
+    def time_stat(self, model: str, visual: bool = True, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
+        report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
+
+        time_list = []
+        for task_id in report["total_task_ids"]:
+            result_dir = Path(f"logs/{model}/{agent}/{task_id}")
+            try:
+                result = load_result(result_dir)
+                time_list.append(result.time_cost)
+            except Exception as e:
+                pass
+
+
+        print(f"Mean: {np.mean(time_list)}")
+        print(f"Median: {np.median(time_list)}")
+        print(f"Max: {np.max(time_list)}")
+        print(f"Min: {np.min(time_list)}")
+        print(f"std: {np.std(time_list)}")
+        if visual:
+            plt.hist(time_list, bins=80, edgecolor="black")
+            plt.show()
+
     def traj_length_stat(self, model: str, visual: bool = True, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
