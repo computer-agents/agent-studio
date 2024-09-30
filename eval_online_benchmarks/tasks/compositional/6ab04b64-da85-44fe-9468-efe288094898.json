@@ -1,6 +1,6 @@
 {
   "task_id": "6ab04b64-da85-44fe-9468-efe288094898",
-  "instruction": "I've prepared some grammar tests and placed them in the '${AS_ROOT}/docs/grammar_tests' folder. I've already provided the multiple-choice answers for Test 1 in '${AS_ROOT}/docs/grammar_tests/Answer.docx'. Could you please follow the same format to write out the answers for the remaining two tests in the doc file? This way, I can distribute them to the students as a reference.",
+  "instruction": "I've prepared some grammar tests and placed them in the '${AS_ROOT}/docs/grammar_tests' folder. I've already provided the multiple-choice answers for Test 1 in '${AS_ROOT}/docs/grammar_tests/Answer.docx'. Could you please follow the same format to write out the answers for the remaining two tests in the doc file? This way, I can distribute them to the students as a reference. You only need to finish the Part 1 of the test 2 and test 3.",
   "visual": true,
   "max_steps": 30,
   "max_time": 60,

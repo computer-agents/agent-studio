@@ -40,6 +40,20 @@
       "params": {
         "path": "${AS_ROOT}/gimp"
       }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "pcmanfm"
+      }
     }
   ]
 }

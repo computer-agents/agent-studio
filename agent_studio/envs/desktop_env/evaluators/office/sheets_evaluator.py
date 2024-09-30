@@ -82,7 +82,7 @@ def _parse_sheet_idx(
 SHEET = Union[pd.DataFrame, Worksheet, List[str]]
 
 
-def _load_sheet(book: BOOK, index: str) -> SHEET | None:
+def _load_sheet(book: BOOK, index: str) -> SHEET:
     #  function _load_sheet {{{ #
     try:
         if isinstance(book, str):
@@ -104,7 +104,7 @@ def _load_sheet(book: BOOK, index: str) -> SHEET | None:
         raise NotImplementedError("Not supported workbook format")
     except Exception as e:
         logger.error("Failed to load sheet: %s", e)
-        return None
+        raise FeedbackException(f"Failed to load sheet: {e}")
     #  }}} function _load_sheet #
 
 
@@ -216,8 +216,6 @@ class SheetsEvaluator(Evaluator):
                 sheet1: List[str] = _load_sheet(
                     *parse_idx(r["sheet_idx0"], result, expected)
                 )
-                if sheet1 is None:
-                    return 0.0
                 sheet2: List[str] = _load_sheet(
                     *parse_idx(r["sheet_idx1"], result, expected)
                 )

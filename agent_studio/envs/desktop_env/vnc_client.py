@@ -63,7 +63,6 @@ class VNCStreamer:
         self.streaming_thread = threading.Thread(
             target=self._capture_screen, name="Screen Stream"
         )
-        self.streaming_lock = threading.Lock()
         self.video_height = 0
         self.video_width = 0
         self.current_frame = np.zeros(
@@ -94,8 +93,7 @@ class VNCStreamer:
             logger.info("VNC Client disconnected")
 
     def get_current_frame(self) -> np.ndarray | None:
-        with self.streaming_lock:
-            return self.current_frame
+        return self.current_frame
 
     def _capture_screen(self):
         logger.info("VNC Streamer started")
@@ -103,9 +101,7 @@ class VNCStreamer:
             while self.is_streaming:
                 self.client.refreshScreen(True)
                 frame = np.array(self.client.screen)
-                with self.streaming_lock:
-                    self.current_frame = frame.copy()
-                    self.video_height, self.video_width = frame.shape[:2]
+                self.current_frame = frame.copy()
         except Exception as e:
             logger.warning(f"Fail to capture frame: {e}")
         logger.info("VNC Streaming thread stopped")
@@ -117,7 +113,6 @@ class LocalStreamer:
         self.streaming_thread = threading.Thread(
             target=self._capture_screen, name="Screen Stream"
         )
-        self.streaming_lock = threading.Lock()
         self.condition = threading.Condition()
         self.video_height = 0
         self.video_width = 0
@@ -139,8 +134,7 @@ class LocalStreamer:
             self.streaming_thread.join()
 
     def get_current_frame(self) -> np.ndarray | None:
-        with self.streaming_lock:
-            return self.current_frame
+        return self.current_frame
 
     def _capture_screen(self):
         with mss.mss() as sct:
@@ -153,10 +147,9 @@ class LocalStreamer:
                     self.video_width, self.video_height = frame.width, frame.height
                     frame = np.array(frame)
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
-                    with self.streaming_lock:
-                        self.current_frame = frame.copy()
-                        with self.condition:
-                            self.condition.notify_all()
+                    self.current_frame = frame.copy()
+                    with self.condition:
+                        self.condition.notify_all()
                 except Exception as e:
                     logger.warning(f"Fail to capture frame: {e}")
             logger.info("Local Streamer stopped")

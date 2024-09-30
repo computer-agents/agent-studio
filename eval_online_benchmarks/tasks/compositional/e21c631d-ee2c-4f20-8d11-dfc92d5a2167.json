@@ -1,6 +1,6 @@
 {
   "task_id": "e21c631d-ee2c-4f20-8d11-dfc92d5a2167",
-  "instruction": "Open ${AS_ROOT}/docs/Novels_Intro_Packet.docx. Change the font to \"Times New Roman\" throughout the text. Remember to save the document.",
+  "instruction": "Open ${AS_ROOT}/docs/Dublin_Zoo_Intro.docx. Change the font to \"Times New Roman\" throughout the text. Remember to save the document.",
   "visual": true,
   "max_steps": 30,
   "max_time": 60,

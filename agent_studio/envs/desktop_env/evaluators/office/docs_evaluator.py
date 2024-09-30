@@ -246,7 +246,8 @@ class DocsCalcEvaluator(Evaluator):
             for run in paragraph.runs:
                 font_name = run.font.name
                 if font_name != expected_font:
-                    raise FeedbackException(f"Font name is not {expected_font}")
+                    raise FeedbackException(
+                        f"Font name is not {expected_font}, instead {font_name}")
 
     @evaluation_handler("is_first_line_centered")
     def is_first_line_centered(self, docx_file):
