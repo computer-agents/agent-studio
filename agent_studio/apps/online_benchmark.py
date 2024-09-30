@@ -586,7 +586,7 @@ class GUI(QMainWindow):
         # Add keyboard shortcuts
         self.start_button.setShortcut("Shift+Return")  # Shift + Enter to start task
         self.show_trajectory_button.setShortcut("Ctrl+T")  # Ctrl + T to show trajectory
-        self.interrupt_button.setShortcut("Ctrl+C")  # Ctrl + C to interrupt
+        self.interrupt_button.setShortcut("Escape")
         self.instruction_selection.setFocusPolicy(
             Qt.FocusPolicy.StrongFocus)  # Ensure the list can receive focus
         self.instruction_selection.installEventFilter(

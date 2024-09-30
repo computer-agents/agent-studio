@@ -1,6 +1,6 @@
 {
   "task_id": "d2c5244a-d32b-4bc5-9cf8-616da006ee7a",
-  "instruction": "Please help me add folder \"${AS_ROOT}/data1\" and folder \"${AS_ROOT}/data2\" to the current workspace.",
+  "instruction": "Please help me add folder \"${AS_ROOT}/data1\" to the current workspace.",
   "visual": true,
   "max_steps": 30,
   "eval_procedure": [

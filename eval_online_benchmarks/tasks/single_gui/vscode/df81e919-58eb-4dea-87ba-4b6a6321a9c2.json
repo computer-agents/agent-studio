@@ -19,17 +19,10 @@
   ],
   "reset_procedure": [
     {
-      "evaluator": "filesystem",
-      "function": "rmdir",
+      "evaluator": "vscode",
+      "function": "install_extension",
       "params": {
-        "path": "${AS_HOME}/.config/Code/User"
-      }
-    },
-    {
-      "evaluator": "filesystem",
-      "function": "mkdir",
-      "params": {
-        "path": "${AS_HOME}/.config/Code/User"
+        "extension_id": "ms-python.vscode-pylance"
       }
     },
     {
@@ -51,6 +44,11 @@
     }
   ],
   "cleanup_procedure": [
+    {
+      "evaluator": "vscode",
+      "function": "uninstall_all_extensions",
+      "params": {}
+    },
     {
       "evaluator": "filesystem",
       "function": "rmdir",
