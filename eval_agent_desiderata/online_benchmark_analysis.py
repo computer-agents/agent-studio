@@ -15,6 +15,7 @@ class Stat:
             print(f"{k}: {v}")
 
     def failure_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
+        """ Stat failure reason """
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         reason_count = {}
@@ -33,6 +34,7 @@ class Stat:
             print(f"{reason}: {count}")
 
     def time_stat(self, model: str, visual: bool = True, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
+        """ Stat time cost """
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         time_list = []
@@ -55,6 +57,7 @@ class Stat:
             plt.show()
 
     def traj_length_stat(self, model: str, visual: bool = True, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
+        """ Stat trajectory length """
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         length_list = []
@@ -73,6 +76,19 @@ class Stat:
                 1, max(max(length_list), 10)), edgecolor="black")
             plt.show()
 
+    def exit_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
+        """ Compute active exit rate """
+        report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
+
+        active_exit_count = 0
+        total_exit_count = 0
+        for task_id in report["total_task_ids"]:
+            result_dir = Path(f"logs/{model}/{agent}/{task_id}")
+            result = load_result(result_dir)
+            total_exit_count += 1
+            if result.trajectory[-1].action.strip().endswith("exit()"):
+                active_exit_count += 1
+        print(f"Active Exit Rate: {active_exit_count / total_exit_count}")
 
 if __name__ == "__main__":
     fire.Fire(Stat)
