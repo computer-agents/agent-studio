@@ -6,16 +6,21 @@ import matplotlib.pyplot as plt
 
 
 class Stat:
-    def basic_stat(self, model: str, task_dir: Path = Path("eval_online_benchmarks/tasks"), agent: str = "direct"):
-        make_report2(task_dir, Path(f"logs/{model}/{agent}"))
+    def basic_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
+        make_report2(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
-    def failure_stat(self, model: str, task_dir: Path = Path("eval_online_benchmarks/tasks"), agent: str = "direct"):
-        report = make_report(task_dir, Path(f"logs/{model}/{agent}"))
+    def full_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
+        report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
+        for k, v in report.items():
+            print(f"{k}: {v}")
+
+    def failure_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
+        report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         reason_count = {}
         for task_id in report["fail_task_ids"]:
-            task_dir = Path(f"logs/{model}/{agent}/{task_id}")
-            result = load_result(task_dir)
+            result_dir = Path(f"logs/{model}/{agent}/{task_id}")
+            result = load_result(result_dir)
             if "content" in result.trajectory[-1].result:
                 reason_count.setdefault(result.trajectory[-1].result["content"], 0)
                 reason_count[result.trajectory[-1].result["content"]] += 1
@@ -27,13 +32,13 @@ class Stat:
         for reason, count in reason_count:
             print(f"{reason}: {count}")
 
-    def traj_length_stat(self, model: str, visual: bool = True, task_dir: Path = Path("eval_online_benchmarks/tasks"), agent: str = "direct"):
-        report = make_report(task_dir, Path(f"logs/{model}/{agent}"))
+    def traj_length_stat(self, model: str, visual: bool = True, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
+        report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         length_list = []
-        for task_id in report["fail_task_ids"]:
-            task_dir = Path(f"logs/{model}/{agent}/{task_id}")
-            result = load_result(task_dir)
+        for task_id in report["total_task_ids"]:
+            result_dir = Path(f"logs/{model}/{agent}/{task_id}")
+            result = load_result(result_dir)
             length_list.append(len(result.trajectory))
 
         print(f"Mean: {np.mean(length_list)}")
