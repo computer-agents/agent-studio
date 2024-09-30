@@ -34,6 +34,7 @@ dependencies = [
     "formulas",
     "cssselect",
     "xmltodict",
+    "python-dateutil",
 ]
 
 [tool.setuptools]

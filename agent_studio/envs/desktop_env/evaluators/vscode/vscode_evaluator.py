@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import sqlite3
-from datetime import datetime
+from dateutil import parser
 
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
@@ -188,15 +188,15 @@ class VSCodeEvaluator(Evaluator):
                             raise Exception(
                                 f"Cannot find extension version: {installed_version}"
                             )
-                        last_updated = datetime.fromisoformat(info_find["lastUpdated"])
+                        last_updated = parser.isoparse(info_find["lastUpdated"])
                         if published_after is not None:
-                            if last_updated < datetime.fromisoformat(published_after):
+                            if last_updated < parser.isoparse(published_after):
                                 raise FeedbackException(
                                     f"Installed extension {extension_id} "
                                     f"is not published after {published_after}"
                                 )
                         if published_before is not None:
-                            if last_updated > datetime.fromisoformat(published_before):
+                            if last_updated > parser.isoparse(published_before):
                                 raise FeedbackException(
                                     f"Installed extension {extension_id} "
                                     f"is not published before {published_before}"
