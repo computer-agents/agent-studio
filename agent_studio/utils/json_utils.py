@@ -188,6 +188,7 @@ def export_trajectory(
     add_jsonl(
         data=[result.model_dump()],
         file_path=(path / "result.jsonl").as_posix(),
+        mode="w"
     )
 
 
