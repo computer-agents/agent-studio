@@ -187,7 +187,12 @@ class VertexAIAnthropicProvider(BaseModel):
         if response is None:
             logger.error("Failed to get a response from Anthropic. Try again.")
 
-        response_message = response.content[0].text
+        if len(response.content) > 0:
+            response_message = response.content[0].text
+        else:
+            logger.warn(f"Response does not contain content: {response}")
+            response_message = ""
+
         if response.usage is None:
             info = {}
             logger.warn("Failed to get usage information from OpenAI.")
