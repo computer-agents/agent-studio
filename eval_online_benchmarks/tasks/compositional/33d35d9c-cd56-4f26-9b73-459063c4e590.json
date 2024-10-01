@@ -1,6 +1,6 @@
 {
   "task_id": "33d35d9c-cd56-4f26-9b73-459063c4e590",
-  "instruction": "Check if there are any overlapping events with the 'Product Launch' event scheduled on 2024-08-25 from 1pm to 3pm in Google Calendar. Save hours of overlap to '${AS_ROOT}/tmp/overlapping.txt'. You should keep the first two digits of the hours of overlap. The calendar id is '${AS_GCALENDAR_ID}'.",
+  "instruction": "Check if there are any overlapping events with the 'Product Launch' event scheduled on 2024-08-25 from 1pm to 3pm in Google Calendar. Save hours of overlap to '${AS_ROOT}/tmp/overlapping.txt'. You should keep two digits of your answer. The calendar id is '${AS_GCALENDAR_ID}'.",
   "visual": false,
   "max_steps": 1,
   "max_time": 30.0,

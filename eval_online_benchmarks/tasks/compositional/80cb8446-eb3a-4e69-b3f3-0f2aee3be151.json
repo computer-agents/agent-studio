@@ -1,6 +1,6 @@
 {
   "task_id": "80cb8446-eb3a-4e69-b3f3-0f2aee3be151",
-  "instruction": "I am currently working on my algorithm practice using the document \"${AS_ROOT}/docs/bubbleSort/Bubble_Sort_tutorial.docx\". Please assist me in completing the 'bubbleSort' function within the 'bubbleSort.py' file (you need to unzip it from \"${AS_ROOT}/docs/bubbleSort/bubbleSort.zip\") and save the output as \"${AS_ROOT}/docs/bubbleSort/res.txt\".",
+  "instruction": "I am currently working on my algorithm practice using the document \"${AS_ROOT}/docs/bubbleSort/Bubble_Sort_tutorial.docx\". Please assist me in completing the 'bubbleSort' function within the 'bubbleSort.py' file (you need to unzip it from \"${AS_ROOT}/docs/bubbleSort/bubbleSort.zip\") and save the output as \"${AS_ROOT}/docs/bubbleSort/res.txt\". You should sort the array in ascending order.",
   "visual": true,
   "max_steps": 30,
   "max_time": 60,

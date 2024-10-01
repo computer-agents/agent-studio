@@ -19,7 +19,7 @@
       "function": "content_check",
       "params": {
         "file_to_check": {
-          "${AS_ROOT}/tmp/client_meetings.txt": "2024-08-05 13:00\n2024-08-15 09:00\n2024-08-20 11:00"
+          "${AS_ROOT}/tmp/client_meetings.txt": "2024-08-05 13:00\n2024-08-15 09:00"
         },
         "method": "strip"
       }
