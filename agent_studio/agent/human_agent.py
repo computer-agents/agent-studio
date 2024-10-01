@@ -47,23 +47,22 @@ class HumanAgent(BaseAgent):
         self.step_info: StepInfo | None
         self.total_tokens: int
 
-    def generate_action(self, obs: np.ndarray | None, model_name: str) -> str:
-        return "Confirm when you finish"
-
-    def step_action(self, failure_msg: str | None) -> tuple[dict, bool]:
-        step_info = StepInfo(
+    def generate_action(self, obs: np.ndarray | None, model_name: str) -> StepInfo:
+        return StepInfo(
             obs=None,
             prompt=None,
             response=None,
-            action="Executed by human",
+            action="Confirm when you finish",
             info={},
             result={},
-            timestamp=time.time(),
+            timestamp=0,
         )
-        if not failure_msg:
-            step_info.result["content"] = "Confirmed by human."
-        else:
-            step_info.result["content"] = "Cancelled by human."
+
+    def step_action(self, failure_msg: str | None, step_info: StepInfo) -> tuple[dict, bool]:
+        step_info.action = "Executed by human"
+        step_info.timestamp = time.time()
+        if failure_msg:
+            step_info.result["force_stop_reason"] = "Cancelled by human."
 
         self.trajectory.append(step_info)
         logger.info(f"Output: {step_info.result}")

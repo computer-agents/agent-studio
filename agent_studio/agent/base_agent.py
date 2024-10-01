@@ -68,7 +68,7 @@ class BaseAgent:
         self.runtime.reset()
         self.runtime(self.runtime_init_code)
 
-    def generate_action(self, obs: np.ndarray | None, model_name: str) -> str:
+    def generate_action(self, obs: np.ndarray | None, model_name: str) -> StepInfo:
         """Generate an action based on the observation."""
         self.obs = obs
         prompt = self.action_prompt
@@ -80,7 +80,7 @@ class BaseAgent:
         self.total_tokens += info.get("total_tokens", 0)
         action = extract_from_response(response).strip()
 
-        self.step_info = StepInfo(
+        return StepInfo(
             obs=obs,
             prompt=prompt,
             response=response,
@@ -90,17 +90,13 @@ class BaseAgent:
             timestamp=0.0,
         )
 
-        return action
-
-    def step_action(self, failure_msg: str | None) -> tuple[dict, bool]:
+    def step_action(self, failure_msg: str | None, step_info: StepInfo) -> tuple[dict, bool]:
         """Execute the code if confirmed and record the result.
         If failure_msg is not None, the action is cancelled.
         """
-        if self.step_info is None:
-            raise ValueError("Invalid step_info")
         result = {}
         if not failure_msg:
-            code_clean = self.step_info.action
+            code_clean = step_info.action
             done = code_clean.endswith("exit()")
             if done:
                 code = code_clean[: -len("exit()")].strip()
@@ -113,9 +109,9 @@ class BaseAgent:
             result["force_stop_reason"] = failure_msg
             done = True
 
-        self.step_info.result = result
-        self.step_info.timestamp = time.time()
-        self.trajectory.append(self.step_info)
+        step_info.result = result
+        step_info.timestamp = time.time()
+        self.trajectory.append(step_info)
         logger.info(f"Output: {result}")
 
         return result, done

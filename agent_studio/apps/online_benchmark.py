@@ -229,7 +229,8 @@ class TaskThread(QThread):
                 self.signals.status_bar_signal.emit(
                     "color: blue;", "Generating Action..."
                 )
-                action = self.agent.generate_action(obs=obs, model_name=self.args.model)
+                step_info = self.agent.generate_action(obs=obs, model_name=self.args.model)
+                action = step_info.action
                 action_memory.append(action)
 
                 failure_msg: None | str = None
@@ -261,7 +262,7 @@ class TaskThread(QThread):
                     "color: blue;", "Executing Command..."
                 )
                 runtime_output, done = self.agent.step_action(
-                    failure_msg=failure_msg)
+                    failure_msg=failure_msg, step_info=step_info)
                 self.signals.runtime_output_signal.emit(runtime_output)
                 # Wait for the action to be executed
                 time.sleep(config.min_action_interval)
@@ -1074,7 +1075,8 @@ def eval(args, interface: NonGUI | None = None) -> None:
                         obs = interface.get_screenshot()
                     else:
                         obs = None
-                    action = agent.generate_action(obs=obs, model_name=args.model)
+                    step_info = agent.generate_action(obs=obs, model_name=args.model)
+                    action = step_info.action
                     action_memory.append(action)
 
                     failure_msg: None | str = None
@@ -1097,7 +1099,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     # If the action is the same as the previous two actions.
                     elif len(action_memory) >= 3 and action_memory[-1] == action_memory[-2] == action_memory[-3]:
                         failure_msg = "Repeated action."
-                    _, done = agent.step_action(failure_msg=failure_msg)
+                    _, done = agent.step_action(failure_msg=failure_msg, step_info=step_info)
                     time.sleep(config.min_action_interval)
                     if done:
                         break
