@@ -24,9 +24,9 @@ class Stat:
         for task_id in report["fail_task_ids"]:
             result_dir = Path(f"logs/{model}/{agent}/{task_id}")
             result = load_result(result_dir)
-            if "content" in result.trajectory[-1].result:
-                reason_count.setdefault(result.trajectory[-1].result["content"], 0)
-                reason_count[result.trajectory[-1].result["content"]] += 1
+            if "force_stop_reason" in result.trajectory[-1].result:
+                reason_count.setdefault(result.trajectory[-1].result["force_stop_reason"], 0)
+                reason_count[result.trajectory[-1].result["force_stop_reason"]] += 1
             else:
                 reason_count.setdefault("Wrong Answer", 0)
                 reason_count["Wrong Answer"] += 1
@@ -88,7 +88,7 @@ class Stat:
             result_dir = Path(f"logs/{model}/{agent}/{task_id}")
             result = load_result(result_dir)
             total_exit_count += 1
-            if result.trajectory[-1].action.strip().endswith("exit()"):
+            if "force_stop_reason" not in result.trajectory[-1].result:
                 active_exit_count += 1
         print(f"Active Exit Rate: {active_exit_count / total_exit_count}")
 

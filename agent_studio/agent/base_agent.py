@@ -110,7 +110,7 @@ class BaseAgent:
             logger.debug(f"Code to execute:\n{code}\n")
             result = self.runtime(code)
         else:
-            result["content"] = failure_msg
+            result["force_stop_reason"] = failure_msg
             done = True
 
         self.step_info.result = result

@@ -245,12 +245,12 @@ class TaskThread(QThread):
                     self.mutex.unlock()
                     if self.user_input.strip().lower() != "y":
                         failure_msg = "Cancelled by human."
-                # If the time limit is reached.
-                elif (self.args.use_time_limit and time.time() - start_time > self.task_config.max_time):
-                    failure_msg = "Time limit reached."
                 # If the max step is reached.
                 elif current_step >= self.task_config.max_steps:
                     failure_msg = "Max step reached."
+                # If the time limit is reached.
+                elif (self.args.use_time_limit and time.time() - start_time > self.task_config.max_time):
+                    failure_msg = "Time limit reached."
                 # If the action is empty.
                 elif action == '':
                     failure_msg = "Failed to generate action."
@@ -1085,12 +1085,12 @@ def eval(args, interface: NonGUI | None = None) -> None:
                         != "y"
                     ):
                         failure_msg = "Cancelled by human."
-                    # If the time limit is reached, the action is not confirmed.
-                    elif (args.use_time_limit and time.time() - start_time > task_config.max_time):
-                        failure_msg = "Time limit reached."
                     # If the max step is reached.
                     elif current_step >= task_config.max_steps:
                         failure_msg = "Max step reached."
+                    # If the time limit is reached, the action is not confirmed.
+                    elif (args.use_time_limit and time.time() - start_time > task_config.max_time):
+                        failure_msg = "Time limit reached."
                     # If the action is empty.
                     elif action == '':
                         failure_msg = "Failed to generate action."
