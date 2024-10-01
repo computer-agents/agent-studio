@@ -1,6 +1,6 @@
 {
   "task_id": "45ad2be2-f338-4fed-9b65-349ff8cb2645",
-  "instruction": "Create two events on 2024-07-04: 'Independence Day Celebration' from 12am to 11:59pm and 'Fireworks Viewing' from 6pm to 7pm in Google Calendar. The calendar id is '${AS_GCALENDAR_ID}'.",
+  "instruction": "Create two events on 2024-07-04: 'Independence Day Celebration' from 0:00 to 23:59 and 'Fireworks Viewing' from 6pm to 7pm in Google Calendar. The calendar id is '${AS_GCALENDAR_ID}'.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [

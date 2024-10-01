@@ -1,6 +1,6 @@
 {
   "task_id": "ab0b454a-9674-478d-9d64-b142a65453cd",
-  "instruction": "For the 'End of Year Party' event on 2024-12-20 in Google Calendar, add a custom color (colorId: 11). The calendar id is '${AS_GCALENDAR_ID}'.",
+  "instruction": "For the 'End of Year Party' event on 2024-12-20 in Google Calendar, change the color label to Tomato (colorId: 11). The calendar id is '${AS_GCALENDAR_ID}'.",
   "visual": false,
   "max_steps": 1,
   "eval_procedure": [
