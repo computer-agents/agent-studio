@@ -1,9 +1,11 @@
 import json
+import os
+from pathlib import Path
 
 from agent_studio.utils.singleton import ThreadSafeSingleton
 
 
-class Config(ThreadSafeSingleton):
+class Config(metaclass=ThreadSafeSingleton):
     """
     Singleton for config.
     """
@@ -36,7 +38,6 @@ class Config(ThreadSafeSingleton):
     # Google API config
     google_credential_path: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
     google_calendar_id: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
-    gmail_recipient: str = "LOAD_FROM_API_KEY_PATH_AUTOMATICALLY"
 
     # VSCode config
     vscode_workspace_path: str = "vscode_workspace"
@@ -49,6 +50,14 @@ class Config(ThreadSafeSingleton):
 
     # QA config
     qa_answer_pattern: str = r"\[\[\[(.*?)\]\]\]"
+
+    env_vars: dict[str, str] = {
+        "AS_ROOT": Path(os.getcwd()).as_posix(),
+        "AS_HOME": Path(os.path.expanduser("~")).as_posix(),
+        "AS_TEST": "test",
+        "AS_GMAIL_RECIPIENT": json.load(open(api_key_path))["gmail_recipient"],
+        "AS_GCALENDAR_ID": json.load(open(api_key_path))["google_calendar_id"],
+    }
 
     def __init__(self) -> None:
         with open(self.api_key_path, "r") as f:

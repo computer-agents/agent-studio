@@ -1,0 +1,37 @@
+{
+  "task_id": "3ca6dd01-aee4-42d1-aed8-13b599223542",
+  "instruction": "Create a document titled 'Hyperlink Guide' in Google Docs, and insert a hyperlink with text 'Click Here' in the doc that directs to 'https://www.example.com'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "google_docs",
+      "function": "hyperlink_match",
+      "params": {
+        "title": "Hyperlink Guide",
+        "text": "Click Here",
+        "url": "https://www.example.com",
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_docs",
+      "function": "delete_document",
+      "params": {
+        "title": "Hyperlink Guide"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_docs",
+      "function": "delete_document",
+      "params": {
+        "title": "Hyperlink Guide"
+      }
+    }
+  ],
+  "max_time": 30
+}

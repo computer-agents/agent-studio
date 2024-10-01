@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Union
+from typing import Any, Optional, Union
 
 import numpy as np
 from pydantic import BaseModel
@@ -15,6 +15,22 @@ class Message:
 MessageList = list[Message]
 
 
+@dataclass
+class StepInfo:
+    """We don't use pydantic for StepInfo because we need to save images in it."""
+
+    obs: np.ndarray | None
+    prompt: MessageList | None
+    response: str | None
+    action: str
+    info: dict[str, Any]
+    result: dict[str, Any]
+    timestamp: float
+
+
+TrajectoryInfo = list[StepInfo]
+
+
 class Procedure(BaseModel):
     evaluator: str
     function: str
@@ -26,8 +42,44 @@ class TaskConfig(BaseModel):
     instruction: str
     visual: bool
     max_steps: int
+    max_time: float
     eval_procedure: list[Procedure]
-    reset_procedure: list[Procedure]
+    reset_procedure: Optional[list[Procedure]] = None
+    cleanup_procedure: Optional[list[Procedure]] = None
+
+
+class SavedMessage(BaseModel):
+    role: str
+    content: Union[str, Path]
+
+
+class SavedStepInfo(BaseModel):
+    obs: str | None
+    prompt: list[SavedMessage] | None
+    response: str | None
+    action: str
+    info: dict[str, Any]
+    result: dict[str, Any]
+    timestamp: float
+
+
+class VideoMeta(BaseModel):
+    fps: int
+    frame_count: int
+    video_path: str
+    width: int
+    height: int
+
+
+class TaskResult(BaseModel):
+    task_id: str
+    instruction: str
+    score: float
+    feedback: str
+    token_count: int
+    time_cost: float
+    video: Optional[VideoMeta]
+    trajectory: list[SavedStepInfo]
 
 
 class Action(BaseModel):

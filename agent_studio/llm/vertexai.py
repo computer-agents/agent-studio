@@ -28,7 +28,7 @@ class VertexAIProvider(BaseModel):
             project=config.vertexai_project_id, location=config.vertexai_location
         )
 
-    def format_messages(
+    def _format_messages(
         self,
         raw_messages: MessageList,
     ) -> Any:
@@ -62,7 +62,7 @@ class VertexAIProvider(BaseModel):
         self, messages: MessageList, **kwargs
     ) -> tuple[str, dict[str, Any]]:
         """Creates a chat completion using the Gemini API."""
-        model_message = self.format_messages(raw_messages=messages)
+        model_message = self._format_messages(raw_messages=messages)
 
         model_name = kwargs.get("model", None)
         if model_name is not None:
@@ -118,7 +118,7 @@ class VertexAIAnthropicProvider(BaseModel):
         )
         self.system_prompt = None
 
-    def format_messages(
+    def _format_messages(
         self,
         raw_messages: MessageList,
     ) -> list[dict[str, Any]]:
@@ -165,7 +165,7 @@ class VertexAIAnthropicProvider(BaseModel):
             raise ValueError("Model name is not set")
         temperature = kwargs.get("temperature", config.temperature)
         max_tokens = kwargs.get("max_tokens", config.max_tokens)
-        model_message = self.format_messages(raw_messages=messages)
+        model_message = self._format_messages(raw_messages=messages)
         logger.info(f"Creating chat completion with model {model}.")
 
         if self.system_prompt is not None:
@@ -187,7 +187,12 @@ class VertexAIAnthropicProvider(BaseModel):
         if response is None:
             logger.error("Failed to get a response from Anthropic. Try again.")
 
-        response_message = response.content[0].text
+        if len(response.content) > 0:
+            response_message = response.content[0].text
+        else:
+            logger.warn(f"Response does not contain content: {response}")
+            response_message = ""
+
         if response.usage is None:
             info = {}
             logger.warn("Failed to get usage information from OpenAI.")

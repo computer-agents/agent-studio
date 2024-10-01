@@ -1,0 +1,68 @@
+{
+  "task_id": "f723c744-e62c-4ae6-98d1-750d3cd7d79d",
+  "instruction": "Please make the picture's contrast stronger to really bring out the main subject. Save the image as `${AS_ROOT}/gimp_workspace/berry_contrast.jpeg`",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "gimp",
+      "function": "check_contrast_increase_and_structure_sim",
+      "params": {
+        "src_path": "${AS_ROOT}/gimp_workspace/berry_contrast.jpeg",
+        "tgt_path": "${AS_ROOT}/data/72f83cdc-bf76-4531-9a1b-eb893a13f8aa/berry.jpeg"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/72f83cdc-bf76-4531-9a1b-eb893a13f8aa/berry.jpeg",
+        "dest": "${AS_ROOT}/gimp_workspace/berry.jpeg"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "gimp",
+          "${AS_ROOT}/gimp_workspace/berry.jpeg"
+        ],
+        "wait_for": "gimp"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    }
+  ],
+  "max_time": 60
+}

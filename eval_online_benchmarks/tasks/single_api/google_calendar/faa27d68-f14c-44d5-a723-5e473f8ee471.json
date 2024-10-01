@@ -1,0 +1,53 @@
+{
+  "task_id": "faa27d68-f14c-44d5-a723-5e473f8ee471",
+  "instruction": "Create an 'Annual Strategy Meeting' event on 2024-06-15 from 2pm to 4pm, invite 'ceo@example.com', and set a pop-up reminder 30 minutes before in Google Calendar. The calendar id is '${AS_GCALENDAR_ID}'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "check_event_exists",
+      "params": {
+        "event_info": {
+          "summary": "Annual Strategy Meeting",
+          "start": {
+            "dateTime": "2024-06-15T14:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-06-15T16:00:00Z"
+          },
+          "attendees": [
+            {
+              "email": "ceo@example.com"
+            }
+          ],
+          "reminders": {
+            "useDefault": false,
+            "overrides": [
+              {
+                "method": "popup",
+                "minutes": 30
+              }
+            ]
+          }
+        },
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    }
+  ],
+  "max_time": 30
+}

@@ -1,0 +1,138 @@
+{
+  "task_id": "f428be13-f44a-4524-b2d1-3483c0ea1fe3",
+  "instruction": "Delete all emails with subject 'Automated Email', 'AutoPlan1', 'AutoPlan2', 'Automated travel agent', and 'Automated travel plan' in Gmail.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "check_sent_message_exists",
+      "params": {
+        "message_info": {
+          "subject": "Automated Email"
+        },
+        "exists": false
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "check_sent_message_exists",
+      "params": {
+        "message_info": {
+          "subject": "AutoPlan1"
+        },
+        "exists": false
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "check_sent_message_exists",
+      "params": {
+        "message_info": {
+          "subject": "AutoPlan2"
+        },
+        "exists": false
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "check_sent_message_exists",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel agent"
+        },
+        "exists": false
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "check_sent_message_exists",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel plan"
+        },
+        "exists": false
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "recipient": "${AS_GMAIL_RECIPIENT}"
+        },
+        "include_trash": true
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "send_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel agent",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
+          "body": "This is automatically sent message of plan 2"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "send_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel plan",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
+          "body": "This is automatically sent message of plan 1"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "send_message",
+      "params": {
+        "message_info": {
+          "subject": "AutoPlan1",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
+          "body": "This is automatically sent message of plan 1"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "send_message",
+      "params": {
+        "message_info": {
+          "subject": "AutoPlan2",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
+          "body": "This is automatically sent message of plan 2"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "send_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated Email",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
+          "body": "This is automatically sent message"
+        }
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "recipient": "${AS_GMAIL_RECIPIENT}"
+        },
+        "include_trash": true
+      }
+    }
+  ],
+  "max_time": 30
+}

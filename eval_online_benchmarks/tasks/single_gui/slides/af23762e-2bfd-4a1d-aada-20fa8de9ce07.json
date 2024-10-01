@@ -1,0 +1,76 @@
+{
+  "task_id": "af23762e-2bfd-4a1d-aada-20fa8de9ce07",
+  "instruction": "I am making slides for presentation tomorrow. I need to summarize contents on one slide use Impress \"Summary Slide\" feature. Could you make that for me?",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "slides",
+      "function": "compare_pptx_files",
+      "params": {
+        "expected": "${AS_ROOT}/data/af23762e-2bfd-4a1d-aada-20fa8de9ce07/Forests_Gold.pptx",
+        "result": "${AS_ROOT}/slides/Forests.pptx",
+        "options": {}
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/af23762e-2bfd-4a1d-aada-20fa8de9ce07/Forests.pptx",
+        "dest": "${AS_ROOT}/slides/Forests.pptx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/slides/Forests.pptx"
+        ],
+        "wait_for": "libreoffice"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    }
+  ],
+  "max_time": 60
+}

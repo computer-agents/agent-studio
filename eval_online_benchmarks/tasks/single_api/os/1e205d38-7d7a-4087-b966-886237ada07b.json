@@ -1,0 +1,61 @@
+{
+  "task_id": "1e205d38-7d7a-4087-b966-886237ada07b",
+  "instruction": "Create a file named 'notes.txt' in the '${AS_ROOT}/tmp/' directory with the content 'Meeting at 10am'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/notes.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "type_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/notes.txt": "file"
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/notes.txt": "Meeting at 10am"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "max_time": 30
+}

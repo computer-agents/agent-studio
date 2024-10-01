@@ -1,0 +1,37 @@
+{
+  "task_id": "f05a7609-f896-4885-b4e6-7c29bbeab672",
+  "instruction": "Create a new document with title 'Sample Document' and content 'This is the content of the sample document' in Google Docs.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "google_docs",
+      "function": "check_doc_exists",
+      "params": {
+        "title": "Sample Document",
+        "content": "This is the content of the sample document",
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_docs",
+      "function": "delete_document",
+      "params": {
+        "title": "Sample Document",
+        "content": "This is the content of the sample document"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_docs",
+      "function": "delete_document",
+      "params": {
+        "title": "Sample Document"
+      }
+    }
+  ],
+  "max_time": 30
+}

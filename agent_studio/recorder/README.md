@@ -1,4 +1,21 @@
-# Trajectory Recorder
+## Trajectory Recorder
+
+1. run
+```bash
+as-traj-recorder
+```
+2. Input the record path
+3. Input task instruction
+4. Count down for 5 seconds, you can start operating after hearing a chime.
+5. Use `Ctrl+Shift+o` to stop the recorder.
+
+## Trajectory Editor
+
+1. run
+```bash
+as-traj-editor
+```
+2. File -> Open to open a `record.json` file
 
 ## Troubleshoot
 

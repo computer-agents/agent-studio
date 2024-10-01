@@ -1,0 +1,66 @@
+{
+  "task_id": "a4991e3c-ec1c-407c-862c-9b07dec35de5",
+  "instruction": "Remove the adundant whitespaces and canonicalize the letter cases by capitalizing the first letter of each words and leave other letters as lower case in '${AS_ROOT}/sheets/Movie_title_garbage_clean.xlsx'.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "${AS_ROOT}/data/a9f325aa-8c05-4e4f-8341-9e4358565f4f/Movie_titles_garbage_clean_gold.xlsx",
+        "result": "${AS_ROOT}/sheets/Movie_titles_garbage_clean.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": 0,
+              "sheet_idx1": "EI0"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/a9f325aa-8c05-4e4f-8341-9e4358565f4f/Movie_titles_garbage_clean.xlsx",
+        "dest": "${AS_ROOT}/sheets/Movie_titles_garbage_clean.xlsx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ]
+}

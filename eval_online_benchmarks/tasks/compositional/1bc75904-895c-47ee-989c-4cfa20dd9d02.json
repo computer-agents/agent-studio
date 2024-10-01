@@ -1,0 +1,58 @@
+{
+  "task_id": "1bc75904-895c-47ee-989c-4cfa20dd9d02",
+  "instruction": "Open ${AS_ROOT}/slides/22_6.pptx, and give the slide 2 the right aligned title, \"Note\".",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "slides",
+      "function": "compare_pptx_files",
+      "params": {
+        "expected": "${AS_ROOT}/data/08aced46-45a2-48d7-993b-ed3fb5b32302/22_6_Gold.pptx",
+        "result": "${AS_ROOT}/slides/22_6.pptx",
+        "options": {}
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/08aced46-45a2-48d7-993b-ed3fb5b32302/22_6.pptx",
+        "dest": "${AS_ROOT}/slides/22_6.pptx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    }
+  ]
+}

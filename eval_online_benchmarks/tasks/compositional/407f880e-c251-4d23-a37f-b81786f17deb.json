@@ -1,0 +1,57 @@
+{
+  "task_id": "407f880e-c251-4d23-a37f-b81786f17deb",
+  "instruction": "Could you help me insert a 7(columns)*5(rows) empty table at the end of '${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions.docx' file?",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "docs",
+      "function": "compare_docx_tables",
+      "params": {
+        "docx_file1": "data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions_Gold.docx",
+        "docx_file2": "${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions.docx"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/66399b0d-8fda-4618-95c4-bfc6191617e9/Table_Of_Work_Effort_Instructions.docx",
+        "dest": "${AS_ROOT}/docs/Table_Of_Work_Effort_Instructions.docx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "pcmanfm"
+      }
+    }
+  ]
+}

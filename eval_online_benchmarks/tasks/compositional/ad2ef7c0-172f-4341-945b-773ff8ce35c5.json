@@ -1,0 +1,66 @@
+{
+  "task_id": "ad2ef7c0-172f-4341-945b-773ff8ce35c5",
+  "instruction": "Open '${AS_ROOT}/sheets/NetIncome.xlsx', calculate Net Income in a new column with header \"Net Income\" and format all data as accounting number type.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "${AS_ROOT}/data/0acbd372-ca7a-4507-b949-70673120190f/1_NetIncome_gt1.xlsx",
+        "result": "${AS_ROOT}/sheets/NetIncome.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": 0,
+              "sheet_idx1": "EI0"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/0acbd372-ca7a-4507-b949-70673120190f/NetIncome.xlsx",
+        "dest": "${AS_ROOT}/sheets/NetIncome.xlsx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ]
+}

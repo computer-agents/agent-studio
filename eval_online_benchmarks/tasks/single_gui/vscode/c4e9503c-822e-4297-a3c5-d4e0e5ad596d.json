@@ -1,0 +1,79 @@
+{
+  "task_id": "c4e9503c-822e-4297-a3c5-d4e0e5ad596d",
+  "instruction": "Install the 'markdownlint' by David Anson from the VSCode Marketplace. You should install a version that is released before 2023-01-01.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "vscode",
+      "function": "extension_installed",
+      "params": {
+        "extension_id": "davidanson.vscode-markdownlint",
+        "exists": true,
+        "published_before": "2023-01-01T00:00:00Z"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    },
+    {
+      "evaluator": "vscode",
+      "function": "uninstall_all_extensions",
+      "params": {}
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "code"
+        ],
+        "wait_for": "code"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    }
+  ],
+  "max_time": 60
+}

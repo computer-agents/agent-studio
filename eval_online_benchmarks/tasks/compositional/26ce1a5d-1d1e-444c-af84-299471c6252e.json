@@ -1,0 +1,59 @@
+{
+  "task_id": "26ce1a5d-1d1e-444c-af84-299471c6252e",
+  "instruction": "Use GIMP to compress the image in \"${AS_ROOT}/gimp/image.jpg\" to under 600KB and save the compressed image as \"${AS_ROOT}/gimp/compressed.jpg\". Resize if needed.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "gimp",
+      "function": "check_image_file_size",
+      "params": {
+        "src_path": "${AS_ROOT}/gimp/compressed.jpg",
+        "rules": {
+          "max_size": 600000
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/26ce1a5d-1d1e-444c-af84-299471c6252e/image.jpg",
+        "dest": "${AS_ROOT}/gimp/image.jpg"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/gimp"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "pcmanfm"
+      }
+    }
+  ]
+}

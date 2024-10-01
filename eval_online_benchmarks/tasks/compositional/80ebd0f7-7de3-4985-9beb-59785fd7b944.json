@@ -1,0 +1,82 @@
+{
+  "task_id": "80ebd0f7-7de3-4985-9beb-59785fd7b944",
+  "instruction": "Open ${AS_ROOT}/sheets/Customers_New_7digit_Id.xlsx, pad all the numbers in the 'Old ID' column with zeros in front, and fill them up to seven digits in the 'New 7 Digit ID' column.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "exec",
+      "params": {
+        "command": "libreoffice --convert-to \"csv:Text - txt - csv (StarCalc):44,34,UTF-8,,,,false,true,true,false,false,1\" --outdir ${AS_ROOT}/sheets ${AS_ROOT}/sheets/Customers_New_7digit_Id.xlsx"
+      }
+    },
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "${AS_ROOT}/data/0bf05a7d-b28b-44d2-955a-50b41e24012a/Customers_New_7digit_Id_gold.xlsx",
+        "result": "${AS_ROOT}/sheets/Customers_New_7digit_Id.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RI0",
+              "sheet_idx1": "EI0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "match_file",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/sheets/Customers_New_7digit_Id-Sheet1.csv": "${AS_ROOT}/data/0bf05a7d-b28b-44d2-955a-50b41e24012a/Customers_New_7digit_Id_gold.csv"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/0bf05a7d-b28b-44d2-955a-50b41e24012a/Customers_New_7digit_Id.xlsx",
+        "dest": "${AS_ROOT}/sheets/Customers_New_7digit_Id.xlsx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ]
+}

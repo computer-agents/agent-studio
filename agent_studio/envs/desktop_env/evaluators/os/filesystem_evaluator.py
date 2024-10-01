@@ -1,5 +1,6 @@
 import configparser
 import filecmp
+import json
 import logging
 import os
 import platform
@@ -260,6 +261,20 @@ class FilesystemEvaluator(Evaluator):
                 )
 
     @staticmethod
+    @evaluation_handler("check_json_settings")
+    def check_json_settings(path: str, settings: dict) -> None:
+        path = os.path.expanduser(path)
+        if not os.path.exists(path):
+            raise FeedbackException(f"File {path} does not exist.")
+        with open(path, "r") as f:
+            content = json.load(f)
+        for key, value in settings.items():
+            if key not in content:
+                raise FeedbackException(f"Key {key} not found in {path}")
+            if content[key] != value:
+                raise FeedbackException(f"Key {key} has wrong value: {content[key]}")
+
+    @staticmethod
     @reset_handler("create_file")
     def create_file(path: str, content: str | None = None) -> None:
         path = os.path.expanduser(path)
@@ -268,11 +283,6 @@ class FilesystemEvaluator(Evaluator):
                 f.write(content)
         else:
             open(path, "w").close()
-
-    @reset_handler("create_directory")
-    def create_directory(self, path: str):
-        path = os.path.expanduser(path)
-        os.makedirs(path, exist_ok=True)
 
     @staticmethod
     @reset_handler("mkdir")
@@ -284,10 +294,15 @@ class FilesystemEvaluator(Evaluator):
     @staticmethod
     @reset_handler("rm")
     def rm(path: str) -> None:
+        """Remove file or directory"""
+
         @confirm_action(f"Removing {path}")
         def _rm(path: str) -> None:
-            if os.path.exists(path) and os.path.isfile(path):
-                os.remove(path)
+            if os.path.exists(path):
+                if os.path.isfile(path):
+                    os.remove(path)
+                elif os.path.isdir(path):
+                    shutil.rmtree(path)
             logger.debug(f"{path} removed")
 
         path = os.path.expanduser(path)
@@ -317,9 +332,25 @@ class FilesystemEvaluator(Evaluator):
     @staticmethod
     @reset_handler("copy")
     def copy(src: str, dest: str) -> None:
+        """
+        Copy file or directory to destination, replacing if it exists.
+        """
         src = os.path.expanduser(src)
         dest = os.path.expanduser(dest)
-        os.system(f"cp {src} {dest}")
+
+        @confirm_action(f"Overwrite {dest}?")
+        def _rm(path: str) -> None:
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+
+        if os.path.exists(dest):
+            _rm(dest)
+        if os.path.isdir(src):
+            shutil.copytree(src, dest)
+        else:
+            shutil.copy(src, dest)
 
     @staticmethod
     @reset_handler("move")

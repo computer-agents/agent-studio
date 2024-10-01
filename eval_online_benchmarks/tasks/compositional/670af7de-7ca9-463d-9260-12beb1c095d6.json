@@ -1,0 +1,69 @@
+{
+  "task_id": "670af7de-7ca9-463d-9260-12beb1c095d6",
+  "instruction": "Add an image \"${AS_ROOT}/slides/none.png\" to slide 2 with 1cm*1cm size of \"${AS_ROOT}/slides/31_2.pptx\".",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "slides",
+      "function": "compare_pptx_files",
+      "params": {
+        "expected": "${AS_ROOT}/data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/31_2_Gold.pptx",
+        "result": "${AS_ROOT}/slides/31_2.pptx",
+        "options": {
+          "examine_shape": false,
+          "examine_image_size": true
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/none.png",
+        "dest": "${AS_ROOT}/slides/none.png"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/c82632a4-56b6-4db4-9dd1-3820ee3388e4/31_2.pptx",
+        "dest": "${AS_ROOT}/slides/31_2.pptx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    }
+  ]
+}

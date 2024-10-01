@@ -1,0 +1,72 @@
+{
+  "task_id": "55f9c08f-ef5e-4f51-b4a4-b7711de6394d",
+  "instruction": "In Google Calendar, reschedule the 'Team Sync' event originally on 2024-05-10 12:00 AM to 2024-05-12 at 2:00 PM. You should also change the event description to match this change. The calendar id is '${AS_GCALENDAR_ID}'.",
+  "visual": false,
+  "max_steps": 3,
+  "eval_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "check_event_exists",
+      "params": {
+        "event_info": {
+          "summary": "Team Sync",
+          "start": {
+            "dateTime": "2024-05-12T14:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-05-12T15:00:00Z"
+          },
+          "description": "Team Sync on 2024-05-12"
+        },
+        "exists": true
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "check_event_exists",
+      "params": {
+        "event_info": {
+          "summary": "Team Sync",
+          "start": {
+            "dateTime": "2024-05-10T00:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-05-10T15:00:00Z"
+          }
+        },
+        "exists": false
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Team Sync",
+          "start": {
+            "dateTime": "2024-05-10T00:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-05-10T01:00:00Z"
+          },
+          "description": "Team Sync on 2024-05-10"
+        }
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    }
+  ],
+  "max_time": 30
+}

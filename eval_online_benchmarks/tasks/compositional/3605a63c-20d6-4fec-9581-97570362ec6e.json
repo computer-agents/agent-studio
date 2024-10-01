@@ -1,0 +1,71 @@
+{
+  "task_id": "3605a63c-20d6-4fec-9581-97570362ec6e",
+  "instruction": "Help me fill in the Gross profit column in ${AS_ROOT}/sheets/IncomeStatement2.xlsx. Then create a new sheet called \"Sheet2\" and add a column under column A named \"Year_Profit\", display the Year Column in Sheet 1 as text appended by a \"_\" with the corresponding Gross Profit value. Gross profit is Sales minus the other miscellaneous expenses.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "${AS_ROOT}/data/035f41ba-6653-43ab-aa63-c86d449d62e5/5_IncomeStatement2_gt1.xlsx",
+        "result": "${AS_ROOT}/sheets/IncomeStatement2.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RNSheet1",
+              "sheet_idx1": "ENSheet1"
+            },
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RNSheet2",
+              "sheet_idx1": "ENSheet2"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/035f41ba-6653-43ab-aa63-c86d449d62e5/IncomeStatement2.xlsx",
+        "dest": "${AS_ROOT}/sheets/IncomeStatement2.xlsx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ]
+}

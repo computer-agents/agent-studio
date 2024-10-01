@@ -1,0 +1,58 @@
+{
+  "task_id": "3d7cf1db-5533-468a-aafe-e6441f427c4a",
+  "instruction": "Open '${AS_ROOT}/slides/4_1.pptx', and set the color of titles in slides 2,3,5 as black and underline them.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "slides",
+      "function": "compare_pptx_files",
+      "params": {
+        "expected": "${AS_ROOT}/data/4ed5abd0-8b5d-47bd-839f-cacfa15ca37a/4_1_Gold.pptx",
+        "result": "${AS_ROOT}/slides/4_1.pptx",
+        "options": {}
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/4ed5abd0-8b5d-47bd-839f-cacfa15ca37a/4_1.pptx",
+        "dest": "${AS_ROOT}/slides/4_1.pptx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    }
+  ]
+}

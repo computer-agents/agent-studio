@@ -1,0 +1,89 @@
+{
+  "task_id": "8909d1cb-5877-44c7-a908-9f1875302441",
+  "instruction": "Copy the \"Date\" and \"Revenue ($)\" values to \"Sheet2\" for the rows whose \"Sales Channel\" is \"E-mail Coupon\". Remember to keep the column headers.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "${AS_ROOT}/data/8909d1cb-5877-44c7-a908-9f1875302441/2_SummerSales_gt1.xlsx",
+        "result": "${AS_ROOT}/sheets/SummerSales.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RNSheet2",
+              "sheet_idx1": "ENSheet2"
+            },
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RNSheet1",
+              "sheet_idx1": "ENSheet1"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/8909d1cb-5877-44c7-a908-9f1875302441/SummerSales.xlsx",
+        "dest": "${AS_ROOT}/sheets/SummerSales.xlsx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/sheets/SummerSales.xlsx"
+        ],
+        "wait_for": "libreoffice"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ],
+  "max_time": 60
+}

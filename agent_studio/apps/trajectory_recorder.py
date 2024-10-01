@@ -47,7 +47,7 @@ class AllinOneRecorder(Recorder):
         self.mouse_recorder = MouseRecorder(mouse_options, mouse_fps)
         self.keyboard_recorder = KeyboardRecorder(
             {
-                "stop": ("<alt>+s", self.stop),
+                "stop": ("<ctrl>+<shift>+o", self.stop),
             }
         )
         self.video_recorder = VideoRecorder(
@@ -68,7 +68,7 @@ class AllinOneRecorder(Recorder):
         self.mouse_recorder.start()
         self.video_recorder.start()
         logger.info("start recording!")
-        print("press alt+s to stop recording")
+        print("press ctrl+shift+o to stop recording")
 
     def stop(self) -> None:
         logger.info("STOPPING!")

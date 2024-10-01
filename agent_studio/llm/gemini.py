@@ -31,7 +31,7 @@ class GeminiProvider(BaseModel):
         super().__init__()
         genai.configure(api_key=config.gemini_api_key)
 
-    def format_messages(
+    def _format_messages(
         self,
         raw_messages: MessageList,
     ) -> Any:
@@ -66,7 +66,7 @@ class GeminiProvider(BaseModel):
         self, messages: MessageList, **kwargs
     ) -> tuple[str, dict[str, Any]]:
         """Creates a chat completion using the Gemini API."""
-        model_message = self.format_messages(raw_messages=messages)
+        model_message = self._format_messages(raw_messages=messages)
 
         model_name = kwargs.get("model", None)
         if model_name is not None:

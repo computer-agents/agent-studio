@@ -1,30 +1,14 @@
 import logging
 import time
-from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 
-from agent_studio.agent.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.llm import ModelManager
 from agent_studio.llm.utils import extract_from_response
-from agent_studio.utils.types import MessageList, TaskConfig
+from agent_studio.utils.runtime import PythonRuntime, RemotePythonRuntime
+from agent_studio.utils.types import MessageList, StepInfo, TaskConfig
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class StepInfo:
-    obs: np.ndarray | None
-    prompt: MessageList | None
-    response: str | None
-    action: str
-    info: dict[str, Any]
-    result: dict[str, Any]
-    timestamp: float
-
-
-TrajectoryInfo = list[StepInfo]
 
 
 RUNTIME_INIT_CODE = """
@@ -84,7 +68,7 @@ class BaseAgent:
         self.runtime.reset()
         self.runtime(self.runtime_init_code)
 
-    def generate_action(self, obs: np.ndarray | None, model_name: str) -> str:
+    def generate_action(self, obs: np.ndarray | None, model_name: str) -> StepInfo:
         """Generate an action based on the observation."""
         self.obs = obs
         prompt = self.action_prompt
@@ -96,7 +80,7 @@ class BaseAgent:
         self.total_tokens += info.get("total_tokens", 0)
         action = extract_from_response(response).strip()
 
-        self.step_info = StepInfo(
+        return StepInfo(
             obs=obs,
             prompt=prompt,
             response=response,
@@ -106,15 +90,15 @@ class BaseAgent:
             timestamp=0.0,
         )
 
-        return action
-
-    def step_action(self, confirmed: bool) -> tuple[dict, bool]:
-        """Execute the code if confirmed and record the result."""
-        if self.step_info is None:
-            raise ValueError("Invalid step_info")
+    def step_action(
+        self, failure_msg: str | None, step_info: StepInfo
+    ) -> tuple[dict, bool]:
+        """Execute the code if confirmed and record the result.
+        If failure_msg is not None, the action is cancelled.
+        """
         result = {}
-        if confirmed:
-            code_clean = self.step_info.action
+        if not failure_msg:
+            code_clean = step_info.action
             done = code_clean.endswith("exit()")
             if done:
                 code = code_clean[: -len("exit()")].strip()
@@ -124,12 +108,12 @@ class BaseAgent:
             logger.debug(f"Code to execute:\n{code}\n")
             result = self.runtime(code)
         else:
-            result["content"] = "Cancelled by user."
+            result["force_stop_reason"] = failure_msg
             done = True
 
-        self.step_info.result = result
-        self.step_info.timestamp = time.time()
-        self.trajectory.append(self.step_info)
+        step_info.result = result
+        step_info.timestamp = time.time()
+        self.trajectory.append(step_info)
         logger.info(f"Output: {result}")
 
         return result, done

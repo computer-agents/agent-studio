@@ -1,0 +1,78 @@
+{
+  "task_id": "d16c99dc-2a1e-46f2-b350-d97c86c85c15",
+  "instruction": "resize just one layer of an image. I need to adjust the height to 512 pixels while maintaining the original aspect ratio. Save the image as `${AS_ROOT}/gimp_workspace/resized.png`",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "gimp",
+      "function": "check_image_size",
+      "params": {
+        "src_path": "${AS_ROOT}/gimp_workspace/resized.png",
+        "rule": {
+          "height": 512
+        }
+      }
+    },
+    {
+      "evaluator": "gimp",
+      "function": "check_structure_sim_resized",
+      "params": {
+        "src_path": "${AS_ROOT}/gimp_workspace/resized.png",
+        "tgt_path": "${AS_ROOT}/data/d16c99dc-2a1e-46f2-b350-d97c86c85c15/dog_with_background.png"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/d16c99dc-2a1e-46f2-b350-d97c86c85c15/dog_with_background_two_layers.xcf",
+        "dest": "${AS_ROOT}/gimp_workspace/dog_with_background_two_layers.xcf"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "gimp",
+          "${AS_ROOT}/gimp_workspace/dog_with_background_two_layers.xcf"
+        ],
+        "wait_for": "gimp"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    }
+  ],
+  "max_time": 60
+}

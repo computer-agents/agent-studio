@@ -1,0 +1,63 @@
+{
+  "task_id": "14748db5-6d85-48e8-afe8-92cb87d5aa7c",
+  "instruction": "Delete all drafts with subject 'Automated draft' in Gmail.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "check_draft_exists",
+      "params": {
+        "draft_info": {
+          "subject": "Automated draft"
+        },
+        "exists": false
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_draft",
+      "params": {
+        "draft_info": {
+          "subject": "Automated draft",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
+          "body": "This is automated draft mail"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "create_draft",
+      "params": {
+        "draft_info": {
+          "subject": "Automated draft",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
+          "body": "This is automated draft mail"
+        }
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_draft",
+      "params": {
+        "draft_info": {
+          "recipient": "${AS_GMAIL_RECIPIENT}"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "recipient": "${AS_GMAIL_RECIPIENT}"
+        }
+      }
+    }
+  ],
+  "max_time": 30
+}

@@ -1,0 +1,60 @@
+{
+  "task_id": "57ed25e0-6e34-4a2a-b9f6-1de2974d5494",
+  "instruction": "Could you please take a moment to review the 'case_study.docx' file located within the '${AS_ROOT}/docs/case_study/student_work' folder? I'm particularly interested in ensuring that the references section at the end of the document adheres to the APA 7th edition formatting guidelines. Making the necessary adjustments if it turns out that the current formatting does not align with APA 7 standards or exists some errors.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "docs",
+      "function": "compare_references",
+      "params": {
+        "docx_file1": "${AS_ROOT}/data/2c1ebcd7-9c6d-4c9a-afad-900e381ecd5e/case_study_gold.docx",
+        "docx_file2": "${AS_ROOT}/docs/case_study/student_work/case_study.docx",
+        "options": {
+          "reference_base_result": 0.99
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs/case_study"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/2c1ebcd7-9c6d-4c9a-afad-900e381ecd5e/student_work",
+        "dest": "${AS_ROOT}/docs/case_study/student_work"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ]
+}

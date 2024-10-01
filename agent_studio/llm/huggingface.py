@@ -29,7 +29,7 @@ class HuggingFaceProvider(BaseModel):
         self.model = None
         self.processor = None
 
-    def format_messages(
+    def _format_messages(
         self,
         raw_messages: MessageList,
     ) -> Any:
@@ -52,7 +52,7 @@ class HuggingFaceProvider(BaseModel):
         self, messages: MessageList, **kwargs
     ) -> tuple[str, dict[str, Any]]:
         """Creates a chat completion using the Gemini API."""
-        model_message = self.format_messages(raw_messages=messages)
+        model_message = self._format_messages(raw_messages=messages)
 
         if self.model is None:
             self.model_name = kwargs.pop("model", None)

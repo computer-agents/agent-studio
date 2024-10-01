@@ -1,0 +1,50 @@
+{
+  "task_id": "01091426-c9f0-4f8d-b478-563592555c1b",
+  "instruction": "In the '${AS_ROOT}/tmp/config/' directory, find the 'settings.ini' file and update the value of 'max_connections' under the '[Database]' section to '150'.",
+  "visual": true,
+  "max_steps": 20,
+  "max_time": 60.0,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "verify_ini",
+      "params": {
+        "target_path": "${AS_ROOT}/tmp/config/settings.ini",
+        "ref_path": "${AS_ROOT}/data/4e95c9af-ed12-473f-901a-3100d61c80d4/settings_ref.ini"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/config"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/config"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "${AS_ROOT}/tmp/config/settings.ini",
+        "content": "[Database]\nmax_connections=100\n[User]\nname=admin"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ]
+}

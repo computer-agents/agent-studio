@@ -1,0 +1,116 @@
+{
+  "task_id": "529cc575-4c61-4c8a-9ba2-dfec23e5baf9",
+  "instruction": "Delete all events labeled as 'Routine Checkup' in Google Calendar for the month of April 2024. The calendar id is '${AS_GCALENDAR_ID}'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "check_event_exists",
+      "params": {
+        "event_info": {
+          "summary": "Routine Checkup",
+          "start": {
+            "dateTime": "2024-04-05T09:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-04-05T10:00:00Z"
+          }
+        },
+        "exists": false
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "check_event_exists",
+      "params": {
+        "event_info": {
+          "summary": "Routine Checkup",
+          "start": {
+            "dateTime": "2024-04-12T09:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-04-12T10:00:00Z"
+          }
+        },
+        "exists": false
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "check_event_exists",
+      "params": {
+        "event_info": {
+          "summary": "Routine Checkup",
+          "start": {
+            "dateTime": "2024-04-19T09:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-04-19T10:00:00Z"
+          }
+        },
+        "exists": false
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Routine Checkup",
+          "start": {
+            "dateTime": "2024-04-05T09:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-04-05T10:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Routine Checkup",
+          "start": {
+            "dateTime": "2024-04-12T09:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-04-12T10:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Routine Checkup",
+          "start": {
+            "dateTime": "2024-04-19T09:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-04-19T10:00:00Z"
+          }
+        }
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    }
+  ],
+  "max_time": 30
+}

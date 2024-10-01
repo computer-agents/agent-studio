@@ -1,0 +1,68 @@
+{
+  "task_id": "72f83cdc-bf76-4531-9a1b-eb893a13f8aa",
+  "instruction": "Mirror my figure in GIMP horizontally and save the image to ${AS_ROOT}/gimp_workspace/mirror_berry.jpeg.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "gimp",
+      "function": "check_image_mirror",
+      "params": {
+        "src_path": "${AS_ROOT}/gimp_workspace/mirror_berry.jpeg",
+        "tgt_path": "${AS_ROOT}/data/72f83cdc-bf76-4531-9a1b-eb893a13f8aa/berry.jpeg"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/72f83cdc-bf76-4531-9a1b-eb893a13f8aa/berry.jpeg",
+        "dest": "${AS_ROOT}/gimp_workspace/berry.jpeg"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "gimp",
+          "${AS_ROOT}/gimp_workspace/berry.jpeg"
+        ],
+        "wait_for": "gimp"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    }
+  ],
+  "max_time": 60
+}

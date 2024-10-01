@@ -1,0 +1,93 @@
+{
+  "task_id": "33d35d9c-cd56-4f26-9b73-459063c4e590",
+  "instruction": "Check if there are any overlapping events with the 'Product Launch' event scheduled on 2024-08-25 from 1pm to 3pm in Google Calendar. Save hours of overlap to '${AS_ROOT}/tmp/overlapping.txt'. You should keep two digits of your answer. The calendar id is '${AS_GCALENDAR_ID}'.",
+  "visual": false,
+  "max_steps": 1,
+  "max_time": 30.0,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/overlapping.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/overlapping.txt": "1.50"
+        },
+        "method": "strip"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Product Launch",
+          "start": {
+            "dateTime": "2024-08-25T13:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-25T15:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Team Meeting",
+          "start": {
+            "dateTime": "2024-08-25T13:30:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-25T16:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ]
+}

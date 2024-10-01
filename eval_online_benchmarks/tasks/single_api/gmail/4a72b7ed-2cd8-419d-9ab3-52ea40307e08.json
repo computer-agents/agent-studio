@@ -1,0 +1,65 @@
+{
+  "task_id": "4a72b7ed-2cd8-419d-9ab3-52ea40307e08",
+  "instruction": "Search for the most recent draft in Gmail that contains the word 'travel' in the subject line and forward it to '${AS_GMAIL_RECIPIENT}' with new title 'Forwarded travel plan'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "check_sent_message_exists",
+      "params": {
+        "message_info": {
+          "subject": "Forwarded travel plan",
+          "body": "This is automatically sent message"
+        },
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel plan",
+          "body": "This is automatically sent message"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "send_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel plan",
+          "recipient": "${AS_GMAIL_RECIPIENT}",
+          "body": "This is automatically sent message"
+        }
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Automated travel plan",
+          "body": "This is automatically sent message"
+        }
+      }
+    },
+    {
+      "evaluator": "gmail",
+      "function": "delete_sent_message",
+      "params": {
+        "message_info": {
+          "subject": "Forwarded travel plan",
+          "body": "This is automatically sent message"
+        }
+      }
+    }
+  ],
+  "max_time": 30
+}

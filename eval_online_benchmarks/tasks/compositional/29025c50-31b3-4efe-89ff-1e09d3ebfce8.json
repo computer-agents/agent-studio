@@ -1,0 +1,72 @@
+{
+  "task_id": "29025c50-31b3-4efe-89ff-1e09d3ebfce8",
+  "instruction": "Use pivot table to summarize revenue by week in file '${AS_ROOT}/sheets/SummerSales.xlsx'. Save the pivot table to a new sheet called \"Result\".",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "${AS_ROOT}/data/f654bf9a-dea2-472d-a877-edeeb12d7462/7_SummerSales_gt1.xlsx",
+        "result": "${AS_ROOT}/sheets/SummerSales.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "pivot_table",
+              "sheet_idx0": "RNResult",
+              "sheet_idx1": "EI0",
+              "pivot_props": [
+                "col_fields",
+                "filter",
+                "row_fields",
+                "data_fields"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/f654bf9a-dea2-472d-a877-edeeb12d7462/SummerSales.xlsx",
+        "dest": "${AS_ROOT}/sheets/SummerSales.xlsx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ]
+}

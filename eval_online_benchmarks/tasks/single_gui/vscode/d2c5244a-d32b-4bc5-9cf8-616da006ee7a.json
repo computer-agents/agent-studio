@@ -1,0 +1,119 @@
+{
+  "task_id": "d2c5244a-d32b-4bc5-9cf8-616da006ee7a",
+  "instruction": "Please help me add folder \"${AS_ROOT}/data1\" to the current workspace.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "check_json_settings",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace/vscode_workspace.code-workspace",
+        "settings": {
+          "folders": [
+            {
+              "path": "."
+            },
+            {
+              "path": "../data1"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/data1"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "data/d2c5244a-d32b-4bc5-9cf8-616da006ee7a/vscode_workspace.code-workspace",
+        "dest": "${AS_ROOT}/vscode_workspace/vscode_workspace.code-workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/data1"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "code",
+          "${AS_ROOT}/vscode_workspace/vscode_workspace.code-workspace"
+        ],
+        "wait_for": "code"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/data1"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    }
+  ],
+  "max_time": 60
+}

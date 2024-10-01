@@ -1,0 +1,66 @@
+{
+  "task_id": "6da58b9f-9a07-4d23-bdcd-9a5f56bfe246",
+  "instruction": "Please open '${AS_ROOT}/sheets/SmallBalanceSheet.xlsx'. Then, calculate the annual changes for the 'Current Assets', 'Fixed Assets', and 'Other Assets' columns. You should create a new sheet called 'Sheet2' and create 4 headers, 'Year', 'CA changes', 'FA changes', and 'OA changes' and put the results in the new sheet. Set the results cells as percentage type and keep 2 decimal digits except for the year.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "${AS_ROOT}/data/04d9aeaf-7bed-4024-bedb-e10e6f00eb7f/4_SmallBalanceSheet_gt1.xlsx",
+        "result": "${AS_ROOT}/sheets/SmallBalanceSheet.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RNSheet2",
+              "sheet_idx1": "ENSheet2"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/04d9aeaf-7bed-4024-bedb-e10e6f00eb7f/SmallBalanceSheet.xlsx",
+        "dest": "${AS_ROOT}/sheets/SmallBalanceSheet.xlsx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ]
+}

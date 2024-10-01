@@ -1,0 +1,103 @@
+{
+  "task_id": "083bee5b-24c1-43f9-9644-d1d04926000b",
+  "instruction": "Open the JavaScript file '${AS_ROOT}/vscode_workspace/script.js' in VSCode. Format and save it using the 'Prettier - Code formatter' extension.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "match_file",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/vscode_workspace/script.js": "data/083bee5b-24c1-43f9-9644-d1d04926000b/ref.js"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace/script.js",
+        "content": "function hello() {console.log('Hello, world!');}"
+      }
+    },
+    {
+      "evaluator": "vscode",
+      "function": "install_extension",
+      "params": {
+        "extension_id": "esbenp.prettier-vscode@11.0.0"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "code"
+        ],
+        "wait_for": "code"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 3
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    }
+  ],
+  "max_time": 60
+}

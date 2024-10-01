@@ -7,31 +7,34 @@ name = "agent_studio"
 version = "0.1.1"
 requires-python = ">=3.10,<4.0"
 dependencies = [
-    "chime",
     "pynput",
     "pydantic",
     "opencv-python",
     "mss",
     "pillow",
-    "PyQt6",
     "jsonpickle",
     "requests",
     "tqdm",
     "jupyter_client",
     "pyautogui",
     "cryptography",
-    "backoff",
-    "anthropic",
-    "openai",
-    "vertexai",
-    "google-generativeai",
-    "google-auth-oauthlib",
-    "pyrogram",
+    # "pyrogram",
     "toml",
+    "urllib3 >= 2.2.3",
     "ipykernel",
-    # "torch",
-    "transformers",
-    "PyQt6-QScintilla",
+    "google-api-python-client",
+    "google-auth-oauthlib",
+    "scikit-image",
+    "python-docx",
+    "python-pptx",
+    "pandas",
+    "openpyxl",
+    "odfpy",
+    "rapidfuzz",
+    "formulas",
+    "cssselect",
+    "xmltodict",
+    "python-dateutil",
 ]
 
 [tool.setuptools]
@@ -51,7 +54,23 @@ dev = [
     "check-jsonschema==0.29.1",
     "jsonschema==4.20.0",
 ]
-server = ["fastapi", "uvicorn"]
+server = [
+    "fastapi",
+    "uvicorn",
+]
+client = [
+    "backoff",
+    "vncdotool",
+    "transformers",
+    "anthropic",
+    "openai",
+    "vertexai",
+    "google-generativeai",
+    "chime",
+    "PyQt6",
+    "PyQt6-QScintilla",
+    # "torch",
+]
 
 [tool.pytest.ini_options]
 log_cli = true

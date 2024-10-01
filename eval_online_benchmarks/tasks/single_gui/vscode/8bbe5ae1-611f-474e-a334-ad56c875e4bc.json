@@ -1,0 +1,91 @@
+{
+  "task_id": "8bbe5ae1-611f-474e-a334-ad56c875e4bc",
+  "instruction": "Change the current VSCode theme to 'Visual Studio Dark'.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "check_json_settings",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User/settings.json",
+        "settings": {
+          "workbench.colorTheme": "Visual Studio Dark"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User/settings.json",
+        "content": "{\n\"workbench.colorTheme\": \"Visual Studio Light\"\n}"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "code",
+          "${AS_ROOT}/vscode_workspace"
+        ],
+        "wait_for": "code"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 3
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    }
+  ],
+  "max_time": 60
+}

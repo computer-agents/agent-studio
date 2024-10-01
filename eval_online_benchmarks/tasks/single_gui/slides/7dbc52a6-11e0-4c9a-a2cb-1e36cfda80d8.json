@@ -1,0 +1,76 @@
+{
+  "task_id": "7dbc52a6-11e0-4c9a-a2cb-1e36cfda80d8",
+  "instruction": "On page 2, add a note same to the title into the slide. Make the font of title bold.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "slides",
+      "function": "compare_pptx_files",
+      "params": {
+        "expected": "${AS_ROOT}/data/7dbc52a6-11e0-4c9a-a2cb-1e36cfda80d8/164_3_Gold.pptx",
+        "result": "${AS_ROOT}/slides/164_3.pptx",
+        "options": {}
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/7dbc52a6-11e0-4c9a-a2cb-1e36cfda80d8/164_3.pptx",
+        "dest": "${AS_ROOT}/slides/164_3.pptx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/slides/164_3.pptx"
+        ],
+        "wait_for": "libreoffice"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    }
+  ],
+  "max_time": 60
+}

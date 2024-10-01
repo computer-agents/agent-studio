@@ -1,0 +1,65 @@
+{
+  "task_id": "80cb8446-eb3a-4e69-b3f3-0f2aee3be151",
+  "instruction": "I am currently working on my algorithm practice using the document \"${AS_ROOT}/docs/bubbleSort/Bubble_Sort_tutorial.docx\". Please assist me in completing the 'bubbleSort' function within the 'bubbleSort.py' file (you need to unzip it from \"${AS_ROOT}/docs/bubbleSort/bubbleSort.zip\") and save the output as \"${AS_ROOT}/docs/bubbleSort/res.txt\". You should sort the array in ascending order.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "system",
+      "function": "diff",
+      "params": {
+        "file1": "${AS_ROOT}/data/20236825-b5df-46e7-89bf-62e1d640a897/res_Gold.txt",
+        "file2": "${AS_ROOT}/docs/bubbleSort/res.txt"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs/bubbleSort"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/20236825-b5df-46e7-89bf-62e1d640a897/bubbleSort.zip",
+        "dest": "${AS_ROOT}/docs/bubbleSort/bubbleSort.zip"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/20236825-b5df-46e7-89bf-62e1d640a897/Bubble_Sort_tutorial.docx",
+        "dest": "${AS_ROOT}/docs/bubbleSort/Bubble_Sort_tutorial.docx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ]
+}

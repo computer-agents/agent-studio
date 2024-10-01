@@ -1,0 +1,108 @@
+{
+  "task_id": "a5cc15a9-38d4-4e2f-9fcf-8baf3d1ff9d8",
+  "instruction": "Find all 'Client Meeting' events in Google Calendar between 2024-08-01 and 2024-08-31. Save the dates and start times of these events to '${AS_ROOT}/tmp/client_meetings.txt' in the format of 'YYYY-MM-DD HH:MM', separated by newlines. The calendar id is '${AS_GCALENDAR_ID}'.",
+  "visual": false,
+  "max_steps": 1,
+  "max_time": 30.0,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/client_meetings.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/client_meetings.txt": "2024-08-05 13:00\n2024-08-15 09:00"
+        },
+        "method": "strip"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Client Meeting",
+          "start": {
+            "dateTime": "2024-08-05T13:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-05T14:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Client Meeting",
+          "start": {
+            "dateTime": "2024-08-15T09:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-15T10:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Team Meeting",
+          "start": {
+            "dateTime": "2024-08-20T11:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-08-20T12:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "task_id": "3d62bbd1-dcfa-4df8-8703-4bfd682d0051",
+  "instruction": "Increment the number in 'count.txt' in '${AS_ROOT}/tmp/data/' by 1.",
+  "visual": true,
+  "max_steps": 20,
+  "max_time": 60.0,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/data/count.txt": "15676"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/data"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/data"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "${AS_ROOT}/tmp/data/count.txt",
+        "content": "15675"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ]
+}

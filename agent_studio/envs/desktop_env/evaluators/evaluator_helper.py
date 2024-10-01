@@ -22,14 +22,16 @@ class EvaluatorComb:
                 raise ValueError(f"Evaluator {procedure.evaluator} not found")
             self.evaluators[procedure.evaluator].reset(procedure)
 
-    def __call__(self, eval_procedure: list[Procedure], **kwargs) -> tuple[float, str]:
+    def __call__(
+        self, eval_procedure: list[Procedure], **as_kwargs
+    ) -> tuple[float, str]:
         score = 1.0
         feedback = ""
         for procedure in eval_procedure:
             if procedure.evaluator not in self.evaluators:
                 raise ValueError(f"Evaluator {procedure.evaluator} not found")
             cur_score, cur_feedback = self.evaluators[procedure.evaluator](
-                procedure, kwargs=kwargs
+                procedure, as_kwargs=as_kwargs
             )
             score *= cur_score
             feedback += cur_feedback
@@ -94,7 +96,13 @@ def evaluator_router(
     evaluators: dict[str, Evaluator] = {}
     logger.info(f"Registered evaluators: {registered_evaluators.keys()}")
 
-    for procedure in task_config.eval_procedure + task_config.reset_procedure:
+    procedures = task_config.eval_procedure
+    if task_config.reset_procedure is not None:
+        procedures += task_config.reset_procedure
+    if task_config.cleanup_procedure is not None:
+        procedures += task_config.cleanup_procedure
+
+    for procedure in procedures:
         eval_type: str = procedure.evaluator
         if eval_type in registered_evaluators:
             if eval_type not in evaluators:

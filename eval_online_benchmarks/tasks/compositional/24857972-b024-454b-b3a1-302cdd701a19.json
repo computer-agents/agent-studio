@@ -1,0 +1,64 @@
+{
+  "task_id": "24857972-b024-454b-b3a1-302cdd701a19",
+  "instruction": "First, create a document named 'image.docx' under path '${AS_ROOT}/image_docs/'. Second, I've stored my .xcf file in '${AS_ROOT}/image_docs/QTdHniCqfJbBLJe3L3nijU-1200-80.xcf'. Third, copy the image and pasting it into the document.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "docs",
+      "function": "compare_docx_images",
+      "params": {
+        "docx_file1": "${AS_ROOT}/data/227d2f97-562b-4ccb-ae47-a5ec9e142fbb/image_Gold.docx",
+        "docx_file2": "${AS_ROOT}/image_docs/image.docx"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/image_docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/227d2f97-562b-4ccb-ae47-a5ec9e142fbb/QTdHniCqfJbBLJe3L3nijU-1200-80.xcf",
+        "dest": "${AS_ROOT}/image_docs/QTdHniCqfJbBLJe3L3nijU-1200-80.xcf"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/image_docs"
+      }
+    }
+  ]
+}

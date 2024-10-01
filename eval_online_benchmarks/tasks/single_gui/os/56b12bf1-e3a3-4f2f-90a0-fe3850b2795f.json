@@ -1,0 +1,45 @@
+{
+  "task_id": "56b12bf1-e3a3-4f2f-90a0-fe3850b2795f",
+  "instruction": "Create a nested directory structure '${AS_ROOT}/tmp/projects/2024/Q1'.",
+  "visual": true,
+  "max_steps": 20,
+  "max_time": 60.0,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/projects/2024/Q1": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "type_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/projects/2024/Q1": "folder"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/projects"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ]
+}

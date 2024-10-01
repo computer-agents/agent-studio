@@ -1,0 +1,60 @@
+{
+  "task_id": "7ea3ae8d-b7a4-4f41-8860-9c395d4539fd",
+  "instruction": "In the '${AS_ROOT}/tmp/logs/' directory, find all '.log' files and replace any instance of 'ERROR' with 'WARN'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/logs/server.log": "INFO: Server started\nWARN: Connection failed\nWARN: Connection failed\nINFO: Shutdown",
+          "${AS_ROOT}/tmp/logs/access.log": "WARN: Unauthorized access attempt\nWARN: Unauthorized access attempt\nINFO: Session closed"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/logs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/logs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "${AS_ROOT}/tmp/logs/server.log",
+        "content": "INFO: Server started\nERROR: Connection failed\nWARN: Connection failed\nINFO: Shutdown"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "${AS_ROOT}/tmp/logs/access.log",
+        "content": "ERROR: Unauthorized access attempt\nERROR: Unauthorized access attempt\nINFO: Session closed"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "max_time": 30
+}

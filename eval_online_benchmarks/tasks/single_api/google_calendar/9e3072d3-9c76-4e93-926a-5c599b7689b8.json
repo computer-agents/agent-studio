@@ -1,0 +1,41 @@
+{
+  "task_id": "9e3072d3-9c76-4e93-926a-5c599b7689b8",
+  "instruction": "Create an event called 'Meeting with Team' with location at 'Office' on 2024-01-05 10am to 11am to 'Discuss project status' in Google Calendar. The calendar id is '${AS_GCALENDAR_ID}'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "check_event_exists",
+      "params": {
+        "event_info": {
+          "summary": "Meeting with Team",
+          "location": "Office",
+          "description": "Discuss project status",
+          "start": {
+            "dateTime": "2024-01-05T10:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-01-05T11:00:00Z"
+          }
+        },
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    }
+  ],
+  "max_time": 30
+}

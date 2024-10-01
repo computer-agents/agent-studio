@@ -1,0 +1,98 @@
+{
+  "task_id": "88f3f498-7cd0-4f3b-b7ae-40cb8e951aa7",
+  "instruction": "Uninstall all VSCode extentions from Microsoft.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "vscode",
+      "function": "extension_installed",
+      "params": {
+        "extension_id": "vscjava.vscode-maven",
+        "exists": false
+      }
+    },
+    {
+      "evaluator": "vscode",
+      "function": "extension_installed",
+      "params": {
+        "extension_id": "visualstudioexptteam.intellicode-api-usage-examples",
+        "exists": false
+      }
+    },
+    {
+      "evaluator": "vscode",
+      "function": "extension_installed",
+      "params": {
+        "extension_id": "davidanson.vscode-markdownlint",
+        "exists": true
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "vscode",
+      "function": "uninstall_all_extensions",
+      "params": {}
+    },
+    {
+      "evaluator": "vscode",
+      "function": "install_extension",
+      "params": {
+        "extension_id": "vscjava.vscode-maven"
+      }
+    },
+    {
+      "evaluator": "vscode",
+      "function": "install_extension",
+      "params": {
+        "extension_id": "visualstudioexptteam.intellicode-api-usage-examples"
+      }
+    },
+    {
+      "evaluator": "vscode",
+      "function": "install_extension",
+      "params": {
+        "extension_id": "davidanson.vscode-markdownlint"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    }
+  ],
+  "max_time": 60
+}

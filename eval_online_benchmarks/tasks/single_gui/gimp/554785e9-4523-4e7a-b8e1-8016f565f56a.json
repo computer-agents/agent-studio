@@ -1,0 +1,68 @@
+{
+  "task_id": "554785e9-4523-4e7a-b8e1-8016f565f56a",
+  "instruction": "Enhance the color vibrancy of my photo in GIMP and save it as `${AS_ROOT}/gimp_workspace/edited_colorful.png`",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "gimp",
+      "function": "check_saturation_increase_and_structure_sim",
+      "params": {
+        "src_path": "${AS_ROOT}/gimp_workspace/edited_colorful.png",
+        "tgt_path": "${AS_ROOT}/data/554785e9-4523-4e7a-b8e1-8016f565f56a/woman_sitting_by_the_tree2.png"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/554785e9-4523-4e7a-b8e1-8016f565f56a/woman_sitting_by_the_tree2.png",
+        "dest": "${AS_ROOT}/gimp_workspace/woman_sitting_by_the_tree2.png"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "gimp",
+          "${AS_ROOT}/gimp_workspace/woman_sitting_by_the_tree2.png"
+        ],
+        "wait_for": "gimp"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    }
+  ],
+  "max_time": 60
+}

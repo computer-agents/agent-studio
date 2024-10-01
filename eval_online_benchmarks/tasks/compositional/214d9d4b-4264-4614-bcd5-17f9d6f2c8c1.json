@@ -1,0 +1,93 @@
+{
+  "task_id": "214d9d4b-4264-4614-bcd5-17f9d6f2c8c1",
+  "instruction": "Check if there are any conflicting events with the 'Quarterly Planning Session' scheduled on 2024-09-20 from 2pm to 3pm in Google Calendar. If so, save the summary of conflicting events to '${AS_ROOT}/tmp/conflicts.txt'. The calendar id is '${AS_GCALENDAR_ID}'.",
+  "visual": false,
+  "max_steps": 1,
+  "max_time": 30.0,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/conflicts.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/conflicts.txt": "Department Heads Meeting"
+        },
+        "method": "strip"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Quarterly Planning Session",
+          "start": {
+            "dateTime": "2024-09-20T14:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-09-20T15:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "google_calendar",
+      "function": "create_event",
+      "params": {
+        "event_info": {
+          "summary": "Department Heads Meeting",
+          "start": {
+            "dateTime": "2024-09-20T14:00:00Z"
+          },
+          "end": {
+            "dateTime": "2024-09-20T15:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "google_calendar",
+      "function": "clear_calendar",
+      "params": {}
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ]
+}

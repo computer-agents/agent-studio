@@ -1,0 +1,68 @@
+{
+  "task_id": "06ca5602-62ca-47f6-ad4f-da151cde54cc",
+  "instruction": "Set the image in GIMP to Palette-Based and export the png image as ${AS_ROOT}/gimp_workspace/palette_computer.png.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "gimp",
+      "function": "check_palette_and_structure_sim",
+      "params": {
+        "src_path": "${AS_ROOT}/gimp_workspace/palette_computer.png",
+        "tgt_path": "${AS_ROOT}/data/06ca5602-62ca-47f6-ad4f-da151cde54cc/computer.png"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/06ca5602-62ca-47f6-ad4f-da151cde54cc/computer.png",
+        "dest": "${AS_ROOT}/gimp_workspace/computer.png"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "gimp",
+          "${AS_ROOT}/gimp_workspace/computer.png"
+        ],
+        "wait_for": "gimp"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    }
+  ],
+  "max_time": 60
+}

@@ -1,0 +1,45 @@
+{
+  "task_id": "3ff19bd5-923f-4301-9c51-ae444aa8dcfe",
+  "instruction": "Create a directory named 'projects' inside the '${AS_ROOT}/tmp/' directory.",
+  "visual": true,
+  "max_steps": 20,
+  "max_time": 60.0,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/projects": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "type_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/projects": "folder"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ]
+}

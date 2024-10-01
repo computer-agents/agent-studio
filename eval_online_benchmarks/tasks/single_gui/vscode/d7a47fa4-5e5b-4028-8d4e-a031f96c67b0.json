@@ -1,0 +1,104 @@
+{
+  "task_id": "d7a47fa4-5e5b-4028-8d4e-a031f96c67b0",
+  "instruction": "In VSCode, please disable all extentions from Microsoft while leave other extensions enabled.",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "vscode",
+      "function": "is_extension_disabled",
+      "params": {
+        "extension_list": [
+          {
+            "extension_id": "vscjava.vscode-maven",
+            "enabled": false
+          },
+          {
+            "extension_id": "visualstudioexptteam.intellicode-api-usage-examples",
+            "enabled": false
+          },
+          {
+            "extension_id": "davidanson.vscode-markdownlint",
+            "enabled": true
+          }
+        ]
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "vscode",
+      "function": "uninstall_all_extensions",
+      "params": {}
+    },
+    {
+      "evaluator": "vscode",
+      "function": "install_extension",
+      "params": {
+        "extension_id": "vscjava.vscode-maven"
+      }
+    },
+    {
+      "evaluator": "vscode",
+      "function": "install_extension",
+      "params": {
+        "extension_id": "visualstudioexptteam.intellicode-api-usage-examples"
+      }
+    },
+    {
+      "evaluator": "vscode",
+      "function": "install_extension",
+      "params": {
+        "extension_id": "davidanson.vscode-markdownlint"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "code"
+        ],
+        "wait_for": "code"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/vscode_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/Code/User"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "code"
+      }
+    }
+  ],
+  "max_time": 60
+}

@@ -1,5 +1,9 @@
+import json
 import logging
-from datetime import datetime
+import os
+import sqlite3
+
+from dateutil import parser
 
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
@@ -79,6 +83,68 @@ class VSCodeEvaluator(Evaluator):
             extension_id, exists, version, published_before, published_after
         )
 
+    @evaluation_handler("is_extension_disabled")
+    def is_extension_disabled(self, extension_list: list[dict]):
+        """
+        Check if the extension is disabled in VSCode
+
+        Args:
+            extension_list (list[dict]): List of extensions to check
+                Each extension should have the following structure:
+                {
+                    "extension_id": str,
+                    "enabled": bool,
+                }
+
+        Returns:
+            bool: True if the extension is disabled, False otherwise
+        """
+        # Path to VSCode state database (adjust for your OS)
+        if os.name == "nt":
+            # Windows path
+            vscode_state_db = os.path.expanduser(
+                r"~/AppData/Roaming/Code/User/globalStorage/state.vscdb"
+            )
+        elif os.name == "posix":
+            # Linux/Mac path
+            vscode_state_db = os.path.expanduser(
+                "~/.config/Code/User/globalStorage/state.vscdb"
+            )
+        else:
+            raise Exception("Unsupported OS")
+
+        # Check if the file exists
+        if not os.path.exists(vscode_state_db):
+            raise FeedbackException("VSCode state file not found")
+
+        # Connect to the SQLite database
+        conn = sqlite3.connect(vscode_state_db)
+        cursor = conn.cursor()
+
+        # Query the extension state
+        cursor.execute(
+            "SELECT value FROM ItemTable WHERE key = 'extensionsIdentifiers/disabled'"
+        )
+        result = cursor.fetchone()
+        conn.close()
+        if result is None:
+            extension_states_list = []
+        else:
+            extension_states_list = json.loads(result[0])
+        disabled_extensions = set()
+        for extension_state in extension_states_list:
+            extension_id = extension_state.get("id", None)
+            if extension_id is not None:
+                disabled_extensions.add(extension_id)
+
+        for extension_state in extension_list:
+            extension_id = extension_state["extension_id"]
+            if (extension_id not in disabled_extensions) != extension_state["enabled"]:
+                raise FeedbackException(
+                    f"Extension {extension_id} state not match,"
+                    f" expected {extension_state['enabled']}"
+                )
+
     def match_installed_extension(
         self,
         extension_id: str,
@@ -123,15 +189,15 @@ class VSCodeEvaluator(Evaluator):
                             raise Exception(
                                 f"Cannot find extension version: {installed_version}"
                             )
-                        last_updated = datetime.fromisoformat(info_find["lastUpdated"])
+                        last_updated = parser.isoparse(info_find["lastUpdated"])
                         if published_after is not None:
-                            if last_updated < datetime.fromisoformat(published_after):
+                            if last_updated < parser.isoparse(published_after):
                                 raise FeedbackException(
                                     f"Installed extension {extension_id} "
                                     f"is not published after {published_after}"
                                 )
                         if published_before is not None:
-                            if last_updated > datetime.fromisoformat(published_before):
+                            if last_updated > parser.isoparse(published_before):
                                 raise FeedbackException(
                                     f"Installed extension {extension_id} "
                                     f"is not published before {published_before}"

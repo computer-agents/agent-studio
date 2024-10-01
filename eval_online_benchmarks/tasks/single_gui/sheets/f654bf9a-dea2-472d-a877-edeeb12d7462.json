@@ -1,0 +1,90 @@
+{
+  "task_id": "f654bf9a-dea2-472d-a877-edeeb12d7462",
+  "instruction": "Use pivot table to summarize revenue by week. Save the pivot table to sheet called \"Result\".",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "${AS_ROOT}/data/f654bf9a-dea2-472d-a877-edeeb12d7462/7_SummerSales_gt1.xlsx",
+        "result": "${AS_ROOT}/sheets/SummerSales.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "pivot_table",
+              "sheet_idx0": "RNResult",
+              "sheet_idx1": "EI0",
+              "pivot_props": [
+                "col_fields",
+                "filter",
+                "row_fields",
+                "data_fields"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/f654bf9a-dea2-472d-a877-edeeb12d7462/SummerSales.xlsx",
+        "dest": "${AS_ROOT}/sheets/SummerSales.xlsx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/sheets/SummerSales.xlsx"
+        ],
+        "wait_for": "libreoffice"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ],
+  "max_time": 60
+}

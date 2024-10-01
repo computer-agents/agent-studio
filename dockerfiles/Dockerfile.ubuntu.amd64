@@ -7,15 +7,14 @@ RUN apt update \
     && add-apt-repository ppa:deadsnakes/ppa \
     && add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" \
     && apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated python3.11 build-essential python3.11-dev python3.11-tk libevdev-dev software-properties-common apt-transport-https \
-    && apt install -y --no-install-recommends --allow-unauthenticated code telegram-desktop \
-    && apt install -y --no-install-recommends --allow-unauthenticated golang-go git \
+    && apt install -y --no-install-recommends --allow-unauthenticated python3.11 build-essential python3.11-dev python3.11-tk libevdev-dev software-properties-common apt-transport-https unzip \
+    && apt install -y --no-install-recommends --allow-unauthenticated libreoffice code gimp \
+    && echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections \
+    && apt-get install -y --no-install-recommends --allow-unauthenticated ttf-mscorefonts-installer \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Install MailHog
-RUN go get github.com/mailhog/MailHog
 
 # Download get-pip.py and install pip for Python 3.11
 RUN wget https://bootstrap.pypa.io/get-pip.py \
@@ -26,9 +25,9 @@ RUN wget https://bootstrap.pypa.io/get-pip.py \
 RUN useradd -m ubuntu
 
 # Change ownership of the agent_studio directory
-RUN mkdir -p /home/ubuntu/agent_studio
-COPY agent_studio /home/ubuntu/agent_studio/agent_studio
-ADD scripts/agent_server.py /home/ubuntu/agent_studio/scripts/agent_server.py
+RUN mkdir -p /home/ubuntu/agent_studio/agent_studio
+COPY agent_studio/__init__.py /home/ubuntu/agent_studio/agent_studio/__init__.py
+# ADD scripts/agent_server.py /home/ubuntu/agent_studio/scripts/agent_server.py
 ADD pyproject.toml /home/ubuntu/agent_studio/pyproject.toml
 ADD scripts/docker_startup.sh /home/ubuntu/agent_studio/scripts/docker_startup.sh
 RUN chown -R ubuntu:ubuntu /home/ubuntu

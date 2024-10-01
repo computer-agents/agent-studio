@@ -8,7 +8,6 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import Response
 
-from agent_studio.agent.runtime import PythonRuntime
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator_helper import (
     EvaluatorComb,
@@ -20,8 +19,9 @@ from agent_studio.utils.communication import (
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
 )
+from agent_studio.utils.runtime import PythonRuntime
 from agent_studio.utils.task_status import StateEnum, StateInfo, TaskStatus
-from agent_studio.utils.types import Procedure
+from agent_studio.utils.types import Procedure, TaskConfig
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -98,6 +98,12 @@ async def reset_runtime() -> AgentStudioStatusResponse:
     return AgentStudioStatusResponse(status="success")
 
 
+@app.get("/env_vars")
+async def get_env_vars() -> AgentStudioStatusResponse:
+    env_vars = config.env_vars
+    return AgentStudioStatusResponse(status="success", message=env_vars)
+
+
 def wait_for_state_shift(last_state: StateEnum) -> AgentStudioStatusResponse:
     cur_status = task_status.wait_for_state_change(last_state)
     if cur_status.state == StateEnum.WAIT_FOR_INPUT:
@@ -167,15 +173,25 @@ async def reset_task(request: AgentStudioResetRequest) -> AgentStudioStatusRespo
         current_thread.join()
         task_status.reset_state()
 
-    logger.info(f"Reset task with procedures: {request.task_config.reset_procedure}")
+    logger.info(f"Reset task with procedures: {request.procedures}")
     try:
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
-        comb = evaluator_router(request.task_config)
+        fake_task_config = TaskConfig(
+            task_id="fake",
+            instruction="fake",
+            visual=False,
+            max_steps=100,
+            max_time=100,
+            eval_procedure=[],
+            reset_procedure=request.procedures,
+            cleanup_procedure=[],
+        )
+        comb = evaluator_router(fake_task_config)
         current_thread = threading.Thread(
             target=reset_thread,
             args=(
                 comb,
-                request.task_config.reset_procedure,
+                fake_task_config.reset_procedure,
             ),
         )
         current_thread.start()
@@ -207,20 +223,31 @@ async def submit_eval(request: AgentStudioEvalRequest) -> AgentStudioStatusRespo
         global current_thread
         if current_thread is not None:
             raise ValueError("Another task is in progress.")
-        logger.info(f"Start evaluating task: {request.task_config.eval_procedure}")
+        logger.info(f"Start evaluating task: {request.procedures}")
         task_status.set_task_state(StateInfo(StateEnum.IN_PROGRESS))
-        kwargs = jsonpickle.decode(request.kwargs)
-        if not isinstance(kwargs, dict):
-            raise ValueError(f"kwargs is {type(kwargs)} instead of a dict")
+        as_kwargs = jsonpickle.decode(request.as_kwargs)
+        if not isinstance(as_kwargs, dict):
+            raise ValueError(f"kwargs is {type(as_kwargs)} instead of a dict")
 
-        comb = evaluator_router(request.task_config)
+        fake_task_config = TaskConfig(
+            task_id="fake",
+            instruction="fake",
+            visual=False,
+            max_steps=100,
+            max_time=100,
+            eval_procedure=request.procedures,
+            reset_procedure=[],
+            cleanup_procedure=[],
+        )
+        comb = evaluator_router(fake_task_config)
+        logger.debug(f"Eval kwargs: {as_kwargs}")
         current_thread = threading.Thread(
             target=eval_task,
             args=(
                 comb,
-                request.task_config.eval_procedure,
+                fake_task_config.eval_procedure,
             ),
-            kwargs=kwargs,
+            kwargs=as_kwargs,
         )
         current_thread.start()
         return wait_for_state_shift(StateEnum.IN_PROGRESS)

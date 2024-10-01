@@ -1,0 +1,68 @@
+{
+  "task_id": "734d6579-c07d-47a8-9ae2-13339795476b",
+  "instruction": "fill the background layer with green color in GIMP, and leave the object layer as is and save the image as `${AS_ROOT}/gimp_workspace/green_background_with_object.png`",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "gimp",
+      "function": "check_green_background",
+      "params": {
+        "src_path": "${AS_ROOT}/gimp_workspace/green_background_with_object.png",
+        "tgt_path": "${AS_ROOT}/data/734d6579-c07d-47a8-9ae2-13339795476b/white_background_with_object.png"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/734d6579-c07d-47a8-9ae2-13339795476b/white_background_with_object.xcf",
+        "dest": "${AS_ROOT}/gimp_workspace/white_background_with_object.xcf"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "gimp",
+          "${AS_ROOT}/gimp_workspace/white_background_with_object.xcf"
+        ],
+        "wait_for": "gimp"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "gimp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/gimp_workspace"
+      }
+    }
+  ],
+  "max_time": 60
+}

@@ -1,0 +1,115 @@
+{
+  "task_id": "41b79d45-e7f8-4203-8d61-34260f93fbff",
+  "instruction": "In the '${AS_ROOT}/tmp/downloads/' directory, move all '.jpg' files to '${AS_ROOT}/tmp/downloads/images/' and all '.txt' files to '${AS_ROOT}/tmp/downloads/texts/'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/downloads/images/photo1.jpg": true,
+          "${AS_ROOT}/tmp/downloads/images/photo2.jpg": true,
+          "${AS_ROOT}/tmp/downloads/texts/document1.txt": true,
+          "${AS_ROOT}/tmp/downloads/texts/document2.txt": true,
+          "${AS_ROOT}/tmp/downloads/photo1.jpg": false,
+          "${AS_ROOT}/tmp/downloads/photo2.jpg": false,
+          "${AS_ROOT}/tmp/downloads/document1.txt": false,
+          "${AS_ROOT}/tmp/downloads/document2.txt": false
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/downloads/images/photo1.jpg": "",
+          "${AS_ROOT}/tmp/downloads/images/photo2.jpg": "",
+          "${AS_ROOT}/tmp/downloads/texts/document1.txt": "Text content 1",
+          "${AS_ROOT}/tmp/downloads/texts/document2.txt": "Text content 2"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/downloads"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/downloads/images/"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/downloads/texts/"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "${AS_ROOT}/tmp/downloads/photo1.jpg",
+        "content": ""
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "${AS_ROOT}/tmp/downloads/photo2.jpg",
+        "content": ""
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "${AS_ROOT}/tmp/downloads/document1.txt",
+        "content": "Text content 1"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "create_file",
+      "params": {
+        "path": "${AS_ROOT}/tmp/downloads/document2.txt",
+        "content": "Text content 2"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "max_time": 30
+}

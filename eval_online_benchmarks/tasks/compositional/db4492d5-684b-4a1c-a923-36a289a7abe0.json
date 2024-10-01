@@ -1,0 +1,58 @@
+{
+  "task_id": "db4492d5-684b-4a1c-a923-36a289a7abe0",
+  "instruction": "In the \"Features\" slide of '${AS_ROOT}/slides/41_3.pptx', insert a table with 5 rows and 2 columns.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "slides",
+      "function": "compare_pptx_files",
+      "params": {
+        "expected": "${AS_ROOT}/data/39be0d19-634d-4475-8768-09c130f5425d/41_3_Gold.pptx",
+        "result": "${AS_ROOT}/slides/41_3.pptx",
+        "options": {}
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/39be0d19-634d-4475-8768-09c130f5425d/41_3.pptx",
+        "dest": "${AS_ROOT}/slides/41_3.pptx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    }
+  ]
+}

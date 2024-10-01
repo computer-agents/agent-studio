@@ -1,7 +1,7 @@
 import ast
 import importlib
 import logging
-import os
+from pathlib import Path
 
 from agent_studio.llm.base_model import BaseModel
 from agent_studio.utils.singleton import ThreadSafeSingleton
@@ -10,13 +10,11 @@ logger = logging.getLogger(__name__)
 
 
 def register_models(
-    base_path: str = "agent_studio/llm",
+    base_path: Path = Path("agent_studio/llm"),
 ) -> dict[str, type[BaseModel]]:
     registered_classes = {}
-    for file in os.listdir(base_path):
-        if file.endswith(".py"):
-            file_path = os.path.join(base_path, file)
-
+    for file_path in base_path.iterdir():
+        if file_path.name.endswith(".py"):
             # Parse the Python file
             with open(file_path, "r") as f:
                 file_contents = f.read()
@@ -26,10 +24,8 @@ def register_models(
                 logger.error(f"Error parsing {file_path}. Skipping...")
                 continue
             # Check each class definition in the file
+            module_name = file_path.as_posix().replace("/", ".").replace(".py", "")
             for node in ast.walk(tree):
-                module_name = (
-                    os.path.relpath(file_path, ".").replace(os.sep, ".").rstrip(".py")
-                )
                 if isinstance(node, ast.ClassDef):
                     for base in node.bases:
                         if isinstance(base, ast.Name) and base.id == "BaseModel":
@@ -55,6 +51,7 @@ def register_models(
 
 
 MODEL_PROVIDER_MAPPING = {
+    "gpt-4o-2024-08-06": "openai",
     "gpt-4o-2024-05-13": "openai",
     "gpt-4-turbo-2024-04-09": "openai",
     "gemini-pro-vision": "gemini",
@@ -65,19 +62,18 @@ MODEL_PROVIDER_MAPPING = {
     "claude-3-sonnet-20240229": "claude",
     "claude-3-5-sonnet-20240620": "claude",
     "claude-3-5-sonnet@20240620": "vertexai-anthropic",
+    "dummy": "dummy",
 }
 
 
-class ModelManager(ThreadSafeSingleton):
+class ModelManager(metaclass=ThreadSafeSingleton):
     """
     A class to manage the model providers.
     It provides a method to get a new model instance
     """
 
     def __init__(self):
-        print("ModelManager init")
         self.models = register_models()
-        print("ModelManager init done")
 
     def get_model(self, model_name: str) -> BaseModel:
         """

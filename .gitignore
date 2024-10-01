@@ -171,13 +171,14 @@ vscode_workspace/
 
 raw_data
 results*
-
+eval_agent_desiderata/datasets/gui_grounding/images/
+eval_agent_desiderata/datasets/image*
+eval_agent_desiderata/datasets/*.jpg
+eval_agent_desiderata/gui_grounding_v1
 training_data
-*.png
-*.jpg
-*.mp4
 results*
 trajectories
-*.zip
 *.tar.gz
 gpt4v_som
+logs/*
+logs/

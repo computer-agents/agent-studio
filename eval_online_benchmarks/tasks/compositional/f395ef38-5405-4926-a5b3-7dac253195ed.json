@@ -1,0 +1,71 @@
+{
+  "task_id": "f395ef38-5405-4926-a5b3-7dac253195ed",
+  "instruction": "Open file '${AS_ROOT}/sheets/SummerSales.xlsx' and copy the \"Date\" and \"Revenue ($)\" values to \"Sheet2\" for the rows whose \"Sales Channel\" is \"E-mail Coupon\". Remember to keep the column headers.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "sheets",
+      "function": "compare_table",
+      "params": {
+        "expected": "${AS_ROOT}/data/8909d1cb-5877-44c7-a908-9f1875302441/2_SummerSales_gt1.xlsx",
+        "result": "${AS_ROOT}/sheets/SummerSales.xlsx",
+        "options": {
+          "rules": [
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RNSheet2",
+              "sheet_idx1": "ENSheet2"
+            },
+            {
+              "type": "sheet_data",
+              "sheet_idx0": "RNSheet1",
+              "sheet_idx1": "ENSheet1"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/8909d1cb-5877-44c7-a908-9f1875302441/SummerSales.xlsx",
+        "dest": "${AS_ROOT}/sheets/SummerSales.xlsx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/sheets"
+      }
+    }
+  ]
+}

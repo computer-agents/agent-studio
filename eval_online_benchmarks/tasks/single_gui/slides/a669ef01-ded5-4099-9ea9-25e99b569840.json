@@ -1,0 +1,78 @@
+{
+  "task_id": "a669ef01-ded5-4099-9ea9-25e99b569840",
+  "instruction": "I want to do something like the following on Page 3: make the \"continuation of the sub topics\" indented the same as \"first point of sub topics\". Could you help me with it?",
+  "visual": true,
+  "max_steps": 30,
+  "eval_procedure": [
+    {
+      "evaluator": "slides",
+      "function": "compare_pptx_files",
+      "params": {
+        "expected": "${AS_ROOT}/data/a669ef01-ded5-4099-9ea9-25e99b569840/Writing-Outlines_Gold.pptx",
+        "result": "${AS_ROOT}/slides/Writing-Outlines.pptx",
+        "options": {
+          "examine_shape": false
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/a669ef01-ded5-4099-9ea9-25e99b569840/Writing-Outlines.pptx",
+        "dest": "${AS_ROOT}/slides/Writing-Outlines.pptx"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "create_process",
+      "params": {
+        "cmd": [
+          "libreoffice",
+          "${AS_ROOT}/slides/Writing-Outlines.pptx"
+        ],
+        "wait_for": "libreoffice"
+      }
+    },
+    {
+      "evaluator": "system",
+      "function": "sleep",
+      "params": {
+        "seconds": 5
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/slides"
+      }
+    }
+  ],
+  "max_time": 60
+}

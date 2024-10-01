@@ -1,0 +1,64 @@
+{
+  "task_id": "31c509db-8a88-4112-940c-5db78819dfec",
+  "instruction": "Create two files in '${AS_ROOT}/tmp/data/' directory: 'report1.txt' with content 'Report 1 data' and 'report2.txt' with content 'Report 2 data'.",
+  "visual": false,
+  "max_steps": 1,
+  "eval_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "exists",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/data/report1.txt": true,
+          "${AS_ROOT}/tmp/data/report2.txt": true
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "type_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/data/report1.txt": "file",
+          "${AS_ROOT}/tmp/data/report2.txt": "file"
+        }
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "content_check",
+      "params": {
+        "file_to_check": {
+          "${AS_ROOT}/tmp/data/report1.txt": "Report 1 data",
+          "${AS_ROOT}/tmp/data/report2.txt": "Report 2 data"
+        }
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/data"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp/data"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rmdir",
+      "params": {
+        "path": "${AS_ROOT}/tmp"
+      }
+    }
+  ],
+  "max_time": 30
+}

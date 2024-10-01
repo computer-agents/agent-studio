@@ -17,19 +17,24 @@ class Singleton(abc.ABCMeta):
         return cls._instances[cls]
 
 
-class ThreadSafeSingleton:
+class ThreadSafeSingleton(abc.ABCMeta):
     """Thread Safe Singleton
 
     https://medium.com/analytics-vidhya/how-to-create-\
         a-thread-safe-singleton-class-in-python-822e1170a7f6
     """
 
-    _instance = None
-    _lock = threading.Lock()
+    _instances: dict[Any, tuple[Any, threading.Lock]] = {}
+    _lock = threading.Lock()  # Ensures thread safety
 
-    def __new__(cls):
-        if cls._instance is None:
-            with cls._lock:
-                if not cls._instance:
-                    cls._instance = super().__new__(cls)
-        return cls._instance
+    def __call__(cls, *args, **kwargs):
+        cls._lock.acquire()
+        if cls not in cls._instances:
+            cls._instances[cls] = (None, threading.Lock())
+        cls._instances[cls][1].acquire()
+        cls._lock.release()
+        if cls._instances[cls][0] is None:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = (instance, cls._instances[cls][1])
+        cls._instances[cls][1].release()
+        return cls._instances[cls][0]

@@ -1,0 +1,56 @@
+{
+  "task_id": "84723c8b-7f82-4b5c-9627-9a5dda60f24f",
+  "instruction": "Help me open ${AS_ROOT}/docs/Constitution_Template_With_Guidelines.docx and center align the heading in LibreOffice and save the doc.",
+  "visual": true,
+  "max_steps": 30,
+  "max_time": 60,
+  "eval_procedure": [
+    {
+      "evaluator": "docs",
+      "function": "is_first_line_centered",
+      "params": {
+        "docx_file": "${AS_ROOT}/docs/Constitution_Template_With_Guidelines.docx"
+      }
+    }
+  ],
+  "reset_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "mkdir",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "copy",
+      "params": {
+        "src": "${AS_ROOT}/data/3ef2b351-8a84-4ff2-8724-d86eae9b842e/Constitution_Template_With_Guidelines.docx",
+        "dest": "${AS_ROOT}/docs/Constitution_Template_With_Guidelines.docx"
+      }
+    }
+  ],
+  "cleanup_procedure": [
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_HOME}/.config/libreoffice"
+      }
+    },
+    {
+      "evaluator": "process",
+      "function": "pkill_by_name",
+      "params": {
+        "name": "soffice.*"
+      }
+    },
+    {
+      "evaluator": "filesystem",
+      "function": "rm",
+      "params": {
+        "path": "${AS_ROOT}/docs"
+      }
+    }
+  ]
+}

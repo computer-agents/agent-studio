@@ -3,11 +3,9 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
-import os
 import sys
 import threading
 import time
-from datetime import datetime
 from pathlib import Path
 
 import cv2
@@ -15,6 +13,7 @@ import jsonpickle
 import numpy as np
 import requests
 from PyQt6.QtCore import (
+    QEvent,
     QMutex,
     QObject,
     QSize,
@@ -24,15 +23,17 @@ from PyQt6.QtCore import (
     QWaitCondition,
     pyqtSignal,
 )
-from PyQt6.QtGui import QImage
+from PyQt6.QtGui import QAction, QImage
 from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
+    QFileDialog,
     QHBoxLayout,
     QLabel,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QSplitter,
     QStatusBar,
@@ -62,30 +63,19 @@ from agent_studio.utils.gui import (
     ChoiceDialogPython,
     InputDialog,
     JSONEditor,
+    TimerLabel,
 )
-from agent_studio.utils.json_utils import export_trajectories, read_json
-from agent_studio.utils.types import TaskConfig
+from agent_studio.utils.json_utils import (
+    apply_env_vars,
+    export_trajectory,
+    read_task_jsons,
+    read_unfinished_tasks,
+)
+from agent_studio.utils.types import TaskConfig, VideoMeta
 
 config = Config()
 
-logger = logging.getLogger("agent_studio")
-format = "%(asctime)s\t%(levelname)s %(filename)s:%(lineno)s -- %(message)s"
-formatter = logging.Formatter(format)
-handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-file_handler = logging.FileHandler(
-    filename=os.path.join("logs", f"{datetime.now().strftime('%Y%m%d-%H%M%S')}.log"),
-    mode="w",
-    encoding="utf-8",
-)
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-logging.basicConfig(level=logging.DEBUG, handlers=[handler, file_handler])
-logger.propagate = False
-
+logger = logging.getLogger(__name__)
 REMOTE_SERVER_ADDR = f"http://{config.env_server_addr}:{config.env_server_port}"
 
 
@@ -114,7 +104,8 @@ class WorkerSignals(QObject):
     show_input_dialog_signal = pyqtSignal(str, str)
     runtime_output_signal = pyqtSignal(dict)
     evaluation_result_signal = pyqtSignal(str)
-    finish_signal = pyqtSignal()
+    exec_finish_signal = pyqtSignal()
+    eval_finish_signal = pyqtSignal()
     status_bar_signal = pyqtSignal(str, str)
 
 
@@ -125,16 +116,19 @@ class TaskThread(QThread):
         task_config: TaskConfig,
         signal: WorkerSignals,
         args: argparse.Namespace,
-        interface: AgentMonitor,
+        results_dir: Path,
+        interface: GUI,
     ):
         super().__init__()
         self.mutex = QMutex()
         self.wait_condition = QWaitCondition()
         self.agent: BaseAgent = agent
-        self.task_config = task_config
+        self.task_config: TaskConfig = task_config
         self.signals = signal
         self.args = args
         self.interface = interface
+        self.results_dir = results_dir
+        self.results_dir.mkdir(parents=True, exist_ok=True)
 
     def wait_finish(self, is_eval: bool, response: AgentStudioStatusResponse):
         if response.status == "finished":
@@ -180,32 +174,43 @@ class TaskThread(QThread):
             raise ValueError(f"Unknown status: {response.status}, {response.content}")
 
     def run(self):
-        log_dir = f"{self.args.log_dir}/{self.args.model}/{self.args.agent}"
-        Path(log_dir).mkdir(parents=True, exist_ok=True)
+        if not self.args.remote:
+            raise ValueError("Local mode is not supported.")
         try:
+            logger.info(f"Start task: {self.task_config.task_id}")
+            # Get remote env_vars
+            response_raw = requests.get(f"{REMOTE_SERVER_ADDR}/env_vars")
+            response = AgentStudioStatusResponse(**response_raw.json())
+            assert (
+                response.status == "success"
+            ), f"Fail to reset task: {response.message}"
+            env_vars = response.message
+            assert isinstance(env_vars, dict), "Invalid env_vars"
+            logger.debug(f"Env vars: {env_vars}")
+            logger.debug(f"Task config before: {self.task_config}")
+            self.task_config = apply_env_vars(self.task_config, env_vars)
+            logger.debug(f"Task config after: {self.task_config}")
             # Reset
-            if self.args.remote:
+            if self.task_config.reset_procedure is not None:
                 self.signals.status_bar_signal.emit("color: blue;", "Resetting Task...")
                 response_raw = requests.post(
                     f"{REMOTE_SERVER_ADDR}/task/reset",
                     json=AgentStudioResetRequest(
-                        task_config=self.task_config
+                        procedures=self.task_config.reset_procedure
                     ).model_dump(),
                 )
                 response = AgentStudioStatusResponse(**response_raw.json())
                 response = self.wait_finish(is_eval=False, response=response)
-                assert (
+                if not (
                     response.status == "finished" and response.content == "success"
-                ), f"Fail to reset task: {response.message}"
-            else:
-                raise ValueError("Local mode is not supported.")
+                ):
+                    raise ValueError(
+                        f"Fail to reset task: {response.message}"
+                        f", get response {response.content}"
+                    )
 
             instruction = self.task_config.instruction
             logger.info(f"Task instruction: {instruction}")
-            if "GMAIL_RECIPIENT" in instruction:
-                gmail_recipient = config.gmail_recipient
-                assert len(gmail_recipient) > 0, "GMAIL_RECIPIENT is not set."
-                instruction = instruction.replace("GMAIL_RECIPIENT", gmail_recipient)
 
             # Reset the agent
             self.signals.status_bar_signal.emit("color: blue;", "Resetting Agent...")
@@ -217,8 +222,11 @@ class TaskThread(QThread):
                 self.interface.start_recording()
 
             # Loop until the task is done or the max step is reached.
-            for t in range(self.task_config.max_steps):
-                logger.info(f"Step {t}")
+            start_time = time.time()
+            current_step = 0
+            action_memory = []
+            while True:
+                logger.info(f"Step {current_step}")
                 if self.task_config.visual:
                     obs = self.interface.get_screenshot()
                 else:
@@ -226,7 +234,13 @@ class TaskThread(QThread):
                 self.signals.status_bar_signal.emit(
                     "color: blue;", "Generating Action..."
                 )
-                action = self.agent.generate_action(obs=obs, model_name=self.args.model)
+                step_info = self.agent.generate_action(
+                    obs=obs, model_name=self.args.model
+                )
+                action = step_info.action
+                action_memory.append(action)
+
+                failure_msg: None | str = None
                 if config.need_human_confirmation:
                     self.mutex.lock()
                     self.signals.status_bar_signal.emit(
@@ -237,49 +251,74 @@ class TaskThread(QThread):
                     )
                     self.wait_condition.wait(self.mutex)
                     self.mutex.unlock()
-                    confirmed = self.user_input.strip().lower() == "y"
-                else:
-                    confirmed = True
+                    if self.user_input.strip().lower() != "y":
+                        failure_msg = "Cancelled by human."
+                # If the max step is reached.
+                elif current_step >= self.task_config.max_steps:
+                    failure_msg = "Max step reached."
+                # If the time limit is reached.
+                elif (
+                    self.args.use_time_limit
+                    and time.time() - start_time > self.task_config.max_time
+                ):
+                    failure_msg = "Time limit reached."
+                # If the action is empty.
+                elif action == "":
+                    failure_msg = "Failed to generate action."
+                # If the action is the same as the previous two actions.
+                elif (
+                    len(action_memory) >= 3
+                    and action_memory[-1] == action_memory[-2] == action_memory[-3]
+                ):
+                    failure_msg = "Repeated action."
                 self.signals.status_bar_signal.emit(
                     "color: blue;", "Executing Command..."
                 )
-                runtime_output, done = self.agent.step_action(confirmed)
+                runtime_output, done = self.agent.step_action(
+                    failure_msg=failure_msg, step_info=step_info
+                )
                 self.signals.runtime_output_signal.emit(runtime_output)
+                # Wait for the action to be executed
                 time.sleep(config.min_action_interval)
                 if done:
                     break
+                current_step += 1
+            stop_time = time.time()
 
-            task_trajectory_path = Path(log_dir) / self.task_config.task_id
-            video_meta = None
-            if self.task_config.visual:
-                task_trajectory_path.mkdir(parents=True, exist_ok=True)
-                video_path = (task_trajectory_path / "video.mp4").as_posix()
-                video_meta = self.interface.save_video(video_path)
-                logger.info(f"Video saved to {video_path}")
+            self.signals.exec_finish_signal.emit()
+            self.signals.status_bar_signal.emit("color: blue;", "Evaluating Task...")
+            if not self.args.no_log:
+                video_meta: VideoMeta | None = None
+                task_result_path = Path(self.results_dir) / self.task_config.task_id
+                if not task_result_path.exists():
+                    task_result_path.mkdir(parents=True, exist_ok=True)
+                if self.task_config.visual:
+                    video_folder = task_result_path
+                    video_folder.mkdir(parents=True, exist_ok=True)
+                    video_path = video_folder / "video.mp4"
+                    video_meta = self.interface.save_video(video_path)
+                    logger.info(f"Video saved to {video_path}")
 
-            if self.args.remote:
-                response_raw = requests.post(
-                    f"{REMOTE_SERVER_ADDR}/task/eval",
-                    json=AgentStudioEvalRequest(
-                        task_config=self.task_config,
-                        kwargs=str(
-                            jsonpickle.encode({"trejectory": self.agent.trajectory})
-                        ),
-                    ).model_dump(),
-                )
-                response = AgentStudioStatusResponse(**response_raw.json())
-                response = self.wait_finish(is_eval=True, response=response)
-                if not (
-                    response.status == "finished"
-                    and isinstance(response.message, dict)  # noqa: E501
-                ):
-                    raise ValueError(f"Fail to evaluate task: {response.message}")
-                score, feedback = (
-                    response.message["score"],
-                    response.message["feedback"],
-                )
-            else:
-                raise ValueError("Local mode is not supported.")
+            response_raw = requests.post(
+                f"{REMOTE_SERVER_ADDR}/task/eval",
+                json=AgentStudioEvalRequest(
+                    procedures=self.task_config.eval_procedure,
+                    as_kwargs=str(
+                        jsonpickle.encode({"trejectory": self.agent.trajectory})
+                    ),
+                ).model_dump(),
+            )
+            response = AgentStudioStatusResponse(**response_raw.json())
+            response = self.wait_finish(is_eval=True, response=response)
+            if not (
+                response.status == "finished"
+                and isinstance(response.message, dict)  # noqa: E501
+            ):
+                raise ValueError(f"Fail to evaluate task: {response.message}")
+            score, feedback = (
+                response.message["score"],
+                response.message["feedback"],
+            )
 
             if score == 1.0:
                 logger.info(f"[Result] (PASS): {feedback}")
@@ -289,28 +328,45 @@ class TaskThread(QThread):
                 f"Score: {score}\nFeedback: {feedback}"
             )
 
-            self.signals.status_bar_signal.emit(
-                "color: blue;", "Exporting Trajectory..."
-            )
-            export_trajectories(
-                task_config=self.task_config,
-                trajectory=self.agent.trajectory,
-                record_path=log_dir,
-                score=score,
-                feedback=feedback,
-                token_count=self.agent.get_token_count(),
-                video_meta=video_meta,
-                jsonl_name=os.path.basename(self.args.task_configs_path).replace(
-                    ".json", ".jsonl"
-                ),
-            )
-            self.signals.status_bar_signal.emit("color: green;", "Ready")
-            self.signals.finish_signal.emit()
+            if not self.args.no_log:
+                self.signals.status_bar_signal.emit(
+                    "color: blue;", "Exporting Trajectory..."
+                )
+                export_trajectory(
+                    task_config=self.task_config,
+                    trajectory=self.agent.trajectory,
+                    path=task_result_path,
+                    score=score,
+                    feedback=feedback,
+                    token_count=self.agent.get_token_count(),
+                    time_cost=stop_time - start_time,
+                    video_meta=video_meta,
+                )
         except Exception as e:
             import traceback
 
             logger.error(f"[Unhandled Error] {repr(e)}]")
-            logger.error(traceback.format_exc())
+            traceback.print_exc()
+        finally:
+            # Cleanup
+            if self.task_config.cleanup_procedure is not None:
+                self.signals.status_bar_signal.emit(
+                    "color: blue;", "Cleaning up Task..."
+                )
+                response_raw = requests.post(
+                    f"{REMOTE_SERVER_ADDR}/task/reset",
+                    json=AgentStudioResetRequest(
+                        procedures=self.task_config.cleanup_procedure
+                    ).model_dump(),
+                )
+                response = AgentStudioStatusResponse(**response_raw.json())
+                response = self.wait_finish(is_eval=False, response=response)
+                if not (
+                    response.status == "finished" and response.content == "success"
+                ):
+                    logger.error(f"Fail to cleanup task: {response.message}")
+            self.signals.status_bar_signal.emit("color: green;", "Ready")
+            self.signals.eval_finish_signal.emit()
 
     def receive_user_input(self, text: str):
         self.mutex.lock()
@@ -319,14 +375,13 @@ class TaskThread(QThread):
         self.mutex.unlock()
 
 
-class AgentMonitor(QMainWindow):
+class GUI(QMainWindow):
     """Main class for the agent monitor."""
 
     def __init__(
         self,
         args: argparse.Namespace,
         remote: bool,
-        task_configs: list[TaskConfig],
         window_width: int,
         window_height: int,
     ) -> None:
@@ -334,10 +389,15 @@ class AgentMonitor(QMainWindow):
         super().__init__()
         self.frame_buffer: FrameBuffer = FrameBuffer()
         self.args = args
-        self.is_recording = False
         self.remote = remote
-        self.task_configs = task_configs
+        self.results_dir = Path(
+            f"{self.args.log_dir}/{self.args.model}/{self.args.agent}"
+        )
+        self.task_config_path = Path(self.args.task_configs_path)
+        # Setup tasks
+        self.load_task_configs()
         self.selected_task: TaskConfig
+        self.selected_task_idx: int | None = None
         self.window_width = window_width
         self.window_height = window_height
 
@@ -368,9 +428,8 @@ class AgentMonitor(QMainWindow):
         else:
             self.capture_thread = LocalStreamer(config.monitor_idx)
 
-        # Start the capture thread to get video feed.
-        assert self.capture_thread is not None
-        self.capture_thread.start()
+        self.is_recording = False
+        self.recording_thread: threading.Thread | None = None
 
         # Initialize the screenshot as a blank image.
         self.video_height, self.video_width = (
@@ -385,10 +444,45 @@ class AgentMonitor(QMainWindow):
 
         self.reset()
 
+        # Install event filter on the main window
+        self.installEventFilter(self)
+
+    def load_task_configs(self):
+        try:
+            if self.args.ignore_finished:
+                self.task_configs: list[TaskConfig] = read_unfinished_tasks(
+                    Path(self.task_config_path), self.results_dir
+                )
+            else:
+                self.task_configs: list[TaskConfig] = read_task_jsons(
+                    Path(self.task_config_path)
+                )
+            self.task_configs.sort(key=lambda x: x.instruction)
+        except Exception as e:
+            logger.error(f"Failed to load task configs: {e}")
+            self.task_configs = []
+            self.status_bar.showMessage("Failed to load task configs", 3000)
+
     def setup_ui(self):
         """Sets up the UI, including the VNC frame (left) and the right layout."""
         # Setup the user interface for the application.
         self.setWindowTitle("Agent Monitor")
+
+        # Create menu bar
+        menubar = self.menuBar()
+        assert menubar is not None
+        file_menu = menubar.addMenu("File")
+        assert file_menu is not None
+
+        # Open Task Config
+        open_file_action = QAction("Open Config", self)
+        open_file_action.triggered.connect(self.open_task_config)
+        file_menu.addAction(open_file_action)
+
+        # Reload Task Configs
+        reload_action = QAction("Reload Configs", self)
+        reload_action.triggered.connect(self.reload_task_configs)
+        file_menu.addAction(reload_action)
 
         # Central widget to hold the main layout.
         central_widget = QWidget(self)
@@ -414,11 +508,14 @@ class AgentMonitor(QMainWindow):
             )
             left_layout.addWidget(self.vnc_frame)
 
-            self.reconnect_button = QPushButton("Re-connect")
-            self.reconnect_button.clicked.connect(self.reconnect)
-            self.reconnect_button.setFixedWidth(150)
-            self.reconnect_button.setFixedHeight(50)
-            left_layout.addWidget(self.reconnect_button)
+            button_timer_layout = QHBoxLayout()
+            button_timer_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            self.timer_label = TimerLabel(self)
+            button_timer_layout.addWidget(self.timer_label)
+
+            # Add the horizontal layout to the main left layout
+            left_layout.addLayout(button_timer_layout)
 
             vnc_widget = QWidget()
             vnc_widget.setLayout(left_layout)
@@ -503,6 +600,37 @@ class AgentMonitor(QMainWindow):
 
         self.setMouseTracking(True)
 
+        # Add keyboard shortcuts
+        self.start_button.setShortcut("Shift+Return")  # Shift + Enter to start task
+        self.show_trajectory_button.setShortcut("Ctrl+T")  # Ctrl + T to show trajectory
+        self.interrupt_button.setShortcut("Escape")
+        self.instruction_selection.setFocusPolicy(
+            Qt.FocusPolicy.StrongFocus
+        )  # Ensure the list can receive focus
+        self.instruction_selection.installEventFilter(
+            self
+        )  # Install event filter for key events
+
+    def reload_task_configs(self):
+        self.load_task_configs()
+        self.populate_instruction_selection_widget()
+        self.status_bar.showMessage("Task configs reloaded", 3000)
+
+    def open_task_config(self):
+        folder_path = QFileDialog.getExistingDirectory(self, "Open Task Config Folder")
+        if folder_path:
+            self.task_config_path = Path(folder_path)
+            try:
+                self.load_task_configs()
+                self.populate_instruction_selection_widget()
+                self.status_bar.showMessage(
+                    f"Task configs added from: {folder_path}", 3000
+                )
+            except Exception as e:
+                QMessageBox.critical(
+                    self, "Error", f"Failed to load task configs: {str(e)}"
+                )
+
     def show_input_dialog(self, title: str, message: str):
         assert self.task_thread is not None
         self.dlg = InputDialog(title, message, self.task_thread.receive_user_input)
@@ -558,8 +686,8 @@ class AgentMonitor(QMainWindow):
 
     def select_task_instruction(self, item):
         self.task_instruction = item.text()
-        selected_task_idx = self.instruction_selection.currentRow()
-        self.selected_task = self.task_configs[selected_task_idx]
+        self.selected_task_idx = self.instruction_selection.currentRow()
+        self.selected_task = self.task_configs[self.selected_task_idx]
         self.task_config_display.setText(self.selected_task.model_dump_json(indent=4))
         self.evaluation_display.clear()
         self.output_display.clear()
@@ -583,7 +711,8 @@ class AgentMonitor(QMainWindow):
         signals.show_input_dialog_signal.connect(self.show_input_dialog)
         signals.runtime_output_signal.connect(self.output_display.setText)
         signals.evaluation_result_signal.connect(self.evaluation_display.setPlainText)
-        signals.finish_signal.connect(self.task_finished)
+        signals.exec_finish_signal.connect(self.exec_finished)
+        signals.eval_finish_signal.connect(self.task_finished)
         signals.status_bar_signal.connect(self.set_task_status_bar_text)
         self.task_thread = TaskThread(
             agent=self.agent,
@@ -591,8 +720,13 @@ class AgentMonitor(QMainWindow):
             signal=signals,
             args=self.args,
             interface=self,
+            results_dir=self.results_dir,
         )
         self.task_thread.start()
+        self.timer_label.start()
+
+    def exec_finished(self):
+        self.timer_label.stop()
 
     def task_finished(self):
         if self.task_thread is not None:
@@ -603,12 +737,12 @@ class AgentMonitor(QMainWindow):
 
     def reset(self) -> None:
         """Resets the UI elements to their default state."""
-        self.vnc_frame.reset()
         self.refresh_timer.start()
         # set widgets to default state
         self.interrupt_button.setEnabled(True)
         self.start_button.setEnabled(False)
         self.instruction_selection.setEnabled(True)
+        self.timer_label.stop()
         # clear displays and selections
         self.instruction_selection.clearSelection()
         self.output_display.clear()
@@ -622,26 +756,12 @@ class AgentMonitor(QMainWindow):
         if self.task_thread is not None:
             self.task_thread.terminate()
             self.task_thread = None
+        self.is_recording = False
+        if self.recording_thread is not None:
+            self.recording_thread.join()
+            self.recording_thread = None
         # reset status bar
         self.set_task_status_bar_text("color: green;", "Ready")
-        self.status_bar.showMessage(
-            "Connected. Please go to the terminal to check outputs."
-        )
-
-    def reconnect(self):
-        self.status_bar.showMessage("Reconnecting")
-        self.now_screenshot = np.zeros(
-            (self.video_height, self.video_width, 4), dtype="uint8"
-        )
-        if self.capture_thread is not None:
-            self.capture_thread.stop()
-        if self.remote:
-            self.capture_thread = VNCStreamer(
-                config.env_server_addr, config.vnc_port, config.vnc_password
-            )
-        else:
-            self.capture_thread = LocalStreamer(config.monitor_idx)
-        self.capture_thread.start()
         self.status_bar.showMessage(
             "Connected. Please go to the terminal to check outputs."
         )
@@ -680,7 +800,6 @@ class AgentMonitor(QMainWindow):
         """Starts recording the video."""
         assert not self.is_recording, "Recording is already in progress."
         self.is_recording = True
-        self.start_time = time.time()
         self.frame_buffer.clear()
         self.status_bar.showMessage("Recording started.")
 
@@ -692,20 +811,21 @@ class AgentMonitor(QMainWindow):
         frame = cv2.cvtColor(self.now_screenshot, cv2.COLOR_BGRA2RGB)
         return np.array(frame)
 
-    def save_video(self, record_path: str) -> dict:
+    def save_video(self, video_path: Path) -> VideoMeta:
         """Stops recording and saves the video to the file system.
 
         Returns:
             dict: Metadata about the saved video.
         """
-        os.makedirs(os.path.dirname(record_path), exist_ok=True)
         assert (
             self.is_recording and self.frame_buffer is not None
         ), "No recording in progress."
         self.is_recording = False
-        self.stop_time = time.time()
+        if self.recording_thread is not None:
+            self.recording_thread.join()
+            self.recording_thread = None
         writer = cv2.VideoWriter(
-            record_path,
+            video_path.as_posix(),
             cv2.VideoWriter.fourcc(*"mp4v"),
             config.video_fps,
             (self.video_width, self.video_height),
@@ -718,15 +838,13 @@ class AgentMonitor(QMainWindow):
         self.frame_buffer.clear()
         self.status_bar.showMessage("Recording stopped and video saved.")
 
-        return {
-            "start_time": self.start_time,
-            "stop_time": self.stop_time,
-            "fps": config.video_fps,
-            "frame_count": len(frames),
-            "video_path": record_path,
-            "width": self.video_width,
-            "height": self.video_height,
-        }
+        return VideoMeta(
+            fps=config.video_fps,
+            frame_count=len(frames),
+            video_path=f"file://{video_path.name}",
+            width=self.video_width,
+            height=self.video_height,
+        )
 
     def closeEvent(self, event):
         """Handles the close event by stopping the capture thread and timer.
@@ -737,10 +855,144 @@ class AgentMonitor(QMainWindow):
         self.agent.close()
 
         self.refresh_timer.stop()
+        if self.recording_thread is not None:
+            self.recording_thread.join()
         if self.capture_thread is not None:
             self.capture_thread.stop()
 
         exit(0)
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.Type.KeyPress:  # Change here
+            if (
+                event.key() == Qt.Key.Key_Return
+                and event.modifiers() == Qt.KeyboardModifier.ControlModifier
+            ):
+                # Ctrl + Enter to start next task
+                if self.selected_task_idx is None:
+                    if len(self.task_configs) > 0:
+                        self.instruction_selection.setCurrentRow(0)
+                        self.select_task_instruction(self.instruction_selection.item(0))
+                elif self.selected_task_idx < len(self.task_configs) - 1:
+                    self.instruction_selection.setCurrentRow(self.selected_task_idx + 1)
+                    self.select_task_instruction(
+                        self.instruction_selection.item(self.selected_task_idx + 1)
+                    )
+                else:
+                    return True
+                self.start_button.click()
+            if source is self.instruction_selection:
+                if event.key() == Qt.Key.Key_Return:  # Enter to select item
+                    self.select_task_instruction(
+                        self.instruction_selection.currentItem()
+                    )
+                    return True
+        return super().eventFilter(source, event)
+
+
+class NonGUI:
+    def __init__(
+        self,
+        args: argparse.Namespace,
+        remote: bool,
+        window_width: int,
+        window_height: int,
+    ) -> None:
+        """Initializes the UI."""
+        super().__init__()
+        self.frame_buffer: FrameBuffer = FrameBuffer()
+        self.args = args
+        self.remote = remote
+        self.window_width = window_width
+        self.window_height = window_height
+
+        self.fps = config.video_fps
+
+        self.capture_thread: VNCStreamer | LocalStreamer | None = None
+        if remote:
+            self.capture_thread = VNCStreamer(
+                config.env_server_addr, config.vnc_port, config.vnc_password
+            )
+        else:
+            self.capture_thread = LocalStreamer(config.monitor_idx)
+        self.data_lock = threading.Lock()
+
+        # Initialize the screenshot as a blank image.
+        self.video_height, self.video_width = (
+            self.capture_thread.video_height,
+            self.capture_thread.video_width,
+        )
+        self.now_screenshot = np.zeros(
+            (self.video_height, self.video_width, 4), dtype="uint8"
+        )
+        self.recording_thread: threading.Thread | None = None
+
+    def start_recording(self):
+        self.is_recording = True
+        self.recording_thread = threading.Thread(target=self._capture)
+        self.recording_thread.start()
+        self.frame_buffer.clear()
+
+    def get_screenshot(self):
+        while np.all(self.now_screenshot == 0):
+            print("Waiting for the first frame.")
+            time.sleep(0.5)
+        with self.data_lock:
+            frame = cv2.cvtColor(self.now_screenshot, cv2.COLOR_BGRA2RGB)
+            return np.array(frame)
+
+    def _capture(self):
+        assert self.capture_thread is not None
+        while self.is_recording:
+            with self.data_lock:
+                frame = self.capture_thread.get_current_frame()
+                if frame is not None:
+                    self.now_screenshot = frame.copy()
+                    self.frame_buffer.add_frame(self.now_screenshot)
+            time.sleep(1.0 / config.video_fps)
+        logger.info("Recording thread stopped")
+
+    def save_video(self, video_path: Path) -> VideoMeta:
+        """Stops recording and saves the video to the file system.
+
+        Returns:
+            dict: Metadata about the saved video.
+        """
+        assert (
+            self.is_recording
+            and self.frame_buffer is not None
+            and self.recording_thread is not None
+        ), "No recording in progress."
+        self.is_recording = False
+        self.recording_thread.join()
+        self.recording_thread = None
+        writer = cv2.VideoWriter(
+            video_path.as_posix(),
+            cv2.VideoWriter.fourcc(*"mp4v"),
+            config.video_fps,
+            (self.video_width, self.video_height),
+        )
+        frames = self.frame_buffer.get_frames()
+        logger.info(f"Captured {len(frames)} frames with FPS={config.video_fps}")
+        for frame in frames:
+            writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+        writer.release()
+        self.frame_buffer.clear()
+
+        return VideoMeta(
+            fps=config.video_fps,
+            frame_count=len(frames),
+            video_path=f"file://{video_path.name}",
+            width=self.video_width,
+            height=self.video_height,
+        )
+
+    def close(self):
+        if self.recording_thread is not None:
+            self.is_recording = False
+            self.recording_thread.join()
+        if self.capture_thread is not None:
+            self.capture_thread.stop()
 
 
 def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
@@ -763,142 +1015,222 @@ def wait_finish(is_eval: bool, response: AgentStudioStatusResponse):
         raise ValueError(f"Unknown status: {response.status}, {response.content}")
 
 
-def eval(args, interface: AgentMonitor | None = None) -> None:
-    # Setup agent
-    agent = setup_agent(
-        agent_name=args.agent,
-        model=args.model,
-        remote=args.remote,
-        runtime_server_addr=config.env_server_addr,
-        runtime_server_port=config.env_server_port,
-    )
-    log_dir = f"{args.log_dir}/{args.model}/{args.agent}"
-    Path(log_dir).mkdir(parents=True, exist_ok=True)
+def eval(args, interface: NonGUI | None = None) -> None:
+    try:
+        # Setup agent
+        agent = setup_agent(
+            agent_name=args.agent,
+            model=args.model,
+            remote=args.remote,
+            runtime_server_addr=config.env_server_addr,
+            runtime_server_port=config.env_server_port,
+        )
+        results_dir = Path(f"{args.log_dir}/{args.model}/{args.agent}")
+        results_dir.mkdir(parents=True, exist_ok=True)
 
-    # Setup tasks
-    task_configs_json = read_json(args.task_configs_path, args.start_idx, args.end_idx)
-    task_configs: list[TaskConfig] = []
-    for task_config in task_configs_json:
-        task_configs.append(TaskConfig.model_validate(task_config))
+        # Setup tasks
+        if args.ignore_finished:
+            task_configs_json = read_unfinished_tasks(
+                Path(args.task_configs_path), results_dir
+            )
+        else:
+            task_configs_json = read_task_jsons(Path(args.task_configs_path))
+        task_configs: list[TaskConfig] = []
+        for task_config in task_configs_json:
+            task_configs.append(TaskConfig.model_validate(task_config))
 
-    # Run evaluation
-    scores = {}
-    for task_config in tqdm(task_configs, desc="Evaluating tasks"):
-        try:
-            # Reset
-            if args.remote:
-                response_raw = requests.post(
-                    f"{REMOTE_SERVER_ADDR}/task/reset",
-                    json=AgentStudioResetRequest(task_config=task_config).model_dump(),
-                )
-                response = AgentStudioStatusResponse(**response_raw.json())
-                response = wait_finish(is_eval=False, response=response)
-                assert (
-                    response.status == "finished" and response.content == "success"
-                ), f"Fail to reset task: {response.message}"
-            else:
-                evaluators = evaluator_router(task_config)
-                evaluators.reset(task_config.reset_procedure)
-
-            instruction = task_config.instruction
-            logger.info(f"Task instruction: {instruction}")
-            if "GMAIL_RECIPIENT" in instruction:
-                gmail_recipient = config.gmail_recipient
-                assert len(gmail_recipient) > 0, "GMAIL_RECIPIENT is not set."
-                instruction = instruction.replace("GMAIL_RECIPIENT", gmail_recipient)
-
-            # Reset the agent
-            agent.reset(task_config=task_config)
-            if task_config.visual:
-                assert (
-                    interface is not None
-                ), "Interface has to be open for visual tasks."
-                interface.start_recording()
-
-            # Loop until the task is done or the max step is reached.
-            for t in range(task_config.max_steps):
-                logger.info(f"Step {t}")
-                if task_config.visual:
-                    obs = interface.get_screenshot()
+        # Run evaluation
+        scores = {}
+        for task_config in tqdm(task_configs, desc="Evaluating tasks"):
+            logger.info(f"Start task: {task_config.task_id}")
+            try:
+                # Get remote env_vars
+                if args.remote:
+                    response_raw = requests.get(f"{REMOTE_SERVER_ADDR}/env_vars")
+                    response = AgentStudioStatusResponse(**response_raw.json())
+                    assert (
+                        response.status == "success"
+                    ), f"Fail to reset task: {response.message}"
+                    env_vars = response.message
+                    assert isinstance(env_vars, dict), "Invalid env_vars"
                 else:
-                    obs = None
-                action = agent.generate_action(obs=obs, model_name=args.model)
-                if config.need_human_confirmation:
-                    confirmed = (
+                    env_vars = config.env_vars
+                logger.debug(f"Env vars: {env_vars}")
+                logger.debug(f"Task config before: {task_config}")
+                task_config = apply_env_vars(task_config, env_vars)
+                logger.debug(f"Task config after: {task_config}")
+                # Reset
+                if task_config.reset_procedure is not None:
+                    if args.remote:
+                        response_raw = requests.post(
+                            f"{REMOTE_SERVER_ADDR}/task/reset",
+                            json=AgentStudioResetRequest(
+                                procedures=task_config.reset_procedure
+                            ).model_dump(),
+                        )
+                        response = AgentStudioStatusResponse(**response_raw.json())
+                        response = wait_finish(is_eval=False, response=response)
+                        assert (
+                            response.status == "finished"
+                            and response.content == "success"
+                        ), f"Fail to reset task: {response.message}"
+                    else:
+                        evaluators = evaluator_router(task_config)
+                        evaluators.reset(task_config.reset_procedure)
+
+                instruction = task_config.instruction
+                logger.info(f"Task instruction: {instruction}")
+
+                # Reset the agent
+                agent.reset(task_config=task_config)
+                if task_config.visual:
+                    assert (
+                        interface is not None
+                    ), "Interface has to be open for visual tasks."
+                    interface.start_recording()
+
+                # Loop until the task is done or the max step is reached.
+                start_time = time.time()
+                current_step = 0
+                action_memory = []
+                while True:
+                    logger.info(f"Step {current_step}")
+                    if task_config.visual:
+                        assert (
+                            interface is not None
+                        ), "Interface has to be open for visual tasks."
+                        obs = interface.get_screenshot()
+                    else:
+                        obs = None
+                    step_info = agent.generate_action(obs=obs, model_name=args.model)
+                    action = step_info.action
+                    action_memory.append(action)
+
+                    failure_msg: None | str = None
+                    if config.need_human_confirmation and (
                         input(f"Action:\n{action}\nConfirm action (y/n): ")
                         .strip()
                         .lower()
-                        == "y"
+                        != "y"
+                    ):
+                        failure_msg = "Cancelled by human."
+                    # If the max step is reached.
+                    elif current_step >= task_config.max_steps:
+                        failure_msg = "Max step reached."
+                    # If the time limit is reached, the action is not confirmed.
+                    elif (
+                        args.use_time_limit
+                        and time.time() - start_time > task_config.max_time
+                    ):
+                        failure_msg = "Time limit reached."
+                    # If the action is empty.
+                    elif action == "":
+                        failure_msg = "Failed to generate action."
+                    # If the action is the same as the previous two actions.
+                    elif (
+                        len(action_memory) >= 3
+                        and action_memory[-1] == action_memory[-2] == action_memory[-3]
+                    ):
+                        failure_msg = "Repeated action."
+                    _, done = agent.step_action(
+                        failure_msg=failure_msg, step_info=step_info
+                    )
+                    time.sleep(config.min_action_interval)
+                    if done:
+                        break
+                    current_step += 1
+                stop_time = time.time()
+
+                if not args.no_log:
+                    task_trajectory_path = results_dir / task_config.task_id
+                    if not task_trajectory_path.exists():
+                        task_trajectory_path.mkdir(parents=True, exist_ok=True)
+                    video_meta: VideoMeta | None = None
+                    if task_config.visual:
+                        task_trajectory_path.mkdir(parents=True, exist_ok=True)
+                        video_path = task_trajectory_path / "video.mp4"
+                        assert interface is not None
+                        video_meta = interface.save_video(video_path)
+                        logger.info(f"Video saved to {video_path}")
+
+                if args.remote:
+                    response_raw = requests.post(
+                        f"{REMOTE_SERVER_ADDR}/task/eval",
+                        json=AgentStudioEvalRequest(
+                            procedures=task_config.eval_procedure,
+                            as_kwargs=str(
+                                jsonpickle.encode({"trajectory": agent.trajectory})
+                            ),
+                        ).model_dump(),
+                    )
+                    response = AgentStudioStatusResponse(**response_raw.json())
+                    response = wait_finish(is_eval=True, response=response)
+                    if not (
+                        response.status == "finished"
+                        and isinstance(response.message, dict)  # noqa: E501
+                    ):
+                        raise ValueError(f"Fail to evaluate task: {response.message}")
+                    score, feedback = (
+                        response.message["score"],
+                        response.message["feedback"],
                     )
                 else:
-                    confirmed = True
-                _, done = agent.step_action(confirmed)
-                time.sleep(config.min_action_interval)
-                if done:
-                    break
+                    logger.info("Start evaluation")
+                    score, feedback = evaluators(task_config.eval_procedure)
 
-            task_trajectory_path = Path(log_dir) / task_config.task_id
-            video_meta = None
-            if task_config.visual:
-                task_trajectory_path.mkdir(parents=True, exist_ok=True)
-                video_path = (task_trajectory_path / "video.mp4").as_posix()
-                video_meta = interface.save_video(video_path)
-                logger.info(f"Video saved to {video_path}")
+                scores[task_config.task_id] = score
+                if score == 1.0:
+                    logger.info(f"[Result] (PASS): {feedback}")
+                else:
+                    logger.info(f"[Result] (FAIL): {feedback}")
 
-            if args.remote:
-                response_raw = requests.post(
-                    f"{REMOTE_SERVER_ADDR}/task/eval",
-                    json=AgentStudioEvalRequest(
+                if not args.no_log:
+                    task_result_path = results_dir / task_config.task_id
+                    export_trajectory(
                         task_config=task_config,
-                        kwargs=str(jsonpickle.encode({"trajectory": agent.trajectory})),
-                    ).model_dump(),
-                )
-                response = AgentStudioStatusResponse(**response_raw.json())
-                response = wait_finish(is_eval=True, response=response)
-                if not (
-                    response.status == "finished"
-                    and isinstance(response.message, dict)  # noqa: E501
-                ):
-                    raise ValueError(f"Fail to evaluate task: {response.message}")
-                score, feedback = (
-                    response.message["score"],
-                    response.message["feedback"],
-                )
-            else:
-                logger.info("Start evaluation")
-                score, feedback = evaluators(task_config.eval_procedure)
+                        trajectory=agent.trajectory,
+                        path=task_result_path,
+                        score=score,
+                        feedback=feedback,
+                        token_count=agent.get_token_count(),
+                        time_cost=stop_time - start_time,
+                        video_meta=video_meta,
+                    )
+            except Exception as e:
+                import traceback
 
-            scores[task_config.task_id] = score
-            if score == 1.0:
-                logger.info(f"[Result] (PASS): {feedback}")
-            else:
-                logger.info(f"[Result] (FAIL): {feedback}")
+                logger.error(f"[Unhandled Error] {repr(e)}]")
+                traceback.print_exc()
+            finally:
+                # Clean up
+                if task_config.cleanup_procedure is not None:
+                    if args.remote:
+                        response_raw = requests.post(
+                            f"{REMOTE_SERVER_ADDR}/task/reset",
+                            json=AgentStudioResetRequest(
+                                procedures=task_config.cleanup_procedure
+                            ).model_dump(),
+                        )
+                        response = AgentStudioStatusResponse(**response_raw.json())
+                        response = wait_finish(is_eval=False, response=response)
+                        assert (
+                            response.status == "finished"
+                            and response.content == "success"
+                        ), f"Fail to reset task: {response.message}"
+                    else:
+                        evaluators = evaluator_router(task_config)
+                        evaluators.reset(task_config.cleanup_procedure)
 
-            export_trajectories(
-                task_config=task_config,
-                trajectory=agent.trajectory,
-                record_path=log_dir,
-                score=score,
-                feedback=feedback,
-                token_count=agent.get_token_count(),
-                video_meta=video_meta,
-                jsonl_name=os.path.basename(args.task_configs_path).replace(
-                    ".json", ".jsonl"
-                ),
-            )
-        except Exception as e:
-            import traceback
-
-            logger.error(f"[Unhandled Error] {repr(e)}]")
-            logger.error(traceback.format_exc())
-
-    agent.close()
-    logger.info(
-        f"Average score: {sum(scores.values())}/{len(scores)}="
-        f"{sum(scores.values()) / max(len(scores), 1)}"
-    )
-    if interface is not None:
-        logger.info("Please close the interface to exit.")
+        agent.close()
+        logger.info(
+            f"Average score: {sum(scores.values())}/{len(scores)}="
+            f"{sum(scores.values()) / max(len(scores), 1)}"
+        )
+    except KeyboardInterrupt:
+        logger.info("Interrupted by user.")
+    finally:
+        if interface is not None:
+            interface.close()
 
 
 def main():
@@ -906,8 +1238,6 @@ def main():
     parser.add_argument("--model", type=str, help="Model name")
     parser.add_argument("--agent", type=str, default="direct", help="Agent type")
     parser.add_argument("--task_configs_path", type=str, help="Path to the task config")
-    parser.add_argument("--start_idx", type=int, default=0)
-    parser.add_argument("--end_idx", type=int, default=None)
     parser.add_argument(
         "--log_dir",
         type=str,
@@ -931,6 +1261,13 @@ def main():
         action="store_true",
         help="Need human confirmation for actions",
     )
+    parser.add_argument(
+        "--use_time_limit", action="store_true", help="Use time limit for tasks"
+    )
+    parser.add_argument(
+        "--ignore_finished", action="store_true", help="Only evaluate unfinished tasks"
+    )
+    parser.add_argument("--no_log", action="store_true", help="Do not log the results")
     args = parser.parse_args()
     logger.info(f"Running with args: {args}")
     assert args.task_configs_path is not None, "Task config is not set."
@@ -946,21 +1283,19 @@ def main():
         raise RuntimeError("A second screen is required for local annotation.")
 
     if not args.render:
-        eval(args)
+        interface = NonGUI(
+            args=args,
+            remote=args.remote,
+            window_width=args.window_width,
+            window_height=args.window_height,
+        )
+        eval(args, interface)
     else:
         try:
-            # Setup tasks
-            task_configs_json = read_json(
-                args.task_configs_path, args.start_idx, args.end_idx
-            )
-            task_configs: list[TaskConfig] = []
-            for task_config in task_configs_json:
-                task_configs.append(TaskConfig.model_validate(task_config))
             # Create the main interface.
-            interface = AgentMonitor(
+            interface = GUI(
                 args=args,
                 remote=args.remote,
-                task_configs=task_configs,
                 window_width=args.window_width,
                 window_height=args.window_height,
             )

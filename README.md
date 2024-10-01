@@ -28,38 +28,41 @@ Comparisons with existing work:
 
 **Mar 30, 2024**: We release the beta version of AgentStudio.
 
-## Install
+## Installation
 
-Please see [docs/install.md](docs/install.md) for more details. We are going to create a packed release for out-of-box usage.
+Install requirements:
 
-## Benchmarks for Fundamental Agent Abilities
+```bash
+apt-get install gnome-screenshot xclip xdotool  # If using Ubuntu 22.04
+conda create --name agent-studio python=3.11 -y
+conda activate agent-studio
+pip install -e '.[client]'
+```
 
-To provide benchmarking focusing on specific agent capabilities that current benchmark is lacking, we release three benchmark suites, targeting robust **UI grounding**, **success detection** (self-reflection), and **learning from unlabeled videos** (inverse dynamics models).
+All confidential API keys should be stored in `agent_studio/config/api_key.json`, e.g., OpenAI API key, Claude API key, Gemini API key, etc. We have provided an example config in `agent_studio/config/api_key_template.json`.
 
-The leaderboard and data can be found at our [project page](https://skyworkai.github.io/agent-studio/). The scripts to produce or add benchmark results can be found [here](evals/README.md).
-
-We curated three static datasets for benchmarking GUI grounding, success detection, and learning from videos, respectively. Please see the detailed [evals/README.md](evals/README.md) for scripts that reproduce the benchmark results in our paper.
-
-## Customize Online Benchmarks in Real Environments
+## Online Benchmarks
 
 ![](docs/assets/agent_space.jpg)
 
-AgentStudio also provides a cross-platform real-world environments with most generic (human-like) observation and action spaces. We also offer a set of example tasks as a demonstration to benchmark computer agents in the wild. We also offer several auto-evaluators for easily benchmark without human evaluation. The implementation is straightforward and flexible, supporting adding custom tasks as well as human evaluation. Please find more in [docs/online_benchmark.md](docs/online_benchmark.md).
+AgentStudio also provides a cross-platform real-world environments with most generic (human-like) observation and action spaces. We also offer a set of example tasks as a demonstration to benchmark computer agents in the wild. We also offer several auto-evaluators for easily benchmark without human evaluation. The implementation is straightforward and flexible, supporting adding custom tasks as well as human evaluation. Please find more in the [Benchmark Guide](eval_online_benchmarks/README.md).
 
-## Record GUI Data and Trajectories
+## Decomposing Agent Abilities
+
+To provide benchmarking focusing on specific agent capabilities that current benchmark is lacking, we release three benchmark suites, targeting robust **UI grounding**, **success detection** (self-reflection), and **learning from unlabeled videos** (inverse dynamics models). Please see the detailed [evals/README.md](evals/README.md) for scripts that reproduce the benchmark results in our paper. The leaderboard and data can be found at our [project page](https://skyworkai.github.io/agent-studio/).
+
+## Record GUI Data, Trajectories, and Videos
 
 The real-world environments also facilitate scalable data collection across different operating systems. AgentStudio offers two data collection pipelines for single-step GUI grounding data and task-completing trajectories, for both local recording (assuming there are two screens) and remote recording (based on VNC). Please refer to the [docs/annotate_ground_ui.md](docs/annotate_ground_ui.md) and [docs/annotate_trajectory.md](docs/annotate_trajectory.md) for detailed instructions.
 
 Here is an example of recording single-step GUI grounding data in MacOS:
 
 <div style="display: flex; justify-content: space-between;">
-    <img src="docs/assets/annotate_gui_1.jpg" width="50%">
-    <img src="docs/assets/annotate_gui_2.jpg" width="50%">
+    <img src="docs/assets/annotate_gui_1.jpg" width="45%">
+    <img src="docs/assets/annotate_gui_2.jpg" width="45%">
 </div>
 
 The example video of recording trajectories can be found at our project page.
-
-
 
 ## Contributing
 
@@ -67,7 +70,7 @@ We are continuing to expand the collection of environments, tasks, and data over
 
 ## Acknowledgement
 
-We would like to thank the following projects for their inspiration and contributions to the open-source community: [Open Interpreter](https://github.com/KillianLucas/open-interpreter), [WebArena](https://github.com/web-arena-x/webarena), [Cradle](https://baai-agents.github.io/Cradle/), [Synapse](https://ltzheng.github.io/Synapse/), [SeeClick](https://github.com/njucckevin/SeeClick), [ScreenAgent](https://github.com/niuzaisheng/ScreenAgent), etc.
+We would like to thank the following projects for their inspiration and contributions to the open-source community: [Open Interpreter](https://github.com/KillianLucas/open-interpreter), [WebArena](https://github.com/web-arena-x/webarena), [Cradle](https://baai-agents.github.io/Cradle/), [Synapse](https://ltzheng.github.io/Synapse/), [SeeClick](https://github.com/njucckevin/SeeClick), [ScreenAgent](https://github.com/niuzaisheng/ScreenAgent), [OSWorld](https://github.com/xlang-ai/OSWorld), etc.
 
 ## Citation
 
