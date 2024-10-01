@@ -7,15 +7,17 @@ import matplotlib.pyplot as plt
 
 class Stat:
     def basic_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
+        """ Get basic statistics of the given model results """
         make_report2(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
     def full_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
+        """ Get full statistics of the given model results, including success task ids, total task ids... """
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
         for k, v in report.items():
             print(f"{k}: {v}")
 
     def failure_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
-        """ Stat failure reason """
+        """ Calculate failure reason """
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         reason_count = {}
@@ -34,7 +36,7 @@ class Stat:
             print(f"{reason}: {count}")
 
     def time_stat(self, model: str, visual: bool = True, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
-        """ Stat time cost """
+        """ Calculate time cost """
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         time_list = []
@@ -57,7 +59,7 @@ class Stat:
             plt.show()
 
     def traj_length_stat(self, model: str, visual: bool = True, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
-        """ Stat trajectory length """
+        """ Calculate trajectory length """
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         length_list = []
@@ -77,7 +79,7 @@ class Stat:
             plt.show()
 
     def exit_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
-        """ Compute active exit rate """
+        """ Calculate active exit rate """
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         active_exit_count = 0
