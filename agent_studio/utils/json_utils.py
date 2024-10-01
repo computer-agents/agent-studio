@@ -277,6 +277,8 @@ def load_results(results_dir: Path) -> list[TaskResult]:
         results_dir/{task_id}/video.mp4: the video file
         results_dir/{task_id}/{uuid}.png: the images
     """
+    if not results_dir.exists():
+        return []
     results: list[TaskResult] = []
     for dir in results_dir.iterdir():
         try:
