@@ -5,12 +5,10 @@ from typing import Any
 
 from docx import Document, document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_TAB_ALIGNMENT
-from docx.shared import RGBColor
 from odf.opendocument import load
 from odf.text import P, Span
 from PIL import Image
 from rapidfuzz import fuzz
-from skimage.color import deltaE_ciede2000, rgb2lab
 
 from agent_studio.config import Config
 from agent_studio.envs.desktop_env.evaluators.evaluator import (
@@ -23,7 +21,7 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
-def _compare_docx_files(file1, file2, options: dict = {}):
+def _compare_docx_files(file1, file2, options: dict):
     ignore_blanks = options.get("ignore_blanks", True)
     ignore_case = options.get("ignore_case", False)
     ignore_order = options.get("ignore_order", False)
@@ -74,7 +72,8 @@ def _compare_docx_files(file1, file2, options: dict = {}):
     else:
         # Unsupported file types or mismatch
         raise FeedbackException(
-            "Unsupported file types or mismatch between file types.")
+            "Unsupported file types or mismatch between file types."
+        )
 
     if content_only:
         # Compare the content of the documents
@@ -85,7 +84,8 @@ def _compare_docx_files(file1, file2, options: dict = {}):
         similarity = fuzz.ratio(text1, text2) / 100.0
         if similarity < similarity_threshold:
             raise FeedbackException(
-                f"Documents are different, Text similarity is {similarity:.2f}, {text1} != {text2}")
+                f"Documents are different, Text similarity is {similarity:.2f}, {text1} != {text2}"  # noqa: E501
+            )
 
     # Process and compare documents
     if ignore_blanks:
@@ -94,11 +94,14 @@ def _compare_docx_files(file1, file2, options: dict = {}):
         if ignore_case:
             text1, text2 = text1.lower(), text2.lower()
         if text1 != text2:
-            raise FeedbackException(f"Documents are different, {text1} != {text2}")
+            raise FeedbackException(
+                f"Documents are different, {text1} != {text2}"
+            )  # noqa: E501
     else:
         if len(doc1_paragraphs) != len(doc2_paragraphs):
             raise FeedbackException(
-                f"Number of paragraphs is different, {len(doc1_paragraphs)} != {len(doc2_paragraphs)}")
+                f"Number of paragraphs is different, {len(doc1_paragraphs)} != {len(doc2_paragraphs)}"  # noqa: E501
+            )
         # Compare each paragraph
         for p1, p2 in zip(doc1_paragraphs, doc2_paragraphs):
             if ignore_case:
@@ -112,7 +115,7 @@ class DocsCalcEvaluator(Evaluator):
 
     @evaluation_handler("compare_line_spacing")
     def compare_line_spacing(self, docx_file1, docx_file2):
-        _compare_docx_files(docx_file1, docx_file2)
+        _compare_docx_files(docx_file1, docx_file2, {})
 
         try:
             doc1 = Document(docx_file1)
@@ -147,7 +150,8 @@ class DocsCalcEvaluator(Evaluator):
         para2 = [p for p in doc2.paragraphs if p.text.strip()]
         if len(para1) != len(para2):
             raise FeedbackException(
-                f"Number of paragraphs is different, {len(para1)} != {len(para2)}")
+                f"Number of paragraphs is different, {len(para1)} != {len(para2)}"
+            )
 
         if kwargs.get("word_number_split_by_tabstop", None) is not None:
             number = kwargs["word_number_split_by_tabstop"]
@@ -161,7 +165,8 @@ class DocsCalcEvaluator(Evaluator):
                 )
                 if len(words) != number:
                     raise FeedbackException(
-                        f"Words: [{splits[index]}] has {len(words)} words, not {number}")
+                        f"Words: [{splits[index]}] has {len(words)} words, not {number}"
+                    )
 
         section = doc2.sections[0]
         if section.page_width is None:
@@ -174,9 +179,11 @@ class DocsCalcEvaluator(Evaluator):
             section.page_width - section.left_margin - section.right_margin
         )
 
-        def ignore_tabs(x): return x.alignment == WD_TAB_ALIGNMENT.CLEAR or (
-            x.alignment == WD_TAB_ALIGNMENT.LEFT and x.position == 0
-        )
+        def ignore_tabs(x):
+            return x.alignment == WD_TAB_ALIGNMENT.CLEAR or (
+                x.alignment == WD_TAB_ALIGNMENT.LEFT and x.position == 0
+            )
+
         minus = 0.0
         for p1, p2 in zip(para1, para2):
             # filter CLEAR tabstop and default left-0 tabstop
@@ -247,7 +254,8 @@ class DocsCalcEvaluator(Evaluator):
                 font_name = run.font.name
                 if font_name != expected_font:
                     raise FeedbackException(
-                        f"Font name is not {expected_font}, instead {font_name}")
+                        f"Font name is not {expected_font}, instead {font_name}"
+                    )
 
     @evaluation_handler("is_first_line_centered")
     def is_first_line_centered(self, docx_file):
@@ -265,7 +273,7 @@ class DocsCalcEvaluator(Evaluator):
 
     @evaluation_handler("compare_insert_equation")
     def compare_insert_equation(self, docx_file1, docx_file2):
-        _compare_docx_files(docx_file1, docx_file2)
+        _compare_docx_files(docx_file1, docx_file2, {})
 
         try:
             doc1 = Document(docx_file1)
@@ -294,7 +302,8 @@ class DocsCalcEvaluator(Evaluator):
         # TODO: compare the content of the equations
         if len(equ_list1) != len(equ_list2):
             raise FeedbackException(
-                f"Number of equations is different, {len(equ_list1)} != {len(equ_list2)}")
+                f"Number of equations is different, {len(equ_list1)} != {len(equ_list2)}"  # noqa: E501
+            )
         # for equ1, equ2 in zip(equ_list1, equ_list2):
         #     if equ1 != equ2:
         #         raise FeedbackException(f"Equations are different, {equ1} != {equ2}")
@@ -334,7 +343,7 @@ class DocsCalcEvaluator(Evaluator):
 
     @evaluation_handler("check_highlighted_words")
     def check_highlighted_words(self, docx_ref, docx_file):
-        _compare_docx_files(docx_ref, docx_file)
+        _compare_docx_files(docx_ref, docx_file, {})
 
         doc = load(docx_file)
 
@@ -344,9 +353,13 @@ class DocsCalcEvaluator(Evaluator):
                 for automatic_style in doc.automaticstyles.childNodes:
                     if automatic_style.getAttribute("name") == style_name:
                         for property in automatic_style.childNodes:
-                            if property.getAttribute("backgroundcolor") not in ["transparent", None]:
+                            if property.getAttribute("backgroundcolor") not in [
+                                "transparent",
+                                None,
+                            ]:
                                 raise FeedbackException(
-                                    f"Highlighted words are present, {property.getAttribute('backgroundcolor')} != transparent\n span: {span}")
+                                    f"Highlighted words are present, {property.getAttribute('backgroundcolor')} != transparent\n span: {span}"  # noqa: E501
+                                )
 
     @evaluation_handler("compare_contains_image")
     def compare_contains_image(self, docx_file1, docx_file2):
@@ -359,9 +372,12 @@ class DocsCalcEvaluator(Evaluator):
 
         for para1, para2 in zip(doc1.paragraphs, doc2.paragraphs):
             for run1, run2 in zip(para1.runs, para2.runs):
-                if ("graphicData" in run1._element.xml) != ("graphicData" in run2._element.xml):
+                if ("graphicData" in run1._element.xml) != (
+                    "graphicData" in run2._element.xml
+                ):
                     raise FeedbackException(
-                        f"Image is missing, {run1._element.xml} != {run2._element.xml}")
+                        f"Image is missing, {run1._element.xml} != {run2._element.xml}"
+                    )
 
     @evaluation_handler("compare_docx_lines")
     def compare_docx_lines(self, file1, file2):
@@ -382,7 +398,7 @@ class DocsCalcEvaluator(Evaluator):
 
     @evaluation_handler("evaluate_strike_through_last_paragraph")
     def evaluate_strike_through_last_paragraph(self, docx_ref, docx_file):
-        _compare_docx_files(docx_ref, docx_file)
+        _compare_docx_files(docx_ref, docx_file, {})
 
         try:
             document = Document(docx_file)
@@ -404,7 +420,7 @@ class DocsCalcEvaluator(Evaluator):
 
     @evaluation_handler("evaluate_colored_words_in_tables")
     def evaluate_colored_words_in_tables(self, docx_ref, docx_file):
-        _compare_docx_files(docx_ref, docx_file)
+        _compare_docx_files(docx_ref, docx_file, {})
 
         try:
             document = Document(docx_file)
@@ -434,7 +450,7 @@ class DocsCalcEvaluator(Evaluator):
                                     )
                                 ):
                                     raise FeedbackException(
-                                        f"Vowel-colored words should be red, {run.font.color.rgb} != {[255, 0, 0]}, Word: {word}"
+                                        f"Vowel-colored words should be red, {run.font.color.rgb} != {[255, 0, 0]}, Word: {word}"  # noqa: E501
                                     )
                                 elif run.font.color.rgb is None or (
                                     first_letter not in "aeiou"
@@ -443,11 +459,11 @@ class DocsCalcEvaluator(Evaluator):
                                     )
                                 ):
                                     raise FeedbackException(
-                                        f"Non-vowel-colored words should be blue, {run.font.color.rgb} != {[0, 0, 255]}, Word: {word}"
+                                        f"Non-vowel-colored words should be blue, {run.font.color.rgb} != {[0, 0, 255]}, Word: {word}"  # noqa: E501
                                     )
 
     @evaluation_handler("compare_docx_files")
-    def compare_docx_files(self, docx_file1, docx_file2, options={}):
+    def compare_docx_files(self, docx_file1, docx_file2, options):
         _compare_docx_files(docx_file1, docx_file2, options)
 
     @evaluation_handler("compare_docx_images")
@@ -480,7 +496,7 @@ class DocsCalcEvaluator(Evaluator):
                 raise FeedbackException("Images are different")
 
     @evaluation_handler("compare_references")
-    def compare_references(self, docx_file1, docx_file2, options={}):
+    def compare_references(self, docx_file1, docx_file2, options):
         reference_indicator = options.get("reference_indicator", "References")
         reference_base_result = options.get("reference_base_result", 0.5)
 
@@ -518,8 +534,8 @@ class DocsCalcEvaluator(Evaluator):
             raise FeedbackException("References section is missing")
 
         # split the reference section into reference items, and remove the empty string items  # noqa: E501
-        ref1 = [p for p in doc1_paragraphs[ref1_idx + 1:] if p.strip()]
-        ref2 = [p for p in doc2_paragraphs[ref2_idx + 1:] if p.strip()]
+        ref1 = [p for p in doc1_paragraphs[ref1_idx + 1 :] if p.strip()]
+        ref2 = [p for p in doc2_paragraphs[ref2_idx + 1 :] if p.strip()]
 
         # Compare the references
 
@@ -535,5 +551,6 @@ class DocsCalcEvaluator(Evaluator):
         result = total_similarity / len(ref1)
         if result < reference_base_result:
             raise FeedbackException(
-                f"References are different, {result} < {reference_base_result}")
+                f"References are different, {result} < {reference_base_result}"
+            )
             # return (result - reference_base_result) / (1 - reference_base_result)

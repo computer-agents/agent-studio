@@ -91,7 +91,9 @@ class GIMPEvaluator(Evaluator):
     name: str = "gimp"
 
     @evaluation_handler("check_brightness_decrease_and_structure_sim")
-    def check_brightness_decrease_and_structure_sim(self, src_path, tgt_path, threshold=0.03):
+    def check_brightness_decrease_and_structure_sim(
+        self, src_path, tgt_path, threshold=0.03
+    ):
         """
         Check the brightness of src is lower than tgt and the structures are similar.
         """
@@ -112,16 +114,16 @@ class GIMPEvaluator(Evaluator):
         img_src_normalized = normalize_brightness(img_src, target_brightness)
         img_tgt_normalized = normalize_brightness(img_tgt, target_brightness)
 
-        structure_same = structure_check_by_mse(img_src_normalized, img_tgt_normalized, threshold=threshold)
+        structure_same = structure_check_by_mse(
+            img_src_normalized, img_tgt_normalized, threshold=threshold
+        )
         if not brightness_reduced:
             raise FeedbackException(
-                f"The brightness of the source image is not lower than the target image. "
-                f"Brightness of src: {brightness_src}, brightness of tgt: {brightness_tgt}"
+                f"The brightness of the source image is not lower than the target image. "  # noqa: E501
+                f"Brightness of src: {brightness_src}, brightness of tgt: {brightness_tgt}"  # noqa: E501
             )
         elif not structure_same:
-            raise FeedbackException(
-                "The structures of the two images are not similar."
-            )
+            raise FeedbackException("The structures of the two images are not similar.")
 
     @evaluation_handler("check_saturation_increase_and_structure_sim")
     def check_saturation_increase_and_structure_sim(self, src_path, tgt_path):

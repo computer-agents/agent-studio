@@ -1,17 +1,17 @@
 import dataclasses
 import json
 import os
-import uuid
-from typing import Any
 import re
+import uuid
 from pathlib import Path
+from typing import Any
 
 import cv2
 import numpy as np
 from PIL import Image
 
 from agent_studio.llm.utils import decode_image
-from agent_studio.utils.types import TaskConfig, TrajectoryInfo, VideoMeta, TaskResult
+from agent_studio.utils.types import TaskConfig, TaskResult, TrajectoryInfo, VideoMeta
 
 
 def read_jsonl(file_path: str, start_idx: int = 0, end_idx: int | None = None) -> list:
@@ -80,12 +80,17 @@ def apply_env_vars(task_config: TaskConfig, env_vars: dict) -> TaskConfig:
                 return env_vars[var_name]
             else:
                 raise ValueError(
-                    f"Variable {var_name} not found in environment variables")
+                    f"Variable {var_name} not found in environment variables"
+                )
+
         return pattern.sub(replacer, text)
 
     def traverse_and_replace(obj, env_vars):
         if isinstance(obj, dict):
-            return {traverse_and_replace(k, env_vars): traverse_and_replace(v, env_vars) for k, v in obj.items()}
+            return {
+                traverse_and_replace(k, env_vars): traverse_and_replace(v, env_vars)
+                for k, v in obj.items()
+            }
         elif isinstance(obj, list):
             return [traverse_and_replace(item, env_vars) for item in obj]
         elif isinstance(obj, str):
@@ -115,7 +120,9 @@ def read_task_jsons(path: Path) -> list[TaskConfig]:
     return task_configs
 
 
-def read_unfinished_tasks(task_configs_path: Path, results_dir: Path) -> list[TaskConfig]:
+def read_unfinished_tasks(
+    task_configs_path: Path, results_dir: Path
+) -> list[TaskConfig]:
     """
     Read task configs from folder or file and read finished task logs from
     `results_dir`. Remaining unfinished tasks are returned.
@@ -188,7 +195,7 @@ def export_trajectory(
     add_jsonl(
         data=[result.model_dump()],
         file_path=(path / "result.jsonl").as_posix(),
-        mode="w"
+        mode="w",
     )
 
 
@@ -225,7 +232,7 @@ def make_report2(task_config_dir: Path, result_dir: Path, depth: int = 0) -> dic
         "finished_task_count": 0,
         "unfinished_task_count": 0,
         "succ_task_count": 0,
-        "fail_task_count": 0
+        "fail_task_count": 0,
     }
     for dir in task_config_dir.iterdir():
         if dir.is_dir():
@@ -237,7 +244,9 @@ def make_report2(task_config_dir: Path, result_dir: Path, depth: int = 0) -> dic
             result["fail_task_count"] += report["fail_task_count"]
         else:
             task_configs = read_task_jsons(dir)
-            assert len(task_configs) == 1, "Task config dir should contain only one file"
+            assert (
+                len(task_configs) == 1
+            ), "Task config dir should contain only one file"
             task_config = task_configs[0]
             task_id = task_config.task_id
             results = [result for result in results_all if result.task_id == task_id]
@@ -250,19 +259,28 @@ def make_report2(task_config_dir: Path, result_dir: Path, depth: int = 0) -> dic
                     result["succ_task_count"] += 1
                 else:
                     result["fail_task_count"] += 1
-    result["average_score"] = 100 * result["succ_task_count"] / \
-        result["finished_task_count"] if result["finished_task_count"] > 0 else 0
+    result["average_score"] = (
+        100 * result["succ_task_count"] / result["finished_task_count"]
+        if result["finished_task_count"] > 0
+        else 0
+    )
     indent = "    " * depth
-    print(f"{indent}{task_config_dir.name: <20}: score: {result['average_score']: <10.2f}, succ: {result['succ_task_count']: <10}, finished: {result['finished_task_count']: <10}, total: {result['total_task_count']: <10}")
+    print(
+        f"{indent}{task_config_dir.name: <20}: "
+        f"score: {result['average_score']: <10.2f}, "
+        f"succ: {result['succ_task_count']: <10}, "
+        f"finished: {result['finished_task_count']: <10}, "
+        f"total: {result['total_task_count']: <10}"
+    )
     return result
 
 
 def load_result(result_dir: Path) -> TaskResult:
     """Load result from result_dir
-        result_dir: directory containing the result
-        result_dir/result.jsonl: the result file
-        result_dir/video.mp4: the video file
-        result_dir/{uuid}.png: the images
+    result_dir: directory containing the result
+    result_dir/result.jsonl: the result file
+    result_dir/video.mp4: the video file
+    result_dir/{uuid}.png: the images
     """
     result_raw = read_jsonl((result_dir / "result.jsonl").as_posix())
     saved_trajectory = TaskResult.model_validate(result_raw[0])
@@ -271,11 +289,11 @@ def load_result(result_dir: Path) -> TaskResult:
 
 def load_results(results_dir: Path) -> list[TaskResult]:
     """Load results from result_dir
-        results_dir: directory containing the results
-        results_dir/{task_id}: the result directory of the task
-        results_dir/{task_id}/result.jsonl: the result file
-        results_dir/{task_id}/video.mp4: the video file
-        results_dir/{task_id}/{uuid}.png: the images
+    results_dir: directory containing the results
+    results_dir/{task_id}: the result directory of the task
+    results_dir/{task_id}/result.jsonl: the result file
+    results_dir/{task_id}/video.mp4: the video file
+    results_dir/{task_id}/{uuid}.png: the images
     """
     if not results_dir.exists():
         return []
@@ -285,7 +303,7 @@ def load_results(results_dir: Path) -> list[TaskResult]:
             result = load_result(dir)
             results.append(result)
         except Exception as e:
-            # print(f"Error loading result from {dir}: {e}")
+            print(f"Error loading result from {dir}: {e}")
             pass
     return results
 
@@ -296,7 +314,7 @@ def save_image(obj: Any, folder_path: Path) -> str:
 
     # A unique identifier for the filename.
     unique_filename = f"{str(uuid.uuid4())}.png"
-    file_path = (folder_path / unique_filename)
+    file_path = folder_path / unique_filename
     if isinstance(obj, Image.Image):
         obj.save(file_path)
     elif isinstance(obj, np.ndarray):

@@ -5,8 +5,8 @@ from typing import Any  # noqa: F401
 import numpy as np
 
 from agent_studio.agent.base_agent import RUNTIME_INIT_CODE, BaseAgent, StepInfo
-from agent_studio.utils.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.config import Config
+from agent_studio.utils.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.utils.types import TaskConfig
 
 config = Config()
@@ -58,7 +58,9 @@ class HumanAgent(BaseAgent):
             timestamp=0,
         )
 
-    def step_action(self, failure_msg: str | None, step_info: StepInfo) -> tuple[dict, bool]:
+    def step_action(
+        self, failure_msg: str | None, step_info: StepInfo
+    ) -> tuple[dict, bool]:
         step_info.action = "Executed by human"
         step_info.timestamp = time.time()
         if failure_msg:

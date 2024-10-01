@@ -1,7 +1,6 @@
 import ast
 import importlib
 import logging
-import os
 from pathlib import Path
 
 from agent_studio.llm.base_model import BaseModel
@@ -25,9 +24,7 @@ def register_models(
                 logger.error(f"Error parsing {file_path}. Skipping...")
                 continue
             # Check each class definition in the file
-            module_name = (
-                file_path.as_posix().replace("/", ".").replace(".py", "")
-            )
+            module_name = file_path.as_posix().replace("/", ".").replace(".py", "")
             for node in ast.walk(tree):
                 if isinstance(node, ast.ClassDef):
                     for base in node.bases:

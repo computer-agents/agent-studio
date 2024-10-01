@@ -3,14 +3,14 @@ import platform
 import threading
 from dataclasses import dataclass
 
-from vncdotool import api
-from PIL import Image
 import cv2
 import mss
 import numpy as np
+from PIL import Image
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QLabel
+from vncdotool import api
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +69,8 @@ class VNCStreamer:
             (self.video_height, self.video_width, 3), dtype="uint8"
         )
         self.client = api.connect(
-            f"{self.env_server_addr}::{self.vnc_port}", password=self.vnc_password)
+            f"{self.env_server_addr}::{self.vnc_port}", password=self.vnc_password
+        )
         self.client.refreshScreen(False)
         self.streaming_thread.start()
 

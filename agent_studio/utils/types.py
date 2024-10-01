@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Union, Optional, Any
+from typing import Any, Optional, Union
 
 import numpy as np
 from pydantic import BaseModel
@@ -17,7 +17,8 @@ MessageList = list[Message]
 
 @dataclass
 class StepInfo:
-    """ We don't use pydantic for StepInfo because we need to save images in it. """
+    """We don't use pydantic for StepInfo because we need to save images in it."""
+
     obs: np.ndarray | None
     prompt: MessageList | None
     response: str | None

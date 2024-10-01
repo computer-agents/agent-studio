@@ -5,13 +5,16 @@ from agent_studio.config.config import Config
 from agent_studio.llm.base_model import BaseModel
 from agent_studio.utils.types import MessageList
 
-
 config = Config()
 logger = logging.getLogger(__name__)
 
 
 class DummyProvider(BaseModel):
-    """Dummy provider for testing. Not provide any real LLM. To test if the interface is working."""
+    """
+    Dummy provider for testing. Not provide any real LLM.
+    To test if the interface is working.
+    """
+
     name = "dummy"
 
     def generate_response(

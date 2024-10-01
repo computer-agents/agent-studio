@@ -19,9 +19,9 @@ from agent_studio.utils.communication import (
     AgentStudioStatusResponse,
     AgentStudioTextRequest,
 )
+from agent_studio.utils.runtime import PythonRuntime
 from agent_studio.utils.task_status import StateEnum, StateInfo, TaskStatus
 from agent_studio.utils.types import Procedure, TaskConfig
-from agent_studio.utils.runtime import PythonRuntime
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -102,6 +102,7 @@ async def reset_runtime() -> AgentStudioStatusResponse:
 async def get_env_vars() -> AgentStudioStatusResponse:
     env_vars = config.env_vars
     return AgentStudioStatusResponse(status="success", message=env_vars)
+
 
 def wait_for_state_shift(last_state: StateEnum) -> AgentStudioStatusResponse:
     cur_status = task_status.wait_for_state_change(last_state)

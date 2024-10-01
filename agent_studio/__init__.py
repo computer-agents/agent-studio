@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime
 
-logging.getLogger('twisted').setLevel(logging.WARNING)
+logging.getLogger("twisted").setLevel(logging.WARNING)
 logger = logging.getLogger("agent_studio")
 format = "%(asctime)s\t%(levelname)s %(filename)s:%(lineno)s -- %(message)s"
 formatter = logging.Formatter(format)

@@ -10,7 +10,8 @@
       "function": "compare_docx_files",
       "params": {
         "docx_file1": "${AS_ROOT}/data/1f18aa87-af6f-41ef-9853-cdb8f32ebdea/Answer_Gold.docx",
-        "docx_file2": "${AS_ROOT}/docs/grammar_tests/Answer.docx"
+        "docx_file2": "${AS_ROOT}/docs/grammar_tests/Answer.docx",
+        "options": {}
       }
     }
   ],

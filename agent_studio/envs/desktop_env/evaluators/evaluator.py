@@ -2,8 +2,6 @@ import inspect
 import logging
 from typing import Callable
 
-import requests
-
 from agent_studio.utils.types import Procedure
 
 logger = logging.getLogger(__name__)

@@ -13,6 +13,7 @@ import jsonpickle
 import numpy as np
 import requests
 from PyQt6.QtCore import (
+    QEvent,
     QMutex,
     QObject,
     QSize,
@@ -21,25 +22,24 @@ from PyQt6.QtCore import (
     QTimer,
     QWaitCondition,
     pyqtSignal,
-    QEvent,
 )
-from PyQt6.QtGui import QImage, QAction
+from PyQt6.QtGui import QAction, QImage
 from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
+    QFileDialog,
     QHBoxLayout,
     QLabel,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QSplitter,
     QStatusBar,
     QTextEdit,
     QVBoxLayout,
     QWidget,
-    QFileDialog,
-    QMessageBox,
 )
 from tqdm import tqdm
 
@@ -65,7 +65,12 @@ from agent_studio.utils.gui import (
     JSONEditor,
     TimerLabel,
 )
-from agent_studio.utils.json_utils import export_trajectory, read_unfinished_tasks, apply_env_vars, read_task_jsons
+from agent_studio.utils.json_utils import (
+    apply_env_vars,
+    export_trajectory,
+    read_task_jsons,
+    read_unfinished_tasks,
+)
 from agent_studio.utils.types import TaskConfig, VideoMeta
 
 config = Config()
@@ -187,9 +192,7 @@ class TaskThread(QThread):
             logger.debug(f"Task config after: {self.task_config}")
             # Reset
             if self.task_config.reset_procedure is not None:
-                self.signals.status_bar_signal.emit(
-                    "color: blue;", "Resetting Task..."
-                )
+                self.signals.status_bar_signal.emit("color: blue;", "Resetting Task...")
                 response_raw = requests.post(
                     f"{REMOTE_SERVER_ADDR}/task/reset",
                     json=AgentStudioResetRequest(
@@ -202,7 +205,9 @@ class TaskThread(QThread):
                     response.status == "finished" and response.content == "success"
                 ):
                     raise ValueError(
-                        f"Fail to reset task: {response.message}, get response {response.content}")
+                        f"Fail to reset task: {response.message}"
+                        f", get response {response.content}"
+                    )
 
             instruction = self.task_config.instruction
             logger.info(f"Task instruction: {instruction}")
@@ -229,7 +234,9 @@ class TaskThread(QThread):
                 self.signals.status_bar_signal.emit(
                     "color: blue;", "Generating Action..."
                 )
-                step_info = self.agent.generate_action(obs=obs, model_name=self.args.model)
+                step_info = self.agent.generate_action(
+                    obs=obs, model_name=self.args.model
+                )
                 action = step_info.action
                 action_memory.append(action)
 
@@ -250,19 +257,26 @@ class TaskThread(QThread):
                 elif current_step >= self.task_config.max_steps:
                     failure_msg = "Max step reached."
                 # If the time limit is reached.
-                elif (self.args.use_time_limit and time.time() - start_time > self.task_config.max_time):
+                elif (
+                    self.args.use_time_limit
+                    and time.time() - start_time > self.task_config.max_time
+                ):
                     failure_msg = "Time limit reached."
                 # If the action is empty.
-                elif action == '':
+                elif action == "":
                     failure_msg = "Failed to generate action."
                 # If the action is the same as the previous two actions.
-                elif len(action_memory) >= 3 and action_memory[-1] == action_memory[-2] == action_memory[-3]:
+                elif (
+                    len(action_memory) >= 3
+                    and action_memory[-1] == action_memory[-2] == action_memory[-3]
+                ):
                     failure_msg = "Repeated action."
                 self.signals.status_bar_signal.emit(
                     "color: blue;", "Executing Command..."
                 )
                 runtime_output, done = self.agent.step_action(
-                    failure_msg=failure_msg, step_info=step_info)
+                    failure_msg=failure_msg, step_info=step_info
+                )
                 self.signals.runtime_output_signal.emit(runtime_output)
                 # Wait for the action to be executed
                 time.sleep(config.min_action_interval)
@@ -272,9 +286,7 @@ class TaskThread(QThread):
             stop_time = time.time()
 
             self.signals.exec_finish_signal.emit()
-            self.signals.status_bar_signal.emit(
-                "color: blue;", "Evaluating Task..."
-            )
+            self.signals.status_bar_signal.emit("color: blue;", "Evaluating Task...")
             if not self.args.no_log:
                 video_meta: VideoMeta | None = None
                 task_result_path = Path(self.results_dir) / self.task_config.task_id
@@ -332,6 +344,7 @@ class TaskThread(QThread):
                 )
         except Exception as e:
             import traceback
+
             logger.error(f"[Unhandled Error] {repr(e)}]")
             traceback.print_exc()
         finally:
@@ -378,7 +391,8 @@ class GUI(QMainWindow):
         self.args = args
         self.remote = remote
         self.results_dir = Path(
-            f"{self.args.log_dir}/{self.args.model}/{self.args.agent}")
+            f"{self.args.log_dir}/{self.args.model}/{self.args.agent}"
+        )
         self.task_config_path = Path(self.args.task_configs_path)
         # Setup tasks
         self.load_task_configs()
@@ -437,10 +451,12 @@ class GUI(QMainWindow):
         try:
             if self.args.ignore_finished:
                 self.task_configs: list[TaskConfig] = read_unfinished_tasks(
-                    Path(self.task_config_path), self.results_dir)
+                    Path(self.task_config_path), self.results_dir
+                )
             else:
                 self.task_configs: list[TaskConfig] = read_task_jsons(
-                    Path(self.task_config_path))
+                    Path(self.task_config_path)
+                )
             self.task_configs.sort(key=lambda x: x.instruction)
         except Exception as e:
             logger.error(f"Failed to load task configs: {e}")
@@ -455,16 +471,16 @@ class GUI(QMainWindow):
         # Create menu bar
         menubar = self.menuBar()
         assert menubar is not None
-        file_menu = menubar.addMenu('File')
+        file_menu = menubar.addMenu("File")
         assert file_menu is not None
 
         # Open Task Config
-        open_file_action = QAction('Open Config', self)
+        open_file_action = QAction("Open Config", self)
         open_file_action.triggered.connect(self.open_task_config)
         file_menu.addAction(open_file_action)
 
         # Reload Task Configs
-        reload_action = QAction('Reload Configs', self)
+        reload_action = QAction("Reload Configs", self)
         reload_action.triggered.connect(self.reload_task_configs)
         file_menu.addAction(reload_action)
 
@@ -589,9 +605,11 @@ class GUI(QMainWindow):
         self.show_trajectory_button.setShortcut("Ctrl+T")  # Ctrl + T to show trajectory
         self.interrupt_button.setShortcut("Escape")
         self.instruction_selection.setFocusPolicy(
-            Qt.FocusPolicy.StrongFocus)  # Ensure the list can receive focus
+            Qt.FocusPolicy.StrongFocus
+        )  # Ensure the list can receive focus
         self.instruction_selection.installEventFilter(
-            self)  # Install event filter for key events
+            self
+        )  # Install event filter for key events
 
     def reload_task_configs(self):
         self.load_task_configs()
@@ -606,10 +624,12 @@ class GUI(QMainWindow):
                 self.load_task_configs()
                 self.populate_instruction_selection_widget()
                 self.status_bar.showMessage(
-                    f"Task configs added from: {folder_path}", 3000)
+                    f"Task configs added from: {folder_path}", 3000
+                )
             except Exception as e:
                 QMessageBox.critical(
-                    self, "Error", f"Failed to load task configs: {str(e)}")
+                    self, "Error", f"Failed to load task configs: {str(e)}"
+                )
 
     def show_input_dialog(self, title: str, message: str):
         assert self.task_thread is not None
@@ -844,24 +864,28 @@ class GUI(QMainWindow):
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.Type.KeyPress:  # Change here
-            if event.key() == Qt.Key.Key_Return and event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            if (
+                event.key() == Qt.Key.Key_Return
+                and event.modifiers() == Qt.KeyboardModifier.ControlModifier
+            ):
                 # Ctrl + Enter to start next task
                 if self.selected_task_idx is None:
                     if len(self.task_configs) > 0:
                         self.instruction_selection.setCurrentRow(0)
-                        self.select_task_instruction(
-                            self.instruction_selection.item(0))
+                        self.select_task_instruction(self.instruction_selection.item(0))
                 elif self.selected_task_idx < len(self.task_configs) - 1:
                     self.instruction_selection.setCurrentRow(self.selected_task_idx + 1)
                     self.select_task_instruction(
-                        self.instruction_selection.item(self.selected_task_idx + 1))
+                        self.instruction_selection.item(self.selected_task_idx + 1)
+                    )
                 else:
                     return True
                 self.start_button.click()
             if source is self.instruction_selection:
                 if event.key() == Qt.Key.Key_Return:  # Enter to select item
                     self.select_task_instruction(
-                        self.instruction_selection.currentItem())
+                        self.instruction_selection.currentItem()
+                    )
                     return True
         return super().eventFilter(source, event)
 
@@ -935,8 +959,9 @@ class NonGUI:
             dict: Metadata about the saved video.
         """
         assert (
-            self.is_recording and self.frame_buffer is not None and
-            self.recording_thread is not None
+            self.is_recording
+            and self.frame_buffer is not None
+            and self.recording_thread is not None
         ), "No recording in progress."
         self.is_recording = False
         self.recording_thread.join()
@@ -1006,7 +1031,8 @@ def eval(args, interface: NonGUI | None = None) -> None:
         # Setup tasks
         if args.ignore_finished:
             task_configs_json = read_unfinished_tasks(
-                Path(args.task_configs_path), results_dir)
+                Path(args.task_configs_path), results_dir
+            )
         else:
             task_configs_json = read_task_jsons(Path(args.task_configs_path))
         task_configs: list[TaskConfig] = []
@@ -1045,7 +1071,8 @@ def eval(args, interface: NonGUI | None = None) -> None:
                         response = AgentStudioStatusResponse(**response_raw.json())
                         response = wait_finish(is_eval=False, response=response)
                         assert (
-                            response.status == "finished" and response.content == "success"
+                            response.status == "finished"
+                            and response.content == "success"
                         ), f"Fail to reset task: {response.message}"
                     else:
                         evaluators = evaluator_router(task_config)
@@ -1091,15 +1118,23 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     elif current_step >= task_config.max_steps:
                         failure_msg = "Max step reached."
                     # If the time limit is reached, the action is not confirmed.
-                    elif (args.use_time_limit and time.time() - start_time > task_config.max_time):
+                    elif (
+                        args.use_time_limit
+                        and time.time() - start_time > task_config.max_time
+                    ):
                         failure_msg = "Time limit reached."
                     # If the action is empty.
-                    elif action == '':
+                    elif action == "":
                         failure_msg = "Failed to generate action."
                     # If the action is the same as the previous two actions.
-                    elif len(action_memory) >= 3 and action_memory[-1] == action_memory[-2] == action_memory[-3]:
+                    elif (
+                        len(action_memory) >= 3
+                        and action_memory[-1] == action_memory[-2] == action_memory[-3]
+                    ):
                         failure_msg = "Repeated action."
-                    _, done = agent.step_action(failure_msg=failure_msg, step_info=step_info)
+                    _, done = agent.step_action(
+                        failure_msg=failure_msg, step_info=step_info
+                    )
                     time.sleep(config.min_action_interval)
                     if done:
                         break
@@ -1123,8 +1158,9 @@ def eval(args, interface: NonGUI | None = None) -> None:
                         f"{REMOTE_SERVER_ADDR}/task/eval",
                         json=AgentStudioEvalRequest(
                             procedures=task_config.eval_procedure,
-                            as_kwargs=str(jsonpickle.encode(
-                                {"trajectory": agent.trajectory})),
+                            as_kwargs=str(
+                                jsonpickle.encode({"trajectory": agent.trajectory})
+                            ),
                         ).model_dump(),
                     )
                     response = AgentStudioStatusResponse(**response_raw.json())
@@ -1162,6 +1198,7 @@ def eval(args, interface: NonGUI | None = None) -> None:
                     )
             except Exception as e:
                 import traceback
+
                 logger.error(f"[Unhandled Error] {repr(e)}]")
                 traceback.print_exc()
             finally:
@@ -1177,7 +1214,8 @@ def eval(args, interface: NonGUI | None = None) -> None:
                         response = AgentStudioStatusResponse(**response_raw.json())
                         response = wait_finish(is_eval=False, response=response)
                         assert (
-                            response.status == "finished" and response.content == "success"
+                            response.status == "finished"
+                            and response.content == "success"
                         ), f"Fail to reset task: {response.message}"
                     else:
                         evaluators = evaluator_router(task_config)
@@ -1229,9 +1267,7 @@ def main():
     parser.add_argument(
         "--ignore_finished", action="store_true", help="Only evaluate unfinished tasks"
     )
-    parser.add_argument(
-        "--no_log", action="store_true", help="Do not log the results"
-    )
+    parser.add_argument("--no_log", action="store_true", help="Do not log the results")
     args = parser.parse_args()
     logger.info(f"Running with args: {args}")
     assert args.task_configs_path is not None, "Task config is not set."

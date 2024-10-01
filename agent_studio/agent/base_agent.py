@@ -3,10 +3,10 @@ import time
 
 import numpy as np
 
-from agent_studio.utils.runtime import PythonRuntime, RemotePythonRuntime
 from agent_studio.llm import ModelManager
 from agent_studio.llm.utils import extract_from_response
-from agent_studio.utils.types import MessageList, TaskConfig, StepInfo
+from agent_studio.utils.runtime import PythonRuntime, RemotePythonRuntime
+from agent_studio.utils.types import MessageList, StepInfo, TaskConfig
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,9 @@ class BaseAgent:
             timestamp=0.0,
         )
 
-    def step_action(self, failure_msg: str | None, step_info: StepInfo) -> tuple[dict, bool]:
+    def step_action(
+        self, failure_msg: str | None, step_info: StepInfo
+    ) -> tuple[dict, bool]:
         """Execute the code if confirmed and record the result.
         If failure_msg is not None, the action is cancelled.
         """

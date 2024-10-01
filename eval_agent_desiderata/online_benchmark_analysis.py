@@ -1,23 +1,43 @@
-import fire
-from agent_studio.utils.json_utils import make_report, make_report2, load_result
 from pathlib import Path
-import numpy as np
+
+import fire
 import matplotlib.pyplot as plt
+import numpy as np
+
+from agent_studio.utils.json_utils import load_result, make_report, make_report2
 
 
 class Stat:
-    def basic_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
-        """ Get basic statistics of the given model results """
+    def basic_stat(
+        self,
+        model: str,
+        task_dir: str = "eval_online_benchmarks/tasks",
+        agent: str = "direct",
+    ):
+        """Get basic statistics of the given model results"""
         make_report2(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
-    def full_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
-        """ Get full statistics of the given model results, including success task ids, total task ids... """
+    def full_stat(
+        self,
+        model: str,
+        task_dir: str = "eval_online_benchmarks/tasks",
+        agent: str = "direct",
+    ):
+        """
+        Get full statistics of the given model results,
+        including success task ids, total task ids...
+        """
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
         for k, v in report.items():
             print(f"{k}: {v}")
 
-    def failure_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
-        """ Calculate failure reason """
+    def failure_stat(
+        self,
+        model: str,
+        task_dir: str = "eval_online_benchmarks/tasks",
+        agent: str = "direct",
+    ):
+        """Calculate failure reason"""
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         reason_count = {}
@@ -25,7 +45,9 @@ class Stat:
             result_dir = Path(f"logs/{model}/{agent}/{task_id}")
             result = load_result(result_dir)
             if "force_stop_reason" in result.trajectory[-1].result:
-                reason_count.setdefault(result.trajectory[-1].result["force_stop_reason"], 0)
+                reason_count.setdefault(
+                    result.trajectory[-1].result["force_stop_reason"], 0
+                )
                 reason_count[result.trajectory[-1].result["force_stop_reason"]] += 1
             else:
                 reason_count.setdefault("Wrong Answer", 0)
@@ -35,8 +57,14 @@ class Stat:
         for reason, count in reason_count:
             print(f"{reason}: {count}")
 
-    def time_stat(self, model: str, visual: bool = True, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
-        """ Calculate time cost """
+    def time_stat(
+        self,
+        model: str,
+        visual: bool = True,
+        task_dir: str = "eval_online_benchmarks/tasks",
+        agent: str = "direct",
+    ):
+        """Calculate time cost"""
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         time_list = []
@@ -45,9 +73,8 @@ class Stat:
             try:
                 result = load_result(result_dir)
                 time_list.append(result.time_cost)
-            except Exception as e:
+            except Exception:
                 pass
-
 
         print(f"Mean: {np.mean(time_list)}")
         print(f"Median: {np.median(time_list)}")
@@ -58,8 +85,14 @@ class Stat:
             plt.hist(time_list, bins=80, edgecolor="black")
             plt.show()
 
-    def traj_length_stat(self, model: str, visual: bool = True, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
-        """ Calculate trajectory length """
+    def traj_length_stat(
+        self,
+        model: str,
+        visual: bool = True,
+        task_dir: str = "eval_online_benchmarks/tasks",
+        agent: str = "direct",
+    ):
+        """Calculate trajectory length"""
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         length_list = []
@@ -74,12 +107,18 @@ class Stat:
         print(f"Min: {np.min(length_list)}")
         print(f"std: {np.std(length_list)}")
         if visual:
-            plt.hist(length_list, bins=range(
-                1, max(max(length_list), 10)), edgecolor="black")
+            plt.hist(
+                length_list, bins=range(1, max(max(length_list), 10)), edgecolor="black"
+            )
             plt.show()
 
-    def exit_stat(self, model: str, task_dir: str = "eval_online_benchmarks/tasks", agent: str = "direct"):
-        """ Calculate active exit rate """
+    def exit_stat(
+        self,
+        model: str,
+        task_dir: str = "eval_online_benchmarks/tasks",
+        agent: str = "direct",
+    ):
+        """Calculate active exit rate"""
         report = make_report(Path(task_dir), Path(f"logs/{model}/{agent}"))
 
         active_exit_count = 0
@@ -91,6 +130,7 @@ class Stat:
             if "force_stop_reason" not in result.trajectory[-1].result:
                 active_exit_count += 1
         print(f"Active Exit Rate: {active_exit_count / total_exit_count}")
+
 
 if __name__ == "__main__":
     fire.Fire(Stat)

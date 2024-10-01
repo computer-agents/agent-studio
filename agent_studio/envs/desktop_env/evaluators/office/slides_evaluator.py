@@ -18,7 +18,7 @@ class SlidesEvaluator(Evaluator):
     name: str = "slides"
 
     @evaluation_handler("compare_pptx_files")
-    def compare_pptx_files(self, expected, result, options={}):
+    def compare_pptx_files(self, expected, result, options):
         # todo: not strictly match since not all information is compared because we cannot get the info through pptx  # noqa: E501
         try:
             prs1 = Presentation(expected)
@@ -61,7 +61,8 @@ class SlidesEvaluator(Evaluator):
         # compare the number of slides
         if len(prs1.slides) != len(prs2.slides) and examine_number_of_slides:
             raise FeedbackException(
-                f"Number of slides are different: {len(prs1.slides)} != {len(prs2.slides)}")
+                f"Number of slides are different: {len(prs1.slides)} != {len(prs2.slides)}"  # noqa: E501
+            )
 
         slide_idx = 0
         # compare the content of each slide
@@ -90,9 +91,8 @@ class SlidesEvaluator(Evaluator):
 
             notes1 = get_slide_notes(slide1).strip()
             notes2 = get_slide_notes(slide2).strip()
-            if (notes1 != notes2 and examine_note):
-                raise FeedbackException(
-                    f"Notes are different: {notes1} != {notes2}")
+            if notes1 != notes2 and examine_note:
+                raise FeedbackException(f"Notes are different: {notes1} != {notes2}")
             # check if the shapes are the same
             for shape1, shape2 in zip(slide1.shapes, slide2.shapes):
                 if examine_title_bottom_position:
@@ -123,7 +123,7 @@ class SlidesEvaluator(Evaluator):
                     ):
                         if shape1.top > shape2.top or shape1.top < 3600000:
                             raise FeedbackException(
-                                f"Table bottom position is different, {shape1.top} > {shape2.top} or {shape1.top} < 3600000"
+                                f"Table bottom position is different, {shape1.top} > {shape2.top} or {shape1.top} < 3600000"  # noqa: E501
                             )
                     elif (
                         shape1.left != shape2.left
@@ -132,7 +132,8 @@ class SlidesEvaluator(Evaluator):
                         or shape1.height != shape2.height
                     ):
                         raise FeedbackException(
-                            f"Table bottom position is different, ({shape1.left}, {shape1.top}, {shape1.width}, {shape1.height}) != ({shape2.left}, {shape2.top}, {shape2.width}, {shape2.height})")
+                            f"Table bottom position is different, ({shape1.left}, {shape1.top}, {shape1.width}, {shape1.height}) != ({shape2.left}, {shape2.top}, {shape2.width}, {shape2.height})"  # noqa: E501
+                        )
 
                 if examine_right_position:
                     if (
@@ -151,7 +152,8 @@ class SlidesEvaluator(Evaluator):
                     ):
                         if shape1.top < shape2.top or shape1.top > 1980000:
                             raise FeedbackException(
-                                f"Top position is different, {shape1.top} < {shape2.top} or {shape1.top} > 1980000")
+                                f"Top position is different, {shape1.top} < {shape2.top} or {shape1.top} > 1980000"  # noqa: E501
+                            )
                     elif (
                         shape1.left != shape2.left
                         or shape1.top != shape2.top
@@ -159,7 +161,8 @@ class SlidesEvaluator(Evaluator):
                         or shape1.height != shape2.height
                     ):
                         raise FeedbackException(
-                            f"Top position is different, {(shape1.left, shape1.top, shape1.width, shape1.height)} != {(shape2.left, shape2.top, shape2.width, shape2.height)}")
+                            f"Top position is different, {(shape1.left, shape1.top, shape1.width, shape1.height)} != {(shape2.left, shape2.top, shape2.width, shape2.height)}"  # noqa: E501
+                        )
 
                 if examine_shape_for_shift_size:
                     if (
@@ -183,7 +186,8 @@ class SlidesEvaluator(Evaluator):
                     or shape1.height != shape2.height
                 ) and examine_shape:
                     raise FeedbackException(
-                        f"Shape is different: {(shape1.left, shape1.top, shape1.width, shape1.height)} != {(shape2.left, shape2.top, shape2.width, shape2.height)}")
+                        f"Shape is different: {(shape1.left, shape1.top, shape1.width, shape1.height)} != {(shape2.left, shape2.top, shape2.width, shape2.height)}"  # noqa: E501
+                    )
 
                 if examine_image_size:
                     if shape1.shape_type == 13 and shape2.shape_type == 13:
@@ -192,7 +196,8 @@ class SlidesEvaluator(Evaluator):
                             or shape1.height != shape2.height
                         ):
                             raise FeedbackException(
-                                f"Image size is different: {(shape1.width, shape1.height)} != {(shape2.width, shape2.height)}")
+                                f"Image size is different: {(shape1.width, shape1.height)} != {(shape2.width, shape2.height)}"  # noqa: E501
+                            )
                     elif (
                         shape1.left != shape2.left
                         or shape1.top != shape2.top
@@ -200,7 +205,8 @@ class SlidesEvaluator(Evaluator):
                         or shape1.height != shape2.height
                     ):
                         raise FeedbackException(
-                            f"Image size is different: {(shape1.left, shape1.top, shape1.width, shape1.height)} != {(shape2.left, shape2.top, shape2.width, shape2.height)}")
+                            f"Image size is different: {(shape1.left, shape1.top, shape1.width, shape1.height)} != {(shape2.left, shape2.top, shape2.width, shape2.height)}"  # noqa: E501
+                        )
 
                 if examine_modify_height:
                     if (
@@ -229,7 +235,8 @@ class SlidesEvaluator(Evaluator):
                     ):
                         if para1.alignment != para2.alignment and examine_alignment:
                             raise FeedbackException(
-                                f"Alignment is different: {para1.alignment} != {para2.alignment}")
+                                f"Alignment is different: {para1.alignment} != {para2.alignment}"  # noqa: E501
+                            )
 
                         # check if the runs are the same
                         if para1.text != para2.text and examine_text:
@@ -237,28 +244,33 @@ class SlidesEvaluator(Evaluator):
 
                         if para1.level != para2.level and examine_indent:
                             raise FeedbackException(
-                                f"Indent is different, {para1.level} != {para2.level}")
+                                f"Indent is different, {para1.level} != {para2.level}"
+                            )
 
                         for run1, run2 in zip(para1.runs, para2.runs):
                             # check if the font properties are the same
                             if run1.font.name != run2.font.name and examine_font_name:
                                 raise FeedbackException(
-                                    f"Font name is different, {run1.font.name} != {run2.font.name}")
+                                    f"Font name is different, {run1.font.name} != {run2.font.name}"  # noqa: E501
+                                )
 
                             if run1.font.size != run2.font.size and examine_font_size:
                                 raise FeedbackException(
-                                    f"Font size is different, {run1.font.size} != {run2.font.size}")
+                                    f"Font size is different, {run1.font.size} != {run2.font.size}"  # noqa: E501
+                                )
 
                             if run1.font.bold != run2.font.bold and examine_font_bold:
                                 raise FeedbackException(
-                                    f"Font bold is different, {run1.font.bold} != {run2.font.bold}")
+                                    f"Font bold is different, {run1.font.bold} != {run2.font.bold}"  # noqa: E501
+                                )
 
                             if (
                                 run1.font.italic != run2.font.italic
                                 and examine_font_italic
                             ):
                                 raise FeedbackException(
-                                    f"Font italic is different, {run1.font.italic} != {run2.font.italic}")
+                                    f"Font italic is different, {run1.font.italic} != {run2.font.italic}"  # noqa: E501
+                                )
 
                             if hasattr(run1.font.color, "rgb") and hasattr(
                                 run2.font.color, "rgb"
@@ -268,14 +280,16 @@ class SlidesEvaluator(Evaluator):
                                     and examine_color_rgb
                                 ):
                                     raise FeedbackException(
-                                        f"Color is different, {run1.font.color.rgb} != {run2.font.color.rgb}")
+                                        f"Color is different, {run1.font.color.rgb} != {run2.font.color.rgb}"  # noqa: E501
+                                    )
 
                             if (
                                 run1.font.underline != run2.font.underline
                                 and examine_font_underline
                             ):
                                 raise FeedbackException(
-                                    f"Underline is different, {run1.font.underline} != {run2.font.underline}")
+                                    f"Underline is different, {run1.font.underline} != {run2.font.underline}"  # noqa: E501
+                                )
 
                             if (
                                 run1.font._element.attrib.get("strike", "noStrike")
@@ -283,7 +297,8 @@ class SlidesEvaluator(Evaluator):
                                 and examine_strike_through
                             ):
                                 raise FeedbackException(
-                                    f"Strike through is different, {run1.font._element.attrib.get('strike', 'noStrike')} != {run2.font._element.attrib.get('strike', 'noStrike')}")
+                                    f"Strike through is different, {run1.font._element.attrib.get('strike', 'noStrike')} != {run2.font._element.attrib.get('strike', 'noStrike')}"  # noqa: E501
+                                )
 
                             def _extract_bullets(xml_data):
                                 root = ET.fromstring(xml_data)
@@ -331,6 +346,7 @@ class SlidesEvaluator(Evaluator):
                                 run1.part.blob.decode("utf-8")
                             ) != _extract_bullets(run2.part.blob.decode("utf-8")):
                                 raise FeedbackException(
-                                    f"Bullets are different, {_extract_bullets(run1.part.blob.decode('utf-8'))} != {_extract_bullets(run2.part.blob.decode('utf-8'))}")
+                                    f"Bullets are different, {_extract_bullets(run1.part.blob.decode('utf-8'))} != {_extract_bullets(run2.part.blob.decode('utf-8'))}"  # noqa: E501
+                                )
 
                         # fixme: Actually there are more properties to be compared, we can add them later via parsing the xml data  # noqa: E501
