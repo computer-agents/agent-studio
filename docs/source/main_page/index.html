@@ -2,7 +2,7 @@
 <html class="gpt-theme-light" style="--bigger-text-multiplier: 1.0; --chatgpt-widget-top: 85px; --gpt-ruler-color: #0000004c; --gpt-gmail-compose-btn-display: flex; --gpt-twitter-compose-btn-display: flex; --gpt-outlook-compose-btn-display: inline-block; --gpt-linkedin-compose-btn-display: flex;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     
     <title>AgentStudio</title>
-    <meta name="description" content="Agent Studio: ntegrating benchmarks, environments, and toolkits for general computer agents">
+    <meta name="description" content="AgentStudio: A Toolkit for Building General Virtual Agents">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta property="og:image" content="/logo.png">
@@ -41,8 +41,8 @@
             <h1 style="font-size: 60px; padding-top: 0.4em">AgentStudio</h1>
             <!-- <img src="./main_page_resources/agent-studio-logo-text-light.png" style="height: 100px; padding-top: 0em; padding-left: 0.5em"> -->
           </div>
-          <h2>Integrating benchmarks, environments, and toolkits for general computer agents</h2>
-          <!-- <h3 style="font-size: 20px; padding-top: 1.2em">NeurIPS 2024</h3> -->
+          <h2>A Toolkit for Building General Virtual Agents</h2>
+          <!-- <h3 style="font-size: 20px; padding-top: 1.2em">ICLR 2025</h3> -->
           <p style="text-align: center;margin-top:1em;">
             Longtao Zheng</a><sup>1</sup>*, Zhiyuan Huang</a><sup>3</sup>*, Zhenghai Xue</a><sup>1</sup>, Xinrun Wang</a><sup>1</sup>, Bo An</a><sup>1,2</sup>, Shuicheng Yan</a><sup>2</sup>
           </p>
@@ -50,24 +50,19 @@
             <sup>1</sup>Nanyang Technological University, Singapore &nbsp; <sup>2</sup>Skywork AI, Singapore &nbsp; <sup>3</sup>ETH Zurich &nbsp; (*Equal contribution)
           </p>
           <div class="content-wrapper" style="margin-top: 2em">
-            <a href="https://drive.google.com/file/d/1gT6_ZNCk4EwclTP3bt-GiQDR3NwbZ8os/view?usp=sharing">
+            <a href="https://arxiv.org/abs/2403.17918">
               <button class="outline">
                 <i class="fa-solid fa-file"></i> Paper&nbsp;
               </button>
             </a>
-            <a href="https://github.com/SkyworkAI/agent-studio">
+            <a href="https://github.com/computer-agents/agent-studio">
               <button class="outline">
                 <i class="fab fa-github"></i> Code&nbsp;
               </button>
             </a>
-            <a href="./doc_index.html">
+            <a href="https://huggingface.co/agent-studio">
               <button class="outline">
-                <i class="fa fa-paperclip"></i> Data&nbsp;
-              </button>
-            </a>
-            <a href="./doc_index.html">
-              <button class="outline">
-                <i class="fa fa-book"></i> Docs&nbsp;
+                🤗 Data&nbsp;
               </button>
             </a>
             <!-- <a href="https://huggingface.co/spaces/Skywork/agent-studio-leaderboard">
@@ -81,20 +76,27 @@
       <section class="main-container">
         <div class="content-wrapper">
           <div class="content-box">
-            <h2 class="text-title">Desiderata for Next-Generation Computer Agents</h2>
-            <p class="text-content">
-              The development of general computer agents is a long-standing goal in artificial intelligence. To achieve this goal, agents must be able to interact with the world in a human-like manner, which requires a wide range of capabilities. We identify three key desiderata for next-generation computer agents:
-            </p>
+            <h2 class="text-title">TL;DR: A trinity of environments, tools, and benchmarks for general virtual agents</h2>
             <img src="./main_page_resources/overview.png" style="width:60%;margin:auto;display:block;">
+            <p class="text-content">
+              AgentStudio targets the desiderata for robust, general, and open-ended virtual agents by providing: (1) <b>a lightweight, interactive environment</b> with highly <b>generic observation and action spaces</b>, e.g., video observations and GUI/API actions, (2) <b>tools for creating online benchmark tasks, annotating GUI elements, and labeling actions in videos</b>, (3) <b>online benchmark tasks</b> that evaluate both GUI interactions and function calling with <b>auto-evaluation</b> and language feedback, and (4) <b>three benchmark datasets</b>: GroundUI, IDMBench, and CriticBench, for fundamental agent abilities, including GUI grounding, learning from videos, and success detection.
+              <br><br>
+              For more details on AgentStudio environments, tools, and benchmarks, please refer to our <a href="https://arxiv.org/abs/2403.17918">paper</a> and <a href="https://github.com/computer-agents/agent-studio">code</a>.
+            </p>
           </div>
         </div>
         <div class="content-wrapper">
           <div class="content-box">
             <h2 class="text-title">Resources</h2>
             <p class="text-content" style="margin-top:1em;">
-              AgentStudio benchmark suites are available at both HuggingFace and Google Drive. The jsonl files of GroundUI-1K and Trajectory-Lite can also be found in our GitHub repository. We are more than happy to receive feedback and suggestions from the community. Please feel free to raise a GitHub Issue if you have any questions or comments, or want to submit new benchmark results.
+              All the files for online benchmark tasks and the images for the three datasets are available at Google Drive. We also provide the three datasets on Hugging Face. The jsonl files of GroundUI-1K and Trajectory-Lite can also be found in our GitHub repository. Please feel free to raise a GitHub issue if you have any questions or comments, or want to submit new benchmark results.
             </p>
             <div class="content-wrapper" style="width: 100%">
+              <div class="content-box column">
+                <a style="width: 120%" href="https://drive.google.com/drive/folders/1XKDXwdWODCB2e80gflAgZiiBICqbgdeB?usp=sharing">
+                  <div class="download"><i class="fa fa-paperclip"></i> Google Drive</div>
+                </a>
+              </div>
               <div class="content-box column">
                 <a style="width: 120%" href="https://huggingface.co/datasets/agent-studio/GroundUI-1K">
                   <div class="download">🤗 GroundUI-1K</div>
@@ -103,11 +105,6 @@
               <div class="content-box column">
                 <a style="width: 120%" href="https://huggingface.co/datasets/agent-studio/GroundUI-18K">
                   <div class="download">🤗 GroundUI-18K</div>
-                </a>
-              </div>
-              <div class="content-box column">
-                <a style="width: 120%" href="https://huggingface.co/datasets/agent-studio/SuccessDetection">
-                  <div class="download">🤗 Success Detection</div>
                 </a>
               </div>
               <div class="content-box column">
@@ -121,8 +118,8 @@
                 </a>
               </div>
               <div class="content-box column">
-                <a style="width: 120%" href="https://drive.google.com/drive/folders/1XKDXwdWODCB2e80gflAgZiiBICqbgdeB?usp=sharing">
-                  <div class="download">Google Drive</div>
+                <a style="width: 120%" href="https://huggingface.co/datasets/agent-studio/SuccessDetection">
+                  <div class="download">🤗 CriticBench</div>
                 </a>
               </div>
             </div>
@@ -575,190 +572,7 @@
         </div>
         <div class="content-wrapper">
           <div class="content-box">
-            <h2 class="text-title">Success Detection Leaderboard</h2>
-            <p class="text-content">
-              The ability to self-evaluate and learn from environment interactions is one of the core abilities of agents. However, there are currently few benchmarks that focus on and measure the ability of computer agents to judge whether a trajectory is successful.
-            </p>
-            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
-              <h3 class="text-subtitle">With Observation-Action Pairs (Accuracy %)</h3>
-              <br>
-              <table class="table scrollable">
-                <thead>
-                  <tr>
-                    <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">Web</div></th>
-                    <th><div class="sticky-header-content">Desktop</div></th>
-                    <th><div class="sticky-header-content">Mobile</div></th>
-                    <th><div class="sticky-header-content">Total</div></th>
-                    <th><div class="sticky-header-content">Date</div></th>
-                    <!-- <th><div class="sticky-header-content">Logs</div></th> -->
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <p class="model-type">Gemini 1.5 Pro</p>
-                    </td>
-                    <td><p class="number">73.5</p></td>
-                    <td><p class="number">82.0</p></td>
-                    <td><p class="number">62.0</p></td>
-                    <td><p class="number">71.4</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
-                    <!-- <td><p style="text-align: center;">
-                      <a href="">🔗</a>
-                    </p></td> -->
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="model-type">Gemini 1.5 Flash</p>
-                    </td>
-                    <td><p class="number">68.5</p></td>
-                    <td><p class="number">82.0</p></td>
-                    <td><p class="number">65.0</p></td>
-                    <td><p class="number">69.4</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
-                    <!-- <td><p style="text-align: center;">
-                      <a href="">🔗</a>
-                    </p></td> -->
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="model-type">Claude 3.5 Sonnet</p>
-                    </td>
-                    <td><p class="number">70.0</p></td>
-                    <td><p class="number">92.0</p></td>
-                    <td><p class="number">55.0</p></td>
-                    <td><p class="number">68.9</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
-                    <!-- <td><p style="text-align: center;">
-                      <a href="">🔗</a>
-                    </p></td> -->
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="model-type">GPT-4o (0513)</p>
-                    </td>
-                    <td><p class="number">68.5</p></td>
-                    <td><p class="number">90.0</p></td>
-                    <td><p class="number">58.0</p></td>
-                    <td><p class="number">68.6</p></td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
-                    <!-- <td><p style="text-align: center;">
-                      <a href="">🔗</a>
-                    </p></td> -->
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="model-type">Qwen-VL-Chat</p>
-                    </td>
-                    <td><p class="number">52.0</p></td>
-                    <td><p class="number">38.0</p></td>
-                    <td><p class="number">48.0</p></td>
-                    <td><p class="number">48.9</p></td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
-                    <!-- <td><p style="text-align: center;">
-                      <a href="">🔗</a>
-                    </p></td> -->
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <br/>
-            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
-              <h3 class="text-subtitle">With Observations Only (Accuracy %)</h3>
-              <br>
-              <table class="table scrollable">
-                <thead>
-                  <tr>
-                    <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">Web</div></th>
-                    <th><div class="sticky-header-content">Desktop</div></th>
-                    <th><div class="sticky-header-content">Mobile</div></th>
-                    <th><div class="sticky-header-content">Total</div></th>
-                    <th><div class="sticky-header-content">Date</div></th>
-                    <!-- <th><div class="sticky-header-content">Logs</div></th> -->
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <p class="model-type">Gemini 1.5 Pro</p>
-                    </td>
-                    <td><p class="number">65.0</p></td>
-                    <td><p class="number">86.0</p></td>
-                    <td><p class="number">59.0</p></td>
-                    <td><p class="number">66.3</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
-                    <!-- <td><p style="text-align: center;">
-                      <a href="">🔗</a>
-                    </p></td> -->
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="model-type">Gemini 1.5 Flash</p>
-                    </td>
-                    <td><p class="number">67.0</p></td>
-                    <td><p class="number">72.0</p></td>
-                    <td><p class="number">62.0</p></td>
-                    <td><p class="number">66.3</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
-                    <!-- <td><p style="text-align: center;">
-                      <a href="">🔗</a>
-                    </p></td> -->
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="model-type">Claude 3.5 Sonnet</p>
-                    </td>
-                    <td><p class="number">66.0</p></td>
-                    <td><p class="number">86.0</p></td>
-                    <td><p class="number">58.0</p></td>
-                    <td><p class="number">66.6</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
-                    <!-- <td><p style="text-align: center;">
-                      <a href="">🔗</a>
-                    </p></td> -->
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="model-type">GPT-4o (0513)</p>
-                    </td>
-                    <td><p class="number">63.5</p></td>
-                    <td><p class="number">84.0</p></td>
-                    <td><p class="number">57.0</p></td>
-                    <td><p class="number">64.6</p></td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
-                    <!-- <td><p style="text-align: center;">
-                      <a href="">🔗</a>
-                    </p></td> -->
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="model-type">Qwen-VL-Chat</p>
-                    </td>
-                    <td><p class="number">54.5</p></td>
-                    <td><p class="number">58.0</p></td>
-                    <td><p class="number">52.0</p></td>
-                    <td><p class="number">54.3</p></td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
-                    <!-- <td><p style="text-align: center;">
-                      <a href="">🔗</a>
-                    </p></td> -->
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <br>
-            <h3 class="text-title">Data Sample</h3>
-            <p class="text-content">
-              We collect trajectories from both existing environments such as AITW, Mind2Web, VisualWebArena, etc. and AgentStudio's real-world environments, resulting in diverse trajectories of both human and agents on web, desktop, and mobile environments. Since most human trajectories are successful, we balance the dataset by labeling partial trajectories as failure cases.
-            </p>
-            <img src="./main_page_resources/success_detection_example_web.jpg" style="width:70%;margin:auto;display:block;">
-          </div>
-        </div>
-        <div class="content-wrapper">
-          <div class="content-box">
-            <h2 class="text-title">IDM-Single & IDM-Multiple Leaderboard</h2>
+            <h2 class="text-title">IDMBench Leaderboard</h2>
             <p class="text-content">
               Unlocking the ability to learn from videos is a key capability for next-generation computer agents to achieve generalization and lifelong learning. Therefore, we present the first dataset designed to measure the ability to learn how to act from videos. Specifically, we evaluate current multimodal models as inverse dynamics models, predicting actions from unlabeled videos in two separate settings. In the first scenario, we provide the model with two neighboring screenshots, one before and one after an action, and ask it to predict the action that occurred in between. In the second, which is a more general scenario, we provide the model with states for multiple actions (which can be viewed as video frames) and ask it to predict all the actions within the frames.
             </p>
@@ -998,24 +812,209 @@
         </div>
         <div class="content-wrapper">
           <div class="content-box">
-            <h2 class="text-title">AgentStudio Environments</h2>
+            <h2 class="text-title">CriticBench Leaderboard</h2>
             <p class="text-content">
-              AgentStudio environments supports <strong>online interactions</strong> the most <strong>generic observation and action spaces</strong>, including human-computer interfaces and code execution. The implementation is also compatible with <strong>diverse operating systems and devices</strong>. These features drastically expand the potential task space and allow building and benchmarking agents in <strong>real-world</strong> settings.
+              The ability to self-evaluate and learn from environment interactions is one of the core abilities of agents. However, there are currently few benchmarks that focus on and measure the ability of computer agents to judge whether a trajectory is successful.
             </p>
-            <img src="./main_page_resources/agent_space.jpg" style="width:80%;margin:auto;display:block;">
+            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
+              <h3 class="text-subtitle">With Observation-Action Pairs (Accuracy %)</h3>
+              <br>
+              <table class="table scrollable">
+                <thead>
+                  <tr>
+                    <th><div class="sticky-header-content">Model</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
+                    <th><div class="sticky-header-content">Web</div></th>
+                    <th><div class="sticky-header-content">Desktop</div></th>
+                    <th><div class="sticky-header-content">Mobile</div></th>
+                    <th><div class="sticky-header-content">Total</div></th>
+                    <!-- <th><div class="sticky-header-content">Logs</div></th> -->
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini 1.5 Pro</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">73.5</p></td>
+                    <td><p class="number">82.0</p></td>
+                    <td><p class="number">62.0</p></td>
+                    <td><p class="number">71.4</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini 1.5 Flash</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">68.5</p></td>
+                    <td><p class="number">82.0</p></td>
+                    <td><p class="number">65.0</p></td>
+                    <td><p class="number">69.4</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Claude 3.5 Sonnet</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">70.0</p></td>
+                    <td><p class="number">92.0</p></td>
+                    <td><p class="number">55.0</p></td>
+                    <td><p class="number">68.9</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">GPT-4o (0513)</p>
+                    </td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
+                    <td><p class="number">68.5</p></td>
+                    <td><p class="number">90.0</p></td>
+                    <td><p class="number">58.0</p></td>
+                    <td><p class="number">68.6</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Qwen-VL-Chat</p>
+                    </td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
+<td><p class="number">52.0</p></td>
+                    <td><p class="number">38.0</p></td>
+                    <td><p class="number">48.0</p></td>
+                    <td><p class="number">48.9</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <br/>
+            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
+              <h3 class="text-subtitle">With Observations Only (Accuracy %)</h3>
+              <br>
+              <table class="table scrollable">
+                <thead>
+                  <tr>
+                    <th><div class="sticky-header-content">Model</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
+                    <th><div class="sticky-header-content">Web</div></th>
+                    <th><div class="sticky-header-content">Desktop</div></th>
+                    <th><div class="sticky-header-content">Mobile</div></th>
+                    <th><div class="sticky-header-content">Total</div></th>
+                    <!-- <th><div class="sticky-header-content">Logs</div></th> -->
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini 1.5 Pro</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">65.0</p></td>
+                    <td><p class="number">86.0</p></td>
+                    <td><p class="number">59.0</p></td>
+                    <td><p class="number">66.3</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini 1.5 Flash</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">67.0</p></td>
+                    <td><p class="number">72.0</p></td>
+                    <td><p class="number">62.0</p></td>
+                    <td><p class="number">66.3</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Claude 3.5 Sonnet</p>
+                    </td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
+                    <td><p class="number">66.0</p></td>
+                    <td><p class="number">86.0</p></td>
+                    <td><p class="number">58.0</p></td>
+                    <td><p class="number">66.6</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">GPT-4o (0513)</p>
+                    </td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
+<td><p class="number">63.5</p></td>
+                    <td><p class="number">84.0</p></td>
+                    <td><p class="number">57.0</p></td>
+                    <td><p class="number">64.6</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Qwen-VL-Chat</p>
+                    </td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
+                    <td><p class="number">54.5</p></td>
+                    <td><p class="number">58.0</p></td>
+                    <td><p class="number">52.0</p></td>
+                    <td><p class="number">54.3</p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             <br>
+            <h3 class="text-title">Data Sample</h3>
+            <p class="text-content">
+              We collect trajectories from both existing environments such as AITW, Mind2Web, VisualWebArena, etc. and AgentStudio's real-world environments, resulting in diverse trajectories of both human and agents on web, desktop, and mobile environments. Since most human trajectories are successful, we balance the dataset by labeling partial trajectories as failure cases.
+            </p>
+            <img src="./main_page_resources/success_detection_example_web.jpg" style="width:70%;margin:auto;display:block;">
+          </div>
+        </div>
+        <div class="content-wrapper">
+          <div class="content-box">
+            <h2 class="text-title">AgentStudio Environment</h2>
+            <img src="./main_page_resources/agent_space.jpg" style="width:80%;margin:auto;display:block;">
+            <p class="text-content">
+              AgentStudio provides an <b>interactive, realistic, and lightweight environment</b> with generic observation and action spaces, enabling agents to <b>interact with arbitrary software</b>. The observation space incorporates <b>multiple modalities, ranging from screen recordings (videos) and screenshots (images) to code execution results (text)</b>. Agents can act through human-computer interfaces (e.g., keyboard-mouse operations) to control third-party applications, and perform function calling to interact with APIs. These features expand the task space to massively open-domain and real-world tasks typically performed by humans. The interactive nature of online environments allows agents to learn through trial and error, which is enhanced by the language feedback on failure reasons provided by our environment.
+              <br>
+              <br>
+              Comparisons with existing work:
+            </p>
             <img src="./main_page_resources/comparison.png" style="width:80%;margin:auto;display:block;">
           </div>
         </div>
         <div class="content-wrapper">
           <div class="content-box">
-            <h2 class="text-title">AgentStudio Toolkits</h2>
+            <h2 class="text-title">AgentStudio Tools</h2>
             <p class="text-content">
               Here is an example of recording single-step GUI grounding data in MacOS.
             </p>
             <div style="display: flex; justify-content: space-between;">
-              <img src="./main_page_resources/annotate_gui_1.png" width="50%">
-              <img src="./main_page_resources/annotate_gui_2.png" width="50%">
+              <img src="./main_page_resources/annotate_gui_1.jpg" width="48%">
+              <img src="./main_page_resources/annotate_gui_2.jpg" width="48%">
             </div>
             <p class="text-content">
               Here is an example video of recordinging and editing video trajectories with action labels.
@@ -1024,7 +1023,7 @@
               <iframe src="https://drive.google.com/file/d/1W3bFXKO5cJHle6JfwphRrlbrsV-Cyn2E/preview" width="640" height="400" allow="autoplay"></iframe>
             </div>        
             <p class="text-content">
-              You can also evaluate agents on your own tasks with the help of our toolkits. The figure below shows the process of monitoring agent behaviors on custom task configurations using AgentStudio toolkits. Read more in our <a href="https://skyworkai.github.io/agent-studio/doc_index.html" ,="" target="_blank">documentation</a> for environments and toolkits!
+              You can also evaluate agents on your own tasks with the help of our toolkits. The figure below shows the process of monitoring agent behaviors on custom task configurations using AgentStudio toolkits.
             </p>
           </div>
         </div>
