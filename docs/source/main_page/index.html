@@ -60,6 +60,11 @@
                 <i class="fab fa-github"></i> Code&nbsp;
               </button>
             </a> -->
+            <a href="https://github.com/computer-agents/agent-studio">
+              <button class="outline">
+                <i class="fab fa-github"></i> Code&nbsp;
+              </button>
+            </a>
             <a href="https://huggingface.co/agent-studio">
               <button class="outline">
                 🤗 Data&nbsp;
@@ -129,10 +134,7 @@
       <section class="main-container">
         <div class="content-wrapper">
           <div class="content-box">
-            <h2 class="text-title">Agent Studio Online Benchmark Leaderboard</h2>
-            <p class="text-content">
-              <!-- UI grounding with accurate coordinates is one of the main challenges for human-like computer agents, since not all interactable elements are not readily available. It has also been validated that current models can already generate correct high-level planning in text space, but struggle to ground them into accurate actions. However, there are few existing benchmark provide evaluation results on UI grounding capabilities across different applications and paltforms. In AgentStudio, we systematically re-organize existing datasets, plus self-collected data, into 18K diverse and realistic data with recaptioned clear instructions to benchmark UI grounding. -->
-            </p>
+            <h2 class="text-title">AgentStudio Online Benchmark Leaderboard</h2>
             <br>
             <h3 class="text-title">Online Benchmark</h3>
               <p class="text-content">
@@ -155,7 +157,7 @@
                 <tbody>
                   <tr>
                     <td>
-                      <p class="model-type">Claude 3.5 Sonnet (0620)</p>
+                      <p class="model-type">claude-3-5-sonnet-20240620</p>
                     </td>
                     <td><p class="number"><strong>82.0</strong></p></td>
                     <td><p class="number">20.0</p></td>
@@ -168,7 +170,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">GPT-4o (0806)</p>
+                      <p class="model-type">gpt-4o-2024-08-06</p>
                     </td>
                     <td><p class="number">72.0</p></td>
                     <td><p class="number"><strong>24.2</strong></p></td>
@@ -181,7 +183,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini 1.5 Pro</p>
+                      <p class="model-type">gemini-1.5-pro-001</p>
                     </td>
                     <td><p class="number">36.0</p></td>
                     <td><p class="number">13.6</p></td>
@@ -194,7 +196,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini-1.5 Flash</p>
+                      <p class="model-type">gemini-1.5-flash-001</p>
                     </td>
                     <td><p class="number">28.0</p></td>
                     <td><p class="number">9.5</p></td>
@@ -230,7 +232,7 @@
                 <tbody>
                   <tr>
                     <td>
-                      <p class="model-type">Claude 3.5 Sonnet (0620)</p>
+                      <p class="model-type">claude-3-5-sonnet-20240620</p>
                     </td>
                     <td><p class="number">94.7</p></td>
                     <td><p class="number"><strong>42.9</strong></p></td>
@@ -243,7 +245,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">GPT-4o (0806)</p>
+                      <p class="model-type">gpt-4o-2024-08-06</p>
                     </td>
                     <td><p class="number"><strong>100.0</strong></p></td>
                     <td><p class="number">28.6</p></td>
@@ -256,7 +258,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini 1.5 Pro</p>
+                      <p class="model-type">gemini-1.5-pro-001</p>
                     </td>
                     <td><p class="number">68.4</p></td>
                     <td><p class="number">0.0</p></td>
@@ -269,7 +271,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini-1.5 Flash</p>
+                      <p class="model-type">gemini-1.5-flash-001</p>
                     </td>
                     <td><p class="number">52.6</p></td>
                     <td><p class="number">14.3</p></td>
@@ -307,7 +309,7 @@
                 <tbody>
                   <tr>
                     <td>
-                      <p class="model-type">GPT-4o (0806)</p>
+                      <p class="model-type">gpt-4o-2024-08-06</p>
                     </td>
                     <td><p class="number">0.0</p></td>
                     <td><p class="number"><strong>94.7</strong></p></td>
@@ -322,7 +324,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Claude 3.5 Sonnet (0620)</p>
+                      <p class="model-type">claude-3-5-sonnet-20240620</p>
                     </td>
                     <td><p class="number">0.0</p></td>
                     <td><p class="number"><strong>94.7</strong></p></td>
@@ -337,7 +339,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini 1.5 Pro</p>
+                      <p class="model-type">gemini-1.5-pro-001</p>
                     </td>
                     <td><p class="number">0.0</p></td>
                     <td><p class="number">63.2</p></td>
@@ -352,7 +354,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini-1.5 Flash</p>
+                      <p class="model-type">gemini-1.5-flash-001</p>
                     </td>
                     <td><p class="number">0.0</p></td>
                     <td><p class="number">47.4</p></td>
@@ -368,6 +370,56 @@
                 </tbody>
               </table>
             </div>
+            <br>
+            <h3 class="text-title">Data Sample of Task Configuration</h3>
+              <p class="text-content">
+                Task configuration with simplified evaluation/reset/cleanup procedures.
+              </p>
+              <!-- <img src="./main_page_resources/ui_grounding_example.jpg" style="width:70%;margin:auto;display:block;"> -->
+              <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
+                <table class="table scrollable">
+                  <thead>
+                    <tr>
+                      <th><div class="sticky-header-content">Key</div></th>
+                      <th><div class="sticky-header-content">Value</div></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><p class="model-type">Task ID</p></td>
+                      <td><p class="number">08aced46-45a2-48d7-993b-ed3fb5b32302</p></td>
+                    </tr>
+                    <tr>
+                      <td><p class="model-type">Instruction</p></td>
+                      <td><p class="number">Give the slide 2 a right aligned title, "Note".</p></td>
+                    </tr>
+                    <tr>
+                      <td><p class="model-type">Visual</p></td>
+                      <td><p class="number">True</p></td>
+                    </tr>
+                    <tr>
+                      <td><p class="model-type">Max Steps</p></td>
+                      <td><p class="number">30</p></td>
+                    </tr>
+                    <tr>
+                      <td><p class="model-type">Max Time</p></td>
+                      <td><p class="number">60.0</p></td>
+                    </tr>
+                    <tr>
+                      <td><p class="model-type">Evaluation Procedure</p></td>
+                      <td><p class="number">Compare between "ref.pptx" and "target.pptx"</p></td>
+                    </tr>
+                    <tr>
+                      <td><p class="model-type">Reset Procedure</p></td>
+                      <td><p class="number">1. Create folder structure, 2. Copy file, 3. Open PPTX file</p></td>
+                    </tr>
+                    <tr>
+                      <td><p class="model-type">Cleanup Procedure</p></td>
+                      <td><p class="number">1. Delete folder structure, 2. Kill LibreOffice process</p></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
           </div>
         </div>
         <div class="content-wrapper">
@@ -405,7 +457,7 @@
                   </tr>
 <tr>
                     <td>
-                      <p class="model-type">Gemini 1.5 Pro</p>
+                      <p class="model-type">gemini-1.5-pro-001</p>
                     </td>
                     <td><p class="number">31.2</p></td>
                     <td><p class="number">24.3</p></td>
@@ -431,7 +483,7 @@
                   </tr>
 <tr>
                     <td>
-                      <p class="model-type">Claude 3.5 Sonnet (0620)</p>
+                      <p class="model-type">claude-3-5-sonnet-20240620</p>
                     </td>
                     <td><p class="number">13.0</p></td>
                     <td><p class="number">14.0</p></td>
@@ -444,7 +496,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">GPT-4o (0513)</p>
+                      <p class="model-type">gpt-4o-2024-05-13</p>
                     </td>
                     <td><p class="number">7.5</p></td>
                     <td><p class="number">8.3</p></td>
@@ -457,7 +509,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">GPT-4 Turbo (0409)</p>
+                      <p class="model-type">gpt-4-turbo-2024-04-09</p>
                     </td>
                     <td><p class="number">5.3</p></td>
                     <td><p class="number">11.0</p></td>
@@ -470,7 +522,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini-1.5 Flash</p>
+                      <p class="model-type">gemini-1.5-flash-001</p>
                     </td>
                     <td><p class="number">0.5</p></td>
                     <td><p class="number">4.3</p></td>
@@ -593,7 +645,7 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td><p class="model-type">Claude 3.5 Sonnet</p></td>
+                    <td><p class="model-type">claude-3-5-sonnet-20240620</p></td>
                     <td><p class="number">73.0</p></td>
                     <td><p class="number">56.0</p></td>
                     <td><p class="number">50.0</p></td>
@@ -604,7 +656,7 @@
                     </p></td> -->
                   </tr>
                   <tr>
-                    <td><p class="model-type">GPT-4o (0513)</p></td>
+                    <td><p class="model-type">gpt-4o-2024-05-13</p></td>
                     <td><p class="number">70.0</p></td>
                     <td><p class="number">56.0</p></td>
                     <td><p class="number">45.0</p></td>
@@ -615,7 +667,7 @@
                     </p></td> -->
                   </tr>
                   <tr>
-                    <td><p class="model-type">Gemini 1.5 Pro</p></td>
+                    <td><p class="model-type">gemini-1.5-pro-001</p></td>
                     <td><p class="number">62.0</p></td>
                     <td><p class="number">51.0</p></td>
                     <td><p class="number">46.0</p></td>
@@ -626,7 +678,7 @@
                     </p></td> -->
                   </tr>
                   <tr>
-                    <td><p class="model-type">Gemini 1.5 Flash</p></td>
+                    <td><p class="model-type">gemini-1.5-flash-001</p></td>
                     <td><p class="number">65.0</p></td>
                     <td><p class="number">34.0</p></td>
                     <td><p class="number">31.0</p></td>
@@ -668,7 +720,7 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td><p class="model-type">Claude 3.5 Sonnet</p></td>
+                    <td><p class="model-type">claude-3-5-sonnet-20240620</p></td>
                     <td><p class="number">18.0</p></td>
                     <td><p class="number">8.0</p></td>
                     <td><p class="number">7.0</p></td>
@@ -679,7 +731,7 @@
                     </p></td> -->
                   </tr>
                   <tr>
-                    <td><p class="model-type">GPT-4o (0513)</p></td>
+                    <td><p class="model-type">gpt-4o-2024-05-13</p></td>
                     <td><p class="number">13.0</p></td>
                     <td><p class="number">8.0</p></td>
                     <td><p class="number">2.0</p></td>
@@ -690,7 +742,7 @@
                     </p></td> -->
                   </tr>
                   <tr>
-                    <td><p class="model-type">Gemini 1.5 Pro</p></td>
+                    <td><p class="model-type">gemini-1.5-pro-001</p></td>
                     <td><p class="number">0.0</p></td>
                     <td><p class="number">0.0</p></td>
                     <td><p class="number">1.0</p></td>
@@ -712,7 +764,7 @@
                     </p></td> -->
                   </tr>
                   <tr>
-                    <td><p class="model-type">Gemini 1.5 Flash</p></td>
+                    <td><p class="model-type">gemini-1.5-flash-001</p></td>
                     <td><p class="number">0.0</p></td>
                     <td><p class="number">0.0</p></td>
                     <td><p class="number">0.0</p></td>
@@ -743,7 +795,7 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td><p class="model-type">Claude 3.5 Sonnet</p></td>
+                    <td><p class="model-type">claude-3-5-sonnet-20240620</p></td>
                     <td><p class="number">2.0</p></td>
                     <td><p class="number">2.1</p></td>
                     <td><p class="number">2.9</p></td>
@@ -754,7 +806,7 @@
                     </p></td> -->
                   </tr>
                   <tr>
-                    <td><p class="model-type">GPT-4o (0513)</p></td>
+                    <td><p class="model-type">gpt-4o-2024-05-13</p></td>
                     <td><p class="number">2.1</p></td>
                     <td><p class="number">2.2</p></td>
                     <td><p class="number">3.5</p></td>
@@ -765,7 +817,7 @@
                     </p></td> -->
                   </tr>
                   <tr>
-                    <td><p class="model-type">Gemini 1.5 Pro</p></td>
+                    <td><p class="model-type">gemini-1.5-pro-001</p></td>
                     <td><p class="number">6.0</p></td>
                     <td><p class="number">4.4</p></td>
                     <td><p class="number">7.0</p></td>
@@ -787,7 +839,7 @@
                     </p></td> -->
                   </tr>
                   <tr>
-                    <td><p class="model-type">Gemini 1.5 Flash</p></td>
+                    <td><p class="model-type">gemini-1.5-flash-001</p></td>
                     <td><p class="number">294.5</p></td>
                     <td><p class="number">7.2</p></td>
                     <td><p class="number">7.2</p></td>
@@ -823,63 +875,63 @@
                 <thead>
                   <tr>
                     <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">Date</div></th>
                     <th><div class="sticky-header-content">Web</div></th>
                     <th><div class="sticky-header-content">Desktop</div></th>
                     <th><div class="sticky-header-content">Mobile</div></th>
                     <th><div class="sticky-header-content">Total</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
                     <!-- <th><div class="sticky-header-content">Logs</div></th> -->
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini 1.5 Pro</p>
+                      <p class="model-type">gemini-1.5-pro-001</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">73.5</p></td>
                     <td><p class="number">82.0</p></td>
                     <td><p class="number">62.0</p></td>
                     <td><p class="number">71.4</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini 1.5 Flash</p>
+                      <p class="model-type">gemini-1.5-flash-001</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">68.5</p></td>
                     <td><p class="number">82.0</p></td>
                     <td><p class="number">65.0</p></td>
                     <td><p class="number">69.4</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Claude 3.5 Sonnet</p>
+                      <p class="model-type">claude-3-5-sonnet-20240620</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">70.0</p></td>
                     <td><p class="number">92.0</p></td>
                     <td><p class="number">55.0</p></td>
                     <td><p class="number">68.9</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">GPT-4o (0513)</p>
+                      <p class="model-type">gpt-4o-2024-05-13</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">68.5</p></td>
                     <td><p class="number">90.0</p></td>
                     <td><p class="number">58.0</p></td>
                     <td><p class="number">68.6</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -888,11 +940,11 @@
                     <td>
                       <p class="model-type">Qwen-VL-Chat</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
-<td><p class="number">52.0</p></td>
+                    <td><p class="number">52.0</p></td>
                     <td><p class="number">38.0</p></td>
                     <td><p class="number">48.0</p></td>
                     <td><p class="number">48.9</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -908,63 +960,63 @@
                 <thead>
                   <tr>
                     <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">Date</div></th>
                     <th><div class="sticky-header-content">Web</div></th>
                     <th><div class="sticky-header-content">Desktop</div></th>
                     <th><div class="sticky-header-content">Mobile</div></th>
                     <th><div class="sticky-header-content">Total</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
                     <!-- <th><div class="sticky-header-content">Logs</div></th> -->
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini 1.5 Pro</p>
+                      <p class="model-type">gemini-1.5-pro-001</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">65.0</p></td>
                     <td><p class="number">86.0</p></td>
                     <td><p class="number">59.0</p></td>
                     <td><p class="number">66.3</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Gemini 1.5 Flash</p>
+                      <p class="model-type">gemini-1.5-flash-001</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">67.0</p></td>
                     <td><p class="number">72.0</p></td>
                     <td><p class="number">62.0</p></td>
                     <td><p class="number">66.3</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">Claude 3.5 Sonnet</p>
+                      <p class="model-type">claude-3-5-sonnet-20240620</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">66.0</p></td>
                     <td><p class="number">86.0</p></td>
                     <td><p class="number">58.0</p></td>
                     <td><p class="number">66.6</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td>
-                      <p class="model-type">GPT-4o (0513)</p>
+                      <p class="model-type">gpt-4o-2024-05-13</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
-<td><p class="number">63.5</p></td>
+                    <td><p class="number">63.5</p></td>
                     <td><p class="number">84.0</p></td>
                     <td><p class="number">57.0</p></td>
                     <td><p class="number">64.6</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -973,11 +1025,11 @@
                     <td>
                       <p class="model-type">Qwen-VL-Chat</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">54.5</p></td>
                     <td><p class="number">58.0</p></td>
                     <td><p class="number">52.0</p></td>
                     <td><p class="number">54.3</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
