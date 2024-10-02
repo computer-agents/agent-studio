@@ -132,6 +132,249 @@
       <section class="main-container">
         <div class="content-wrapper">
           <div class="content-box">
+            <h2 class="text-title">Agent Studio Online Benchmark Leaderboard</h2>
+            <p class="text-content">
+              <!-- UI grounding with accurate coordinates is one of the main challenges for human-like computer agents, since not all interactable elements are not readily available. It has also been validated that current models can already generate correct high-level planning in text space, but struggle to ground them into accurate actions. However, there are few existing benchmark provide evaluation results on UI grounding capabilities across different applications and paltforms. In AgentStudio, we systematically re-organize existing datasets, plus self-collected data, into 18K diverse and realistic data with recaptioned clear instructions to benchmark UI grounding. -->
+            </p>
+            <br>
+            <h3 class="text-title">Online Benchmark</h3>
+              <p class="text-content">
+                The online benchmark suites consists of 205 tasks. These tasks span API usages such as terminal and Gmail and GUI software like VS Code in the AgentStudio environment. Solving these tasks requires various fundamental agent abilities, including general grounding through complex action space.
+              </p>
+              <!-- <img src="./main_page_resources/ui_grounding_example.jpg" style="width:70%;margin:auto;display:block;"> -->
+            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
+              <table class="table scrollable">
+                <thead>
+                  <tr>
+                    <th><div class="sticky-header-content">Model</div></th>
+                    <th><div class="sticky-header-content">Single API</div></th>
+                    <th><div class="sticky-header-content">Single GUI</div></th>
+                    <th><div class="sticky-header-content">Compositional</div></th>
+                    <th><div class="sticky-header-content">Total</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
+                    <!-- <th><div class="sticky-header-content">Logs</div></th> -->
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p class="model-type">Claude 3.5 Sonnet (0620)</p>
+                    </td>
+                    <td><p class="number"><strong>82.0</strong></p></td>
+                    <td><p class="number">20.0</p></td>
+                    <td><p class="number"><strong>25.0</strong></p></td>
+                    <td><p class="number"><strong>36.6</strong></p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">GPT-4o (0806)</p>
+                    </td>
+                    <td><p class="number">72.0</p></td>
+                    <td><p class="number"><strong>24.2</strong></p></td>
+                    <td><p class="number">23.3</p></td>
+                    <td><p class="number">35.6</p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini 1.5 Pro</p>
+                    </td>
+                    <td><p class="number">36.0</p></td>
+                    <td><p class="number">13.6</p></td>
+                    <td><p class="number">5.0</p></td>
+                    <td><p class="number">16.6</p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini-1.5 Flash</p>
+                    </td>
+                    <td><p class="number">28.0</p></td>
+                    <td><p class="number">9.5</p></td>
+                    <td><p class="number">6.7</p></td>
+                    <td><p class="number">13.2</p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <br>
+            <h3 class="text-title">Single API (Details)</h3>
+              <p class="text-content">
+                Single-API tasks consist of tasks that can be accomplished through direct function calling, with the <strong>text only</strong> observation space.
+              </p>
+              <!-- <img src="./main_page_resources/ui_grounding_example.jpg" style="width:70%;margin:auto;display:block;"> -->
+            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
+              <table class="table scrollable">
+                <thead>
+                  <tr>
+                    <th><div class="sticky-header-content">Model</div></th>
+                    <th><div class="sticky-header-content">OS</div></th>
+                    <th><div class="sticky-header-content">Google<br>Docs</div></th>
+                    <th><div class="sticky-header-content">Google<br>Calendar</div></th>
+                    <th><div class="sticky-header-content">Gmail</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
+                    <!-- <th><div class="sticky-header-content">Logs</div></th> -->
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p class="model-type">Claude 3.5 Sonnet (0620)</p>
+                    </td>
+                    <td><p class="number">94.7</p></td>
+                    <td><p class="number"><strong>42.9</strong></p></td>
+                    <td><p class="number"><strong>90.9</strong></p></td>
+                    <td><p class="number"><strong>76.9</strong></p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">GPT-4o (0806)</p>
+                    </td>
+                    <td><p class="number"><strong>100.0</strong></p></td>
+                    <td><p class="number">28.6</p></td>
+                    <td><p class="number">81.8</p></td>
+                    <td><p class="number">46.2</p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini 1.5 Pro</p>
+                    </td>
+                    <td><p class="number">68.4</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">18.2</p></td>
+                    <td><p class="number">23.1</p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini-1.5 Flash</p>
+                    </td>
+                    <td><p class="number">52.6</p></td>
+                    <td><p class="number">14.3</p></td>
+                    <td><p class="number">9.1</p></td>
+                    <td><p class="number">15.4</p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <br>
+            <h3 class="text-title">Single GUI (Details)</h3>
+              <p class="text-content">
+                Single-GUI tasks involve common daily applications where agents are additionally provided with <strong>screenshots</strong> as well as <strong>text</strong> observations.
+              </p>
+              <!-- <img src="./main_page_resources/ui_grounding_example.jpg" style="width:70%;margin:auto;display:block;"> -->
+            <div class="tabcontent tabcontentall" style="display: block;width:80%;margin:auto;">
+              <table class="table scrollable">
+                <thead>
+                  <tr>
+                    <th><div class="sticky-header-content">Model</div></th>
+                    <th><div class="sticky-header-content">GIMP</div></th>
+                    <th><div class="sticky-header-content">OS</div></th>
+                    <th><div class="sticky-header-content">VSCode</div></th>
+                    <th><div class="sticky-header-content">Libreoffice<br>Impress</div></th>
+                    <th><div class="sticky-header-content">Libreoffice<br>Calc</div></th>
+                    <th><div class="sticky-header-content">Libreoffice<br>Writer</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
+                    <!-- <th><div class="sticky-header-content">Logs</div></th> -->
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p class="model-type">GPT-4o (0806)</p>
+                    </td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number"><strong>94.7</strong></p></td>
+                    <td><p class="number"><strong>15.0</strong></p></td>
+                    <td><p class="number"><strong>13.3</strong></p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Claude 3.5 Sonnet (0620)</p>
+                    </td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number"><strong>94.7</strong></p></td>
+                    <td><p class="number">5.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini 1.5 Pro</p>
+                    </td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">63.2</p></td>
+                    <td><p class="number">5.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="model-type">Gemini-1.5 Flash</p>
+                    </td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">47.4</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><span class="label-date">2024-10-02</span></p></td>
+                    <!-- <td><p style="text-align: center;">
+                      <a href="">🔗</a>
+                    </p></td> -->
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="content-wrapper">
+          <div class="content-box">
             <h2 class="text-title">GroundUI Leaderboard</h2>
             <p class="text-content">
               UI grounding with accurate coordinates is one of the main challenges for human-like computer agents, since not all interactable elements are not readily available. It has also been validated that current models can already generate correct high-level planning in text space, but struggle to ground them into accurate actions. However, there are few existing benchmark provide evaluation results on UI grounding capabilities across different applications and paltforms. In AgentStudio, we systematically re-organize existing datasets, plus self-collected data, into 18K diverse and realistic data with recaptioned clear instructions to benchmark UI grounding.
@@ -141,11 +384,11 @@
                 <thead>
                   <tr>
                     <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">Date</div></th>
                     <th><div class="sticky-header-content">Web</div></th>
                     <th><div class="sticky-header-content">Desktop</div></th>
                     <th><div class="sticky-header-content">Mobile</div></th>
                     <th><div class="sticky-header-content">Total</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
                     <!-- <th><div class="sticky-header-content">Logs</div></th> -->
                   </tr>
                 </thead>
@@ -154,11 +397,11 @@
                     <td>
                       <p class="model-type">SeeClick</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">64.3</p></td>
                     <td><p class="number">44.3</p></td>
                     <td><p class="number">73.7</p></td>
                     <td><p class="number">61.1</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -167,11 +410,11 @@
                     <td>
                       <p class="model-type">Gemini 1.5 Pro</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">31.2</p></td>
                     <td><p class="number">24.3</p></td>
                     <td><p class="number">51.3</p></td>
                     <td><p class="number">35.2</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -180,11 +423,11 @@
                     <td>
                       <p class="model-type">CogAgent</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">25.3</p></td>
                     <td><p class="number">15.7</p></td>
                     <td><p class="number">35.7</p></td>
                     <td><p class="number">25.5</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -193,11 +436,11 @@
                     <td>
                       <p class="model-type">Claude 3.5 Sonnet (0620)</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">13.0</p></td>
                     <td><p class="number">14.0</p></td>
                     <td><p class="number">26.3</p></td>
                     <td><p class="number">17.3</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -206,11 +449,11 @@
                     <td>
                       <p class="model-type">GPT-4o (0513)</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">7.5</p></td>
                     <td><p class="number">8.3</p></td>
                     <td><p class="number">26.3</p></td>
                     <td><p class="number">13.4</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -219,11 +462,11 @@
                     <td>
                       <p class="model-type">GPT-4 Turbo (0409)</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">5.3</p></td>
                     <td><p class="number">11.0</p></td>
                     <td><p class="number">23.0</p></td>
                     <td><p class="number">12.3</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -232,11 +475,11 @@
                     <td>
                       <p class="model-type">Gemini-1.5 Flash</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">0.5</p></td>
                     <td><p class="number">4.3</p></td>
                     <td><p class="number">26.3</p></td>
                     <td><p class="number">9.4</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -245,11 +488,11 @@
                     <td>
                       <p class="model-type">CogVLM2-Llama3-chat-19B</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">2.5</p></td>
                     <td><p class="number">2.7</p></td>
                     <td><p class="number">5.3</p></td>
                     <td><p class="number">3.4</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -258,11 +501,11 @@
                     <td>
                       <p class="model-type">Gemini-1.0 Pro</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">0.5</p></td>
                     <td><p class="number">0.3</p></td>
                     <td><p class="number">5.0</p></td>
                     <td><p class="number">1.8</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -271,11 +514,11 @@
                     <td>
                       <p class="model-type">MiniCPM-Llama3-V 2.5</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">0.0</p></td>
                     <td><p class="number">0.3</p></td>
                     <td><p class="number">2.7</p></td>
                     <td><p class="number">0.9</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -284,11 +527,11 @@
                     <td>
                       <p class="model-type">Qwen-VL-Chat</p>
                     </td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
                     <td><span class="label-date">2024-06-06</span></p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -297,11 +540,11 @@
                     <td>
                       <p class="model-type">PaliGemma-3B-896</p>
                     </td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
                     <td><span class="label-date">2024-08-17</span></p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -310,11 +553,11 @@
                     <td>
                       <p class="model-type">PaliGemma-3B-mix-448</p>
                     </td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
                     <td><span class="label-date">2024-08-17</span></p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -343,11 +586,11 @@
                 <thead>
                   <tr>
                     <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">Date</div></th>
                     <th><div class="sticky-header-content">Web</div></th>
                     <th><div class="sticky-header-content">Desktop</div></th>
                     <th><div class="sticky-header-content">Mobile</div></th>
                     <th><div class="sticky-header-content">Total</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
                     <!-- <th><div class="sticky-header-content">Logs</div></th> -->
                   </tr>
                 </thead>
@@ -356,11 +599,11 @@
                     <td>
                       <p class="model-type">Gemini 1.5 Pro</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">73.5</p></td>
                     <td><p class="number">82.0</p></td>
                     <td><p class="number">62.0</p></td>
                     <td><p class="number">71.4</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -369,11 +612,11 @@
                     <td>
                       <p class="model-type">Gemini 1.5 Flash</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">68.5</p></td>
                     <td><p class="number">82.0</p></td>
                     <td><p class="number">65.0</p></td>
                     <td><p class="number">69.4</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -382,11 +625,11 @@
                     <td>
                       <p class="model-type">Claude 3.5 Sonnet</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">70.0</p></td>
                     <td><p class="number">92.0</p></td>
                     <td><p class="number">55.0</p></td>
                     <td><p class="number">68.9</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -395,11 +638,11 @@
                     <td>
                       <p class="model-type">GPT-4o (0513)</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">68.5</p></td>
                     <td><p class="number">90.0</p></td>
                     <td><p class="number">58.0</p></td>
                     <td><p class="number">68.6</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -408,11 +651,11 @@
                     <td>
                       <p class="model-type">Qwen-VL-Chat</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
-<td><p class="number">52.0</p></td>
+                    <td><p class="number">52.0</p></td>
                     <td><p class="number">38.0</p></td>
                     <td><p class="number">48.0</p></td>
                     <td><p class="number">48.9</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -428,11 +671,11 @@
                 <thead>
                   <tr>
                     <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">Date</div></th>
                     <th><div class="sticky-header-content">Web</div></th>
                     <th><div class="sticky-header-content">Desktop</div></th>
                     <th><div class="sticky-header-content">Mobile</div></th>
                     <th><div class="sticky-header-content">Total</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
                     <!-- <th><div class="sticky-header-content">Logs</div></th> -->
                   </tr>
                 </thead>
@@ -441,11 +684,11 @@
                     <td>
                       <p class="model-type">Gemini 1.5 Pro</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">65.0</p></td>
                     <td><p class="number">86.0</p></td>
                     <td><p class="number">59.0</p></td>
                     <td><p class="number">66.3</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -454,11 +697,11 @@
                     <td>
                       <p class="model-type">Gemini 1.5 Flash</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">67.0</p></td>
                     <td><p class="number">72.0</p></td>
                     <td><p class="number">62.0</p></td>
                     <td><p class="number">66.3</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -467,11 +710,11 @@
                     <td>
                       <p class="model-type">Claude 3.5 Sonnet</p>
                     </td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">66.0</p></td>
                     <td><p class="number">86.0</p></td>
                     <td><p class="number">58.0</p></td>
                     <td><p class="number">66.6</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -480,11 +723,11 @@
                     <td>
                       <p class="model-type">GPT-4o (0513)</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
-<td><p class="number">63.5</p></td>
+                    <td><p class="number">63.5</p></td>
                     <td><p class="number">84.0</p></td>
                     <td><p class="number">57.0</p></td>
                     <td><p class="number">64.6</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -493,11 +736,11 @@
                     <td>
                       <p class="model-type">Qwen-VL-Chat</p>
                     </td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">54.5</p></td>
                     <td><p class="number">58.0</p></td>
                     <td><p class="number">52.0</p></td>
                     <td><p class="number">54.3</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -526,66 +769,66 @@
                 <thead>
                   <tr>
                     <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">Date</div></th>
                     <th><div class="sticky-header-content">Mind2Web</div></th>
                     <th><div class="sticky-header-content">AITW</div></th>
                     <th><div class="sticky-header-content">VWA</div></th>
                     <th><div class="sticky-header-content">Total</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
                     <!-- <th><div class="sticky-header-content">Logs</div></th> -->
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td><p class="model-type">Claude 3.5 Sonnet</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">73.0</p></td>
                     <td><p class="number">56.0</p></td>
                     <td><p class="number">50.0</p></td>
                     <td><p class="number">59.7</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td><p class="model-type">GPT-4o (0513)</p></td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
-<td><p class="number">70.0</p></td>
+                    <td><p class="number">70.0</p></td>
                     <td><p class="number">56.0</p></td>
                     <td><p class="number">45.0</p></td>
                     <td><p class="number">57.0</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                                         <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td><p class="model-type">Gemini 1.5 Pro</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">62.0</p></td>
                     <td><p class="number">51.0</p></td>
                     <td><p class="number">46.0</p></td>
                     <td><p class="number">53.0</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td><p class="model-type">Gemini 1.5 Flash</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
-<td><p class="number">65.0</p></td>
+                    <td><p class="number">65.0</p></td>
                     <td><p class="number">34.0</p></td>
                     <td><p class="number">31.0</p></td>
                     <td><p class="number">43.3</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td><p class="model-type">Qwen-VL-Chat</p></td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">37.0</p></td>
                     <td><p class="number">20.0</p></td>
                     <td><p class="number">5.0</p></td>
                     <td><p class="number">20.7</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -601,66 +844,66 @@
                 <thead>
                   <tr>
                     <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">Date</div></th>
                     <th><div class="sticky-header-content">Mind2Web</div></th>
                     <th><div class="sticky-header-content">AITW</div></th>
                     <th><div class="sticky-header-content">VWA</div></th>
                     <th><div class="sticky-header-content">Total</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
                     <!-- <th><div class="sticky-header-content">Logs</div></th> -->
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td><p class="model-type">Claude 3.5 Sonnet</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">18.0</p></td>
                     <td><p class="number">8.0</p></td>
                     <td><p class="number">7.0</p></td>
                     <td><p class="number">11.0</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td><p class="model-type">GPT-4o (0513)</p></td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">13.0</p></td>
                     <td><p class="number">8.0</p></td>
                     <td><p class="number">2.0</p></td>
                     <td><p class="number">7.7</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td><p class="model-type">Gemini 1.5 Pro</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">0.0</p></td>
                     <td><p class="number">0.0</p></td>
                     <td><p class="number">1.0</p></td>
                     <td><p class="number">0.3</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td><p class="model-type">Qwen-VL-Chat</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
                     <td><span class="label-date">2024-06-06</span></p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td><p class="model-type">Gemini 1.5 Flash</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
+                    <td><p class="number">0.0</p></td>
                     <td><span class="label-date">2024-08-17</span></p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
-                    <td><p class="number">0.0</p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
@@ -676,66 +919,66 @@
                 <thead>
                   <tr>
                     <th><div class="sticky-header-content">Model</div></th>
-                    <th><div class="sticky-header-content">Date</div></th>
                     <th><div class="sticky-header-content">Mind2Web</div></th>
                     <th><div class="sticky-header-content">AITW</div></th>
                     <th><div class="sticky-header-content">VWA</div></th>
                     <th><div class="sticky-header-content">Total</div></th>
+                    <th><div class="sticky-header-content">Date</div></th>
                     <!-- <th><div class="sticky-header-content">Logs</div></th> -->
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td><p class="model-type">Claude 3.5 Sonnet</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">2.0</p></td>
                     <td><p class="number">2.1</p></td>
                     <td><p class="number">2.9</p></td>
                     <td><p class="number">2.3</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td><p class="model-type">GPT-4o (0513)</p></td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">2.1</p></td>
                     <td><p class="number">2.2</p></td>
                     <td><p class="number">3.5</p></td>
                     <td><p class="number">2.6</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td><p class="model-type">Gemini 1.5 Pro</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">6.0</p></td>
                     <td><p class="number">4.4</p></td>
                     <td><p class="number">7.0</p></td>
                     <td><p class="number">5.8</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                                     <tr>
                     <td><p class="model-type">Qwen-VL-Chat</p></td>
-                    <td><span class="label-date">2024-06-06</span></p></td>
                     <td><p class="number">5.1</p></td>
                     <td><p class="number">15.4</p></td>
                     <td><p class="number">5.8</p></td>
                     <td><p class="number">8.8</p></td>
+                    <td><span class="label-date">2024-06-06</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
                   </tr>
                   <tr>
                     <td><p class="model-type">Gemini 1.5 Flash</p></td>
-                    <td><span class="label-date">2024-08-17</span></p></td>
                     <td><p class="number">294.5</p></td>
                     <td><p class="number">7.2</p></td>
                     <td><p class="number">7.2</p></td>
                     <td><p class="number">103.0</p></td>
+                    <td><span class="label-date">2024-08-17</span></p></td>
                     <!-- <td><p style="text-align: center;">
                       <a href="">🔗</a>
                     </p></td> -->
