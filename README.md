@@ -49,11 +49,11 @@ AgentStudio also provides a cross-platform real-world environments with most gen
 
 ## Decomposing Agent Abilities
 
-To provide benchmarking focusing on specific agent capabilities that current benchmark is lacking, we release three benchmark suites, targeting robust **UI grounding**, **success detection** (self-reflection), and **learning from unlabeled videos** (inverse dynamics models). Please see the detailed [evals/README.md](evals/README.md) for scripts that reproduce the benchmark results in our paper. The leaderboard and data can be found at our [project page](https://skyworkai.github.io/agent-studio/).
+To provide benchmarking focusing on specific agent capabilities that current benchmark is lacking, we release three benchmark suites, targeting robust **UI grounding**, **success detection** (self-reflection), and **learning from unlabeled videos** (inverse dynamics models). Please see the detailed [eval_agent_desiderata/README.md](eval_agent_desiderata/README.md) for scripts that reproduce the benchmark results in our paper. The leaderboard and data can be found at our [project page](https://skyworkai.github.io/agent-studio/).
 
 ## Record GUI Data, Trajectories, and Videos
 
-The real-world environments also facilitate scalable data collection across different operating systems. AgentStudio offers two data collection pipelines for single-step GUI grounding data and task-completing trajectories, for both local recording (assuming there are two screens) and remote recording (based on VNC). Please refer to the [docs/annotate_ground_ui.md](docs/annotate_ground_ui.md) and [docs/annotate_trajectory.md](docs/annotate_trajectory.md) for detailed instructions.
+The real-world environments also facilitate scalable data collection across different operating systems. AgentStudio offers two data collection pipelines for single-step GUI grounding data and task-completing trajectories, for both local recording (assuming there are two screens) and remote recording (based on VNC). Please refer to the [docs/annotate_ground_ui.md](docs/annotate_ground_ui.md) and [agent_studio/recorder/README.md](agent_studio/recorder/README.md) for detailed instructions.
 
 Here is an example of recording single-step GUI grounding data in MacOS:
 

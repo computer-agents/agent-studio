@@ -49,22 +49,21 @@ The tasks are located in `eval_online_benchmarks/tasks`, and the associated file
 Start benchmarking:
 
 ```bash
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/os --model gpt-4o-2024-08-06 --remote
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/google_docs --model gpt-4o-2024-08-06 --remote
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/google_calendar --model gpt-4o-2024-08-06 --remote
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/gmail --model gpt-4o-2024-08-06 --remote
+# Use docker environment, specify --remote
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks --model gpt-4o-2024-08-06 --remote
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks --model gemini-1.5-flash-001 --remote
 
+# Run a specific task set, e.g., os
 as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/os --model gemini-1.5-flash-001 --remote
+# Or google_docs
 as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/google_docs --model gemini-1.5-flash-001 --remote
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/google_calendar --model gemini-1.5-flash-001 --remote
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_api/gmail --model gemini-1.5-flash-001 --remote
 
+# Run with time limit, which is specified in the task config
 as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_gui/os --model gpt-4o-2024-08-06 --remote --use_time_limit
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/single_gui/os --model gemini-1.5-flash-001 --remote --use_time_limit
 
-
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/docs --model gemini-1.0-pro-001
-as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/filesystem --model gemini-1.0-pro-001
+# Use --ignore_finished to recover from last run
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/docs --model gemini-1.0-pro-001 --remote --use_time_limit --ignore_finished
+as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/basic/filesystem --model gemini-1.0-pro-001 --remote --use_time_limit --ignore_finished
 
 ```
 
