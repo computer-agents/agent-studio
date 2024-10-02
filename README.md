@@ -3,8 +3,8 @@ AgentStudio
 </h1>
 
 <p align="center">
-<!-- <a href='https://arxiv.org/abs/2403.17918'><img src='https://img.shields.io/badge/arXiv-2403.17918-b31b1b.svg'></a> -->
-<a href='https://skyworkai.github.io/agent-studio/'><img src='https://img.shields.io/badge/Project-Page-Green'></a>
+<a href='https://arxiv.org/abs/2403.17918'><img src='https://img.shields.io/badge/arXiv-2403.17918-b31b1b.svg'></a>
+<a href='https://computer-agents.github.io/agent-studio'><img src='https://img.shields.io/badge/Project-Page-Green'></a>
 <a href="https://www.python.org/downloads/release/python-3117/"><img alt="Python 3.11" src="https://img.shields.io/badge/python-3.11-blue.svg"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 <!-- <a href="https://mypy-lang.org/"><img src="https://www.mypy-lang.org/static/mypy_badge.svg" alt="Checked with mypy"></a> -->
@@ -12,9 +12,14 @@ AgentStudio
 <a href="https://pre-commit.com/"><img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white" alt="pre-commit"></a>
 </p>
 
-AgentStudio is an **integrated solution for building and benchmarking computer agents**. It features in-depth benchmark suites, realistic environments, and comprehensive toolkits. Here, we open-source everything to promote research towards generalist computer agents of the future. The paper, leaderboard, benchmark suites, and documentation for environments and toolkits can be found in our <a href="https://skyworkai.github.io/agent-studio/"><b>project page</b></a>.
-
 ![](docs/assets/overview.png)
+
+AgentStudio is **a trinity of environments, tools, and benchmarks** for general virtual agents to interact with any computer software. AgentStudio targets the desiderata for robust, general, and open-ended virtual agents by providing:
+1. **A lightweight, interactive environment** with highly **generic observation and action spaces**, e.g., video observations and GUI/API actions
+2. **Tools for creating online benchmark tasks, annotating GUI elements, and labeling actions in videos**
+3. **Online benchmark tasks** that evaluate both GUI interactions and function calling with **auto-evaluation** and language feedback
+4. **Three benchmark datasets**: GroundUI, IDMBench, and CriticBench, for fundamental agent abilities, including GUI grounding, learning from videos, and success detection
+
 
 Comparisons with existing work:
 
@@ -22,11 +27,9 @@ Comparisons with existing work:
 
 ## News
 
-**Aug 18, 2024**: We make major update v0.2 to clean up code and datasets.
-
-**Jun 6, 2024**: We update the leaderboard and benchmarks.
-
-**Mar 30, 2024**: We release the beta version of AgentStudio.
+- **Oct 3, 2024**: Released the <a href='https://arxiv.org/abs/2403.17918'>arXiv paper v2</a> and a full version of AgentStudio, including comprehensive documentation, complete tasks, and datasets!!
+- **Aug 18, 2024**: Major update to clean up the codebase and datasets.
+- **Mar 30, 2024**: Released the beta version of AgentStudio.
 
 ## Installation
 
@@ -41,32 +44,28 @@ pip install -e '.[client]'
 
 All confidential API keys should be stored in `agent_studio/config/api_key.json`, e.g., OpenAI API key, Claude API key, Gemini API key, etc. We have provided an example config in `agent_studio/config/api_key_template.json`.
 
-## Online Benchmarks
+## AgentStudio Overall Benchmark Tasks
 
 ![](docs/assets/agent_space.jpg)
 
-AgentStudio also provides a cross-platform real-world environments with most generic (human-like) observation and action spaces. We also offer a set of example tasks as a demonstration to benchmark computer agents in the wild. We also offer several auto-evaluators for easily benchmark without human evaluation. The implementation is straightforward and flexible, supporting adding custom tasks as well as human evaluation. Please find more in the [Benchmark Guide](eval_online_benchmarks/README.md).
+AgentStudio provides the most generic observation and action spaces, which significantly expands the task space, allowing for developing and evaluating agents in real-world settings. We introduce a benchmark suite consisting of 205 tasks. These tasks span API usages such as terminal and Gmail and GUI software like VS Code. Please find more in [eval_online_benchmarks/README.md](eval_online_benchmarks/README.md). The task-related files are available at our <a href='https://computer-agents.github.io/agent-studio'>project page</a>.
 
-## Decomposing Agent Abilities
+## AgentStudio Datasets Decompose Agent Abilities
 
-To provide benchmarking focusing on specific agent capabilities that current benchmark is lacking, we release three benchmark suites, targeting robust **UI grounding**, **success detection** (self-reflection), and **learning from unlabeled videos** (inverse dynamics models). Please see the detailed [eval_agent_desiderata/README.md](eval_agent_desiderata/README.md) for scripts that reproduce the benchmark results in our paper. The leaderboard and data can be found at our [project page](https://skyworkai.github.io/agent-studio/).
+To gain deeper insights into agent capabilities beyond the overall performance measured by online benchmark tasks, we develop three datasets using AgentStudio: GroundUI, IDMBench, and CriticBench. These datasets target general UI grounding, learning from videos, and success detection. More details are provided in [eval_agent_desiderata/README.md](eval_agent_desiderata/README.md). All data are available at our <a href='https://computer-agents.github.io/agent-studio'>project page</a>.
 
-## Record GUI Data, Trajectories, and Videos
+## AgentStudio Tools
 
-The real-world environments also facilitate scalable data collection across different operating systems. AgentStudio offers two data collection pipelines for single-step GUI grounding data and task-completing trajectories, for both local recording (assuming there are two screens) and remote recording (based on VNC). Please refer to the [docs/annotate_ground_ui.md](docs/annotate_ground_ui.md) and [agent_studio/recorder/README.md](agent_studio/recorder/README.md) for detailed instructions.
+To facilitate the development and evaluation of agents within the AgentStudio environment, we provide three tools for:
+- Benchmark task creation and validation
+- Step-level GUI element annotation
+- Trajectory-level video-action recording and refinement
 
-Here is an example of recording single-step GUI grounding data in MacOS:
-
-<div style="display: flex; justify-content: space-between;">
-    <img src="docs/assets/annotate_gui_1.jpg" width="45%">
-    <img src="docs/assets/annotate_gui_2.jpg" width="45%">
-</div>
-
-The example video of recording trajectories can be found at our project page.
+These tools, combined with the realistic environment of AgentStudio, contribute to the generation of rich, structured data for training and evaluating agents. Please refer to [docs/annotate_ground_ui.md](docs/annotate_ground_ui.md) for the GUI annotation tool, [agent_studio/recorder/README.md](agent_studio/recorder/README.md) for the video-action annotation tool, and [eval_online_benchmarks/README.md](eval_online_benchmarks/README.md) for the task creation/validation.
 
 ## Contributing
 
-We are continuing to expand the collection of environments, tasks, and data over time. Contributions and feedback from everyone on how to make this into a better tool are more than welcome. Please check out [CONTRIBUTING.md](CONTRIBUTING.md) for how to get involved.
+Contributions and feedback from everyone on how to make this into a better tool are more than welcome. Please check out [CONTRIBUTING.md](CONTRIBUTING.md) for how to get involved.
 
 ## Acknowledgement
 
@@ -74,7 +73,7 @@ We would like to thank the following projects for their inspiration and contribu
 
 ## Citation
 
-If you find AgentStudio useful, please cite our [paper](https://arxiv.org/abs/2403.17918):
+If you find AgentStudio useful, please cite our paper:
 
 ```bibtex
 @article{zheng2024agentstudio,

@@ -91,6 +91,8 @@ as-online-benchmark --task_configs_path eval_online_benchmarks/tasks/composition
 
 ## Human Validation & Evaluation
 
+![](../docs/assets/onlinebenchmark_gui_1.png)
+
 In order to 1) validate the correctness of task implementation or 2) evaluate human performance on these tasks, we provide this tool for human evaluation.
 
 Step 1: Start the Agent Monitor GUI
@@ -106,6 +108,10 @@ Step 2: Open http://localhost:6080/ in the browser (or any VNC viewer)
 Step 3: Double click a task in the Task Selection of the Agent Monitor, and click on the start button. You may be prompted to confirm some resetting actions. The script will popup "Confirm when you finish" after reset
 
 Step 4: Complete the task in the browser (or VNC viewer). After finishing the task, you can confirm the popup message to see the evaluation result. If you find it hard to complete, click on the "reject" button
+
+Step 5: Wait for the evaluation result on the right bottom of the Agent Monitor or the output from the terminal.
+
+Step 6: Repeat step 3-5 for other tasks.
 
 ## Add more tasks
 
