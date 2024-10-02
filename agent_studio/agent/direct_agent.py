@@ -47,7 +47,9 @@ class DirectAgent(BaseAgent):
         for step in self.trajectory:
             messages.append(
                 Message(
-                    role="assistant", content=f"Action:\n```python\n{step.action}\n```"
+                    role="assistant",
+                    content=f"Action:\n```python\n{step.action}\n```\n\n"
+                    f"Execution result:\n{step.result}",
                 )
             )
 

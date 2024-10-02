@@ -1,4 +1,4 @@
-# Annotate single-step GUI grounding dataset
+# Annotate step-level GUI grounding dataset
 
 With AgentStudio, you can easily create a dataset with **single-step UI grounding**, consisting of tuples of <screenshot, instruction, bbox (left, top, width, height)>.
 
