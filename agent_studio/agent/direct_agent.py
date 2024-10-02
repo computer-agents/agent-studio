@@ -49,7 +49,7 @@ class DirectAgent(BaseAgent):
                 Message(
                     role="assistant",
                     content=f"Action:\n```python\n{step.action}\n```\n\n"
-                            f"Execution result:\n{step.result}",
+                    f"Execution result:\n{step.result}",
                 )
             )
 
