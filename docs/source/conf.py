@@ -33,17 +33,17 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
-    "autoapi.extension",
+    # "autoapi.extension",
 ]
 
-autoapi_dirs = [Path(__file__).parent.parent.parent / "agent_studio"]
-autoapi_options = [
-    'members',
-    'undoc-members',
-    'show-module-summary',
-    "show-inheritance",
-    # 'imported-members',
-    ]
+# autoapi_dirs = [Path(__file__).parent.parent.parent / "agent_studio"]
+# autoapi_options = [
+#     'members',
+#     'undoc-members',
+#     'show-module-summary',
+#     "show-inheritance",
+#     # 'imported-members',
+#     ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
