@@ -290,7 +290,7 @@ def push_success_detection():
     print(f"length: {len(dataset)}")
     print(f"dataset[0]: {dataset[0]}")
 
-    dataset.push_to_hub("agent-studio/SuccessDetection")
+    dataset.push_to_hub("agent-studio/CriticBench")
 
 
 if __name__ == "__main__":
