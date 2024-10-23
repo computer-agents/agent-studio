@@ -65,9 +65,9 @@ python eval_agent_desiderata/re_caption_gui_grounding_data.py --model /PATH/TO/c
 
 ### Evaluation on re-captioned GroundUI-1K
 
-The `--model` tested are `gpt-4o-2024-05-13`, `gpt-4-turbo-2024-04-09`, `gemini-pro-vision`, `gemini-1.5-pro-001`, `gemini-1.5-flash-001` (Vertex AI), `claude-3-5-sonnet-20240620`, `claude-3-5-sonnet@20240620` (Vertex AI), `/PATH/TO/SeeClick`, `/PATH/TO/cogvlm2-llama3-chat-19B`, `/PATH/TO/Qwen-VL-Chat`, `/PATH/TO/cogagent-chat-hf`, `/PATH/TO/paligemma-3b-mix-448`, `/PATH/TO/paligemma-3b-pt-896`, `/PATH/TO/MiniCPM-Llama3-V-2_5`.
+The `--model` tested are `gpt-4o-2024-05-13`, `gpt-4-turbo-2024-04-09`, `gemini-pro-vision`, `gemini-1.5-pro-001`, `gemini-1.5-flash-001` (Vertex AI), `claude-3-5-sonnet-20240620`, `claude-3-5-sonnet@20240620` (Vertex AI), `claude-3-5-sonnet-20241022`, `/PATH/TO/SeeClick`, `/PATH/TO/cogvlm2-llama3-chat-19B`, `/PATH/TO/Qwen-VL-Chat`, `/PATH/TO/cogagent-chat-hf`, `/PATH/TO/paligemma-3b-mix-448`, `/PATH/TO/paligemma-3b-pt-896`, `/PATH/TO/MiniCPM-Llama3-V-2_5`.
 
-You can add `--num_workers` to speed up the evaluation process for APIs.
+To use the latest models with Vertex AI, more details can be found in the [Vertex AI documentation](https://docs.anthropic.com/en/api/claude-on-vertex-ai). To test other models, you can add it to the `MODEL_PROVIDER_MAPPING` in `agent_studio/llm/__init__.py`. You can also add `--num_workers` to speed up the evaluation process for APIs.
 
 For example:
 
@@ -75,7 +75,7 @@ For example:
 # If using local data downloaded from Google Drive
 python eval_agent_desiderata/main.py --model gpt-4o-2024-05-13 --eval_type gui_grounding --data_path eval_agent_desiderata/datasets/gui_grounding/metadata_1k.jsonl
 # If using HuggingFace dataset
-python eval_agent_desiderata/main.py --model gpt-4o-2024-05-13 --eval_type gui_grounding --data_path agent-studio/GroundUI-1K
+python eval_agent_desiderata/main.py --model claude-3-5-sonnet-20241022 --eval_type gui_grounding --data_path agent-studio/GroundUI-1K
 
 # You need to specify the `--tokenizer` for some open-source models like SeeClick, otherwise the tokenizer will be automatically loaded from the model path.
 python eval_agent_desiderata/main.py --model /PATH/TO/SeeClick --tokenizer /PATH/TO/Qwen-VL-Chat --eval_type gui_grounding --data_path eval_agent_desiderata/datasets/gui_grounding/metadata_1k.jsonl
@@ -84,7 +84,7 @@ python eval_agent_desiderata/main.py --model /PATH/TO/SeeClick --tokenizer /PATH
 After running experiments, you can generate a report with metrics using the following command. The `--result_path` is the path to save the evaluation results shown in the last log of running evaluation, e.g., `results/gui_grounding/gpt-4o-2024-05-13.jsonl`. Example script for gathering results:
 
 ```bash
-python eval_agent_desiderata/make_report.py --image_path eval_agent_desiderata/datasets/gui_grounding/images --result_path results/gui_grounding/gpt-4o-2024-05-13.jsonl
+python eval_agent_desiderata/make_report.py --image_path /media/longtao/Expansion/agent_studio_h100/agent-studio/evals/datasets/gui_grounding/images --result_path results/gui_grounding/claude-3-5-sonnet-20241022.jsonl
 ```
 
 ### Ablation on raw instruction
